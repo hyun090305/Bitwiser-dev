@@ -793,20 +793,26 @@ html, body {
   }
 
   @media (max-width: 768px) {
-    #guestbookContent {
-      display: flex;
+    #guestbookArea {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: flex-start;
     }
-    #guestbookForm,
-    #guestbookList {
-      flex: 1;
+    #guestbookContent {
+      display: contents;
     }
     #guestbookForm {
+      grid-column: 1;
       padding-right: 0.5rem;
     }
     #guestbookList {
+      grid-column: 2;
       margin-top: 0;
       border-left: 1px solid #ddd;
       padding-left: 0.5rem;
+    }
+    #coffeeBtn {
+      grid-column: 2;
     }
   }
 
@@ -1359,6 +1365,7 @@ html, body {
     overflow-y: auto;
     /* 세로 스크롤 */
     min-height: 0;
+    max-height: 100%;
   }
 
   #overallRankingList table {
@@ -1381,7 +1388,6 @@ html, body {
 
   #firstScreen {
     /* 이전: .container { display:flex; gap:5rem; } 에서만 정의되어 있었음 */
-    min-height: 100vh;
     justify-content: center;
     /* 가로 중앙 정렬 */
     align-items: flex-start;
