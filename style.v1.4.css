@@ -794,6 +794,9 @@ html, body {
     border: 1px solid #ccc;
     border-radius: 12px;
     max-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
   }
 
   #guestbookArea textarea,
@@ -804,28 +807,22 @@ html, body {
     box-sizing: border-box;
   }
 
-  @media (max-width: 768px) {
-    #guestbookArea {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      align-items: flex-start;
-    }
-    #guestbookContent {
-      display: contents;
-    }
-    #guestbookForm {
-      grid-column: 1;
-      padding-right: 0.5rem;
-    }
-    #guestbookList {
-      grid-column: 2;
-      margin-top: 0;
-      border-left: 1px solid #ddd;
-      padding-left: 0.5rem;
-    }
-    #coffeeBtn {
-      grid-column: 2;
-    }
+  #guestbookForm {
+    flex: 1 1 50%;
+    padding-right: 0.5rem;
+  }
+
+  #guestbookList {
+    flex: 1 1 50%;
+    margin-top: 0;
+    border-left: 1px solid #ddd;
+    padding-left: 0.5rem;
+  }
+
+  #coffeeBtn {
+    flex: 1 1 50%;
+    margin-left: auto;
+    align-self: flex-start;
   }
 
   .modal {
