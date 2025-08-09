@@ -85,10 +85,17 @@
         <!-- <button id="createProblemBtn">문제 출제</button> -->
         </div>
         <div id="loginArea">
-          <div id="loginInfo"></div>
+          <h2 id="loginUsername"></h2>
+          <div id="rankSection" style="display:none;">
+            <p id="loginRankLabel"></p>
+            <p id="rankValues"><span id="overallRank">#-</span> | <span id="clearedCount">0</span></p>
+          </div>
           <div class="button-row">
             <button id="googleLoginBtn" class="main-button"></button>
-            <button id="languageBtn" class="main-button">한영전환</button>
+          </div>
+          <p id="loginGuestPrompt" class="tagline"></p>
+          <div class="button-row">
+            <button id="languageBtn" class="main-button"></button>
           </div>
         </div>
       </div>

@@ -90,24 +90,24 @@ html, body {
     width: max-content;
   }
 
-  #mainScreen .button-row {
-    display: flex;
-    justify-content: center;
-    gap: 10px;
-    margin: 10px 0;
-  }
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin: 10px 0;
+    }
 
-  #mainScreen .main-button {
-    padding: 12px 20px;
-    font-size: 1.2rem;
-    border: 2px solid #1d4ed8;
-    border-radius: 8px;
-    background-color: #fff;
-    color: #1d4ed8;
-    cursor: pointer;
-    transition: background-color 0.2s, transform 0.2s;
-    width: 120px;
-  }
+    .main-button {
+      padding: 12px 20px;
+      font-size: 1.2rem;
+      border: 2px solid #1d4ed8;
+      border-radius: 8px;
+      background-color: #fff;
+      color: #1d4ed8;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.2s;
+      width: 120px;
+    }
 
   #mainScreen #tutorialBtn,
   #mainScreen #copyStatusBtn {
@@ -132,10 +132,10 @@ html, body {
     transform: scale(1.05);
   }
 
-  #mainScreen .main-button:not(#startBtn):hover {
-    background-color: #eff6ff;
-    transform: scale(1.02);
-  }
+    .main-button:not(#startBtn):hover {
+      background-color: #eff6ff;
+      transform: scale(1.02);
+    }
 
   /* 모듈 기능 보류에 따라 메인화면의 모듈 관리 버튼 숨김 */
   #manageModulesBtn {
@@ -1117,15 +1117,28 @@ html, body {
   }
 
   #loginArea {
-    margin-top: 1rem;
+    padding: 50px;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
   }
 
-  #loginArea .button-row {
-    margin-top: 0.5rem;
+  #loginArea #rankLabel {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  #loginArea #rankValues {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
+  #loginArea #loginPrompt {
+    font-size: 0.9rem;
+    color: #6b7280;
   }
 
   .item {
