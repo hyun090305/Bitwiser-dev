@@ -2048,11 +2048,11 @@ html, body {
   #firstScreen > #guestbookArea {
     display: none;
     width: 100%;
-    max-width: none;
     margin: 0;
     box-sizing: border-box;
   }
 
+  
   #firstScreen > #mainArea {
     display: flex;
   }
