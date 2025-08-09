@@ -1086,7 +1086,7 @@ html, body {
   /* ── 비게임 화면에만 오버레이 적용 ── */
   body:not(.game-active) #mainScreen,
   body:not(.game-active) #chapterStageScreen,
-  body:not(.game-active) #loginArea,{
+  body:not(.game-active) #loginArea{
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border-radius: 12px;
@@ -1095,6 +1095,7 @@ html, body {
     margin: 2rem auto;
     box-sizing: border-box;
   }
+
 
   /* ── 게임 화면에서는 오버레이 완전 해제 ── */
   body.game-active #gameScreen {
