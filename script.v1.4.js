@@ -941,7 +941,7 @@ if (mobileNav) {
     mainScreenSection.style.display = "none";
     guestbookAreaEl.style.display = "none";
     const target = document.getElementById(targetId);
-    if (target) target.style.display = (targetId === 'mainArea') ? 'flex' : 'block';
+    if (target) target.style.display = 'flex';
   }
 
   mobileNav.querySelectorAll(".nav-item").forEach(item => {
