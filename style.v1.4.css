@@ -1119,20 +1119,31 @@ html, body {
   }
 
   #loginArea {
-    padding: 50px;
+    padding: 2rem;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 0.5rem;
   }
 
-  #loginArea #rankLabel {
+  #loginArea #rankTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #loginArea #rankTable td {
+    text-align: center;
+    border: none;
+    padding: 0;
+  }
+
+  #loginArea #rankTable .rank-label {
     font-size: 0.9rem;
     color: #94a3b8;
     margin: 0;
   }
 
-  #loginArea #rankValues {
+  #loginArea #rankTable .rank-value {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;
