@@ -936,23 +936,38 @@ const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
 
 if (mobileNav) {
-  function showFirstScreenSection(targetId) {
-    overallRankingAreaEl.style.display = "none";
-    mainScreenSection.style.display = "none";
-    guestbookAreaEl.style.display = "none";
-    mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-    const target = document.getElementById(targetId);
-    if (target) target.style.display = 'flex';
-    const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
-    if (activeNav) activeNav.classList.add("active");
+    function showFirstScreenSection(targetId) {
+      overallRankingAreaEl.style.display = "none";
+      mainScreenSection.style.display = "none";
+      guestbookAreaEl.style.display = "none";
+      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+      const target = document.getElementById(targetId);
+      if (target) target.style.display = 'flex';
+      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (activeNav) activeNav.classList.add("active");
   }
 
-  mobileNav.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const target = item.getAttribute("data-target");
-      showFirstScreenSection(target);
+    mobileNav.querySelectorAll(".nav-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+        showFirstScreenSection(target);
+      });
     });
-  });
+
+    function handleFirstScreenResize() {
+      if (window.innerWidth >= 1024) {
+        overallRankingAreaEl.style.display = "";
+        mainScreenSection.style.display = "";
+        guestbookAreaEl.style.display = "";
+      } else {
+        const activeNav = mobileNav.querySelector(".nav-item.active");
+        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
+        showFirstScreenSection(target);
+      }
+    }
+
+  window.addEventListener("resize", handleFirstScreenResize);
+  handleFirstScreenResize();
 }
 
 function lockOrientationLandscape() {
