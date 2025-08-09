@@ -795,7 +795,6 @@ html, body {
     border-radius: 12px;
     max-width: 600px;
     display: flex;
-    flex-wrap: wrap;
     align-items: flex-start;
   }
 
