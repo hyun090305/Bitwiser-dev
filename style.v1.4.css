@@ -1131,6 +1131,7 @@ html, body {
   }
 
   #loginArea #rankTable {
+    margin: 10px;
     width: 100%;
     border-collapse: collapse;
   }
