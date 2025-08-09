@@ -1,0 +1,1522 @@
+{
+  "levelTitles": {
+  "1": "NOT gate",
+  "2": "OR gate",
+  "3": "AND gate",
+  "4": "NOR gate",
+  "5": "NAND gate",
+  "6": "XOR gate",
+  "7": "Majority gate",
+  "8": "Parity checker",
+  "9": "Half Adder",
+  "10": "Full Adder",
+  "11": "2-to-4 Decoder",
+  "12": "4-to-1 MUX",
+  "13": "2-bit Comparator",
+  "14": "2-bit Adder",
+  "15": "2-bit Mod 4 Subtractor",
+  "16": "2-bit Max Selector",
+  "17": "2-bit Multiplier",
+  "18": "4-bit Mod 3 Remainder"
+},
+  "levelGridSizes": {
+    "1": [6, 6],
+    "2": [6, 6],
+    "3": [6, 6],
+    "4": [6, 6],
+    "5": [6, 6],
+    "6": [6, 6],
+    "7": [6, 6],
+    "8": [8, 10],
+    "9": [8, 10],
+    "10": [10, 10],
+    "11": [10, 10],
+    "12": [12, 12],
+    "13": [12, 12],
+    "14": [12, 12],
+    "15": [12, 12],
+    "16": [12, 12],
+    "17": [12, 12],
+    "18": [15, 15]
+  },
+  "levelBlockSets": {
+    "1": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "NOT" }
+    ],
+    "2": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OR" }
+    ],
+    "3": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" }
+    ],
+    "4": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OR" },
+      { "type": "NOT" }
+    ],
+    "5": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" },
+      { "type": "NOT" }
+    ],
+    "6": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" },
+      { "type": "NOT" },
+      { "type": "OR" }
+    ],
+    "7": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "INPUT", "name": "IN3" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" },
+      { "type": "OR" },
+      { "type": "JUNCTION" }
+    ],
+    "8": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "INPUT", "name": "IN3" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" },
+      { "type": "OR" },
+      { "type": "NOT" },
+      { "type": "JUNCTION" }
+    ],
+    "9": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OUTPUT", "name": "OUT2" },
+      { "type": "AND" },
+      { "type": "NOT" },
+      { "type": "OR" },
+      { "type": "JUNCTION" }
+    ],
+    "10": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "INPUT", "name": "IN3" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OUTPUT", "name": "OUT2" },
+      { "type": "AND" },
+      { "type": "NOT" },
+      { "type": "OR" },
+      { "type": "JUNCTION" }
+    ],
+    "11": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OUTPUT", "name": "OUT2" },
+      { "type": "OUTPUT", "name": "OUT3" },
+      { "type": "OUTPUT", "name": "OUT4" },
+      { "type": "NOT" },
+      { "type": "AND" },
+      { "type": "OR" },
+      { "type": "JUNCTION" }
+    ],
+    "12": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "INPUT", "name": "IN3" },
+      { "type": "INPUT", "name": "IN4" },
+      { "type": "INPUT", "name": "S1" },
+      { "type": "INPUT", "name": "S0" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "NOT" },
+      { "type": "AND" },
+      { "type": "OR" },
+      { "type": "JUNCTION" }
+    ],
+    "13": [
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "INPUT", "name": "B1" },
+  { "type": "INPUT", "name": "B0" },
+  { "type": "OUTPUT", "name": "A>B" },
+  { "type": "OUTPUT", "name": "A=B" },
+  { "type": "OUTPUT", "name": "A<B" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"14": [
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "INPUT", "name": "B1" },
+  { "type": "INPUT", "name": "B0" },
+  { "type": "OUTPUT", "name": "S2" },
+  { "type": "OUTPUT", "name": "S1" },
+  { "type": "OUTPUT", "name": "S0" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"15": [
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "INPUT", "name": "B1" },
+  { "type": "INPUT", "name": "B0" },
+  { "type": "OUTPUT", "name": "R1" },
+  { "type": "OUTPUT", "name": "R0" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"16": [
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "INPUT", "name": "B1" },
+  { "type": "INPUT", "name": "B0" },
+  { "type": "OUTPUT", "name": "M1" },
+  { "type": "OUTPUT", "name": "M0" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"17": [
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "INPUT", "name": "B1" },
+  { "type": "INPUT", "name": "B0" },
+  { "type": "OUTPUT", "name": "P3" },
+  { "type": "OUTPUT", "name": "P2" },
+  { "type": "OUTPUT", "name": "P1" },
+  { "type": "OUTPUT", "name": "P0" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"18": [
+  { "type": "INPUT", "name": "A3" },
+  { "type": "INPUT", "name": "A2" },
+  { "type": "INPUT", "name": "A1" },
+  { "type": "INPUT", "name": "A0" },
+  { "type": "OUTPUT", "name": "R1" },
+  { "type": "OUTPUT", "name": "R0" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+]
+  },
+  "chapterData": [
+    {
+      "id": "basic",
+      "name": "기초 논리 게이트",
+      "desc": "NOT, AND, OR 등 기본 게이트를 연습합니다.",
+      "stages": [1, 2, 3, 4, 5, 6]
+    },
+    {
+      "id": "advanced",
+      "name": "조합 논리 회로",
+      "desc": "Half Adder, MUX 등 복합 회로를 구현합니다.",
+      "stages": [7, 8, 9, 10, 11, 12]
+    },
+    {
+      "id": "operations",
+      "name": "산술 연산 회로",
+      "desc": "사칙연산 등의 복잡한 회로를 구현합니다.",
+      "stages": [13, 14, 15, 16, 17, 18]
+    },
+    {
+      "id": "user",
+      "name": "사용자 정의 회로",
+      "desc": "직접 만든 회로를 공유하고 도전해보세요!",
+      "stages": []
+    }
+  ],
+  "levelAnswers": {
+    "1": [
+      { "inputs": { "IN1": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1 }, "expected": { "OUT1": 0 } }
+    ],
+    "2": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 1 } }
+    ],
+    "3": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 1 } }
+    ],
+    "4": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+    ],
+    "5": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+    ],
+    "6": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+    ],
+    "7": [
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 1 } }
+    ],
+    "8": [
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 1 } }
+    ],
+    "9": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0, "OUT2": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 1 } }
+    ],
+    "10": [
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 0, "OUT2": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 0, "OUT2": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1 }, "expected": { "OUT1": 0, "OUT2": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0 }, "expected": { "OUT1": 0, "OUT2": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1 }, "expected": { "OUT1": 1, "OUT2": 1 } }
+    ],
+    "11": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 } }
+    ],
+    "12": [
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0, "S1": 1, "S0": 1 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 0, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 0, "S0": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 1, "S0": 0 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1, "S1": 1, "S0": 1 }, "expected": { "OUT1": 1 } }
+    ],
+  "13": [
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 1,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 1,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 1,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 0,
+        "A<B": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "A>B": 1,
+        "A=B": 0,
+        "A<B": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "A>B": 0,
+        "A=B": 1,
+        "A<B": 0
+      }
+    }
+  ],
+  "14": [
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 0,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 0,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 0,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 0,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 0,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 0,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 0,
+        "S1": 1,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 0,
+        "S0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 0,
+        "S0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "S2": 1,
+        "S1": 1,
+        "S0": 0
+      }
+    }
+  ],
+  "15": [
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 1,
+        "R0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "R1": 0,
+        "R0": 0
+      }
+    }
+  ],
+  "16": [
+  { "inputs": { "A1": 0, "A0": 0, "B1": 0, "B0": 0 }, "expected": { "M1": 0, "M0": 0 } },
+  { "inputs": { "A1": 0, "A0": 0, "B1": 0, "B0": 1 }, "expected": { "M1": 0, "M0": 1 } },
+  { "inputs": { "A1": 0, "A0": 0, "B1": 1, "B0": 0 }, "expected": { "M1": 1, "M0": 0 } },
+  { "inputs": { "A1": 0, "A0": 0, "B1": 1, "B0": 1 }, "expected": { "M1": 1, "M0": 1 } },
+
+  { "inputs": { "A1": 0, "A0": 1, "B1": 0, "B0": 0 }, "expected": { "M1": 0, "M0": 1 } },
+  { "inputs": { "A1": 0, "A0": 1, "B1": 0, "B0": 1 }, "expected": { "M1": 0, "M0": 1 } },
+  { "inputs": { "A1": 0, "A0": 1, "B1": 1, "B0": 0 }, "expected": { "M1": 1, "M0": 0 } },
+  { "inputs": { "A1": 0, "A0": 1, "B1": 1, "B0": 1 }, "expected": { "M1": 1, "M0": 1 } },
+
+  { "inputs": { "A1": 1, "A0": 0, "B1": 0, "B0": 0 }, "expected": { "M1": 1, "M0": 0 } },
+  { "inputs": { "A1": 1, "A0": 0, "B1": 0, "B0": 1 }, "expected": { "M1": 1, "M0": 0 } },
+  { "inputs": { "A1": 1, "A0": 0, "B1": 1, "B0": 0 }, "expected": { "M1": 1, "M0": 0 } },
+  { "inputs": { "A1": 1, "A0": 0, "B1": 1, "B0": 1 }, "expected": { "M1": 1, "M0": 1 } },
+
+  { "inputs": { "A1": 1, "A0": 1, "B1": 0, "B0": 0 }, "expected": { "M1": 1, "M0": 1 } },
+  { "inputs": { "A1": 1, "A0": 1, "B1": 0, "B0": 1 }, "expected": { "M1": 1, "M0": 1 } },
+  { "inputs": { "A1": 1, "A0": 1, "B1": 1, "B0": 0 }, "expected": { "M1": 1, "M0": 1 } },
+  { "inputs": { "A1": 1, "A0": 1, "B1": 1, "B0": 1 }, "expected": { "M1": 1, "M0": 1 } }
+],
+  "17": [
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 1,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 0,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 1,
+        "P0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 1,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 1,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 0,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 1,
+        "P1": 1,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 0,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 0,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 0,
+        "P1": 1,
+        "P0": 1
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 0
+      },
+      "expected": {
+        "P3": 0,
+        "P2": 1,
+        "P1": 1,
+        "P0": 0
+      }
+    },
+    {
+      "inputs": {
+        "A1": 1,
+        "A0": 1,
+        "B1": 1,
+        "B0": 1
+      },
+      "expected": {
+        "P3": 1,
+        "P2": 0,
+        "P1": 0,
+        "P0": 1
+      }
+    }
+  ],
+  "18": [
+  { "inputs": { "A3": 0, "A2": 0, "A1": 0, "A0": 0 }, "expected": { "R1": 0, "R0": 0 } },  
+  { "inputs": { "A3": 0, "A2": 0, "A1": 0, "A0": 1 }, "expected": { "R1": 0, "R0": 1 } },  
+  { "inputs": { "A3": 0, "A2": 0, "A1": 1, "A0": 0 }, "expected": { "R1": 1, "R0": 0 } },  
+  { "inputs": { "A3": 0, "A2": 0, "A1": 1, "A0": 1 }, "expected": { "R1": 0, "R0": 0 } },  
+
+  { "inputs": { "A3": 0, "A2": 1, "A1": 0, "A0": 0 }, "expected": { "R1": 0, "R0": 1 } },  
+  { "inputs": { "A3": 0, "A2": 1, "A1": 0, "A0": 1 }, "expected": { "R1": 1, "R0": 0 } },  
+  { "inputs": { "A3": 0, "A2": 1, "A1": 1, "A0": 0 }, "expected": { "R1": 0, "R0": 0 } },  
+  { "inputs": { "A3": 0, "A2": 1, "A1": 1, "A0": 1 }, "expected": { "R1": 0, "R0": 1 } },  
+
+  { "inputs": { "A3": 1, "A2": 0, "A1": 0, "A0": 0 }, "expected": { "R1": 1, "R0": 0 } },  
+  { "inputs": { "A3": 1, "A2": 0, "A1": 0, "A0": 1 }, "expected": { "R1": 0, "R0": 0 } },  
+  { "inputs": { "A3": 1, "A2": 0, "A1": 1, "A0": 0 }, "expected": { "R1": 0, "R0": 1 } },  
+  { "inputs": { "A3": 1, "A2": 0, "A1": 1, "A0": 1 }, "expected": { "R1": 1, "R0": 0 } },  
+
+  { "inputs": { "A3": 1, "A2": 1, "A1": 0, "A0": 0 }, "expected": { "R1": 0, "R0": 0 } },  
+  { "inputs": { "A3": 1, "A2": 1, "A1": 0, "A0": 1 }, "expected": { "R1": 0, "R0": 1 } },  
+  { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 0 }, "expected": { "R1": 1, "R0": 0 } },  
+  { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 1 }, "expected": { "R1": 0, "R0": 0 } }   
+]
+
+  },
+  "levelDescriptions": {
+    "1": {
+      "title": "Stage 1: NOT 게이트",
+      "desc": "NOT 게이트는 입력이 1이면 출력이 0, 입력이 0이면 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "OUT1": 1 },
+        { "IN1": 1, "OUT1": 0 }
+      ]
+    },
+    "2": {
+      "title": "Stage 2: OR 게이트",
+      "desc": "OR 게이트는 두 입력 중 하나라도 1이면 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "OUT1": 1 },
+        { "IN1": 1, "IN2": 1, "OUT1": 1 }
+      ]
+    },
+    "3": {
+      "title": "Stage 3: AND 게이트",
+      "desc": "AND 게이트는 두 입력이 모두 1일 때만 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 0 },
+        { "IN1": 1, "IN2": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 1, "OUT1": 1 }
+      ]
+    },
+    "4": {
+      "title": "Stage 4: NOR 게이트",
+      "desc": "NOR 게이트는 OR 게이트의 출력을 NOT한 결과입니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 1 },
+        { "IN1": 0, "IN2": 1, "OUT1": 0 },
+        { "IN1": 1, "IN2": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0 }
+      ]
+    },
+    "5": {
+      "title": "Stage 5: NAND 게이트",
+      "desc": "NAND 게이트는 AND 게이트의 출력을 NOT한 결과입니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 1 },
+        { "IN1": 0, "IN2": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "OUT1": 1 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0 }
+      ]
+    },
+    "6": {
+      "title": "Stage 6: XOR 게이트",
+      "desc": "XOR 게이트는 두 입력이 서로 다를 때만 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "OUT1": 1 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0 }
+      ]
+    },
+    "7": {
+      "title": "Stage 7: Majority 게이트",
+      "desc": "세 입력 중 2개 이상이 1이면 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 0, "IN3": 1, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "IN3": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "IN3": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "IN3": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 0, "IN3": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 1, "IN3": 0, "OUT1": 1 },
+        { "IN1": 1, "IN2": 1, "IN3": 1, "OUT1": 1 }
+      ]
+    },
+    "8": {
+      "title": "Stage 8: 패리티 검사기",
+      "desc": "세 입력의 홀수 개가 1이면 출력이 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 0, "IN3": 1, "OUT1": 1 },
+        { "IN1": 0, "IN2": 1, "IN3": 0, "OUT1": 1 },
+        { "IN1": 0, "IN2": 1, "IN3": 1, "OUT1": 0 },
+        { "IN1": 1, "IN2": 0, "IN3": 0, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "IN3": 1, "OUT1": 0 },
+        { "IN1": 1, "IN2": 1, "IN3": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 1, "IN3": 1, "OUT1": 1 }
+      ]
+    },
+    "9": {
+      "title": "Stage 9: Half Adder",
+      "desc": "두 입력의 덧셈 결과를 합과 자리올림으로 나눠 출력합니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 1, "OUT2": 0 },
+        { "IN1": 1, "IN2": 0, "OUT1": 1, "OUT2": 0 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0, "OUT2": 1 }
+      ]
+    },
+    "10": {
+      "title": "Stage 10: Full Adder",
+      "desc": "세 입력을 더한 결과를 합과 자리올림으로 나눠 출력합니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0, "OUT2": 0 },
+        { "IN1": 0, "IN2": 0, "IN3": 1, "OUT1": 1, "OUT2": 0 },
+        { "IN1": 0, "IN2": 1, "IN3": 0, "OUT1": 1, "OUT2": 0 },
+        { "IN1": 0, "IN2": 1, "IN3": 1, "OUT1": 0, "OUT2": 1 },
+        { "IN1": 1, "IN2": 0, "IN3": 0, "OUT1": 1, "OUT2": 0 },
+        { "IN1": 1, "IN2": 0, "IN3": 1, "OUT1": 0, "OUT2": 1 },
+        { "IN1": 1, "IN2": 1, "IN3": 0, "OUT1": 0, "OUT2": 1 },
+        { "IN1": 1, "IN2": 1, "IN3": 1, "OUT1": 1, "OUT2": 1 }
+      ]
+    },
+    "11": {
+      "title": "Stage 11: 2-to-4 디코더",
+      "desc": "두 입력으로 4개의 출력 중 하나만 1이 됩니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 },
+        { "IN1": 1, "IN2": 0, "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 }
+      ]
+    },
+    "12": {
+      "title": "Stage 12: 4-to-1 MUX",
+      "desc": "선택신호(S1, S0)에 따라 입력 신호 하나를 선택하여 그대로 출력합니다.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0, "OUT1": 1 },
+        { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0, "S1": 0, "S0": 1, "OUT1": 1 },
+        { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0, "S1": 1, "S0": 0, "OUT1": 1 },
+        { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "S1": 1, "S0": 1, "OUT1": 1 }
+      ]
+    },
+  "13": {
+    "title": "Stage 13: 2-bit Comparator",
+    "desc": "두 2비트 숫자 A와 B를 비교하여 A > B, A = B, A < B 중 하나를 출력합니다.",
+    "table": [
+      { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "A>B": 0, "A=B": 1, "A<B": 0 },
+      { "A1": 0, "A0": 1, "B1": 0, "B0": 0, "A>B": 1, "A=B": 0, "A<B": 0 },
+      { "A1": 1, "A0": 0, "B1": 0, "B0": 1, "A>B": 1, "A=B": 0, "A<B": 0 },
+      { "A1": 0, "A0": 0, "B1": 1, "B0": 1, "A>B": 0, "A=B": 0, "A<B": 1 },
+      { "A1": 1, "A0": 1, "B1": 1, "B0": 1, "A>B": 0, "A=B": 1, "A<B": 0 }
+    ]
+  },
+  "14": {
+    "title": "Stage 14: 2-bit Adder",
+    "desc": "두 2비트 숫자를 더해 3비트 결과를 출력합니다.",
+    "table": [
+      { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "S2": 0, "S1": 0, "S0": 0 },
+      { "A1": 0, "A0": 1, "B1": 0, "B0": 1, "S2": 0, "S1": 1, "S0": 0 },
+      { "A1": 1, "A0": 0, "B1": 0, "B0": 1, "S2": 0, "S1": 1, "S0": 1 },
+      { "A1": 1, "A0": 1, "B1": 1, "B0": 1, "S2": 1, "S1": 1, "S0": 0 },
+      { "A1": 0, "A0": 1, "B1": 1, "B0": 0, "S2": 0, "S1": 1, "S0": 1 }
+    ]
+  },
+  "15": {
+    "title": "Stage 15: mod 4 2-bit Subtractor",
+    "desc": "두 2비트 숫자 A - B를 mod 4로 계산하여 출력합니다.",
+    "table": [
+      { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "S1": 0, "S0": 0 },
+      { "A1": 0, "A0": 0, "B1": 0, "B0": 1, "S1": 1, "S0": 1 },
+      { "A1": 1, "A0": 0, "B1": 0, "B0": 1, "S1": 0, "S0": 1 },
+      { "A1": 1, "A0": 1, "B1": 1, "B0": 0, "S1": 0, "S0": 1 },
+      { "A1": 0, "A0": 1, "B1": 1, "B0": 1, "S1": 1, "S0": 0 }
+    ]
+  },
+  "16": {
+  "title": "Stage 16: 2-bit Max Selector",
+  "desc": "두 2비트 이진수 A(A1A0)와 B(B1B0)가 주어질 때, 더 큰 값을 출력으로 선택합니다. 출력은 선택된 2비트 숫자 M(M1M0)입니다.",
+  "table": [
+    { "A1": 0, "A0": 1, "B1": 0, "B0": 0, "M1": 0, "M0": 1 },  
+    { "A1": 1, "A0": 0, "B1": 0, "B0": 1, "M1": 1, "M0": 0 },  
+    { "A1": 0, "A0": 1, "B1": 1, "B0": 1, "M1": 1, "M0": 1 },  
+    { "A1": 1, "A0": 1, "B1": 1, "B0": 0, "M1": 1, "M0": 1 },  
+    { "A1": 0, "A0": 1, "B1": 0, "B0": 1, "M1": 0, "M0": 1 }   
+  ]
+},
+  "17": {
+    "title": "Stage 17: 2-bit Multiplier",
+    "desc": "두 2비트 숫자 A와 B의 곱을 4비트 이진수로 출력합니다.",
+    "table": [
+      { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "P3": 0, "P2": 0, "P1": 0, "P0": 0 },
+      { "A1": 0, "A0": 1, "B1": 1, "B0": 1, "P3": 0, "P2": 0, "P1": 1, "P0": 1 },
+      { "A1": 1, "A0": 0, "B1": 0, "B0": 1, "P3": 0, "P2": 0, "P1": 1, "P0": 0 },
+      { "A1": 1, "A0": 1, "B1": 1, "B0": 0, "P3": 0, "P2": 1, "P1": 1, "P0": 0 },
+      { "A1": 1, "A0": 1, "B1": 1, "B0": 1, "P3": 1, "P2": 0, "P1": 0, "P0": 1 }
+    ]
+  },
+  "18": {
+  "title": "Stage 18: Mod 3 Remainder",
+  "desc": "4비트 이진수 A(A3A2A1A0)를 3으로 나눈 나머지를 2비트 R(R1R0)로 출력합니다. 예: 6 → 0, 7 → 1, 8 → 2",
+  "table": [
+    { "A3": 0, "A2": 0, "A1": 0, "A0": 0, "R1": 0, "R0": 0 },  
+    { "A3": 0, "A2": 0, "A1": 1, "A0": 0, "R1": 1, "R0": 0 },  
+    { "A3": 0, "A2": 1, "A1": 0, "A0": 0, "R1": 0, "R0": 1 },  
+    { "A3": 1, "A2": 0, "A1": 0, "A0": 1, "R1": 0, "R0": 0 },  
+    { "A3": 1, "A2": 0, "A1": 1, "A0": 0, "R1": 0, "R0": 1 }   
+  ]
+}
+  },
+  "levelHints": {
+    "stage6": {
+      "hints": [
+        { "type": "설명", "content": "A∨B가 참이지만, A∧B가 거짓일 때만 참을 출력합니다." },
+        { "type": "논리식", "content": "A XOR B = (A∨B)∧~(A∧B) = (A∧~B)∨(~A∧B)" }
+      ]
+    },
+    "stage7": {
+      "hints": [
+        { "type": "설명", "content": "A와 B가 참이거나, B와 C가 참이거나, C와 A가 참일 때만 참을 출력합니다." },
+        { "type": "논리식", "content": "(A∧B)∨(B∧C)∨(C∧A)" }
+      ]
+    },
+    "stage8": {
+      "hints": [
+        { "type": "설명", "content": "XOR 연산은 mod 2 덧셈처럼 작동합니다." },
+        { "type": "논리식", "content": "(A XOR B) XOR C" }
+      ]
+    },
+    "stage9": {
+      "hints": [
+        { "type": "설명", "content": "OUT1, OUT2가 각각 IN1, IN2에 대한 어떤 연산인지 알아내세요." },
+        { "type": "논리식", "content": "OUT1 = A XOR B, OUT2 = A∧B" }
+      ]
+    },
+    "stage10": {
+      "hints": [
+        { "type": "설명", "content": "OUT1, OUT2가 각각 IN1, IN2, IN3에 대한 어떤 연산인지 알아내세요." },
+        { "type": "논리식", "content": "OUT1 = (A∧B)∨(B∧C)∨(C∧A), OUT2 = (A XOR B) XOR C" },
+        { "type": "구현 방법", "content": "A, B, C 대신 A∧B, A∨B, C에 대한 회로를 구성해보세요." }
+      ]
+    },
+    "stage11": {
+      "hints": [
+        { "type": "설명", "content": "OUT1, OUT2, OUT3, OUT4 각각에 대한 회로를 하나로 합치세요." },
+        { "type": "논리식", "content": "OUT1, OUT2, OUT3, OUT4는 IN1, IN2, ~IN1, ~IN2의 AND 연산으로 표현됩니다." }
+      ]
+    },
+    "stage12": {
+      "hints": [
+        { "type": "설명", "content": "삼항 연산자를 활용하세요." },
+        { "type": "설명", "content": "S1, S0를 순차적으로 처리하세요." },
+        { "type": "논리식", "content": "(A,B,S)를 삼항 연산자라고 할 때 ((IN1,IN2,S0),(IN3,IN4,S0),S1)" }
+      ]
+    }
+  }
+}

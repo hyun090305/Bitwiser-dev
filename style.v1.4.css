@@ -1,0 +1,1951 @@
+  body {
+    min-height: 100vh;
+    margin: 0;
+    flex-direction: column;
+    justify-content: center;
+    display: flex;
+    /* 기존 space-between 제거 */
+    align-items: center;
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f0f0f0;
+    color: #0F172A;
+    text-align: center;
+  }
+
+  body.game-active {
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+
+html, body {
+  overflow-y: auto;
+  /* allow horizontal scrolling when content exceeds viewport width */
+  overflow-x: auto;
+}
+  #controls, #blockPanel {
+    margin: 15px;
+  }
+
+
+  #blockPanel {
+    width: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  #gameScreen {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    margin: 0;
+    /* 혹시 기본 마진 있으면 제거 */
+    overflow-x: auto;
+    width: 100%;
+  }
+
+  #gameLayout {
+    flex: 1;
+    /* 상단 h1과 하단 메뉴바 사이를 쭉 채움 */
+    display: flex;
+    justify-content: center;
+    /* 좌우 중앙 */
+    align-items: center;
+    /* 상하 중앙 */
+    gap: 2rem;
+    margin: 0 auto;
+    /* inline style로 준 margin-top 제거 */
+    padding-bottom: 60px;
+    /* 메뉴바 높이에 맞춰 조정 */
+    box-sizing: border-box;
+    width: max-content;
+  }
+
+  #mainScreen {
+    padding: 50px;
+  }
+
+  .rightPanel {
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    flex-shrink: 0;
+  }
+
+  #problem-screen .rightPanel {
+    overflow-x: auto;
+  }
+
+  #problem-screen #testcaseContainer {
+    max-width: 90vw;
+    max-height: 60vh;
+    overflow: auto;
+  }
+
+  #problem-screen #testcaseTable {
+    width: max-content;
+  }
+
+  #mainScreen button {
+    margin: 10px;
+    padding: 12px 20px;
+    font-size: 1.2rem;
+  }
+
+  /* 모듈 기능 보류에 따라 메인화면의 모듈 관리 버튼 숨김 */
+  #manageModulesBtn {
+    display: none;
+  }
+
+  #guestbookArea button {
+    margin: 10px;
+    padding: 12px 20px;
+    font-size: 1.2rem;
+  }
+
+
+  #guestbookList {
+    max-height: 200px;
+    /* 원하는 최대 높이로 조정 */
+    overflow-y: auto;
+    /* y축 스크롤 허용 */
+    padding-right: 0.5rem;
+    /* 스크롤바와 내용이 붙지 않도록 여유 */
+  }
+
+  #menuBar {
+    width: 100%;
+    background-color: #ddd;
+    padding: 10px;
+    text-align: center;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+  }
+
+  #menuBar button {
+    margin: 0 5px;
+    padding: 6px 10px;
+  }
+
+
+  #grid {
+    display: grid;
+    gap: 2px;
+    border: 2px solid black;
+    grid-template-columns: repeat(var(--grid-cols, 6), 50px);
+    /* 기존 */
+    grid-template-rows: repeat(var(--grid-rows, 6), 50px);
+    touch-action: none;
+    /* 추가 */
+  }
+  #gridContainer {
+    flex-shrink: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 60px;
+    /* 메뉴바 높이에 맞춰 조정 */
+    box-sizing: border-box;
+  }
+
+
+  .toggle-key {
+    display: block;
+    margin: 6px 0;
+    text-align: center;
+    padding: 6px 8px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fafafa;
+    cursor: pointer;
+  }
+
+  .toggle-key.active {
+    background: #666;
+    color: #fff;
+  }
+
+  .toggle-key {
+    display: block;
+    margin: 6px 0;
+    text-align: center;
+    padding: 6px 8px;
+    border: 1px solid #999;
+    border-radius: 4px;
+    background: #fafafa;
+    cursor: pointer;
+  }
+
+  .toggle-key.active {
+    background: #666;
+    color: #fff;
+  }
+
+  .cell {
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    position: relative;
+    background-color: white;
+    width: 50px;
+    height: 50px;
+  }
+
+  .cell.block {
+    background-color: #e0e0ff;
+    color: #003366;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cell.wire {
+    position: relative;
+    background-color: #ffe;
+  }
+
+  /* ── 수직선 (│) 은 ::before 에만 그리기 ── */
+  .cell.wire.wire-up::before,
+  .cell.wire.wire-down::before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    background-color: black;
+    transform: translateX(-50%);
+  }
+
+  .cell.wire.wire-up::before {
+    top: 0;
+    height: 50%;
+  }
+
+  .cell.wire.wire-down::before {
+    bottom: 0;
+    height: 50%;
+  }
+
+  /* ── 수평선 (─) 은 ::after 에만 그리기 ── */
+  .cell.wire.wire-left::after,
+  .cell.wire.wire-right::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    background-color: black;
+    transform: translateY(-50%);
+  }
+
+  .cell.wire.wire-left::after {
+    left: 0;
+    width: 50%;
+  }
+
+  .cell.wire.wire-right::after {
+    right: 0;
+    width: 50%;
+  }
+
+  /* ── 두 방향이 동시에 있을 땐 전체 길이로 ── */
+  /* 세로 전체 (│) */
+  .cell.wire.wire-up.wire-down::before {
+    top: 0;
+    height: 100%;
+  }
+
+  /* 가로 전체 (─) */
+  .cell.wire.wire-left.wire-right::after {
+    left: 0;
+    width: 100%;
+  }
+
+  /* ── 배선 미리보기 강조 ── */
+  .cell.wire-preview {
+    background: #ffeca0;
+  }
+
+  /* ── 블록 아이콘 스타일 ── */
+  .blockIcon {
+    width: 60px;
+    height: 30px;
+    background-color: #e0e0ff;
+    border: 1px solid #666;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    cursor: grab;
+  }
+
+  /* ── 휴지통 ── */
+  #trash {
+    width: 200px;
+    height: 50px;
+    margin: 20px auto;
+    border: 2px dashed #F87171;
+    background-color: #FEE2E2;
+    color: #7F1D1D;
+    font-weight: bold;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* ── 4가지 코너 모양(ㄱ, ┐, └, ┘) 강제 반쪽 길이 ── */
+  /* 세로선(│) – width만 4 ➜ 2 로 */
+  /* 세로선(│) – 굵기만 2 px */
+  .cell.wire.wire-up::before,
+  .cell.wire.wire-down::before {
+    width: 2px;
+    /* ▽ 세로 점선 + 애니메이션 */
+    background-image: repeating-linear-gradient(0deg, #000 0 26px, transparent 26px var(--unit));
+    background-size: 100% var(--unit);
+    animation: dash-down 1s linear infinite;
+  }
+
+  /* 가로선(─) – 굵기를 height 로만 통일 */
+  .cell.wire.wire-left::after,
+  .cell.wire.wire-right::after {
+    height: 2px;
+    /* ▽ 가로 점선 + 애니메이션 */
+    background-image: repeating-linear-gradient(90deg, #000 0 26px, transparent 26px var(--unit));
+    background-size: var(--unit) 100%;
+    animation: dash-right 1s linear infinite;
+  }
+
+  /* ① 수평 흐름용 --------------------------------------------------- */
+
+  /* 셀 크기 변수(선택) */
+  :root {
+    --unit: 52px;
+    /* 셀 한 칸 간격 */
+    /* 아래 네 값만 바꿔가며 테스트하세요 */
+    --phase-right: 26px;
+    /* →  흐름 */
+    --phase-left: 0px;
+    /* ←  흐름 (반 주기 만큼 밀어 예시) */
+    --phase-down: 0px;
+    /* ↓  흐름 */
+    --phase-up: 26px;
+    /* ↑  흐름 */
+    /* shape: down+right (┌) */
+    --corner-offset-dr-right: 0px;
+    --corner-offset-dr-down: 0px;
+
+    /* shape: down+left  (┐) */
+    --corner-offset-dl-left: 26px;
+    --corner-offset-dl-down: 26px;
+
+    /* shape: up+right   (└) */
+    --corner-offset-ur-right: 26px;
+    --corner-offset-ur-up: 26px;
+
+    /* shape: up+left    (┘) */
+    --corner-offset-ul-left: 0px;
+    --corner-offset-ul-up: 0px;
+
+    /* fallback */
+    --corner-offset: 0px;
+    --half-unit: calc(var(--unit) / 2);
+  }
+
+  /* ── 가로 기본선(h) ───────────────────────── */
+  .cell.wire.h:not(.corner)::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 100%;
+    height: 2px;
+
+    /* 검정 26px → 투명 26px = 총 52px */
+    background-image: repeating-linear-gradient(90deg, #000 0 26px, transparent 26px var(--unit));
+    background-size: var(--unit) 100%;
+    /* 열 번호(col)만큼 -52px씩 당겨 패턴 이어붙이기 */
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-right)) 0;
+  }
+
+  /* ── 세로 기본선(v) ───────────────────────── */
+  .cell.wire.v:not(.corner)::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 100%;
+
+    background-image: repeating-linear-gradient(0deg, #000 0 26px, transparent 26px var(--unit));
+    background-size: 100% var(--unit);
+    /* 행 번호(row)만큼 -52px씩 당겨 패턴 이어붙이기 */
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-down));
+  }
+
+
+
+
+  @keyframes dash-right {
+    from {
+      background-position: calc(-1 * var(--unit) * var(--col) + var(--phase-right)) 0;
+    }
+
+    to {
+      background-position: calc(-1 * var(--unit) * var(--col) + var(--phase-right) + var(--unit)) 0;
+    }
+  }
+
+  @keyframes dash-left {
+    from {
+      background-position: calc(-1 * var(--unit) * var(--col) + var(--phase-left)) 0;
+    }
+
+    to {
+      background-position: calc(-1 * var(--unit) * var(--col) + var(--phase-left) - var(--unit)) 0;
+    }
+  }
+
+  @keyframes dash-down {
+    from {
+      background-position: 0 calc(-1 * var(--unit) * var(--row) + var(--phase-down));
+    }
+
+    to {
+      background-position: 0 calc(-1 * var(--unit) * var(--row) + var(--phase-down) + var(--unit));
+    }
+  }
+
+  @keyframes dash-up {
+    from {
+      background-position: 0 calc(-1 * var(--unit) * var(--row) + var(--phase-up));
+    }
+
+    to {
+      background-position: 0 calc(-1 * var(--unit) * var(--row) + var(--phase-up) - var(--unit));
+    }
+  }
+
+
+
+
+
+  /* 1) 애니메이션이 적용될 직선 셀은 배경색을 투명으로 */
+  .cell.wire.h::after,
+  .cell.wire.v::before {
+    background-color: transparent;
+    /* ≤ 점선 배경만 보이게 */
+  }
+
+  /* 2) 흐름 방향(flow-*)이 붙은 셀도 동일 */
+  /* 코너엔 투명 처리하지 않는다 */
+  .cell.wire.flow-right:not(.corner)::after,
+  .cell.wire.flow-left:not(.corner)::after,
+  .cell.wire.flow-down:not(.corner)::before,
+  .cell.wire.flow-up:not(.corner)::before {
+    background-color: transparent;
+  }
+
+
+  .cell.wire.h::after,
+  .cell.wire.v::before {
+    background-color: transparent;
+  }
+
+  .cell.wire.wire-up::before,
+  .cell.wire.wire-down::before,
+  .cell.wire.wire-left::after,
+  .cell.wire.wire-right::after {
+    background-color: transparent;
+  }
+
+  /* → 흐름 */
+  .cell.wire.flow-right::after {
+    /* 기존 */
+    animation: dash-right 1s linear infinite;
+    /* 위상 */
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-right)) 0;
+  }
+
+  /* ← 흐름 */
+  .cell.wire.flow-left::after {
+    animation: dash-left 1s linear infinite;
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-left)) 0;
+  }
+
+  /* ↓ 흐름 */
+  .cell.wire.flow-down::before {
+    animation: dash-down 1s linear infinite;
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-down));
+  }
+
+  /* ↑ 흐름 */
+  .cell.wire.flow-up::before {
+    animation: dash-up 1s linear infinite;
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-up));
+  }
+
+  .cell.wire.wire-up::before {
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-up));
+  }
+
+  .cell.wire.wire-down::before {
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-down));
+  }
+
+  .cell.wire.wire-left::after {
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-left)) 0;
+  }
+
+  .cell.wire.wire-right::after {
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-right)) 0;
+  }
+
+  /* ── 드래그된 state 에 따라 corner-offset 덮어쓰기 ── */
+  /* shape down+right (┌) + flow-right */
+  .cell.wire.corner.wire-down.wire-right.flow-right {
+    --corner-offset: var(--corner-offset-dr-right);
+  }
+
+  /* shape down+right (┌) + flow-down */
+  .cell.wire.corner.wire-down.wire-right.flow-down {
+    --corner-offset: var(--corner-offset-dr-down);
+  }
+
+  /* shape down+left (┐) + flow-left */
+  .cell.wire.corner.wire-down.wire-left.flow-left {
+    --corner-offset: var(--corner-offset-dl-left);
+  }
+
+  /* shape down+left (┐) + flow-down */
+  .cell.wire.corner.wire-down.wire-left.flow-down {
+    --corner-offset: var(--corner-offset-dl-down);
+  }
+
+  /* shape up+right (└) + flow-right */
+  .cell.wire.corner.wire-up.wire-right.flow-right {
+    --corner-offset: var(--corner-offset-ur-right);
+  }
+
+  /* shape up+right (└) + flow-up */
+  .cell.wire.corner.wire-up.wire-right.flow-up {
+    --corner-offset: var(--corner-offset-ur-up);
+  }
+
+  /* shape up+left (┘) + flow-left */
+  .cell.wire.corner.wire-up.wire-left.flow-left {
+    --corner-offset: var(--corner-offset-ul-left);
+  }
+
+  /* shape up+left (┘) + flow-up */
+  .cell.wire.corner.wire-up.wire-left.flow-up {
+    --corner-offset: var(--corner-offset-ul-up);
+  }
+
+  /* ── 코너 셀 전용 keyframes ── */
+  @keyframes dash-right-corner {
+    from {
+      background-position:
+        calc(-1 * var(--unit) * var(--col) + var(--phase-right) - var(--corner-offset)) 0;
+    }
+
+    to {
+      background-position:
+        calc(-1 * var(--unit) * var(--col) + var(--phase-right) - var(--corner-offset) + var(--unit)) 0;
+    }
+  }
+
+  @keyframes dash-left-corner {
+    from {
+      background-position:
+        calc(-1 * var(--unit) * var(--col) + var(--phase-left) - var(--corner-offset)) 0;
+    }
+
+    to {
+      background-position:
+        calc(-1 * var(--unit) * var(--col) + var(--phase-left) - var(--corner-offset) - var(--unit)) 0;
+    }
+  }
+
+  @keyframes dash-down-corner {
+    from {
+      background-position:
+        0 calc(-1 * var(--unit) * var(--row) + var(--phase-down) - var(--corner-offset));
+    }
+
+    to {
+      background-position:
+        0 calc(-1 * var(--unit) * var(--row) + var(--phase-down) - var(--corner-offset) + var(--unit));
+    }
+  }
+
+  @keyframes dash-up-corner {
+    from {
+      background-position:
+        0 calc(-1 * var(--unit) * var(--row) + var(--phase-up) - var(--corner-offset));
+    }
+
+    to {
+      background-position:
+        0 calc(-1 * var(--unit) * var(--row) + var(--phase-up) - var(--corner-offset) - var(--unit));
+    }
+  }
+
+  /* ── override: corner 에 새 keyframes 와 함께 animation 재정의 ── */
+
+  /* ── 코너 셀 전용 override (흐름+모양 모두 체크) ── */
+  /* → 흐름이면서 오른쪽 분기 코너 */
+  .cell.wire.flow-right.corner.wire-right::after {
+    animation: dash-right-corner 1s linear infinite;
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-right) - var(--corner-offset)) 0;
+  }
+
+  /* ← 흐름이면서 왼쪽 분기 코너 */
+  .cell.wire.flow-left.corner.wire-left::after {
+    animation: dash-left-corner 1s linear infinite;
+    background-position:
+      calc(-1 * var(--unit) * var(--col) + var(--phase-left) - var(--corner-offset)) 0;
+  }
+
+  /* ↓ 흐름이면서 아래 분기 코너 */
+  .cell.wire.flow-down.corner.wire-down::before {
+    animation: dash-down-corner 1s linear infinite;
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-down) - var(--corner-offset));
+  }
+
+  /* ↑ 흐름이면서 위 분기 코너 */
+  .cell.wire.flow-up.corner.wire-up::before {
+    animation: dash-up-corner 1s linear infinite;
+    background-position:
+      0 calc(-1 * var(--unit) * var(--row) + var(--phase-up) - var(--corner-offset));
+  }
+
+  #simulateButton {
+    margin: 10px;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+
+  #simulateButton:hover {
+    background-color: #45a049;
+  }
+
+  /* INPUT 블록 클릭 시 포인터 표시 */
+  .cell.block[data-type="INPUT"] {
+    cursor: pointer;
+  }
+
+  /* OUTPUT 블록 강조 (결과 표시) */
+  .cell.block[data-type="OUTPUT"] {
+    font-weight: bold;
+  }
+
+  /* 활성(1) 상태 표시 (색각 이상 고려해 테두리 점선) */
+  .cell.block.active {
+    outline: 2px dashed currentColor;
+    outline-offset: -2px;
+  }
+
+  #gradingTable {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+  }
+
+  #gradingTable th,
+  #gradingTable td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: center;
+  }
+
+  #gradingTable th {
+    background-color: #f9f9f9;
+  }
+
+  #gradingTable tr.correct td {
+    background-color: #eaffea;
+  }
+
+  #gradingTable tr.wrong td {
+    background-color: #ffeaea;
+  }
+
+  #gradingArea {
+    width: 100%;
+    max-width: 600px;
+    background: #ffffff;
+    border-top: 2px solid #ccc;
+    margin-top: 20px;
+    padding: 1.5rem;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    text-align: left;
+  }
+
+  .gradeRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 0;
+    border-bottom: 1px solid #eee;
+  }
+
+  .gradeRow.correct::after {
+    content: "✔️ 정답";
+    color: green;
+    font-weight: bold;
+  }
+
+  .gradeRow.wrong::after {
+    content: "❌ 오답";
+    color: red;
+    font-weight: bold;
+  }
+
+  #gradeResultSummary {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+    text-align: center;
+    color: #333;
+  }
+
+  #returnToEditBtn {
+    margin-top: 1.5rem;
+    padding: 10px 16px;
+    background: #555;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
+  #returnToEditBtn:hover {
+    background: #333;
+  }
+
+  #guestbookArea {
+    margin-top: 2rem;
+    padding: 1rem;
+    background: #fffbe6;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    max-width: 600px;
+  }
+
+  #guestbookArea textarea,
+  #guestbookArea input {
+    width: 100%;
+    margin: 4px 0;
+    padding: 8px;
+    box-sizing: border-box;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 999;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    text-align: center;
+  }
+
+  /* Chapter & Stage Screen */
+  #chapterStageContainer {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .chapter-list {
+    width: 200px;
+    border-right: 1px solid #ccc;
+  }
+
+  #stagePanel {
+    flex: 1;
+  }
+
+  .chapterItem {
+    padding: 0.5rem;
+    cursor: pointer;
+  }
+
+  .chapterItem.selected {
+    background: #e0e0ff;
+    font-weight: bold;
+  }
+
+  .chapterItem.locked {
+    color: #999;
+    cursor: default;
+  }
+
+  .stage-list {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  .stageCard {
+    position: relative;
+    box-sizing: border-box;
+    width: 200px;
+    height: 125px;
+    padding: 1rem;
+    border: 1px solid #666;
+    border-radius: 8px;
+    background: #f5f5ff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .stageCard:not(.locked):hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .stageCard.cleared {
+    border-color: green;
+  }
+
+  .stageCard.cleared::after {
+    content: '✓';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: green;
+  }
+
+  .stageCard.locked {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .stageCard.locked::after {
+    content: '🔒';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+  }
+
+  .btn-toggle {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .cell.block[data-type="JUNCTION"] {
+    background-color: #ddd;
+    font-weight: bold;
+    color: #333;
+  }
+
+  .cell[data-type="JUNCTION"].error {
+    border: 2px solid red;
+    box-shadow: 0 0 6px red;
+  }
+
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100dvh;
+    background-color: rgba(0, 0, 0, 0.4);
+    /* ✅ 반투명 배경 */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    max-width: 600px;
+    width: 90%;
+    text-align: center;
+  }
+
+  .modal-content h3 {
+    margin-top: 0;
+  }
+
+  #shareText {
+    font-family: monospace;
+    resize: none;
+  }
+
+  #copyShareBtn, #closeShareBtn {
+    margin-left: 0.5rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+
+  /* style.css 맨 아래에 추가 */
+
+  /* 튜토리얼 모달 배경을 살짝 더 어둡게 */
+.tutorial-modal {
+  background-color: rgba(0, 0, 0, 0.7);
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.tutorial-modal .tutorial-content {
+  width: 100%;
+  max-width: 600px;
+  box-shadow: none;
+  border-radius: 0;
+  padding: 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.tutorial-modal .tut-controls {
+  margin-top: auto;
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+  /* 버튼 스타일 강조 */
+  .tutorial-modal .tut-controls button {
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 500;
+    transition: transform 0.1s ease;
+  }
+
+  .tutorial-modal .tut-controls button:hover {
+    transform: scale(1.05);
+  }
+
+  .tutorial-img {
+    width: 100%;
+    max-height: 400px;
+    object-fit: contain;
+    margin: 1rem 0;
+    border-radius: 4px;
+  }
+
+/* Ensure stage-specific tutorial modal is scrollable on small screens */
+#stageTutorialModal {
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+#stageTutorialModal .modal-content {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+#gifModal {
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+#gifModal .modal-content {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+  /* ── ① 공통: 페이지 전체 배경 (비게임·게임 모두) ── */
+  html, body {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    /* assets/background.png 파일을 프로젝트 루트 기준으로 불러옵니다 */
+    font-family: 'Noto Sans KR', sans-serif;
+    text-align: center;
+  }
+
+  body:not(.game-active) {
+    background: url('assets/background.png') center center / cover no-repeat fixed;
+  }
+
+  /* ── ② 비게임 화면에만 “흰 배경 + 블러” 오버레이 적용 ── */
+  /* ── 비게임 화면에만 오버레이 적용 ── */
+  body:not(.game-active) #mainScreen,
+  body:not(.game-active) #chapterStageScreen {
+    background-color: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    padding: 2rem;
+    margin: 2rem auto;
+    box-sizing: border-box;
+  }
+
+  /* ── 게임 화면에서는 오버레이 완전 해제 ── */
+  body.game-active #gameScreen {
+    background: none !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background-image: none !important;
+    background-color: #f0f0f0 !important;
+  }
+
+  .container {
+    display: flex;
+    gap: 5rem;
+  }
+
+  .item {
+    width: 100px;
+    height: 100px;
+    background-color: lightblue;
+    margin: 5px;
+  }
+
+  #gridContainer {
+    position: relative;
+    /* 중복되어도 무방 */
+  }
+
+  #gridOverlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 1000;
+    cursor: not-allowed;
+  }
+
+  #problemGridOverlay {
+    display: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.6);
+    z-index: 1000;
+    cursor: not-allowed;
+  }
+
+  .blockIcon {
+    position: relative;
+  }
+
+  /* hover 시에만 ::after 가 나타나서 내용 표시 */
+  #blockPanel .blockIcon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    padding: 4px 8px;
+    z-index: 1001;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    pointer-events: none;
+  }
+
+  /* 랭킹 모달 전용 중앙정렬 오버라이드 */
+  #rankingModal {
+    position: fixed !important;
+    /* 뷰포트 기준 */
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100dvh !important;
+    display: none;
+    /* flex로 중앙 배치 */
+    justify-content: center !important;
+    align-items: center !important;
+    background-color: rgba(0, 0, 0, 0.4) !important;
+    /* 반투명 오버레이 */
+    z-index: 10000 !important;
+    /* 전역 모달보다 위에 */
+  }
+
+  #rankingModal .modal-content {
+    /* 내용 크기에 맞춰 자동 조절 */
+    display: inline-block !important;
+    margin: auto !important;
+    /* 뷰포트 기준 최대 폭/높이 설정 */
+    max-width: 90vw !important;
+    max-height: 80vh !important;
+    width: auto !important;
+    padding: 1.5rem !important;
+    box-sizing: border-box !important;
+    /* 세로 overflow 시 스크롤 */
+    overflow-y: auto !important;
+  }
+
+  /* ── Username Modal: input & button 디자인 개선 ── */
+  #usernameModal .modal-content input#usernameInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 0.5rem 0 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+  }
+
+  #usernameModal .modal-content input#usernameInput:focus {
+    outline: none;
+    border-color: #6b8cff;
+  }
+
+  /* 확인 버튼 */
+  #usernameModal .modal-content button#usernameSubmit {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #6B8CFF 0%, #88E0EF 100%);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(107, 140, 255, 0.5);
+  }
+
+  #usernameModal .modal-content .info-text {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  /* ── 랭킹 테이블 스타일 ── */
+  #rankingList table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.95rem;
+  }
+
+  #rankingList th,
+  #rankingList td {
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+  }
+
+  #rankingList thead th {
+    background-color: #C6C9ED;
+    color: #0F172A;
+    font-weight: 600;
+  }
+
+  .rankingTableWrapper {
+    max-height: 400px;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+  }
+
+  .rankingTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .rankingTable th,
+  .rankingTable td {
+    padding: 6px 12px;
+    border: 1px solid #ccc;
+    text-align: center;
+  }
+
+  /* 랭킹 모달 콘텐츠 개선 */
+  #rankingModal .modal-content {
+    padding: 1.5rem;
+    max-width: 700px;
+    width: 95%;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  #rankingModal .modal-content h2 {
+    margin-top: 0;
+    font-size: 1.6rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  /* 버튼 그룹 */
+  #rankingModal .modal-buttons {
+    margin-top: 1rem;
+    text-align: right;
+  }
+
+  #rankingModal .modal-buttons button {
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+
+  #rankingModal .modal-buttons button#refreshRankingBtn {
+    background: #eef6ff;
+    color: #3366cc;
+  }
+
+  #rankingModal .modal-buttons button#closeRankingBtn {
+    background: #ddd;
+    color: #333;
+  }
+
+  #rankingModal .modal-buttons button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  #rankingModal .modal-buttons button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal.active {
+    display: flex !important;
+  }
+
+  .cell[data-type="OUTPUT"].error {
+    border: 2px solid red;
+    box-shadow: 0 0 6px red;
+  }
+
+  #overallRankingArea {
+    width: 350px;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    max-height: 600px;
+    /* 원하는 최대 높이로 조정 */
+    display: flex;
+    flex-direction: column;
+  }
+
+  #overallRankingArea h3 {
+    margin-bottom: 0.5rem;
+  }
+
+  #overallRankingList {
+    margin-top: 1rem;
+    flex: 1;
+    /* 남은 공간 전부 사용 */
+    overflow-y: auto;
+    /* 세로 스크롤 */
+  }
+
+  #overallRankingList table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+
+  #overallRankingList th,
+  #overallRankingList td {
+    padding: 0.5rem;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+  }
+
+  #overallRankingList thead th {
+    background-color: #C6C9ED;
+    color: #0F172A;
+  }
+
+  #firstScreen {
+    /* 이전: .container { display:flex; gap:5rem; } 에서만 정의되어 있었음 */
+    min-height: 100vh;
+    justify-content: center;
+    /* 가로 중앙 정렬 */
+    align-items: flex-start;
+    /* 세 카드의 상단을 같은 높이에 맞춤 */
+  }
+
+  #chapterStageScreen {
+    min-height: auto;
+    overflow-y: auto;
+  }
+
+  #module-editor-screen {
+    min-height: 100vh;
+  }
+
+  /* ② 메인 카드(#mainScreen) 가 가진 margin:auto 를 수직 여백만 남기도록 변경 */
+  #firstScreen>#mainScreen {
+    /* 이전: body:not(.game-active) #mainScreen { margin: 2rem auto; } */
+    margin: 2rem 0;
+    /* 위아래 2rem, 좌우 0 */
+  }
+
+  /* ③ 전체 랭킹 카드도 위쪽 여백을 주어 높이를 맞춰 줌 */
+  #firstScreen>#overallRankingArea {
+    /* 이전: margin-top 이 전혀 없었음 */
+    margin-top: 2rem;
+  }
+
+  #clearedModal .rankingTable tr.highlight {
+    background-color: #ffffcc;
+    /* 연노란색 배경 */
+  }
+
+  #clearedModal .rankingTableWrapper {
+    max-height: 60vh;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+  }
+
+  #clearedModal .modal-content #clearedRanking {
+    max-height: 60vh;
+    /* 화면 높이의 60%를 최대 높이로 설정 */
+    overflow-y: auto;
+    /* 세로 스크롤 허용 */
+    padding-right: 0.5rem;
+    /* 스크롤바와 내용 사이 여유 */
+    box-sizing: border-box;
+  }
+
+  /* modal 하단의 이전/다음 스테이지 버튼 디자인 개선 */
+  .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .modal-buttons button {
+    background-color: #007bff;
+    /* 기본 파란색 배경 */
+    color: #fff;
+    /* 흰 글씨 */
+    border: none;
+    padding: 0.6rem 1.2rem;
+    /* 버튼 크기 조정 */
+    border-radius: 4px;
+    /* 둥근 모서리 */
+    font-size: 1rem;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.2s, transform 0.1s;
+  }
+
+  .modal-buttons button:hover {
+    background-color: #0056b3;
+    /* 호버 시 진해지는 파랑 */
+  }
+
+  .modal-buttons button:active {
+    transform: translateY(1px);
+    /* 클릭 시 살짝 눌린 느낌 */
+  }
+
+  .modal-buttons button:disabled {
+    background-color: #cccccc;
+    /* 비활성화 상태 */
+    cursor: not-allowed;
+  }
+
+  #clearedModal .modal-content {
+    position: relative;
+    /* closeBtn 절대 위치를 위해 추가 */
+  }
+
+  #clearedModal .closeBtn {
+    position: absolute;
+    top: 0.75rem;
+    /* 모달 상단에서 */
+    right: 0.75rem;
+    /* 모달 우측에서 */
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    /* 버튼 크기 */
+    line-height: 1;
+    width: 2.5rem;
+    /* 버튼 크기 조정 (가로) */
+    height: 2.5rem;
+    /* 버튼 크기 조정 (세로) */
+    padding: 0.25rem;
+    cursor: pointer;
+    border-radius: 50%;
+    /* 둥근 버튼 */
+    transition: background 0.2s, transform 0.1s, color 0.2s;
+  }
+
+  #clearedModal .closeBtn:hover {
+    background: rgba(0, 0, 0, 0.1);
+    /* 호버 시 살짝 배경 */
+  }
+
+  #clearedModal .closeBtn:active {
+    transform: scale(0.9);
+    /* 클릭 시 눌린 느낌 */
+  }
+
+  #clearedModal .closeBtn:focus {
+    outline: none;
+    /* 포커스 아웃라인 제거 */
+  }
+
+  #module-editor-screen {
+  display: none;
+  padding: 2rem;
+  background-color: #fff;
+  border: 2px solid #666;
+  max-width: 600px;
+  margin: 2rem auto;
+}
+
+#moduleGrid,
+#problemGrid {
+  display: grid;
+  gap: 2px;
+  border: 2px solid black;
+  grid-template-columns: repeat(var(--grid-cols, 6), 50px);
+  grid-template-rows: repeat(var(--grid-rows, 6), 50px);
+  touch-action: none;
+}
+
+/* 공통: 게임 모드 · 모듈 모드 블록 패널 모두에 적용 */
+#blockPanel,
+#moduleBlockPanel,
+#problemBlockPanel {
+  display: flex;               /* 세로 정렬을 위해 flex 사용 */
+  flex-direction: column;      /* 수직 방향으로 블록 나열 */
+  align-items: stretch;        /* 폭을 부모에 맞춤 */
+  gap: 0.75rem;                /* 블록 간격: 원하시는 px/em 단위로 조정 가능 */
+  padding: 0.5rem 0;           /* 상하 여백(옵션) */
+}
+
+/* 블록 아이콘 크기·정렬 (필요시 조정) */
+#blockPanel .blockIcon,
+#moduleBlockPanel .blockIcon,
+#problemBlockPanel .blockIcon {
+  width: 100%;                 /* 패널 폭에 꽉 차도록 */
+  text-align: center;          /* 텍스트 중앙 정렬 */
+}
+
+/* ── 화면(.screen) 공통 ── */
+.screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 100vh;
+  background: rgba(255,255,255,0.95);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 뒤로가기 버튼 */
+.btn-back {
+  align-self: flex-start;
+  margin-bottom: 1rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #999;
+  background: #fafafa;
+  cursor: pointer;
+}
+
+/* 화면 제목 */
+.module-management-screen .screen-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1.5rem;
+}
+
+/* 모듈 목록 */
+.module-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  max-width: 360px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.module-list .module-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.module-list .module-item:last-child {
+  border-bottom: none;
+}
+
+/* 사용자 문제 목록 */
+.problem-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 600px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.problem-list .problem-item {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+}
+
+.problem-list .problem-item:last-child {
+  border-bottom: none;
+}
+
+.module-item .module-name {
+  font-size: 1rem;
+  color: #333;
+  word-break: break-all;
+}
+
+/* 불러오기 버튼 */
+.btn-load {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #008cba;
+  background: #00aaff;
+  color: white;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.btn-load:hover {
+  background: #008cba;
+}
+
+/* 새 모듈 만들기 버튼 */
+.btn-primary {
+  margin-top: 1.5rem;
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: #28a745;
+  color: white;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.btn-primary:hover {
+  background: #218838;
+}
+
+/* ────────────────────────────────
+   Modal (모달) 기본 스타일
+──────────────────────────────── */
+
+/* 모달 전체 컨테이너 */
+.modal {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  display: none;             /* 처음엔 숨김 */
+  align-items: center;       /* 세로 중앙 정렬 */
+  justify-content: center;   /* 가로 중앙 정렬 */
+  z-index: 1000;             /* 다른 요소들 위에 */
+}
+
+/* 백드롭: 반투명 검정 */
+.modal-backdrop {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* 다이얼로그 박스 */
+.modal-dialog {
+  position: relative;
+  background: #fff;
+  padding: 1.5rem;
+  width: 260px;
+  max-width: 90%;
+  border-radius: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  z-index: 1001; /* backdrop 위에 */
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 제목 */
+.modal-dialog h3 {
+  margin: 0;
+  font-size: 1.2rem;
+  text-align: center;
+}
+
+/* 입력창 스타일 */
+.modal-input,
+.modal-textarea {
+  width: 100%;
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+  box-sizing: border-box;
+}
+
+/* 버튼 그룹 (가로 정렬) */
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* primary 버튼 (저장) */
+.btn-primary {
+  padding: 0.5rem 1rem;
+  border: none;
+  background: #28a745;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-primary:hover {
+  background: #218838;
+}
+
+/* secondary 버튼 (취소) */
+.btn-secondary {
+  padding: 0.5rem 1rem;
+  border: 1px solid #999;
+  background: #f5f5f5;
+  color: #333;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.btn-secondary:hover {
+  background: #e0e0e0;
+}
+
+/* 삭제 버튼 */
+.deleteProbBtn {
+  padding: 0.4rem 0.8rem;
+  border: 1px solid #dc3545;
+  background: #f8d7da;
+  color: #dc3545;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.deleteProbBtn:hover {
+  background: #f1b0b7;
+}
+
+/* ------------------------------------------------------------------
+   🔧 GRID 시각 개선
+------------------------------------------------------------------ */
+
+
+/* ------------------------------------------------------------------
+   📐 각 셀의 모서리를 둥글게 만들기
+------------------------------------------------------------------ */
+
+/* ── 1) 기본 셀 ── */
+.cell {
+  width: 50px;
+  height: 50px;
+  background-color: #ffffff;
+  border-radius: 3px;             /* 🎯 핵심 – 4~6px 권장 */
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
+  overflow: hidden;               /* 내부 요소가 모서리 밖으로 튀지 않도록 */
+}
+
+
+/* ── 3) 외곽 테두리도 통일 ── */
+#grid {
+  border-radius: 5px;            /* 그리드 바깥도 살짝 더 둥글게 */
+}
+
+/* ------------------------------------------------------------------
+   🪄 타일 입체감 & 호버 리프트
+------------------------------------------------------------------ */
+
+/* ── 1) 전체 그리드 박스 ── */
+#grid {
+  /* 테두리는 그대로 두고 그림자만 강화 */
+  border: 2px solid #666;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
+}
+
+/* ── 2) 기본 셀 ── */
+.cell.block {
+  border-radius: 3px;
+
+  /* 🔹 다중 그림자: 윗면 밝게 + 아랫면 어둡게 + 살짝 떠 있는 그림자 */
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.8),   /* 위·왼쪽 빛받은 면 */
+    inset 0 -1px 2px rgba(0, 0, 0, 0.06),       /* 아래·오른쪽 음영 */
+    0 1px 2px rgba(0, 0, 0, 0.07);              /* 바닥 그림자 */
+
+  transition: transform 120ms ease, box-shadow 120ms ease;
+}
+
+/* ── 3) 마우스오버 리프트 ── */
+.cell.block:hover {
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.85),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.07),
+    0 4px 8px rgba(0, 0, 0, 0.10);              /* 조금 더 길어진 바닥 그림자 */
+  cursor: pointer;
+}
+
+/* ── 4) 클릭(드래그) 중 압박감 ── */
+.cell:active {
+  transform: translateY(0);                     /* 내려앉음 */
+  box-shadow:
+    inset 0 1px 2px rgba(255, 255, 255, 0.7),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.05),
+    0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
+#userProblemTable {
+  width: 100%;
+  max-width: 600px;
+  border-collapse: collapse;
+  margin-top: 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+#userProblemTable th,
+#userProblemTable td {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  text-align: center;
+}
+
+#userProblemTable th {
+  font-weight: 600;
+}
+
+#userProblemTable td.probTitle {
+  cursor: pointer;
+  text-align: left;
+}
+
+.likeBtn {
+  border: none;
+  background: #eee;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.likeBtn:hover {
+  background: #ddd;
+}
+
+#openProblemCreatorBtn {
+  margin-top: auto;
+  background: #007bff;
+  color: #fff;
+}
+
+#openProblemCreatorBtn:hover {
+  background: #0069d9;
+}
+
+#userProblemTable tbody tr:hover {
+  background-color: #f0f8ff;
+}
+
+#userProblemTable tbody tr.solved {
+  background-color: #e6ffe6;
+}
+
+#hintButtons {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* Hint modal buttons */
+#hintButtons button {
+  width: 100px;
+  height: 100px;
+  font-size: 1rem;
+  margin: 0.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+#hintButtons .lock-icon {
+  margin-top: 0.25rem;
+}
+#hintButtons button.open {
+  background-color: #87CEFA;
+}
+#hintButtons button.available {
+  background-color: #90EE90;
+}
+
+#hintTimerContainer {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* ----- Loading Screen ----- */
+#loadingScreen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #f0f0f0;
+  z-index: 9999;
+}
+
+.loader {
+  border: 8px solid #e0e0e0;
+  border-top: 8px solid #3b82f6;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ----- Saved circuit thumbnails ----- */
+.saved-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 0;
+}
+
+.saved-item {
+  border: 2px solid #ccc;
+  padding: 4px;
+  width: 120px;
+  cursor: pointer;
+  position: relative;
+  text-align: center;
+  background: #fff;
+}
+
+.saved-item img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.saved-item .deleteBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+}
+
+.saved-caption {
+  font-size: 12px;
+  margin-top: 4px;
+}
