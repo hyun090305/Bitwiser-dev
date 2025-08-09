@@ -763,6 +763,24 @@ html, body {
     box-sizing: border-box;
   }
 
+  @media (max-width: 768px) {
+    #guestbookContent {
+      display: flex;
+    }
+    #guestbookForm,
+    #guestbookList {
+      flex: 1;
+    }
+    #guestbookForm {
+      padding-right: 0.5rem;
+    }
+    #guestbookList {
+      margin-top: 0;
+      border-left: 1px solid #ddd;
+      padding-left: 0.5rem;
+    }
+  }
+
   .modal {
     position: fixed;
     top: 0;
@@ -1298,6 +1316,7 @@ html, body {
     /* 원하는 최대 높이로 조정 */
     display: flex;
     flex-direction: column;
+    overflow: hidden;
   }
 
   #overallRankingArea h3 {
@@ -1310,6 +1329,7 @@ html, body {
     /* 남은 공간 전부 사용 */
     overflow-y: auto;
     /* 세로 스크롤 */
+    min-height: 0;
   }
 
   #overallRankingList table {
