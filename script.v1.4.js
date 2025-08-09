@@ -1448,6 +1448,48 @@ function fetchProgressSummary(nickname) {
   });
 }
 
+function fetchOverallStats(nickname) {
+  return db.ref('rankings').once('value').then(snap => {
+    const data = {};
+    snap.forEach(levelSnap => {
+      levelSnap.forEach(recSnap => {
+        const v = recSnap.val();
+        const name = v.nickname || '익명';
+        if (!data[name]) {
+          data[name] = {
+            stages: new Set(),
+            blocks: 0,
+            wires: 0,
+            lastTimestamp: v.timestamp
+          };
+        }
+        data[name].stages.add(levelSnap.key);
+        data[name].blocks += Object.values(v.blockCounts || {}).reduce((s, x) => s + x, 0);
+        data[name].wires += v.usedWires || 0;
+        if (new Date(v.timestamp) > new Date(data[name].lastTimestamp)) {
+          data[name].lastTimestamp = v.timestamp;
+        }
+      });
+    });
+    const entries = Object.entries(data).map(([nickname, v]) => ({
+      nickname,
+      cleared: v.stages.size,
+      blocks: v.blocks,
+      wires: v.wires,
+      timestamp: v.lastTimestamp
+    }));
+    entries.sort((a, b) => {
+      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
+      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
+      if (a.wires !== b.wires) return a.wires - b.wires;
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    const idx = entries.findIndex(e => e.nickname === nickname);
+    if (idx === -1) return { rank: '-', cleared: 0 };
+    return { rank: idx + 1, cleared: entries[idx].cleared };
+  });
+}
+
 function refreshClearedUI() {
   document.querySelectorAll('.stageCard').forEach(card => {
     const level = parseInt(card.dataset.stage, 10);
@@ -2491,6 +2533,8 @@ function assignGuestNickname() {
         db.ref(`usernames/${id}`).set(name);
         localStorage.setItem('username', name);
         document.getElementById('guestUsername').textContent = name;
+        const loginUsernameEl = document.getElementById('loginUsername');
+        if (loginUsernameEl) loginUsernameEl.textContent = name;
         loadClearedLevelsFromDb().then(maybeStartTutorial);
       }
     });
@@ -2779,7 +2823,11 @@ function setupGoogleAuth() {
   const buttons = ['googleLoginBtn', 'modalGoogleLoginBtn']
     .map(id => document.getElementById(id))
     .filter(Boolean);
-  const loginInfoEl = document.getElementById('loginInfo');
+  const usernameEl = document.getElementById('loginUsername');
+  const rankSection = document.getElementById('rankSection');
+  const overallRankEl = document.getElementById('overallRank');
+  const clearedCountEl = document.getElementById('clearedCount');
+  const guestPromptEl = document.getElementById('loginGuestPrompt');
 
   if (!buttons.length) return Promise.resolve();
 
@@ -2787,20 +2835,21 @@ function setupGoogleAuth() {
     let done = false;
     firebase.auth().onAuthStateChanged(user => {
       buttons.forEach(btn => btn.textContent = user ? t('logoutBtn') : t('googleLoginBtn'));
-      if (loginInfoEl) {
-        if (user) {
-          const name = user.displayName || user.email;
-          loginInfoEl.textContent = (currentLang === 'ko') ? `${name}로 로그인됨` : `Logged in as ${name}`;
-        } else {
-          const guest = localStorage.getItem('username');
-          loginInfoEl.textContent = (currentLang === 'ko') ? `게스트: ${guest}` : `Guest: ${guest}`;
-        }
-      }
+      const nickname = localStorage.getItem('username') || '';
+      if (usernameEl) usernameEl.textContent = nickname;
       if (user) {
         handleGoogleLogin(user);
         document.getElementById('usernameModal').style.display = 'none';
+        if (rankSection) rankSection.style.display = 'block';
+        if (guestPromptEl) guestPromptEl.style.display = 'none';
+        fetchOverallStats(nickname).then(res => {
+          if (overallRankEl) overallRankEl.textContent = `#${res.rank}`;
+          if (clearedCountEl) clearedCountEl.textContent = res.cleared;
+        });
       } else {
         restoreUsernameModalDefaults();
+        if (rankSection) rankSection.style.display = 'none';
+        if (guestPromptEl) guestPromptEl.style.display = 'block';
         if (!localStorage.getItem('username')) {
           assignGuestNickname();
         }
