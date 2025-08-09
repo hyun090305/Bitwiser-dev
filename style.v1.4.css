@@ -1402,6 +1402,7 @@ html, body {
 
   #overallRankingArea {
     width: 350px;
+    height: 80vh;
     background-color: #fff;
     border: 1px solid #ddd;
     border-radius: 8px;
