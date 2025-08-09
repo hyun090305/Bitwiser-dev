@@ -109,6 +109,18 @@ html, body {
     width: 120px;
   }
 
+  #mainScreen #tutorialBtn,
+  #mainScreen #copyStatusBtn {
+    border: none;
+    background-color: #ccc;
+    color: #0F172A;
+  }
+
+  #mainScreen #tutorialBtn:hover,
+  #mainScreen #copyStatusBtn:hover {
+    background-color: #bbb;
+  }
+
   #mainScreen #startBtn {
     background-color: #1d4ed8;
     color: #fff;
@@ -1097,6 +1109,24 @@ html, body {
     gap: 5rem;
   }
 
+  #mainArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #loginArea {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  #loginArea .button-row {
+    margin-top: 0.5rem;
+  }
+
   .item {
     width: 100px;
     height: 100px;
@@ -1404,7 +1434,7 @@ html, body {
   }
 
   /* ② 메인 카드(#mainScreen) 가 가진 margin:auto 를 수직 여백만 남기도록 변경 */
-  #firstScreen>#mainScreen {
+  #mainArea > #mainScreen {
     /* 이전: body:not(.game-active) #mainScreen { margin: 2rem auto; } */
     margin: 2rem 0;
     /* 위아래 2rem, 좌우 0 */
@@ -2017,7 +2047,7 @@ html, body {
   }
 
   #firstScreen > #overallRankingArea,
-  #firstScreen > #mainScreen,
+  #firstScreen > #mainArea,
   #firstScreen > #guestbookArea {
     display: none;
     width: 100%;
@@ -2026,8 +2056,17 @@ html, body {
     box-sizing: border-box;
   }
 
-  #firstScreen > #mainScreen {
-    display: block;
+  #firstScreen > #mainArea {
+    display: flex;
+  }
+
+  #mainArea {
+    flex-direction: row;
+  }
+
+  #mainArea > #mainScreen,
+  #mainArea > #loginArea {
+    flex: 1;
   }
 
   #mobileNav {

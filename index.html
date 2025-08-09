@@ -51,7 +51,8 @@
         <h3 id="overallRankingTitle">🏆 전체 랭킹</h3>
         <div id="overallRankingList">로딩 중…</div>
       </div>
-      <div id="mainScreen">
+      <div id="mainArea">
+        <div id="mainScreen">
         <h1>🧠 Bitwiser</h1>
         <p class="tagline">Play bitwise. Become bit wiser.</p>
         <div class="button-row">
@@ -61,11 +62,15 @@
           <button id="tutorialBtn" class="main-button">튜토리얼</button>
           <button id="copyStatusBtn" class="main-button">공유하기</button>
         </div>
-        <div class="button-row">
-          <button id="googleLoginBtn" class="main-button">로그아웃</button>
-          <button id="languageBtn" class="main-button">한영전환</button>
-        </div>
         <!-- <button id="createProblemBtn">문제 출제</button> -->
+        </div>
+        <div id="loginArea">
+          <div id="loginInfo"></div>
+          <div class="button-row">
+            <button id="googleLoginBtn" class="main-button"></button>
+            <button id="languageBtn" class="main-button">한영전환</button>
+          </div>
+        </div>
       </div>
       <div id="guestbookArea">
         <div id="guestbookContent">
@@ -97,7 +102,7 @@
       </div>
       <div id="mobileNav">
         <div class="nav-item" data-target="overallRankingArea">랭킹</div>
-        <div class="nav-item" data-target="mainScreen">메인</div>
+        <div class="nav-item" data-target="mainArea">메인</div>
         <div class="nav-item" data-target="guestbookArea">방명록</div>
       </div>
     </div>
