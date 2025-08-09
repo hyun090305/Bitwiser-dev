@@ -1085,7 +1085,8 @@ html, body {
   /* ── ② 비게임 화면에만 “흰 배경 + 블러” 오버레이 적용 ── */
   /* ── 비게임 화면에만 오버레이 적용 ── */
   body:not(.game-active) #mainScreen,
-  body:not(.game-active) #chapterStageScreen {
+  body:not(.game-active) #chapterStageScreen,
+  body:not(.game-active) #loginArea,{
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border-radius: 12px;
