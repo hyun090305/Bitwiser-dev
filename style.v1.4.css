@@ -1096,7 +1096,7 @@ html, body {
     box-sizing: border-box;
   }
 
-#chapterStageScreen,
+#mainScreen,
 #loginArea{
   width: 320px;
 }
