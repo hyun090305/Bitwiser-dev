@@ -90,10 +90,39 @@ html, body {
     width: max-content;
   }
 
-  #mainScreen button {
-    margin: 10px;
+  #mainScreen .button-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+  }
+
+  #mainScreen .main-button {
     padding: 12px 20px;
     font-size: 1.2rem;
+    border: 2px solid #1d4ed8;
+    border-radius: 8px;
+    background-color: #fff;
+    color: #1d4ed8;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    width: 120px;
+  }
+
+  #mainScreen #startBtn {
+    background-color: #1d4ed8;
+    color: #fff;
+    width: 240px;
+  }
+
+  #mainScreen #startBtn:hover {
+    background-color: #1e3a8a;
+    transform: scale(1.05);
+  }
+
+  #mainScreen .main-button:not(#startBtn):hover {
+    background-color: #eff6ff;
+    transform: scale(1.02);
   }
 
   /* 모듈 기능 보류에 따라 메인화면의 모듈 관리 버튼 숨김 */

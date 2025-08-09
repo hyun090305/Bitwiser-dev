@@ -3803,14 +3803,16 @@ const cancelSaveProblemBtn     = document.getElementById('cancelSaveProblemBtn')
 const problemTitleInput        = document.getElementById('problemTitleInput');
 const problemDescInput         = document.getElementById('problemDescInput');
 
-//— ① 메인 → 모듈 관리  
-manageModulesBtn.addEventListener('click', () => {
-  firstScreen.style.display      = 'none';
-  managementScreen.style.display = 'flex';
-  renderModuleList();
-});
+//— ① 메인 → 모듈 관리
+if (manageModulesBtn) {
+  manageModulesBtn.addEventListener('click', () => {
+    firstScreen.style.display      = 'none';
+    managementScreen.style.display = 'flex';
+    renderModuleList();
+  });
+}
 
-//— ② 모듈 관리 → 메인  
+//— ② 모듈 관리 → 메인
 backToMainFromManagement.addEventListener('click', () => {
   managementScreen.style.display = 'none';
   firstScreen.style.display      = '';
