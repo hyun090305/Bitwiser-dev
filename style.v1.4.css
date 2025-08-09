@@ -812,16 +812,21 @@ html, body {
     padding-right: 0.5rem;
   }
 
-  #guestbookList {
+  #guestbookListArea {
     flex: 1 1 50%;
     margin-top: 0;
     border-left: 1px solid #ddd;
     padding-left: 0.5rem;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #guestbookList {
+    flex: 1 1 auto;
   }
 
   #coffeeBtn {
-    flex: 1 1 50%;
-    margin-left: auto;
+    margin-top: 16px;
     align-self: flex-start;
   }
 
