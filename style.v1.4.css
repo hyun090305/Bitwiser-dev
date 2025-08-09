@@ -1068,7 +1068,7 @@ html, body {
 
   /* ── ① 공통: 페이지 전체 배경 (비게임·게임 모두) ── */
   html, body {
-    height: 100%;
+    height: auto;
     margin: 0;
   }
 
