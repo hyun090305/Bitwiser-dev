@@ -87,8 +87,18 @@
         <div id="loginArea">
           <h2 id="loginUsername"></h2>
           <div id="rankSection" style="display:none;">
-            <p id="loginRankLabel"></p>
-            <p id="rankValues"><span id="overallRank">#-</span> | <span id="clearedCount">0</span></p>
+            <table id="rankTable">
+              <tr>
+                <td class="rank-cell">
+                  <p id="loginRankOverallLabel" class="rank-label"></p>
+                  <p id="overallRank" class="rank-value">#-</p>
+                </td>
+                <td class="rank-cell">
+                  <p id="loginRankClearedLabel" class="rank-label"></p>
+                  <p id="clearedCount" class="rank-value">0</p>
+                </td>
+              </tr>
+            </table>
           </div>
           <div class="button-row">
             <button id="googleLoginBtn" class="main-button"></button>
