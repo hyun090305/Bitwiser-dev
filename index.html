@@ -45,6 +45,17 @@
         </div>
       </div>
     </div>
+    <div id="shareModal" class="modal" style="display:none;">
+          <div class="modal-content">
+            <h3 id="shareTitle">🔗 공유할 내용</h3>
+            <textarea id="shareText" readonly rows="20"
+              style="width:100%;"></textarea>
+            <div style="margin-top:1rem; text-align:right;">
+              <button id="copyShareBtn">복사하기</button>
+              <button id="closeShareBtn">닫기</button>
+            </div>
+          </div>
+        </div>
     <!-- 메인 화면 -->
     <div class="container" id="firstScreen">
       <div id="overallRankingArea">
@@ -86,17 +97,6 @@
         <button id="coffeeBtn" style="margin-top:16px;">
           ☕ 개발자(이현준)한테 커피 사주기
         </button>
-        <div id="shareModal" class="modal" style="display:none;">
-          <div class="modal-content">
-            <h3 id="shareTitle">🔗 공유할 내용</h3>
-            <textarea id="shareText" readonly rows="20"
-              style="width:100%;"></textarea>
-            <div style="margin-top:1rem; text-align:right;">
-              <button id="copyShareBtn">복사하기</button>
-              <button id="closeShareBtn">닫기</button>
-            </div>
-          </div>
-        </div>
       </div>
       <div id="mobileNav">
         <div class="nav-item" data-target="overallRankingArea">랭킹</div>
