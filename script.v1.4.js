@@ -940,8 +940,11 @@ if (mobileNav) {
     overallRankingAreaEl.style.display = "none";
     mainScreenSection.style.display = "none";
     guestbookAreaEl.style.display = "none";
+    mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
     const target = document.getElementById(targetId);
     if (target) target.style.display = 'flex';
+    const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
+    if (activeNav) activeNav.classList.add("active");
   }
 
   mobileNav.querySelectorAll(".nav-item").forEach(item => {
