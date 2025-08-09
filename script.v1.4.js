@@ -929,6 +929,29 @@ const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
 const stageListEl = document.getElementById("stageList");
 
+// 모바일 내비게이션을 통한 firstScreen 전환
+const overallRankingAreaEl = document.getElementById("overallRankingArea");
+const mainScreenSection = document.getElementById("mainScreen");
+const guestbookAreaEl = document.getElementById("guestbookArea");
+const mobileNav = document.getElementById("mobileNav");
+
+if (mobileNav) {
+  function showFirstScreenSection(targetId) {
+    overallRankingAreaEl.style.display = "none";
+    mainScreenSection.style.display = "none";
+    guestbookAreaEl.style.display = "none";
+    const target = document.getElementById(targetId);
+    if (target) target.style.display = "block";
+  }
+
+  mobileNav.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.getAttribute("data-target");
+      showFirstScreenSection(target);
+    });
+  });
+}
+
 function lockOrientationLandscape() {
   if (screen.orientation && screen.orientation.lock) {
     screen.orientation.lock('landscape').catch(err => {
@@ -947,7 +970,7 @@ document.getElementById("startBtn").onclick = () => {
 
 document.getElementById("backToMainFromChapter").onclick = () => {
   chapterStageScreen.style.display = "none";
-  document.getElementById("firstScreen").style.display = "flex";
+  document.getElementById("firstScreen").style.display = "";
 };
 
 document.getElementById("toggleChapterList").onclick = () => {
@@ -3790,7 +3813,7 @@ manageModulesBtn.addEventListener('click', () => {
 //— ② 모듈 관리 → 메인  
 backToMainFromManagement.addEventListener('click', () => {
   managementScreen.style.display = 'none';
-  firstScreen.style.display      = 'flex';
+  firstScreen.style.display      = '';
 });
 
 //— ③ 모듈 관리 → 새 제작창  
@@ -3816,7 +3839,7 @@ backToMainFromProblem.addEventListener('click', () => {
   if (problemScreenPrev === 'userProblems') {
     userProblemsScreen.style.display = 'block';
   } else if (problemScreenPrev === 'main') {
-    firstScreen.style.display = 'flex';
+    firstScreen.style.display = '';
   } else {
     chapterStageScreen.style.display = 'block';
   }

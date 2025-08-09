@@ -1949,3 +1949,49 @@ html, body {
   font-size: 12px;
   margin-top: 4px;
 }
+
+/* 모바일 하단 내비게이션 및 firstScreen 전환 */
+#mobileNav {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  #firstScreen {
+    display: block;
+    padding-bottom: 60px;
+  }
+
+  #firstScreen > #overallRankingArea,
+  #firstScreen > #mainScreen,
+  #firstScreen > #guestbookArea {
+    display: none;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  #firstScreen > #mainScreen {
+    display: block;
+  }
+
+  #mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #ddd;
+  }
+
+  #mobileNav .nav-item {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+  }
+
+  #mobileNav .nav-item:hover {
+    background-color: #ccc;
+  }
+}
