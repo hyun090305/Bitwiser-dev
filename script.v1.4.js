@@ -931,7 +931,7 @@ const stageListEl = document.getElementById("stageList");
 
 // 모바일 내비게이션을 통한 firstScreen 전환
 const overallRankingAreaEl = document.getElementById("overallRankingArea");
-const mainScreenSection = document.getElementById("mainScreen");
+const mainScreenSection = document.getElementById("mainArea");
 const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
 
@@ -941,7 +941,7 @@ if (mobileNav) {
     mainScreenSection.style.display = "none";
     guestbookAreaEl.style.display = "none";
     const target = document.getElementById(targetId);
-    if (target) target.style.display = "block";
+    if (target) target.style.display = (targetId === 'mainArea') ? 'flex' : 'block';
   }
 
   mobileNav.querySelectorAll(".nav-item").forEach(item => {
@@ -2779,6 +2779,7 @@ function setupGoogleAuth() {
   const buttons = ['googleLoginBtn', 'modalGoogleLoginBtn']
     .map(id => document.getElementById(id))
     .filter(Boolean);
+  const loginInfoEl = document.getElementById('loginInfo');
 
   if (!buttons.length) return Promise.resolve();
 
@@ -2786,6 +2787,15 @@ function setupGoogleAuth() {
     let done = false;
     firebase.auth().onAuthStateChanged(user => {
       buttons.forEach(btn => btn.textContent = user ? t('logoutBtn') : t('googleLoginBtn'));
+      if (loginInfoEl) {
+        if (user) {
+          const name = user.displayName || user.email;
+          loginInfoEl.textContent = (currentLang === 'ko') ? `${name}로 로그인됨` : `Logged in as ${name}`;
+        } else {
+          const guest = localStorage.getItem('username');
+          loginInfoEl.textContent = (currentLang === 'ko') ? `게스트: ${guest}` : `Guest: ${guest}`;
+        }
+      }
       if (user) {
         handleGoogleLogin(user);
         document.getElementById('usernameModal').style.display = 'none';
