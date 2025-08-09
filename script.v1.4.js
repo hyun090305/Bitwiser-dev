@@ -5069,3 +5069,44 @@ if (exportBtn) {
   exportBtn.addEventListener('click', handleGIFExport);
 }
 
+// --- 모바일 세로 모드 안내 모달 ---
+const orientationModal = document.getElementById('orientationModal');
+const rotateLandscapeBtn = document.getElementById('rotateLandscapeBtn');
+const closeOrientationBtn = document.getElementById('closeOrientationBtn');
+
+function isMobileDevice() {
+  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+}
+
+function checkOrientation() {
+  if (!orientationModal) return;
+  const isPortrait = window.matchMedia('(orientation: portrait)').matches;
+  if (isMobileDevice() && isPortrait) {
+    orientationModal.style.display = 'flex';
+  } else {
+    orientationModal.style.display = 'none';
+  }
+}
+
+if (rotateLandscapeBtn) {
+  rotateLandscapeBtn.addEventListener('click', () => {
+    lockOrientationLandscape();
+    if (orientationModal) orientationModal.style.display = 'none';
+  });
+}
+
+if (closeOrientationBtn) {
+  closeOrientationBtn.addEventListener('click', () => {
+    if (orientationModal) orientationModal.style.display = 'none';
+  });
+}
+
+window.addEventListener('resize', checkOrientation);
+const mqOrientation = window.matchMedia('(orientation: portrait)');
+if (mqOrientation.addEventListener) {
+  mqOrientation.addEventListener('change', checkOrientation);
+} else if (mqOrientation.addListener) {
+  mqOrientation.addListener(checkOrientation);
+}
+checkOrientation();
+
