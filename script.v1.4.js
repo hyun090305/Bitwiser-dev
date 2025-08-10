@@ -2891,6 +2891,24 @@ function setupGoogleAuth() {
   });
 }
 
+function formatMenuBarButtons() {
+  const isMobile = window.innerWidth <= 1024;
+  document.querySelectorAll('#menuBar button').forEach(btn => {
+    if (!btn.dataset.originalText) {
+      btn.dataset.originalText = btn.textContent.trim();
+    }
+    const original = btn.dataset.originalText;
+    const firstSpace = original.indexOf(' ');
+    const firstChar = original.charAt(0);
+    if (isMobile && firstSpace !== -1 && !/[A-Za-z0-9가-힣]/.test(firstChar)) {
+      const rest = original.slice(firstSpace + 1);
+      btn.innerHTML = `<span class="emoji">${firstChar}</span><span class="btn-text">${rest}</span>`;
+    } else {
+      btn.textContent = original;
+    }
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const uname = localStorage.getItem("username");
   if (uname) document.getElementById("guestUsername").textContent = uname;
@@ -2899,6 +2917,8 @@ document.addEventListener("DOMContentLoaded", () => {
   initialTasks.push(setupGoogleAuth());
 
   setupKeyToggles();
+  formatMenuBarButtons();
+  window.addEventListener('resize', formatMenuBarButtons);
   Promise.all(initialTasks).then(() => {
     hideLoadingScreen();
   });
