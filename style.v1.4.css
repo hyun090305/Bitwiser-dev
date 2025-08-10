@@ -6,7 +6,8 @@
     display: flex;
     /* 기존 space-between 제거 */
     align-items: center;
-    font-family: 'Noto Sans KR', sans-serif;
+    font-family: 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji',
+      'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
     background-color: #f0f0f0;
     color: #0F172A;
     text-align: center;
