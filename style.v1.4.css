@@ -2175,3 +2175,41 @@ html, body {
     height: 24px;
   }
 }
+
+@media (max-width: 600px) {
+  #menuBar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 40vw;
+    height: 100vh;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-auto-rows: 1fr;
+    gap: 5px;
+    padding: 5px;
+  }
+
+  #menuBar button {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    aspect-ratio: 1 / 1;
+    box-sizing: border-box;
+  }
+
+  #backToLevelsBtn {
+    grid-column: 1 / span 2;
+  }
+
+  #gameLayout {
+    margin-left: 40vw;
+    padding-bottom: 0;
+  }
+
+  #gridContainer {
+    margin-bottom: 0;
+  }
+}
