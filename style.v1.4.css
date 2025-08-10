@@ -2206,7 +2206,7 @@ html, body {
     position: fixed;
     top: 0;
     right: 0;
-    margin-left: 0.5rem;
+    margin-right: 0.5rem;
     /* transform: translateY(-50%); */
     width: var(--menuBarWidth);
     height: 72vh;
