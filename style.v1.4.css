@@ -2212,6 +2212,7 @@ html, body {
   }
 
   #menuBar button {
+    word-break: keep-all;
     font-size: 12pt;
     height: 18vh;
     margin: 0;
