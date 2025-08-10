@@ -2202,11 +2202,12 @@ html, body {
   }
 
   #menuBar {
+    margin-top: 0.5rem;
     position: fixed;
-    top: 50%;
-    left: 0;
+    top: 0;
+    right: 0;
     margin-left: 0.5rem;
-    transform: translateY(-50%);
+    /* transform: translateY(-50%); */
     width: var(--menuBarWidth);
     height: 72vh;
     display: grid;
@@ -2292,7 +2293,7 @@ html, body {
   }
 
   #gameArea {
-    margin-left: calc(var(--menuBarWidth) + 1rem);
+    /* margin-left: calc(var(--menuBarWidth) + 1rem); */
     padding-bottom: 0;
   }
 
@@ -2300,5 +2301,6 @@ html, body {
     margin-bottom: 0;
   }
 }
+
 
 
