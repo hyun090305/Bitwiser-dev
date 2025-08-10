@@ -2193,7 +2193,6 @@ html, body {
 
   #menuBar button {
     font-size: 12pt;
-    width: 18vh;
     height: 18vh;
     margin: 0;
     padding: 0;
@@ -2203,7 +2202,7 @@ html, body {
 
   #backToLevelsBtn {
     grid-column: 1 / span 2;
-    width: 40vh;
+    width: 38vh;
   }
 
   #gameLayout {
