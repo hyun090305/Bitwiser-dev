@@ -2894,6 +2894,7 @@ function setupGoogleAuth() {
 function formatMenuBarButtons() {
   const isMobile = window.innerWidth <= 1024;
   document.querySelectorAll('#menuBar button').forEach(btn => {
+    if (btn.id === 'menuToggleBtn') return;
     if (!btn.dataset.originalText) {
       btn.dataset.originalText = btn.textContent.trim();
     }
@@ -2909,6 +2910,17 @@ function formatMenuBarButtons() {
   });
 }
 
+function setupMenuToggle() {
+  const menuBar = document.getElementById('menuBar');
+  const gameArea = document.getElementById('gameArea');
+  const toggleBtn = document.getElementById('menuToggleBtn');
+  if (!menuBar || !gameArea || !toggleBtn) return;
+  toggleBtn.addEventListener('click', () => {
+    menuBar.classList.toggle('collapsed');
+    gameArea.classList.toggle('menu-collapsed');
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const uname = localStorage.getItem("username");
   if (uname) document.getElementById("guestUsername").textContent = uname;
@@ -2917,6 +2929,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initialTasks.push(setupGoogleAuth());
 
   setupKeyToggles();
+  setupMenuToggle();
   formatMenuBarButtons();
   window.addEventListener('resize', formatMenuBarButtons);
   Promise.all(initialTasks).then(() => {
