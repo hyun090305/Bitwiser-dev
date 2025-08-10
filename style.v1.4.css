@@ -174,8 +174,6 @@ html, body {
     padding: 6px 10px;
     cursor: pointer;
     transition: background-color 0.2s, color 0.2s;
-    font-family: system-ui, 'Apple Color Emoji', 'Segoe UI Emoji',
-      'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
   }
 
   #menuBar button:hover:not(:disabled) {
@@ -752,8 +750,7 @@ html, body {
     border-top: 2px solid #ccc;
     margin-top: 20px;
     padding: 1.5rem;
-    font-family: 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji',
-      'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     border-radius: 12px;
@@ -1104,8 +1101,7 @@ html, body {
 
   body {
     /* assets/background.png 파일을 프로젝트 루트 기준으로 불러옵니다 */
-    font-family: 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji',
-      'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+    font-family: 'Noto Sans KR', sans-serif;
     text-align: center;
   }
 
@@ -1664,8 +1660,7 @@ html, body {
   padding: 2rem;
   overflow-y: auto;
   box-sizing: border-box;
-  font-family: 'Noto Sans KR', 'Apple Color Emoji', 'Segoe UI Emoji',
-    'Segoe UI Symbol', 'Noto Color Emoji', sans-serif;
+  font-family: 'Noto Sans KR', sans-serif;
 }
 
 /* 뒤로가기 버튼 */
