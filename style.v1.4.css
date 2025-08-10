@@ -169,7 +169,7 @@ html, body {
     left: 0;
   }
 
-  #menuBar button {
+  #menuBar button:not(#menuToggleBtn) {
     margin: 0 5px;
     padding: 6px 10px;
     cursor: pointer;
@@ -178,13 +178,16 @@ html, body {
 
   #menuToggleBtn {
     display: none;
+    background: transparent;
+    border: none;
+    color: inherit;
   }
 
-  #menuBar button:hover:not(:disabled) {
+  #menuBar button:not(#menuToggleBtn):hover:not(:disabled) {
     background-color: #eee;
   }
 
-  #menuBar button:disabled {
+  #menuBar button:not(#menuToggleBtn):disabled {
     opacity: 0.6;
     cursor: not-allowed;
   }
@@ -2216,7 +2219,7 @@ html, body {
     background-color: #ddd;
   }
 
-  #menuBar button {
+  #menuBar button:not(#menuToggleBtn) {
     width: 100%;
     word-break: keep-all;
     font-size: 3.5vh;
@@ -2242,14 +2245,18 @@ html, body {
     grid-column: 1 / span 2;
     height: 6vh;
     font-size: 4vh;
+    background: transparent;
+    border: none;
+    color: inherit;
+    cursor: pointer;
   }
 
-  #menuBar button:hover:not(:disabled) {
+  #menuBar button:not(#menuToggleBtn):hover:not(:disabled) {
     background-color: #1d4ed8;
     color: #fff;
   }
 
-  #menuBar button:disabled {
+  #menuBar button:not(#menuToggleBtn):disabled {
     background-color: #ccc;
     border-color: #aaa;
     color: #666;
