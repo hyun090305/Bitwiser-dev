@@ -1060,13 +1060,12 @@ html, body {
 }
 
 #stageTutorialModal .tutorial-img {
-  width: 150px;
-  max-height: 150px;
+  max-height: 400px;
   margin: 0;
 }
 
 #stageTutorialModal .tutorial-text {
-  display: flex;
+  display: block;
   flex-direction: column;
   gap: 1rem;
 }
