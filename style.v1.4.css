@@ -2243,6 +2243,7 @@ html, body {
   }
 
   #menuToggleBtn {
+    text-align: right;
     display: block;
     grid-column: 1 / span 2;
     height: 6vh;
