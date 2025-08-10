@@ -2195,9 +2195,10 @@ html, body {
   }
 }
 
+
 @media (max-width: 1024px) {
   :root {
-    --menuBarWidth: 40vh;
+    --menuBarWidth: 34vh;
   }
 
   #menuBar {
@@ -2207,7 +2208,7 @@ html, body {
     margin-left: 0.5rem;
     transform: translateY(-50%);
     width: var(--menuBarWidth);
-    height: 95vh;
+    height: 72vh;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 1fr;
@@ -2222,11 +2223,11 @@ html, body {
   #menuBar button:not(#menuToggleBtn) {
     width: 100%;
     word-break: keep-all;
-    font-size: 3.5vh;
-    height: 18vh;
+    font-size: 3vh;
+    height: 12vh;
     margin: 0;
     padding: 0;
-    aspect-ratio: 1 / 1;
+    /* aspect-ratio: 1 / 1; */
     box-sizing: border-box;
     background-color: #fff;
     border: 2px solid #1d4ed8;
@@ -2299,4 +2300,5 @@ html, body {
     margin-bottom: 0;
   }
 }
+
 
