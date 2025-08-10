@@ -2176,14 +2176,14 @@ html, body {
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   #menuBar {
     position: fixed;
     top: 0;
     left: 0;
     bottom: 0;
-    width: 40vw;
-    height: 100vh;
+    width: 40vh;
+    height: 95vh;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: 1fr;
@@ -2192,8 +2192,9 @@ html, body {
   }
 
   #menuBar button {
-    width: 100%;
-    height: 100%;
+    font-size: 12pt;
+    width: 18vh;
+    height: 18vh;
     margin: 0;
     padding: 0;
     aspect-ratio: 1 / 1;
@@ -2205,7 +2206,7 @@ html, body {
   }
 
   #gameLayout {
-    margin-left: 40vw;
+    margin-left: 20vw;
     padding-bottom: 0;
   }
 
@@ -2213,3 +2214,4 @@ html, body {
     margin-bottom: 0;
   }
 }
+
