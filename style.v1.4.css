@@ -1054,7 +1054,23 @@ html, body {
 #stageTutorialModal .modal-content {
   max-height: calc(100vh - 2rem);
   overflow-y: auto;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
+
+#stageTutorialModal .tutorial-img {
+  width: 150px;
+  max-height: 150px;
+  margin: 0;
+}
+
+#stageTutorialModal .tutorial-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 
 #gifModal {
   overflow-y: auto;
