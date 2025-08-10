@@ -2898,11 +2898,11 @@ function formatMenuBarButtons() {
       btn.dataset.originalText = btn.textContent.trim();
     }
     const original = btn.dataset.originalText;
-    const firstSpace = original.indexOf(' ');
-    const firstChar = original.charAt(0);
-    if (isMobile && firstSpace !== -1 && !/[A-Za-z0-9가-힣]/.test(firstChar)) {
-      const rest = original.slice(firstSpace + 1);
-      btn.innerHTML = `<span class="emoji">${firstChar}</span><span class="btn-text">${rest}</span>`;
+    if (isMobile) {
+      const cleaned = original
+        .replace(/^[^\w가-힣]+\s*/, '')
+        .replace(/\s*[^\w가-힣]+$/, '');
+      btn.textContent = cleaned;
     } else {
       btn.textContent = original;
     }
