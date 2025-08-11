@@ -12,7 +12,6 @@ let isMouseDown = false;
 let wireTrace = [];     // 드래그 경로
 let GRID_ROWS = 6;
 let GRID_COLS = 6;
-const DEFAULT_CELL_SIZE = 50;
 let wires = [];  // { path, start, end } 객체를 저장할 배열
 let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
@@ -1854,31 +1853,6 @@ function renderStageList(stageList) {
   });
 }
 
-function updateCellSize() {
-  if (!grid) return;
-  const gap = 2;
-  const border = 4;
-  grid.style.setProperty('--cell-size', `${DEFAULT_CELL_SIZE}px`);
-
-  let rect = grid.getBoundingClientRect();
-  let availableWidth = window.innerWidth - rect.left - border;
-  let availableHeight = window.innerHeight - rect.top - border;
-  let sizeByWidth = (availableWidth - gap * (GRID_COLS - 1)) / GRID_COLS;
-  let sizeByHeight = (availableHeight - gap * (GRID_ROWS - 1)) / GRID_ROWS;
-  let newSize = Math.min(DEFAULT_CELL_SIZE, sizeByWidth, sizeByHeight);
-  grid.style.setProperty('--cell-size', `${Math.floor(newSize)}px`);
-
-  rect = grid.getBoundingClientRect();
-  if (rect.right > window.innerWidth || rect.bottom > window.innerHeight) {
-    availableWidth = window.innerWidth - rect.left - border;
-    availableHeight = window.innerHeight - rect.top - border;
-    sizeByWidth = (availableWidth - gap * (GRID_COLS - 1)) / GRID_COLS;
-    sizeByHeight = (availableHeight - gap * (GRID_ROWS - 1)) / GRID_ROWS;
-    newSize = Math.min(newSize, sizeByWidth, sizeByHeight);
-    grid.style.setProperty('--cell-size', `${Math.floor(newSize)}px`);
-  }
-}
-
 function setGridDimensions(rows, cols) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
@@ -1887,15 +1861,12 @@ function setGridDimensions(rows, cols) {
     // ① CSS 변수만 업데이트
     grid.style.setProperty('--grid-rows', rows);
     grid.style.setProperty('--grid-cols', cols);
-    updateCellSize();
 
     // ② inline grid-template 은 제거하거나 주석 처리
     // grid.style.gridTemplateRows   = `repeat(${rows}, 1fr)`;
     // grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   }
 }
-
-window.addEventListener('resize', updateCellSize);
 
 
 /**

@@ -196,9 +196,9 @@ html, body {
     display: grid;
     gap: 2px;
     border: 2px solid black;
-    grid-template-columns: repeat(var(--grid-cols, 6), var(--cell-size));
+    grid-template-columns: repeat(var(--grid-cols, 6), 50px);
     /* 기존 */
-    grid-template-rows: repeat(var(--grid-rows, 6), var(--cell-size));
+    grid-template-rows: repeat(var(--grid-rows, 6), 50px);
     touch-action: none;
     /* 추가 */
   }
@@ -261,8 +261,8 @@ html, body {
     box-sizing: border-box;
     position: relative;
     background-color: white;
-    width: var(--cell-size);
-    height: var(--cell-size);
+    width: 50px;
+    height: 50px;
   }
 
   .cell.block {
@@ -272,7 +272,6 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: calc(var(--cell-size) * 0.4);
   }
 
   .cell.wire {
@@ -288,7 +287,6 @@ html, body {
     left: 50%;
     background-color: black;
     transform: translateX(-50%);
-    width: calc(var(--cell-size) / 25);
   }
 
   .cell.wire.wire-up::before {
@@ -309,7 +307,6 @@ html, body {
     top: 50%;
     background-color: black;
     transform: translateY(-50%);
-    height: calc(var(--cell-size) / 25);
   }
 
   .cell.wire.wire-left::after {
@@ -372,7 +369,7 @@ html, body {
   /* 세로선(│) – 굵기만 2 px */
   .cell.wire.wire-up::before,
   .cell.wire.wire-down::before {
-    width: calc(var(--cell-size) / 25);
+    width: 2px;
     /* ▽ 세로 점선 + 애니메이션 */
     background-image: repeating-linear-gradient(0deg, #000 0 26px, transparent 26px var(--unit));
     background-size: 100% var(--unit);
@@ -382,7 +379,7 @@ html, body {
   /* 가로선(─) – 굵기를 height 로만 통일 */
   .cell.wire.wire-left::after,
   .cell.wire.wire-right::after {
-    height: calc(var(--cell-size) / 25);
+    height: 2px;
     /* ▽ 가로 점선 + 애니메이션 */
     background-image: repeating-linear-gradient(90deg, #000 0 26px, transparent 26px var(--unit));
     background-size: var(--unit) 100%;
@@ -393,29 +390,28 @@ html, body {
 
   /* 셀 크기 변수(선택) */
   :root {
-    --cell-size: 50px;
-    --unit: calc(var(--cell-size) + 2px);
+    --unit: 52px;
     /* 셀 한 칸 간격 */
-    --half-unit: calc(var(--unit) / 2);
-    --phase-right: var(--half-unit);
+    /* 아래 네 값만 바꿔가며 테스트하세요 */
+    --phase-right: 26px;
     /* →  흐름 */
     --phase-left: 0px;
     /* ←  흐름 (반 주기 만큼 밀어 예시) */
     --phase-down: 0px;
     /* ↓  흐름 */
-    --phase-up: var(--half-unit);
+    --phase-up: 26px;
     /* ↑  흐름 */
     /* shape: down+right (┌) */
     --corner-offset-dr-right: 0px;
     --corner-offset-dr-down: 0px;
 
     /* shape: down+left  (┐) */
-    --corner-offset-dl-left: var(--half-unit);
-    --corner-offset-dl-down: var(--half-unit);
+    --corner-offset-dl-left: 26px;
+    --corner-offset-dl-down: 26px;
 
     /* shape: up+right   (└) */
-    --corner-offset-ur-right: var(--half-unit);
-    --corner-offset-ur-up: var(--half-unit);
+    --corner-offset-ur-right: 26px;
+    --corner-offset-ur-up: 26px;
 
     /* shape: up+left    (┘) */
     --corner-offset-ul-left: 0px;
@@ -423,6 +419,7 @@ html, body {
 
     /* fallback */
     --corner-offset: 0px;
+    --half-unit: calc(var(--unit) / 2);
   }
 
   /* ── 가로 기본선(h) ───────────────────────── */
@@ -433,7 +430,7 @@ html, body {
     top: 50%;
     transform: translateY(-50%);
     width: 100%;
-    height: calc(var(--cell-size) / 25);
+    height: 2px;
 
     /* 검정 26px → 투명 26px = 총 52px */
     background-image: repeating-linear-gradient(90deg, #000 0 26px, transparent 26px var(--unit));
@@ -450,7 +447,7 @@ html, body {
     top: 0;
     left: 50%;
     transform: translateX(-50%);
-    width: calc(var(--cell-size) / 25);
+    width: 2px;
     height: 100%;
 
     background-image: repeating-linear-gradient(0deg, #000 0 26px, transparent 26px var(--unit));
@@ -1642,8 +1639,8 @@ html, body {
   display: grid;
   gap: 2px;
   border: 2px solid black;
-  grid-template-columns: repeat(var(--grid-cols, 6), var(--cell-size));
-  grid-template-rows: repeat(var(--grid-rows, 6), var(--cell-size));
+  grid-template-columns: repeat(var(--grid-cols, 6), 50px);
+  grid-template-rows: repeat(var(--grid-rows, 6), 50px);
   touch-action: none;
 }
 
@@ -1902,8 +1899,8 @@ html, body {
 
 /* ── 1) 기본 셀 ── */
 .cell {
-  width: var(--cell-size);
-  height: var(--cell-size);
+  width: 50px;
+  height: 50px;
   background-color: #ffffff;
   border-radius: 3px;             /* 🎯 핵심 – 4~6px 권장 */
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
