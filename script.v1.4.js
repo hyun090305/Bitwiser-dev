@@ -1334,20 +1334,23 @@ async function gradeLevelAnimated(level) {
       markLevelCleared(level);
     }
 
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
     let saveSuccess = false;
-    try {
-      if (gifLoadingModal) {
-        if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-        gifLoadingModal.style.display = 'flex';
-      }
-      await saveCircuit();
-      saveSuccess = true;
-    } catch (e) {
-      alert(t('saveFailed').replace('{error}', e));
-    } finally {
-      if (gifLoadingModal) {
-        gifLoadingModal.style.display = 'none';
-        if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess = true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
       }
     }
     const blocks = Array.from(grid.querySelectorAll(".cell.block"));
@@ -1408,7 +1411,7 @@ async function gradeLevelAnimated(level) {
           }
         }
 
-        showCircuitSavedModal();
+        if (saveSuccess) showCircuitSavedModal();
       });
 
 
@@ -2902,6 +2905,30 @@ function setupMenuToggle() {
   });
 }
 
+function setupSettings() {
+  const btn = document.getElementById('settingsBtn');
+  const modal = document.getElementById('settingsModal');
+  const closeBtn = document.getElementById('settingsCloseBtn');
+  const checkbox = document.getElementById('autoSaveCheckbox');
+  if (!btn || !modal || !closeBtn || !checkbox) return;
+
+  const enabled = localStorage.getItem('autoSaveCircuit') !== 'false';
+  checkbox.checked = enabled;
+  checkbox.addEventListener('change', () => {
+    localStorage.setItem('autoSaveCircuit', checkbox.checked);
+  });
+
+  btn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const uname = localStorage.getItem("username");
   if (uname) document.getElementById("guestUsername").textContent = uname;
@@ -2911,6 +2938,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupKeyToggles();
   setupMenuToggle();
+  setupSettings();
   Promise.all(initialTasks).then(() => {
     hideLoadingScreen();
   });
@@ -4948,20 +4976,23 @@ async function gradeProblemAnimated(key, problem) {
   document.getElementById('returnToEditBtn').addEventListener('click',returnToEditScreen);
 
   if(allCorrect && key){
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
     let saveSuccess=false;
-    try {
-      if (gifLoadingModal) {
-        if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-        gifLoadingModal.style.display = 'flex';
-      }
-      await saveCircuit();
-      saveSuccess=true;
-    } catch (e) {
-      alert(t('saveFailed').replace('{error}', e));
-    } finally {
-      if (gifLoadingModal) {
-        gifLoadingModal.style.display = 'none';
-        if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess=true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
       }
     }
     if(saveSuccess) showCircuitSavedModal();
