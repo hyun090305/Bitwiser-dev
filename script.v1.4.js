@@ -1052,6 +1052,30 @@ function setupBlockPanel(level) {
   const panel = getBlockPanel();
   panel.innerHTML = "";
 
+  // 두 줄(IN/OUT, GATE) 컨테이너 생성
+  const inoutRow = document.createElement('div');
+  inoutRow.className = 'blockRow';
+  const inoutTitle = document.createElement('div');
+  inoutTitle.className = 'blockRowTitle';
+  inoutTitle.textContent = 'IN/OUT';
+  const inoutContainer = document.createElement('div');
+  inoutContainer.className = 'blockRowContent';
+  inoutRow.appendChild(inoutTitle);
+  inoutRow.appendChild(inoutContainer);
+
+  const gateRow = document.createElement('div');
+  gateRow.className = 'blockRow';
+  const gateTitle = document.createElement('div');
+  gateTitle.className = 'blockRowTitle';
+  gateTitle.textContent = 'GATE';
+  const gateContainer = document.createElement('div');
+  gateContainer.className = 'blockRowContent';
+  gateRow.appendChild(gateTitle);
+  gateRow.appendChild(gateContainer);
+
+  panel.appendChild(inoutRow);
+  panel.appendChild(gateRow);
+
   const blocks = levelBlockSets[level];
   if (!blocks) return;
 
@@ -1061,7 +1085,7 @@ function setupBlockPanel(level) {
     div.draggable = true;
     div.dataset.type = block.type;
     if (block.name) div.dataset.name = block.name;
-    div.textContent = block.name || block.type;
+    div.textContent = block.type === 'JUNCTION' ? 'junc' : (block.name || block.type);
 
     // ↓ 여기에 설명 추가
     div.dataset.tooltip = (() => {
@@ -1076,9 +1100,12 @@ function setupBlockPanel(level) {
       }
     })();
 
-    panel.appendChild(div);
+    if (block.type === 'INPUT' || block.type === 'OUTPUT') {
+      inoutContainer.appendChild(div);
+    } else {
+      gateContainer.appendChild(div);
+    }
   });
-
 
   // WIRE는 블록이 아니므로 패널에 추가하지 않음
 
