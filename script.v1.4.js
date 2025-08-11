@@ -5101,14 +5101,6 @@ function drawCaptureFrame(ctx, state, frame) {
   ctx.strokeRect(border / 2, border / 2, ctx.canvas.width - border, ctx.canvas.height - border);
 }
 
-function framesEqual(data1, data2) {
-  if (!data1 || !data2 || data1.length !== data2.length) return false;
-  for (let i = 0; i < data1.length; i++) {
-    if (data1[i] !== data2[i]) return false;
-  }
-  return true;
-}
-
 function captureGIF(state, onFinish) {
   const cellSize = 50 * GIF_SCALE;
   const gap = 2 * GIF_SCALE;
@@ -5122,20 +5114,11 @@ function captureGIF(state, onFinish) {
   const height = captureCanvas.height;
   const gif = new GIF({ workers: 2, quality: 10 });
 
-  let prevFrame = null;
-  let delay = 50;
   for (let f = 0; f < state.totalFrames; f++) {
     drawCaptureFrame(ctx, state, f);
     const frame = ctx.getImageData(0, 0, width, height);
-    if (prevFrame && framesEqual(frame.data, prevFrame.data)) {
-      delay += 50;
-    } else {
-      if (prevFrame) gif.addFrame(prevFrame, { delay });
-      prevFrame = frame;
-      delay = 50;
-    }
+    gif.addFrame(frame, { delay: 50 });
   }
-  if (prevFrame) gif.addFrame(prevFrame, { delay });
 
   gif.on('finished', blob => {
     resetCaptureCanvas();
