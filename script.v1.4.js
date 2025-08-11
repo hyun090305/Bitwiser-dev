@@ -1869,6 +1869,40 @@ function setGridDimensions(rows, cols) {
 }
 
 
+function adjustGridZoom() {
+  const gridContainer = document.getElementById('gridContainer');
+  if (!gridContainer) return;
+
+  const menuBar = document.getElementById('menuBar');
+  const margin = 20;
+
+  gridContainer.style.zoom = 1;
+
+  let availableWidth = window.innerWidth - margin * 2;
+  let availableHeight = window.innerHeight - margin * 2;
+
+  if (menuBar) {
+    const menuRect = menuBar.getBoundingClientRect();
+    const isVertical = menuRect.height > menuRect.width;
+    if (isVertical) {
+      availableWidth -= menuRect.width;
+    } else {
+      availableHeight -= menuRect.height;
+    }
+  }
+
+  const gcRect = gridContainer.getBoundingClientRect();
+  const scale = Math.min(
+    availableWidth / gcRect.width,
+    availableHeight / gcRect.height,
+    1
+  );
+
+  if (scale < 1) {
+    gridContainer.style.zoom = scale;
+  }
+}
+
 /**
  * @param {string} containerId 그리드 컨테이너의 id
  * @param {number} rows
@@ -2098,6 +2132,7 @@ function setupGrid(containerId, rows, cols) {
   // ——— 그리드 밖 마우스 탈출 시 취소 ———
   grid.addEventListener('mouseleave', cancelWireDrawing);
   grid.addEventListener('touchcancel', cancelWireDrawing);
+  adjustGridZoom();
 }
 
 function resetCell(cell) {
@@ -2910,6 +2945,7 @@ function setupMenuToggle() {
   toggleBtn.addEventListener('click', () => {
     menuBar.classList.toggle('collapsed');
     gameArea.classList.toggle('menu-collapsed');
+    adjustGridZoom();
   });
 }
 
@@ -5238,6 +5274,7 @@ if (closeOrientationBtn) {
 }
 
 window.addEventListener('resize', checkOrientation);
+window.addEventListener('resize', adjustGridZoom);
 const mqOrientation = window.matchMedia('(orientation: portrait)');
 if (mqOrientation.addEventListener) {
   mqOrientation.addEventListener('change', checkOrientation);
@@ -5245,4 +5282,5 @@ if (mqOrientation.addEventListener) {
   mqOrientation.addListener(checkOrientation);
 }
 checkOrientation();
+adjustGridZoom();
 
