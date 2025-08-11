@@ -2318,8 +2318,8 @@ html, body {
   #menuBar button:not(#menuToggleBtn) {
     width: 100%;
     word-break: keep-all;
-    font-size: 3vh;
-    height: 8vh;
+    font-size: 1.6vw;
+    height: 4vw;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -2371,6 +2371,9 @@ html, body {
 
   #menuBar.collapsed button:not(#menuToggleBtn) {
     color: transparent;
+    /* position: fixed; */
+    /* right: -10px; */
+    /* height: 0; */
     opacity: 0;
     margin: 0;
     padding: 0;
@@ -2400,3 +2403,4 @@ html, body {
     margin-bottom: 0;
   }
 }
+
