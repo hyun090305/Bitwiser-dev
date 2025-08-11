@@ -2370,7 +2370,7 @@ html, body {
   }
 
   #menuBar.collapsed button:not(#menuToggleBtn) {
-    height: 0;
+    color: transparent;
     opacity: 0;
     margin: 0;
     padding: 0;
