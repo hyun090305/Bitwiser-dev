@@ -2196,6 +2196,96 @@ html, body {
 
 
 @media (max-width: 1024px) {
+  #firstScreen {
+    display: block;
+    padding-bottom: 60px;
+  }
+
+  #firstScreen > #overallRankingArea,
+  #firstScreen > #mainArea,
+  #firstScreen > #guestbookArea {
+    display: none;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  
+  #firstScreen > #mainArea {
+    display: flex;
+  }
+
+  #mainArea {
+    flex-direction: row;
+  }
+
+  #mainArea > #mainScreen,
+  #mainArea > #loginArea {
+    flex: 1;
+  }
+
+  #guestbookArea {
+    flex-direction: row;
+  }
+
+  #guestbookForm,
+  #guestbookListArea {
+    flex: 1 1 50%;
+    width: 50%;
+  }
+
+  #guestbookForm {
+    padding-right: 0.5rem;
+  }
+
+  #guestbookListArea {
+    border-left: 1px solid #ddd;
+    border-top: 0;
+    padding-left: 0.5rem;
+    padding-top: 0;
+  }
+
+  #mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+  }
+
+  #mobileNav .nav-item {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #mobileNav .nav-item .nav-text {
+    display: none;
+  }
+
+  #mobileNav .nav-item.active .nav-text {
+    display: inline;
+  }
+
+  #mobileNav .nav-item:hover {
+    background-color: #e0e0e0;
+  }
+
+  #mobileNav .nav-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+
+@media (max-width: 1024px) {
   :root {
     --menuBarWidth: 34vh;
   }
@@ -2205,7 +2295,7 @@ html, body {
     position: fixed;
     top: 0;
     right: 0;
-    margin-right: 0.5rem;
+    /* margin-right: 0.5rem; */
     /* transform: translateY(-50%); */
     width: var(--menuBarWidth);
     height: 72vh;
@@ -2215,9 +2305,9 @@ html, body {
     row-gap: 5px;
     column-gap: 7px;
     padding: 5px;
-    border: 2px solid #1d4ed8;
-    border-radius: 10px;
-    background-color: #ddd;
+    /* border: 2px solid #1d4ed8; */
+    /* border-radius: 10px; */
+    background-color: transparent;
   }
 
   #menuBar button:not(#menuToggleBtn) {
@@ -2301,6 +2391,10 @@ html, body {
     margin-bottom: 0;
   }
 }
+
+
+
+
 
 
 
