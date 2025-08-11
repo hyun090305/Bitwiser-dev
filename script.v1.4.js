@@ -2891,25 +2891,6 @@ function setupGoogleAuth() {
   });
 }
 
-function formatMenuBarButtons() {
-  const isMobile = window.innerWidth <= 1024;
-  document.querySelectorAll('#menuBar button').forEach(btn => {
-    if (btn.id === 'menuToggleBtn') return;
-    if (!btn.dataset.originalText) {
-      btn.dataset.originalText = btn.textContent.trim();
-    }
-    const original = btn.dataset.originalText;
-    if (isMobile) {
-      const cleaned = original
-        .replace(/^[^\w가-힣]+\s*/, '')
-        .replace(/\s*[^\w가-힣]+$/, '');
-      btn.textContent = cleaned;
-    } else {
-      btn.textContent = original;
-    }
-  });
-}
-
 function setupMenuToggle() {
   const menuBar = document.getElementById('menuBar');
   const gameArea = document.getElementById('gameArea');
@@ -2930,8 +2911,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupKeyToggles();
   setupMenuToggle();
-  formatMenuBarButtons();
-  window.addEventListener('resize', formatMenuBarButtons);
   Promise.all(initialTasks).then(() => {
     hideLoadingScreen();
   });
