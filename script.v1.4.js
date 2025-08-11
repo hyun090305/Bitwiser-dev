@@ -1085,7 +1085,7 @@ function setupBlockPanel(level) {
     div.draggable = true;
     div.dataset.type = block.type;
     if (block.name) div.dataset.name = block.name;
-    div.textContent = block.type === 'JUNCTION' ? 'junc' : (block.name || block.type);
+    div.textContent = block.type === 'JUNCTION' ? 'JUNC' : (block.name || block.type);
 
     // ↓ 여기에 설명 추가
     div.dataset.tooltip = (() => {
