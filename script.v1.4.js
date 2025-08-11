@@ -5014,7 +5014,7 @@ function getCircuitSnapshot() {
   const rows = Math.max(1, Math.floor(Number(GRID_ROWS)));
   const cols = Math.max(1, Math.floor(Number(GRID_COLS)));
 
-  return { blocks: blockSnap, wires: wireSnap, rows, cols, totalFrames: 80 };
+  return { blocks: blockSnap, wires: wireSnap, rows, cols, totalFrames: 16 };
 }
 
 function drawRoundedRect(ctx, x, y, width, height, radius) {
