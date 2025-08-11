@@ -79,7 +79,7 @@ html, body {
 
   #gameTitle {
     cursor: pointer;
-    margin: 0;
+    margin-bottom: 2rem;
   }
 
   #gameTitle:hover {
