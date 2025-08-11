@@ -212,7 +212,12 @@ html, body {
     box-sizing: border-box;
   }
 
-
+#gameArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+}
   .toggle-key {
     display: block;
     margin: 6px 0;
@@ -2397,10 +2402,6 @@ html, body {
   #gameArea {
     /* margin-left: calc(var(--menuBarWidth) + 1rem); */
     padding-bottom: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex: 1;
   }
 
   #gridContainer {
