@@ -230,6 +230,7 @@ html, body {
   }
 
   .toggle-key {
+    font-size: 15px;
     width: 100%;
     display: block;
     margin: 6px 0;
@@ -246,6 +247,10 @@ html, body {
     color: #fff;
   }
 
+  #gradeButton {
+    padding: 5px 20px;
+    width: 100%;
+  }
   .cell {
     border: 1px solid #ccc;
     box-sizing: border-box;
