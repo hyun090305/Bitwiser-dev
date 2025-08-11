@@ -2311,7 +2311,7 @@ html, body {
     width: 100%;
     word-break: keep-all;
     font-size: 3vh;
-    height: 6vh;
+    height: 8vh;
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -2364,11 +2364,11 @@ html, body {
 
   #menuBar.collapsed #menuToggleBtn {
     width: 100%;
-    height: 100%;
+    /* height: 100%; */
   }
 
   #gameArea.menu-collapsed {
-    margin-left: 1rem;
+    /* margin-left: 1rem; */
   }
 
   #backToLevelsBtn {
@@ -2384,6 +2384,13 @@ html, body {
     margin-bottom: 0;
   }
 }
+
+
+
+
+
+
+
 
 
 
