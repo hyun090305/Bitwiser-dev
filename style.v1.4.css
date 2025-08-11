@@ -39,6 +39,25 @@ html, body {
     overflow: visible;
   }
 
+  .blockRow {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  .blockRowTitle {
+    font-weight: bold;
+  }
+
+  .blockRowContent {
+    display: flex;
+    gap: 0.5rem;
+  }
+
   #gameScreen {
     display: flex;
     flex-direction: column;
@@ -347,8 +366,8 @@ html, body {
 
   /* ── 블록 아이콘 스타일 ── */
   .blockIcon {
-    width: 60px;
-    height: 30px;
+    width: 40px;
+    height: 40px;
     background-color: #e0e0ff;
     border: 1px solid #666;
     display: inline-flex;
@@ -1669,7 +1688,8 @@ html, body {
 #blockPanel .blockIcon,
 #moduleBlockPanel .blockIcon,
 #problemBlockPanel .blockIcon {
-  width: 100%;                 /* 패널 폭에 꽉 차도록 */
+  width: 40px;
+  height: 40px;
   text-align: center;          /* 텍스트 중앙 정렬 */
 }
 
