@@ -362,8 +362,6 @@
     <!-- 게임 화면 -->
     <div id="gameScreen" style="display:none">
       <div id="gameArea">
-        <h1 id="gameTitle">🧠 Bitwiser</h1>
-        <p class="tagline">Play bitwise. Become bit wiser.</p>
 
         <!-- 전체 게임 영역: 좌측 메뉴 + 중앙 그리드 + 우측 안내 -->
         <div id="gameLayout">
@@ -381,6 +379,7 @@
         <!-- 우측: 시뮬레이트 + 안내 + 삭제 -->
         <div class="rightPanel" id="rightPanel"
           style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+          <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
           <button id="gradeButton" class="main-button">채점하기</button>
           <div style="text-align: center; line-height: 1.6;">
             <button id="wireStatusInfo" class="toggle-key"

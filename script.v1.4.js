@@ -2120,6 +2120,14 @@ document.getElementById("showIntroBtn").addEventListener("click", () => {
   }
 });
 
+document.getElementById("gameTitle").addEventListener("click", () => {
+  if (currentLevel != null) {
+    showIntroModal(currentLevel);
+  } else if (currentCustomProblem) {
+    showProblemIntro(currentCustomProblem);
+  }
+});
+
 document.getElementById('hintBtn').addEventListener('click', () => {
   if (currentLevel == null) {
     if (currentCustomProblem) {
