@@ -33,8 +33,10 @@ html, body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: 1rem;
     flex-shrink: 0;
+    max-height: 80vh;
+    overflow: visible;
   }
 
   #gameScreen {
@@ -1657,8 +1659,10 @@ html, body {
   display: flex;               /* 세로 정렬을 위해 flex 사용 */
   flex-direction: column;      /* 수직 방향으로 블록 나열 */
   align-items: stretch;        /* 폭을 부모에 맞춤 */
-  gap: 0.75rem;                /* 블록 간격: 원하시는 px/em 단위로 조정 가능 */
+  gap: 1rem;                   /* 블록 간격: 원하시는 px/em 단위로 조정 가능 */
   padding: 0.5rem 0;           /* 상하 여백(옵션) */
+  max-height: 80vh;            /* 최대 높이 제한 */
+  overflow: visible;           /* tooltip이 밖으로 보이도록 */
 }
 
 /* 블록 아이콘 크기·정렬 (필요시 조정) */
