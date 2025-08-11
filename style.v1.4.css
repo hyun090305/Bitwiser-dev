@@ -47,6 +47,7 @@ html, body {
     background-color: #fff;
     border: 1px solid #ccc;
     border-radius: 8px;
+    flex-direction: column;
   }
 
   .blockRowTitle {
@@ -55,6 +56,7 @@ html, body {
 
   .blockRowContent {
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
   }
 
@@ -1688,8 +1690,8 @@ html, body {
 #blockPanel .blockIcon,
 #moduleBlockPanel .blockIcon,
 #problemBlockPanel .blockIcon {
-  width: 40px;
-  height: 40px;
+  width: 50px;
+  height: 30px;
   text-align: center;          /* 텍스트 중앙 정렬 */
 }
 
