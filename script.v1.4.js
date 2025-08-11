@@ -2937,6 +2937,23 @@ function setupSettings() {
   });
 }
 
+function setupGameAreaPadding() {
+  const menuBar = document.getElementById('menuBar');
+  const gameArea = document.getElementById('gameArea');
+  if (!menuBar || !gameArea) return;
+
+  function updatePadding() {
+    if (window.matchMedia('(max-width: 1024px)').matches) {
+      gameArea.style.paddingBottom = '';
+    } else {
+      gameArea.style.paddingBottom = menuBar.offsetHeight + 'px';
+    }
+  }
+
+  updatePadding();
+  window.addEventListener('resize', updatePadding);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const uname = localStorage.getItem("username");
   if (uname) document.getElementById("guestUsername").textContent = uname;
@@ -2947,6 +2964,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKeyToggles();
   setupMenuToggle();
   setupSettings();
+  setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
     hideLoadingScreen();
   });
