@@ -57,8 +57,6 @@ html, body {
     /* 상하 중앙 */
     gap: 2rem;
     margin: 0 auto;
-    /* inline style로 준 margin-top 제거 */
-    padding-bottom: 60px;
     /* 메뉴바 높이에 맞춰 조정 */
     box-sizing: border-box;
     width: max-content;
@@ -216,7 +214,6 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    margin-bottom: 60px;
     /* 메뉴바 높이에 맞춰 조정 */
     box-sizing: border-box;
   }
