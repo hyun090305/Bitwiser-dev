@@ -65,6 +65,18 @@
         </div>
       </div>
     </div>
+    <div id="settingsModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h3 id="settingsTitle"></h3>
+        <label>
+          <input type="checkbox" id="autoSaveCheckbox">
+          <span id="autoSaveLabel"></span>
+        </label>
+        <div class="modal-buttons">
+          <button id="settingsCloseBtn"></button>
+        </div>
+      </div>
+    </div>
     <!-- 메인 화면 -->
     <div class="container" id="firstScreen">
       <div id="overallRankingArea">
@@ -102,6 +114,7 @@
           </div>
           <div class="button-row">
             <button id="googleLoginBtn" class="main-button"></button>
+            <button id="settingsBtn" class="main-button"></button>
           </div>
           <p id="loginGuestPrompt" class="tagline"></p>
           <div class="button-row">
