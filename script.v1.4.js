@@ -1040,21 +1040,6 @@ function startLevel(level) {
 }
 
 
-function clearGrid() {
-  // 문제 제작용 그리드가 DOM에 남아 있을 때 다른 셀까지
-  // 초기화되는 문제를 막기 위해 현재 grid 기준으로만 처리
-  const cells = grid.querySelectorAll(".cell");
-  cells.forEach(cell => {
-    cell.className = "cell";
-    cell.textContent = "";
-    cell.removeAttribute("data-type");
-    cell.removeAttribute("data-name");
-    cell.removeAttribute("data-value");
-    cell.removeAttribute("draggable");
-  });
-  wires = [];  // 전선도 초기화
-}
-
 function setupBlockPanel(level) {
   const panel = getBlockPanel();
   panel.innerHTML = "";
@@ -3600,13 +3585,21 @@ function countUsedWires() {
 }
 // 이전: clearGrid 미정의
 function clearGrid() {
-  grid.querySelectorAll('.cell.block, .cell.wire')
-    .forEach(cell => {
-      cell.className = 'cell';
-      delete cell.dataset.type;
-      cell.textContent = '';
-      delete cell.onclick;
-    });
+  // 전체 셀에 대해 클래스 및 데이터 속성 초기화
+  grid.querySelectorAll('.cell').forEach(cell => {
+    cell.className = 'cell';
+    cell.textContent = '';
+    delete cell.dataset.type;
+    delete cell.dataset.name;
+    delete cell.dataset.value;
+    delete cell.dataset.val;
+    cell.removeAttribute('draggable');
+    delete cell.onclick;
+  });
+
+  // 전선 관련 상태 초기화
+  wires = [];
+  wireTrace = [];
 }
 
 function clearWires() {
