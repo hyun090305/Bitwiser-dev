@@ -78,10 +78,10 @@
     }
     return {
       dirPair,
-      path: [start],
+      currentDir: 0,
+      path: [{ x: start.x, y: start.y, alpha: 1 }],
       lastStep: 0,
-      fading: false,
-      alpha: 1,
+      active: true,
       color: randomColor()
     };
   }
@@ -91,27 +91,31 @@
   function update(time) {
     drawBackground();
     flows.forEach(flow => {
-      if (!flow.fading && time - flow.lastStep > 120) {
+      if (flow.active && time - flow.lastStep > 120) {
         flow.lastStep = time;
+        if (Math.random() < 0.2) {
+          flow.currentDir = 1 - flow.currentDir;
+        }
         const last = flow.path[flow.path.length - 1];
-        const dir = flow.dirPair[Math.random() < 0.5 ? 0 : 1];
-        const next = {x: last.x + dir.x * cellWidth, y: last.y + dir.y * cellHeight};
+        const dir = flow.dirPair[flow.currentDir];
+        const next = { x: last.x + dir.x * cellWidth, y: last.y + dir.y * cellHeight, alpha: 1 };
         if (next.x < 0 || next.x >= width || next.y < 0 || next.y >= height) {
-          flow.fading = true;
+          flow.active = false;
         } else {
           flow.path.push(next);
         }
       }
-      if (flow.fading) {
-        flow.alpha -= 0.01;
-      }
-      ctx.globalAlpha = Math.max(flow.alpha, 0);
-      ctx.fillStyle = flow.color;
-      flow.path.forEach(p => ctx.fillRect(p.x, p.y, cellWidth, cellHeight));
+      flow.path.forEach(p => {
+        p.alpha -= 0.01;
+        ctx.globalAlpha = Math.max(p.alpha, 0);
+        ctx.fillStyle = flow.color;
+        ctx.fillRect(p.x, p.y, cellWidth, cellHeight);
+      });
+      flow.path = flow.path.filter(p => p.alpha > 0);
     });
     ctx.globalAlpha = 1;
     drawGridLines();
-    flows = flows.filter(f => f.alpha > 0);
+    flows = flows.filter(f => f.path.length > 0);
     if (flows.length < 3) {
       flows.push(createFlow());
     }
