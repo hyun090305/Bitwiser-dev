@@ -1146,13 +1146,27 @@ html, body {
   }
 
   body {
-    /* assets/background.png 파일을 프로젝트 루트 기준으로 불러옵니다 */
     font-family: 'Noto Sans KR', sans-serif;
     text-align: center;
   }
 
   body:not(.game-active) {
-    background: url('assets/background.png') center center / cover no-repeat fixed;
+    background-color: #FFFFFB;
+  }
+
+  #backgroundCanvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    pointer-events: none;
+    display: none;
+  }
+
+  body:not(.game-active) #backgroundCanvas {
+    display: block;
   }
 
   /* ── ② 비게임 화면에만 “흰 배경 + 블러” 오버레이 적용 ── */
