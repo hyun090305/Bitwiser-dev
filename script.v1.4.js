@@ -5387,4 +5387,3 @@ if (mqOrientation.addEventListener) {
 }
 checkOrientation();
 adjustGridZoom();
-
