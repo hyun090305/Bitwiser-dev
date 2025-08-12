@@ -3,16 +3,22 @@
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
 
-  const cellSize = 50;
+  const baseCellSize = 50;
   const baseColor = '#FFFDF0';
   const gridColor = '#f0f0e8';
   const flowColors = ['#FFF7B0', '#FFE7A0', '#FFD8A8'];
 
-  let width, height;
+  let width, height, cellWidth, cellHeight, cols, rows;
 
   function resize() {
-    width = canvas.width = window.innerWidth;
-    height = canvas.height = window.innerHeight;
+    width = window.innerWidth;
+    height = window.innerHeight;
+    cols = Math.max(1, Math.floor(width / baseCellSize));
+    rows = Math.max(1, Math.floor(height / baseCellSize));
+    cellWidth = width / cols;
+    cellHeight = height / rows;
+    canvas.width = width;
+    canvas.height = height;
   }
   window.addEventListener('resize', resize);
   resize();
@@ -25,13 +31,15 @@
   function drawGridLines() {
     ctx.strokeStyle = gridColor;
     ctx.lineWidth = 1;
-    for (let x = 0; x <= width; x += cellSize) {
+    for (let i = 0; i <= cols; i++) {
+      const x = i * cellWidth;
       ctx.beginPath();
       ctx.moveTo(x + 0.5, 0);
       ctx.lineTo(x + 0.5, height);
       ctx.stroke();
     }
-    for (let y = 0; y <= height; y += cellSize) {
+    for (let j = 0; j <= rows; j++) {
+      const y = j * cellHeight;
       ctx.beginPath();
       ctx.moveTo(0, y + 0.5);
       ctx.lineTo(width, y + 0.5);
@@ -49,23 +57,23 @@
     const side = Math.floor(Math.random() * 4); // 0: left, 1: right, 2: top, 3: bottom
     if (side === 0) {
       start.x = 0;
-      start.y = Math.floor(Math.random() * (height / cellSize)) * cellSize;
-      const v = start.y === 0 ? 1 : (start.y === height - cellSize ? -1 : (Math.random() < 0.5 ? 1 : -1));
+      start.y = Math.floor(Math.random() * rows) * cellHeight;
+      const v = start.y === 0 ? 1 : (start.y === height - cellHeight ? -1 : (Math.random() < 0.5 ? 1 : -1));
       dirPair = [{x:1,y:0}, {x:0,y:v}];
     } else if (side === 1) {
-      start.x = width - cellSize;
-      start.y = Math.floor(Math.random() * (height / cellSize)) * cellSize;
-      const v = start.y === 0 ? 1 : (start.y === height - cellSize ? -1 : (Math.random() < 0.5 ? 1 : -1));
+      start.x = width - cellWidth;
+      start.y = Math.floor(Math.random() * rows) * cellHeight;
+      const v = start.y === 0 ? 1 : (start.y === height - cellHeight ? -1 : (Math.random() < 0.5 ? 1 : -1));
       dirPair = [{x:-1,y:0}, {x:0,y:v}];
     } else if (side === 2) {
       start.y = 0;
-      start.x = Math.floor(Math.random() * (width / cellSize)) * cellSize;
-      const h = start.x === 0 ? 1 : (start.x === width - cellSize ? -1 : (Math.random() < 0.5 ? 1 : -1));
+      start.x = Math.floor(Math.random() * cols) * cellWidth;
+      const h = start.x === 0 ? 1 : (start.x === width - cellWidth ? -1 : (Math.random() < 0.5 ? 1 : -1));
       dirPair = [{x:0,y:1}, {x:h,y:0}];
     } else {
-      start.y = height - cellSize;
-      start.x = Math.floor(Math.random() * (width / cellSize)) * cellSize;
-      const h = start.x === 0 ? 1 : (start.x === width - cellSize ? -1 : (Math.random() < 0.5 ? 1 : -1));
+      start.y = height - cellHeight;
+      start.x = Math.floor(Math.random() * cols) * cellWidth;
+      const h = start.x === 0 ? 1 : (start.x === width - cellWidth ? -1 : (Math.random() < 0.5 ? 1 : -1));
       dirPair = [{x:0,y:-1}, {x:h,y:0}];
     }
     return {
@@ -87,7 +95,7 @@
         flow.lastStep = time;
         const last = flow.path[flow.path.length - 1];
         const dir = flow.dirPair[Math.random() < 0.5 ? 0 : 1];
-        const next = {x: last.x + dir.x * cellSize, y: last.y + dir.y * cellSize};
+        const next = {x: last.x + dir.x * cellWidth, y: last.y + dir.y * cellHeight};
         if (next.x < 0 || next.x >= width || next.y < 0 || next.y >= height) {
           flow.fading = true;
         } else {
@@ -99,7 +107,7 @@
       }
       ctx.globalAlpha = Math.max(flow.alpha, 0);
       ctx.fillStyle = flow.color;
-      flow.path.forEach(p => ctx.fillRect(p.x, p.y, cellSize, cellSize));
+      flow.path.forEach(p => ctx.fillRect(p.x, p.y, cellWidth, cellHeight));
     });
     ctx.globalAlpha = 1;
     drawGridLines();
