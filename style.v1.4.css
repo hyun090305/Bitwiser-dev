@@ -1151,7 +1151,7 @@ html, body {
   }
 
   body:not(.game-active) {
-    background-color: #FFFFFB;
+    background-color: #FFFDF0;
   }
 
   #backgroundCanvas {
