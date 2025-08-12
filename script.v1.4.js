@@ -1001,8 +1001,14 @@ document.getElementById("backToLevelsBtn").onclick = () => {
   if (currentCustomProblem) {
     currentCustomProblem = null;
     userProblemsScreen.style.display = 'block';
+    renderUserProblemList();
   } else {
     chapterStageScreen.style.display = "block";
+    renderChapterList();
+    const chapter = chapterData[selectedChapterIndex];
+    if (chapter && chapter.id !== 'user') {
+      renderStageList(chapter.stages);
+    }
   }
 };
 
@@ -1029,6 +1035,7 @@ function startLevel(level) {
     prevMenuBtn.disabled = !(levelTitles[level - 1] && isLevelUnlocked(level - 1));
     nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
 
+    collapseMenuBarForMobile();
   });
 }
 
@@ -1331,14 +1338,22 @@ async function gradeLevelAnimated(level) {
 
     const tr = document.createElement("tr");
     tr.className = correct ? "correct" : "wrong";
-    tr.innerHTML = `
-    <td>${inputText}</td>
-    <td>${expectedText}</td>
-    <td>${actualText}</td>
-    <td style="font-weight: bold; color: ${correct ? 'green' : 'red'};">
-      ${correct ? '✅ 정답' : '❌ 오답'}
-    </td>
-  `;
+
+    const tdInput = document.createElement("td");
+    tdInput.textContent = inputText;
+
+    const tdExpected = document.createElement("td");
+    tdExpected.textContent = expectedText;
+
+    const tdActual = document.createElement("td");
+    tdActual.textContent = actualText;
+
+    const tdResult = document.createElement("td");
+    tdResult.style.fontWeight = "bold";
+    tdResult.style.color = correct ? "green" : "red";
+    tdResult.textContent = correct ? "✅ 정답" : "❌ 오답";
+
+    tr.append(tdInput, tdExpected, tdActual, tdResult);
     tbody.appendChild(tr);
   }
 
@@ -1784,12 +1799,27 @@ function showLevelIntro(level, callback) {
 
   // 진리표 렌더링
   const keys = Object.keys(data.table[0]);
-  table.innerHTML = `
-    <tr>${keys.map(k => `<th>${k}</th>`).join('')}</tr>
-    ${data.table.map(row =>
-    `<tr>${keys.map(k => `<td>${row[k]}</td>`).join('')}</tr>`
-  ).join('')}
-  `;
+  table.innerHTML = "";
+
+  // 헤더 행 생성
+  const headerRow = document.createElement("tr");
+  keys.forEach(k => {
+    const th = document.createElement("th");
+    th.textContent = k; // 특수문자 안전 처리
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
+
+  // 데이터 행 생성
+  data.table.forEach(row => {
+    const tr = document.createElement("tr");
+    keys.forEach(k => {
+      const td = document.createElement("td");
+      td.textContent = row[k];
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
 
   modal.style.display = "flex";
   modal.style.backgroundColor = "white";
@@ -2218,12 +2248,25 @@ function showIntroModal(level) {
 
   // 진리표 다시 렌더링
   const keys = Object.keys(data.table[0]);
-  table.innerHTML = `
-    <tr>${keys.map(k => `<th>${k}</th>`).join("")}</tr>
-    ${data.table.map(row =>
-    `<tr>${keys.map(k => `<td>${row[k]}</td>`).join("")}</tr>`
-  ).join("")}
-  `;
+  table.innerHTML = "";
+
+  const headerRow = document.createElement("tr");
+  keys.forEach(k => {
+    const th = document.createElement("th");
+    th.textContent = k;
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
+
+  data.table.forEach(row => {
+    const tr = document.createElement("tr");
+    keys.forEach(k => {
+      const td = document.createElement("td");
+      td.textContent = row[k];
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
 
   modal.style.display = "flex";
   modal.style.backgroundColor = "rgba(0, 0, 0, 0.4)";
@@ -2976,6 +3019,23 @@ function setupMenuToggle() {
   });
 }
 
+function collapseMenuBarForMobile() {
+  const menuBar = document.getElementById('menuBar');
+  const gameArea = document.getElementById('gameArea');
+  if (!menuBar || !gameArea) return;
+
+  if (window.matchMedia('(max-width: 1024px)').matches) {
+    menuBar.classList.add('collapsed');
+    gameArea.classList.add('menu-collapsed');
+  } else {
+    menuBar.classList.remove('collapsed');
+    gameArea.classList.remove('menu-collapsed');
+  }
+
+  adjustGridZoom();
+  updatePadding();
+}
+
 function setupSettings() {
   const btn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
@@ -3000,19 +3060,20 @@ function setupSettings() {
   });
 }
 
-function setupGameAreaPadding() {
+function updatePadding() {
   const menuBar = document.getElementById('menuBar');
   const gameArea = document.getElementById('gameArea');
   if (!menuBar || !gameArea) return;
 
-  function updatePadding() {
-    if (window.matchMedia('(max-width: 1024px)').matches) {
-      gameArea.style.paddingBottom = '';
-    } else {
-      gameArea.style.paddingBottom = menuBar.offsetHeight + 'px';
-    }
+  if (window.matchMedia('(max-width: 1024px)').matches) {
+    gameArea.style.paddingBottom = '';
+  } else {
+    gameArea.style.paddingBottom = menuBar.offsetHeight + 'px';
   }
+}
 
+function setupGameAreaPadding() {
+  window.addEventListener('load', updatePadding);
   updatePadding();
   window.addEventListener('resize', updatePadding);
 }
@@ -4963,6 +5024,7 @@ function startCustomProblem(key, problem) {
   userProblemsScreen.style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
   document.body.classList.add('game-active');
+  collapseMenuBarForMobile();
 }
 
 async function gradeProblemAnimated(key, problem) {
@@ -5046,11 +5108,26 @@ async function gradeProblemAnimated(key, problem) {
         <tbody></tbody>
       </table>`;
     }
-    const tbody=document.querySelector('#gradingTable tbody');
-    const tr=document.createElement('tr');
-    tr.className=correct?'correct':'wrong';
-    tr.innerHTML=`<td>${inputText}</td><td>${expectedText}</td><td>${actualText}</td><td style="font-weight:bold;color:${correct?'green':'red'};">${correct?'✅ 정답':'❌ 오답'}</td>`;
-    tbody.appendChild(tr);
+      const tbody=document.querySelector('#gradingTable tbody');
+      const tr=document.createElement('tr');
+      tr.className=correct?'correct':'wrong';
+
+      const tdInput=document.createElement('td');
+      tdInput.textContent=inputText;
+
+      const tdExpected=document.createElement('td');
+      tdExpected.textContent=expectedText;
+
+      const tdActual=document.createElement('td');
+      tdActual.textContent=actualText;
+
+      const tdResult=document.createElement('td');
+      tdResult.style.fontWeight='bold';
+      tdResult.style.color=correct?'green':'red';
+      tdResult.textContent=correct?'✅ 정답':'❌ 오답';
+
+      tr.append(tdInput,tdExpected,tdActual,tdResult);
+      tbody.appendChild(tr);
   }
 
   const summary=document.createElement('div');
