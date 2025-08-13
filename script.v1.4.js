@@ -20,6 +20,15 @@ let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 let lastSavedKey = null;
 let pendingClearedLevel = null;
 
+const circuitErrorMsg = document.getElementById('circuitError');
+let circuitHasError = false;
+function showCircuitError(show) {
+  circuitHasError = show;
+  if (circuitErrorMsg) {
+    circuitErrorMsg.style.display = show ? 'block' : 'none';
+  }
+}
+
 // GIF 생성 관련 요소들
 const captureCanvas = document.getElementById('captureCanvas');
 const gifModal = document.getElementById('gifModal');
@@ -804,6 +813,7 @@ function setupInputToggles() {
 
 /* 3) 회로 평가 엔진 (BFS 기반) */
 function evaluateCircuit() {
+  showCircuitError(false);
   // 1) 모든 블록과 INPUT 초기값 준비
   const blocks = Array.from(grid.querySelectorAll('.cell.block'));
   const values = new Map();
@@ -813,7 +823,12 @@ function evaluateCircuit() {
 
   // 2) 값이 더 이상 바뀌지 않을 때까지 반복
   let changed = true;
+  let iterations = 0;
   while (changed) {
+    if (iterations++ > 1000) {
+      showCircuitError(true);
+      return;
+    }
     changed = false;
     for (const node of blocks) {
       const oldVal = values.get(node);
@@ -2607,6 +2622,10 @@ const overlay = document.getElementById("gridOverlay");
 let isScoring = false;
 
 document.getElementById("gradeButton").addEventListener("click", () => {
+  if (circuitHasError) {
+    alert("회로에 오류가 존재합니다");
+    return;
+  }
   if (isScoring) return;
   if (currentCustomProblem == null && currentLevel == null) return;
   isScoring = true;
