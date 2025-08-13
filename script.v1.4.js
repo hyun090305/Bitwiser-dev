@@ -204,6 +204,10 @@ const moduleResetToggle  = document.getElementById('moduleDeleteAllInfo');
 const problemStatusToggle = document.getElementById('problemWireStatusInfo');
 const problemDeleteToggle = document.getElementById('problemWireDeleteInfo');
 const problemResetToggle  = document.getElementById('problemDeleteAllInfo');
+const moveUpBtn    = document.getElementById('moveUpBtn');
+const moveDownBtn  = document.getElementById('moveDownBtn');
+const moveLeftBtn  = document.getElementById('moveLeftBtn');
+const moveRightBtn = document.getElementById('moveRightBtn');
 let grid;
 
 function simulateKey(key, type = 'keydown') {
@@ -2485,6 +2489,25 @@ document.addEventListener('keyup', e => {
   }
 });
 
+document.addEventListener('keydown', e => {
+  if (isTextInputFocused()) return;
+  let dx = 0, dy = 0;
+  switch (e.key) {
+    case 'ArrowUp': dy = -1; break;
+    case 'ArrowDown': dy = 1; break;
+    case 'ArrowLeft': dx = -1; break;
+    case 'ArrowRight': dx = 1; break;
+    default: return;
+  }
+  e.preventDefault();
+  moveCircuit(dx, dy);
+});
+
+if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveCircuit(0, -1));
+if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveCircuit(0, 1));
+if (moveLeftBtn)  moveLeftBtn.addEventListener('click', () => moveCircuit(-1, 0));
+if (moveRightBtn) moveRightBtn.addEventListener('click', () => moveCircuit(1, 0));
+
 
 
 
@@ -3630,6 +3653,66 @@ function updateUsageCounts() {
 function markCircuitModified() {
   problemOutputsValid = false;
   updateUsageCounts();
+}
+
+function moveCircuit(dx, dy) {
+  if (!grid) return;
+  const cells = Array.from(grid.querySelectorAll('.cell.block, .cell.wire'));
+  if (cells.length === 0) return;
+
+  for (const cell of cells) {
+    const nr = cell.row + dy;
+    const nc = cell.col + dx;
+    if (nr < 0 || nr >= GRID_ROWS || nc < 0 || nc >= GRID_COLS) {
+      return;
+    }
+  }
+
+  const states = cells.map(cell => {
+    const data = {};
+    for (const k in cell.dataset) {
+      if (k !== 'index') data[k] = cell.dataset[k];
+    }
+    return {
+      cell,
+      row: cell.row,
+      col: cell.col,
+      classes: Array.from(cell.classList).filter(c => c !== 'cell'),
+      data,
+      draggable: cell.draggable,
+    };
+  });
+
+  const map = new Map();
+  states.forEach(s => {
+    const target = grid.children[(s.row + dy) * GRID_COLS + (s.col + dx)];
+    map.set(s.cell, target);
+  });
+
+  states.forEach(s => {
+    s.cell.className = 'cell';
+    s.cell.draggable = false;
+    for (const k in s.cell.dataset) {
+      if (k !== 'index') delete s.cell.dataset[k];
+    }
+  });
+
+  states.forEach(s => {
+    const target = map.get(s.cell);
+    s.classes.forEach(cls => target.classList.add(cls));
+    for (const [k, v] of Object.entries(s.data)) {
+      target.dataset[k] = v;
+    }
+    target.draggable = s.draggable;
+  });
+
+  wires.forEach(w => {
+    w.path = w.path.map(c => map.get(c));
+    w.start = map.get(w.start);
+    w.end = map.get(w.end);
+  });
+
+  markCircuitModified();
 }
 // 이전: placeBlockAt 미정의
 function placeBlockAt(x, y, type) {
