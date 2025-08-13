@@ -1044,11 +1044,9 @@ function startLevel(level) {
 }
 
 
-function setupBlockPanel(level) {
-  const panel = getBlockPanel();
-  panel.innerHTML = "";
+function buildBlockPanel(panel, blocks) {
+  panel.innerHTML = '';
 
-  // 두 줄(IN/OUT, GATE) 컨테이너 생성
   const inoutRow = document.createElement('div');
   inoutRow.className = 'blockRow';
   const inoutTitle = document.createElement('div');
@@ -1072,26 +1070,21 @@ function setupBlockPanel(level) {
   panel.appendChild(inoutRow);
   panel.appendChild(gateRow);
 
-  const blocks = levelBlockSets[level];
-  if (!blocks) return;
-
   blocks.forEach(block => {
-    const div = document.createElement("div");
-    div.className = "blockIcon";
+    const div = document.createElement('div');
+    div.className = 'blockIcon';
     div.draggable = true;
     div.dataset.type = block.type;
     if (block.name) div.dataset.name = block.name;
     div.textContent = block.type === 'JUNCTION' ? 'JUNC' : (block.name || block.type);
-
-    // ↓ 여기에 설명 추가
     div.dataset.tooltip = (() => {
       switch (block.type) {
         case 'AND': return 'AND 게이트: 여러러 입력이 모두 1일 때만 출력이 1';
-        case 'OR': return 'OR 게이트: 여러러 입력 중 하나라도 1이면 출력이 1';
+        case 'OR':  return 'OR 게이트: 여러러 입력 중 하나라도 1이면 출력이 1';
         case 'NOT': return 'NOT 게이트: 입력의 반대(0↔1)를 출력';
         case 'INPUT': return `입력(${block.name}): 클릭하여 0↔1 전환 가능`;
         case 'OUTPUT': return `출력(${block.name})`;
-        case 'JUNCTION': return 'JUNCTION: 하나의 신호를 여러 방향으로 나눔(입력이 하나만 연결되어야 함, 값이 1이면 테두리 점선 표시)';
+        case 'JUNCTION': return 'JUNCTION: 하나의 신호를 여러 방향으로 나눔(입력이 하나만 연결되어야 함, 값이 1이면 테두리 점선표시)';
         default: return '';
       }
     })();
@@ -1103,10 +1096,18 @@ function setupBlockPanel(level) {
     }
   });
 
-  // WIRE는 블록이 아니므로 패널에 추가하지 않음
-
   attachDragHandlersToBlockIcons();
 }
+
+  function setupBlockPanel(level) {
+    const panel = getBlockPanel();
+    const blocks = levelBlockSets[level];
+    if (!blocks) {
+      panel.innerHTML = '';
+      return;
+    }
+    buildBlockPanel(panel, blocks);
+  }
 
 
 function attachDragHandlersToBlockIcons() {
@@ -4554,36 +4555,13 @@ function initProblemEditor() {
 
 function initProblemBlockPanel() {
   const panel = document.getElementById('problemBlockPanel');
-  panel.innerHTML = '';
   const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
   const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  for (let i=1;i<=inputCnt;i++) {
-    const div=document.createElement('div');
-    div.className='blockIcon';
-    div.draggable=true;
-    div.dataset.type='INPUT';
-    div.dataset.name='IN'+i;
-    div.textContent='IN'+i;
-    panel.appendChild(div);
-  }
-  for (let j=1;j<=outputCnt;j++) {
-    const div=document.createElement('div');
-    div.className='blockIcon';
-    div.draggable=true;
-    div.dataset.type='OUTPUT';
-    div.dataset.name='OUT'+j;
-    div.textContent='OUT'+j;
-    panel.appendChild(div);
-  }
-  ['AND','OR','NOT','JUNCTION'].forEach(t=>{
-    const d=document.createElement('div');
-    d.className='blockIcon';
-    d.draggable=true;
-    d.dataset.type=t;
-    d.textContent=t;
-    panel.appendChild(d);
-  });
-  attachDragHandlersToBlockIcons();
+  const blocks = [];
+  for (let i = 1; i <= inputCnt; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
+  for (let j = 1; j <= outputCnt; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(t => blocks.push({ type: t }));
+  buildBlockPanel(panel, blocks);
 }
 
 function initTestcaseTable() {
@@ -5072,33 +5050,11 @@ function showHint(index) {
 
 function setupCustomBlockPanel(problem) {
   const panel = document.getElementById('blockPanel');
-  panel.innerHTML = '';
   const blocks = [];
-  for (let i=1;i<=problem.inputCount;i++) blocks.push({type:'INPUT', name:'IN'+i});
-  for (let j=1;j<=problem.outputCount;j++) blocks.push({type:'OUTPUT', name:'OUT'+j});
-  ['AND','OR','NOT','JUNCTION'].forEach(t=>blocks.push({type:t}));
-  blocks.forEach(block => {
-    const div=document.createElement('div');
-    div.className='blockIcon';
-    div.draggable=true;
-    div.dataset.type=block.type;
-    if(block.name) div.dataset.name=block.name;
-    div.textContent=block.name||block.type;
-    div.dataset.tooltip = (() => {
-      switch(block.type) {
-        case 'AND': return 'AND 게이트: 여러 입력이 모두 1일 때 1';
-        case 'OR':  return 'OR 게이트: 입력 중 하나라도 1이면 1';
-        case 'NOT': return 'NOT 게이트: 입력의 반대 출력';
-        case 'INPUT': return `입력(${block.name})`;
-        case 'OUTPUT': return `출력(${block.name})`;
-        case 'JUNCTION': return 'JUNCTION: 신호 분기(1일 때 테두리 점선 표시)';
-        default: return '';
-      }
-    })();
-    panel.appendChild(div);
-  });
-  // WIRE는 블록이 아니므로 패널에서 제외
-  attachDragHandlersToBlockIcons();
+  for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
+  for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(t => blocks.push({ type: t }));
+  buildBlockPanel(panel, blocks);
 }
 
 function startCustomProblem(key, problem) {
