@@ -146,7 +146,6 @@ html, body {
 
   .rightPanel {
     max-width: 600px;
-    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
