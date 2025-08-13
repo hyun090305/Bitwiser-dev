@@ -3680,6 +3680,7 @@ function moveCircuit(dx, dy) {
       classes: Array.from(cell.classList).filter(c => c !== 'cell'),
       data,
       draggable: cell.draggable,
+      text: cell.textContent,
     };
   });
 
@@ -3695,6 +3696,8 @@ function moveCircuit(dx, dy) {
     for (const k in s.cell.dataset) {
       if (k !== 'index') delete s.cell.dataset[k];
     }
+    s.cell.textContent = '';
+    s.cell.onclick = null;
   });
 
   states.forEach(s => {
@@ -3704,6 +3707,10 @@ function moveCircuit(dx, dy) {
       target.dataset[k] = v;
     }
     target.draggable = s.draggable;
+    target.textContent = s.text;
+    if (target.dataset.type === 'INPUT' || target.dataset.type === 'OUTPUT') {
+      attachInputClickHandlers(target);
+    }
   });
 
   wires.forEach(w => {
