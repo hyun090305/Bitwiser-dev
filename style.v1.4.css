@@ -1241,7 +1241,6 @@ html, body {
   }
 
   #rightPanel #usageTable {
-    margin: 10px;
     width: 100%;
     border-collapse: collapse;
   }
