@@ -2062,6 +2062,7 @@ function setupGrid(containerId, rows, cols) {
 
         // (3) wires 배열에서 제거
         wires = wires.filter(w => !targetWires.includes(w));
+        markCircuitModified();
       }
     });
 
@@ -2175,6 +2176,7 @@ function setupGrid(containerId, rows, cols) {
   grid.addEventListener('mouseleave', cancelWireDrawing);
   grid.addEventListener('touchcancel', cancelWireDrawing);
   adjustGridZoom();
+  updateUsageCounts();
 }
 
 function resetCell(cell) {
@@ -3497,6 +3499,7 @@ function loadCircuit(key) {
       icon.style.display = 'none';
     }
   });
+  markCircuitModified();
 }
 
 function highlightOutputErrors() {
@@ -3600,6 +3603,7 @@ function clearGrid() {
   // 전선 관련 상태 초기화
   wires = [];
   wireTrace = [];
+  markCircuitModified();
 }
 
 function clearWires() {
@@ -3612,10 +3616,20 @@ function clearWires() {
       .forEach(c => cell.classList.remove(c));
     delete cell.dataset.type;
   });
+  markCircuitModified();
+}
+
+function updateUsageCounts() {
+  if (!grid) return;
+  const blockEl = document.getElementById('usedBlocks');
+  const wireEl = document.getElementById('usedWires');
+  if (blockEl) blockEl.textContent = grid.querySelectorAll('.cell.block').length;
+  if (wireEl) wireEl.textContent = grid.querySelectorAll('.cell.wire').length;
 }
 
 function markCircuitModified() {
   problemOutputsValid = false;
+  updateUsageCounts();
 }
 // 이전: placeBlockAt 미정의
 function placeBlockAt(x, y, type) {

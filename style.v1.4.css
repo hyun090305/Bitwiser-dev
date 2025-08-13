@@ -1240,6 +1240,30 @@ html, body {
     margin: 0;
   }
 
+  #rightPanel #usageTable {
+    margin: 10px;
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  #rightPanel #usageTable td {
+    text-align: center;
+    border: none;
+    padding: 0;
+  }
+
+  #rightPanel #usageTable .rank-label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+    margin: 0;
+  }
+
+  #rightPanel #usageTable .rank-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+
   #loginArea #loginPrompt {
     font-size: 0.9rem;
     color: #6b7280;
