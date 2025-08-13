@@ -3673,6 +3673,9 @@ function updateUsageCounts() {
 function markCircuitModified() {
   problemOutputsValid = false;
   updateUsageCounts();
+  if (typeof evaluateCircuit === 'function' && grid) {
+    evaluateCircuit();
+  }
 }
 
 function moveCircuit(dx, dy) {
