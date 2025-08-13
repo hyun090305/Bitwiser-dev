@@ -372,7 +372,9 @@
         <div id="gameLayout">
 
         <!-- 블록 패널 -->
-        <div id="blockPanel" style="margin: 0; width: auto; flex-direction: row;">
+        <div id="leftPanel">
+          <div id="blockPanel" style="margin: 0; width: auto; flex-direction: row;"></div>
+          <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag here to delete</div>
         </div>
 
         <!-- 회로 그리드 -->
@@ -400,10 +402,12 @@
               R - 회로 초기화
             </button>
           </div>
-
-          <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag
-            here to
-            delete</div>
+          <div id="moveButtons" style="display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center;">
+            <button id="moveUpBtn">↑</button>
+            <button id="moveLeftBtn">←</button>
+            <button id="moveDownBtn">↓</button>
+            <button id="moveRightBtn">→</button>
+          </div>
           <div id="usageSection" style="width:100%;">
             <table id="usageTable">
               <tr>

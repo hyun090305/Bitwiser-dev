@@ -85,6 +85,19 @@ html, body {
     width: max-content;
   }
 
+  #leftPanel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  #moveButtons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+  }
+
   #mainScreen {
     padding: 50px;
   }
