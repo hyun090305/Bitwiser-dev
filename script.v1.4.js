@@ -1457,7 +1457,7 @@ function returnToEditScreen() {
 
   // 원래 편집 UI 복원
   document.getElementById("blockPanel").style.display = "flex";
-  document.getElementById("rightPanel").style.display = "flex";
+  document.getElementById("rightPanel").style.display = "block";
   document.getElementById("gradingArea").style.display = "none";
 }
 
@@ -5077,7 +5077,7 @@ function startCustomProblem(key, problem) {
   userProblemsScreen.style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
   const rp = document.getElementById('rightPanel');
-  if (rp) rp.style.display = 'flex';
+  if (rp) rp.style.display = 'block';
   document.body.classList.add('game-active');
   collapseMenuBarForMobile();
 }
