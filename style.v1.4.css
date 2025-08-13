@@ -1182,7 +1182,16 @@ html, body {
   flex-direction: column;
   gap: 1rem;
 }
+#truthTableContainer {
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  margin: 10px auto;
+}
 
+#truthTable {
+  width: 100%;
+  border-collapse: collapse;
+}
 
 #gifModal {
   overflow-y: auto;
