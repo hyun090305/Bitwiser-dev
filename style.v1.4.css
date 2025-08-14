@@ -98,14 +98,16 @@ html, body {
     align-items: center;
   }
 
-  #moveButtonWrapper {
+  #moveButtonWrapper,
+  #problemMoveButtonWrapper {
     border: 2px solid #444;
     padding: 0.5rem;
     border-radius: 8px;
     display: inline-block;
   }
 
-  #moveButtons {
+  #moveButtons,
+  #problemMoveButtons {
     display: grid;
     grid-template-areas:
       '. up .'
@@ -116,23 +118,28 @@ html, body {
     justify-content: center;
   }
 
-  #moveUpBtn {
+  #moveUpBtn,
+  #problemMoveUpBtn {
     grid-area: up;
   }
 
-  #moveLeftBtn {
+  #moveLeftBtn,
+  #problemMoveLeftBtn {
     grid-area: left;
   }
 
-  #moveDownBtn {
+  #moveDownBtn,
+  #problemMoveDownBtn {
     grid-area: down;
   }
 
-  #moveRightBtn {
+  #moveRightBtn,
+  #problemMoveRightBtn {
     grid-area: right;
   }
 
-  #moveButtons button {
+  #moveButtons button,
+  #problemMoveButtons button {
     width: 50px;
     height: 50px;
     font-size: 1.5rem;
@@ -142,7 +149,8 @@ html, body {
     box-shadow: 0 2px 0 #ccc;
   }
 
-  #moveButtons button:active {
+  #moveButtons button:active,
+  #problemMoveButtons button:active {
     box-shadow: none;
     transform: translateY(2px);
   }
@@ -1310,25 +1318,29 @@ html, body {
     margin: 0;
   }
 
-  #rightPanel #usageTable {
+  #rightPanel #usageTable,
+  #problemRightPanel #problemUsageTable {
     margin-top: 10px;
     width: 100%;
     border-collapse: collapse;
   }
 
-  #rightPanel #usageTable td {
+  #rightPanel #usageTable td,
+  #problemRightPanel #problemUsageTable td {
     text-align: center;
     border: none;
     padding: 0;
   }
 
-  #rightPanel #usageTable .rank-label {
+  #rightPanel #usageTable .rank-label,
+  #problemRightPanel #problemUsageTable .rank-label {
     font-size: 0.9rem;
     color: #94a3b8;
     margin: 0;
   }
 
-  #rightPanel #usageTable .rank-value {
+  #rightPanel #usageTable .rank-value,
+  #problemRightPanel #problemUsageTable .rank-value {
     font-size: 1.5rem;
     font-weight: 700;
     margin: 0;

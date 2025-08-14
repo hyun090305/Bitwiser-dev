@@ -217,6 +217,10 @@ const moveUpBtn    = document.getElementById('moveUpBtn');
 const moveDownBtn  = document.getElementById('moveDownBtn');
 const moveLeftBtn  = document.getElementById('moveLeftBtn');
 const moveRightBtn = document.getElementById('moveRightBtn');
+const problemMoveUpBtn    = document.getElementById('problemMoveUpBtn');
+const problemMoveDownBtn  = document.getElementById('problemMoveDownBtn');
+const problemMoveLeftBtn  = document.getElementById('problemMoveLeftBtn');
+const problemMoveRightBtn = document.getElementById('problemMoveRightBtn');
 let grid;
 
 function simulateKey(key, type = 'keydown') {
@@ -2523,6 +2527,10 @@ if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveCircuit(0, -1));
 if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveCircuit(0, 1));
 if (moveLeftBtn)  moveLeftBtn.addEventListener('click', () => moveCircuit(-1, 0));
 if (moveRightBtn) moveRightBtn.addEventListener('click', () => moveCircuit(1, 0));
+if (problemMoveUpBtn)    problemMoveUpBtn.addEventListener('click', () => moveCircuit(0, -1));
+if (problemMoveDownBtn)  problemMoveDownBtn.addEventListener('click', () => moveCircuit(0, 1));
+if (problemMoveLeftBtn)  problemMoveLeftBtn.addEventListener('click', () => moveCircuit(-1, 0));
+if (problemMoveRightBtn) problemMoveRightBtn.addEventListener('click', () => moveCircuit(1, 0));
 
 
 
@@ -3664,10 +3672,16 @@ function clearWires() {
 
 function updateUsageCounts() {
   if (!grid) return;
-  const blockEl = document.getElementById('usedBlocks');
-  const wireEl = document.getElementById('usedWires');
-  if (blockEl) blockEl.textContent = grid.querySelectorAll('.cell.block').length;
-  if (wireEl) wireEl.textContent = grid.querySelectorAll('.cell.wire').length;
+  const blockCount = grid.querySelectorAll('.cell.block').length;
+  const wireCount = grid.querySelectorAll('.cell.wire').length;
+  [document.getElementById('usedBlocks'),
+   document.getElementById('problemUsedBlocks')]
+    .filter(Boolean)
+    .forEach(el => el.textContent = blockCount);
+  [document.getElementById('usedWires'),
+   document.getElementById('problemUsedWires')]
+    .filter(Boolean)
+    .forEach(el => el.textContent = wireCount);
 }
 
 function markCircuitModified() {
