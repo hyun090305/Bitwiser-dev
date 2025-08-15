@@ -175,8 +175,13 @@ html, body {
     text-decoration: underline;
   }
 
+  #problem-screen {
+    align-items: flex-start;
+    overflow: auto;
+  }
+
   #problem-screen .rightPanel {
-    overflow-x: auto;
+    overflow: visible;
   }
 
   #problem-screen #testcaseContainer {
