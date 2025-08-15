@@ -4611,81 +4611,85 @@ function initProblemBlockPanel() {
 }
 
 function initTestcaseTable() {
-  const table=document.getElementById('testcaseTable');
-  const inputCnt = parseInt(document.getElementById('inputCount').value)||1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value)||1;
-  const thead=table.querySelector('thead');
-  const tbody=table.querySelector('tbody');
-  thead.innerHTML='';
-  const tr=document.createElement('tr');
-  for(let i=1;i<=inputCnt;i++){const th=document.createElement('th');th.textContent='IN'+i;tr.appendChild(th);} 
-  for(let j=1;j<=outputCnt;j++){const th=document.createElement('th');th.textContent='OUT'+j;tr.appendChild(th);} 
+  const table = document.getElementById('testcaseTable');
+  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
+  const thead = table.querySelector('thead');
+  const tbody = table.querySelector('tbody');
+  thead.innerHTML = '';
+  const tr = document.createElement('tr');
+  for (let i = 1; i <= inputCnt; i++) {
+    const th = document.createElement('th');
+    th.textContent = 'IN' + i;
+    tr.appendChild(th);
+  }
+  for (let j = 1; j <= outputCnt; j++) {
+    const th = document.createElement('th');
+    th.textContent = 'OUT' + j;
+    tr.appendChild(th);
+  }
   thead.appendChild(tr);
-  tbody.innerHTML='';
-  const totalRows=1<<inputCnt;
-  for(let r=0;r<totalRows;r++){
-    const row=document.createElement('tr');
-    for(let i=0;i<inputCnt;i++){
-      const td=document.createElement('td');
-      const inp=document.createElement('input');
-      inp.type='number';
-      inp.readOnly=true;
-      inp.style.width='30px';
-      inp.value=((r>>(inputCnt-1-i))&1);
-      td.appendChild(inp);row.appendChild(td);
+  tbody.innerHTML = '';
+  const totalRows = 1 << inputCnt;
+  for (let r = 0; r < totalRows; r++) {
+    const row = document.createElement('tr');
+    for (let i = 0; i < inputCnt; i++) {
+      const td = document.createElement('td');
+      td.style.width = '30px';
+      td.textContent = (r >> (inputCnt - 1 - i)) & 1;
+      row.appendChild(td);
     }
-    for(let j=0;j<outputCnt;j++){
-      const td=document.createElement('td');
-      const out=document.createElement('input');
-      out.readOnly=true;out.style.width='30px';
-      td.appendChild(out);row.appendChild(td);
+    for (let j = 0; j < outputCnt; j++) {
+      const td = document.createElement('td');
+      td.style.width = '30px';
+      td.textContent = '';
+      row.appendChild(td);
     }
     tbody.appendChild(row);
   }
 }
 
 function addTestcaseRow() {
-  const table=document.getElementById('testcaseTable');
-  const inputCnt=parseInt(document.getElementById('inputCount').value)||1;
-  const outputCnt=parseInt(document.getElementById('outputCount').value)||1;
-  const tr=document.createElement('tr');
-  for(let i=0;i<inputCnt;i++){
-    const td=document.createElement('td');
-    const inp=document.createElement('input');
-    inp.type='number';
-    inp.min='0';inp.max='1';inp.value='0';
-    inp.style.width='30px';
-    td.appendChild(inp);tr.appendChild(td);
+  const table = document.getElementById('testcaseTable');
+  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
+  const tr = document.createElement('tr');
+  for (let i = 0; i < inputCnt; i++) {
+    const td = document.createElement('td');
+    td.style.width = '30px';
+    td.textContent = '0';
+    tr.appendChild(td);
   }
-  for(let j=0;j<outputCnt;j++){
-    const td=document.createElement('td');
-    const out=document.createElement('input');
-    out.readOnly=true;out.style.width='30px';
-    td.appendChild(out);tr.appendChild(td);
+  for (let j = 0; j < outputCnt; j++) {
+    const td = document.createElement('td');
+    td.style.width = '30px';
+    td.textContent = '';
+    tr.appendChild(td);
   }
   table.querySelector('tbody').appendChild(tr);
 }
 
 function computeOutputs() {
-  const inputCnt=parseInt(document.getElementById('inputCount').value)||1;
-  const outputCnt=parseInt(document.getElementById('outputCount').value)||1;
-  const rows=Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
-  const inNames=Array.from({length:inputCnt},(_,i)=>'IN'+(i+1));
-  const outNames=Array.from({length:outputCnt},(_,i)=>'OUT'+(i+1));
-  rows.forEach(tr=>{
-    const inputs=Array.from(tr.querySelectorAll('td input')).slice(0,inputCnt);
-    inNames.forEach((name,idx)=>{
-      const cell=grid.querySelector('.cell.block[data-type="INPUT"][data-name="'+name+'"]');
-      if(cell){
-        cell.dataset.value=inputs[idx].value==='1'?'1':'0';
-        cell.classList.toggle('active', cell.dataset.value==='1');
+  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
+  const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
+  const inNames = Array.from({ length: inputCnt }, (_, i) => 'IN' + (i + 1));
+  const outNames = Array.from({ length: outputCnt }, (_, i) => 'OUT' + (i + 1));
+  rows.forEach(tr => {
+    const inputs = Array.from(tr.querySelectorAll('td')).slice(0, inputCnt);
+    inNames.forEach((name, idx) => {
+      const cell = grid.querySelector('.cell.block[data-type="INPUT"][data-name="' + name + '"]');
+      if (cell) {
+        cell.dataset.value = inputs[idx].textContent.trim() === '1' ? '1' : '0';
+        cell.classList.toggle('active', cell.dataset.value === '1');
       }
     });
     evaluateCircuit();
-    outNames.forEach((name,idx)=>{
-      const cell=grid.querySelector('.cell.block[data-type="OUTPUT"][data-name="'+name+'"]');
-      const val=cell? (cell.dataset.val==='true' || cell.dataset.val==='1'? '1':'0') :'0';
-      tr.querySelectorAll('td input')[inputCnt+idx].value=val;
+    outNames.forEach((name, idx) => {
+      const cell = grid.querySelector('.cell.block[data-type="OUTPUT"][data-name="' + name + '"]');
+      const val = cell ? (cell.dataset.val === 'true' || cell.dataset.val === '1' ? '1' : '0') : '0';
+      const td = tr.querySelectorAll('td')[inputCnt + idx];
+      if (td) td.textContent = val;
     });
   });
   problemOutputsValid = true;
@@ -4715,12 +4719,12 @@ function getProblemTruthTable() {
   const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
   return rows.map(tr => {
     const row = {};
-    const cells = Array.from(tr.querySelectorAll('td input'));
+    const cells = Array.from(tr.querySelectorAll('td'));
     for (let i = 0; i < inputCnt; i++) {
-      row['IN' + (i + 1)] = cells[i].value === '1' ? 1 : 0;
+      row['IN' + (i + 1)] = cells[i].textContent.trim() === '1' ? 1 : 0;
     }
     for (let j = 0; j < outputCnt; j++) {
-      row['OUT' + (j + 1)] = cells[inputCnt + j].value === '1' ? 1 : 0;
+      row['OUT' + (j + 1)] = cells[inputCnt + j].textContent.trim() === '1' ? 1 : 0;
     }
     return row;
   });
@@ -4813,12 +4817,12 @@ function loadProblem(key) {
     // truth table
     const tbodyRows = document.querySelectorAll('#testcaseTable tbody tr');
     data.table.forEach((row, rIdx) => {
-      const cells = Array.from(tbodyRows[rIdx].querySelectorAll('td input'));
+      const cells = Array.from(tbodyRows[rIdx].querySelectorAll('td'));
       for (let i = 0; i < data.inputCount; i++) {
-        if (cells[i]) cells[i].value = row['IN' + (i + 1)];
+        if (cells[i]) cells[i].textContent = row['IN' + (i + 1)];
       }
       for (let j = 0; j < data.outputCount; j++) {
-        if (cells[data.inputCount + j]) cells[data.inputCount + j].value = row['OUT' + (j + 1)];
+        if (cells[data.inputCount + j]) cells[data.inputCount + j].textContent = row['OUT' + (j + 1)];
       }
     });
 
