@@ -265,7 +265,10 @@
 
     <div id="problem-screen" class="screen" style="display:none; padding:0;">
       <div style="display:flex; gap:1rem; align-items:flex-start; justify-content:flex-start; width:fit-content;margin:auto;">
-        <div id="problemBlockPanel" style="margin:auto;"></div>
+        <div id="problemLeftPanel" style="display:flex; flex-direction:column; align-items:center;">
+          <div id="problemBlockPanel" style="margin:auto;"></div>
+          <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag here to delete</div>
+        </div>
         <div id="problemGridContainer" class="grid" style="position:relative;margin:auto;">
           <div id="problemGrid"></div>
           <div id="problemGridOverlay"></div>
