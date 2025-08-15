@@ -1802,7 +1802,7 @@ html, body {
 #moduleBlockPanel,
 #problemBlockPanel {
   display: flex;               /* 세로 정렬을 위해 flex 사용 */
-  flex-direction: column;      /* 수직 방향으로 블록 나열 */
+  flex-direction: row;      /* 수직 방향으로 블록 나열 */
   align-items: stretch;        /* 폭을 부모에 맞춤 */
   gap: 1rem;                   /* 블록 간격: 원하시는 px/em 단위로 조정 가능 */
   padding: 0.5rem 0;           /* 상하 여백(옵션) */
