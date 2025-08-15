@@ -1178,6 +1178,9 @@ document.addEventListener("keydown", (e) => {
         setupBlockPanel(currentLevel);
       }
       grid.querySelectorAll('.cell').forEach(cell => delete cell.onclick);
+      if (currentCustomProblem && currentCustomProblem.fixIO) {
+        grid.querySelectorAll('.cell.block[data-type="INPUT"]').forEach(cell => attachInputClickHandlers(cell));
+      }
     }
   }
   if (e.key === "Control") {
@@ -2170,6 +2173,7 @@ function setupGrid(containerId, rows, cols) {
     if (!cell) return;
 
     if (cell.classList.contains('block')) {
+      if (cell.dataset.fixed === '1') return;
       // ① 연결된 전선 전체 삭제
       disconnectWiresCascade(cell);
 
@@ -2205,6 +2209,7 @@ function setupGrid(containerId, rows, cols) {
 }
 
 function resetCell(cell) {
+  if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') return;
   cell.className = "cell";
   cell.textContent = "";
   delete cell.dataset.type;
@@ -3649,12 +3654,21 @@ function countUsedWires() {
 function clearGrid() {
   // 전체 셀에 대해 클래스 및 데이터 속성 초기화
   grid.querySelectorAll('.cell').forEach(cell => {
+    if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') {
+      if (cell.dataset.type === 'INPUT') {
+        cell.dataset.value = '0';
+        cell.classList.remove('active');
+        attachInputClickHandlers(cell);
+      }
+      return;
+    }
     cell.className = 'cell';
     cell.textContent = '';
     delete cell.dataset.type;
     delete cell.dataset.name;
     delete cell.dataset.value;
     delete cell.dataset.val;
+    delete cell.dataset.fixed;
     cell.removeAttribute('draggable');
     delete cell.onclick;
   });
@@ -3702,6 +3716,7 @@ function markCircuitModified() {
 
 function moveCircuit(dx, dy) {
   if (!grid) return;
+  if (currentCustomProblem && currentCustomProblem.fixIO) return;
   const cells = Array.from(grid.querySelectorAll('.cell.block, .cell.wire'));
   if (cells.length === 0) return;
 
@@ -4211,6 +4226,7 @@ const confirmSaveProblemBtn    = document.getElementById('confirmSaveProblemBtn'
 const cancelSaveProblemBtn     = document.getElementById('cancelSaveProblemBtn');
 const problemTitleInput        = document.getElementById('problemTitleInput');
 const problemDescInput         = document.getElementById('problemDescInput');
+const fixIOCheck               = document.getElementById('fixIOCheck');
 
 //— ① 메인 → 모듈 관리
 if (manageModulesBtn) {
@@ -4301,6 +4317,7 @@ document.getElementById('computeOutputsBtn').addEventListener('click', computeOu
 if (saveProblemBtn) saveProblemBtn.addEventListener('click', () => {
   problemTitleInput.value = '';
   problemDescInput.value = '';
+  if (fixIOCheck) fixIOCheck.checked = false;
   problemSaveModal.style.display = 'flex';
   problemTitleInput.focus();
 });
@@ -4738,6 +4755,7 @@ function collectProblemData() {
     outputCount: parseInt(document.getElementById('outputCount').value) || 1,
     gridRows: parseInt(document.getElementById('gridRows').value) || 6,
     gridCols: parseInt(document.getElementById('gridCols').value) || 6,
+    fixIO: document.getElementById('fixIOCheck').checked,
     table: getProblemTruthTable(),
     grid: getProblemGridData(),
     wires: getProblemWireData(),
@@ -4813,6 +4831,7 @@ function loadProblem(key) {
 
     document.getElementById('problemTitleInput').value = data.title || '';
     document.getElementById('problemDescInput').value = data.description || '';
+    if (fixIOCheck) fixIOCheck.checked = !!data.fixIO;
 
     // truth table
     const tbodyRows = document.querySelectorAll('#testcaseTable tbody tr');
@@ -5101,10 +5120,35 @@ function showHint(index) {
 function setupCustomBlockPanel(problem) {
   const panel = document.getElementById('blockPanel');
   const blocks = [];
-  for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
-  for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  if (!problem.fixIO) {
+    for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
+    for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  }
   ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(t => blocks.push({ type: t }));
   buildBlockPanel(panel, blocks);
+}
+
+function placeFixedIO(problem) {
+  if (!problem.fixIO || !problem.grid) return;
+  const cells = document.querySelectorAll('#grid .cell');
+  problem.grid.forEach(state => {
+    if (state.type === 'INPUT' || state.type === 'OUTPUT') {
+      const cell = cells[state.index];
+      cell.className = 'cell block';
+      cell.dataset.type = state.type;
+      cell.dataset.name = state.name;
+      if (state.type === 'INPUT') {
+        cell.dataset.value = state.value || '0';
+        cell.textContent = state.name;
+        attachInputClickHandlers(cell);
+        cell.classList.toggle('active', cell.dataset.value === '1');
+      } else {
+        cell.textContent = state.name;
+      }
+      cell.draggable = false;
+      cell.dataset.fixed = '1';
+    }
+  });
 }
 
 function startCustomProblem(key, problem) {
@@ -5118,6 +5162,7 @@ function startCustomProblem(key, problem) {
   setupGrid('grid', rows, cols);
   clearGrid();
   setupCustomBlockPanel(problem);
+  placeFixedIO(problem);
   setGridDimensions(rows, cols);
   const prevMenuBtn = document.getElementById('prevStageBtnMenu');
   const nextMenuBtn = document.getElementById('nextStageBtnMenu');
