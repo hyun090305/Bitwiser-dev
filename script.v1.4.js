@@ -4267,7 +4267,7 @@ if (backToChapterFromUserProblems) {
 if (openProblemCreatorBtn) {
   openProblemCreatorBtn.addEventListener('click', () => {
     userProblemsScreen.style.display = 'none';
-    problemScreen.style.display = 'block';
+    problemScreen.style.display = 'flex';
     problemScreenPrev = 'userProblems';
     initProblemEditor();
   });
