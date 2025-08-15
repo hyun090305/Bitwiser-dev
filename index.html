@@ -268,12 +268,12 @@
       <button id="backToMainFromProblem" class="btn-back">← 메인으로</button>
       <h1 id="problemCreatorTitle">📝 문제 출제</h1>
       <div style="display:flex; gap:1rem; align-items:flex-start; justify-content:flex-start; width:fit-content;">
-        <div id="problemBlockPanel" style="width:120px;"></div>
+        <div id="problemBlockPanel"></div>
         <div id="problemGridContainer" class="grid" style="position:relative;">
           <div id="problemGrid"></div>
           <div id="problemGridOverlay"></div>
         </div>
-        <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem;">
+        <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
           <div style="display:flex; justify-content:space-between; gap:1rem;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
               <div style="text-align:center; line-height:1.6; margin-top:0.5rem;">
@@ -317,7 +317,7 @@
                 <input id="gridCols" type="number" min="1" max="15" value="6" style="width:40px;">
                 <button id="updateIOBtn">적용</button>
               </div>
-              <div id="testcaseContainer">
+              <div id="testcaseContainer" style="margin: 0 auto;">
                 <table id="testcaseTable" border="1" style="font-size:0.9rem; text-align:center;">
                   <thead></thead>
                   <tbody></tbody>
