@@ -274,37 +274,43 @@
           <div id="problemGridOverlay"></div>
         </div>
         <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem;">
-          <div>
-            <label id="inputLabel" for="inputCount">입력</label>
-            <input id="inputCount" type="number" min="1" max="6" value="1" style="width:40px;">
-            <label id="outputLabel" for="outputCount">출력</label>
-            <input id="outputCount" type="number" min="1" max="6" value="1" style="width:40px;">
-            <br>
-            <label id="rowLabel" for="gridRows">행</label>
-            <input id="gridRows" type="number" min="1" max="15" value="6" style="width:40px;">
-            <label id="colLabel" for="gridCols">열</label>
-            <input id="gridCols" type="number" min="1" max="15" value="6" style="width:40px;">
-            <button id="updateIOBtn">적용</button>
-          </div>
-          <div id="testcaseContainer">
-            <table id="testcaseTable" border="1" style="font-size:0.9rem; text-align:center;">
-              <thead></thead>
-              <tbody></tbody>
-            </table>
-          </div>
-          <button id="addTestcaseRowBtn">+ 행 추가</button>
-          <button id="computeOutputsBtn">출력 계산</button>
-          <div style="text-align:center; line-height:1.6; margin-top:0.5rem;">
-            <button id="problemWireStatusInfo" class="toggle-key" style="color: darkgreen; font-weight:bold;">Ctrl - 도선 그리기</button>
-            <button id="problemWireDeleteInfo" class="toggle-key" style="color: crimson; font-weight:bold;">Shift - 도선/블록 삭제</button>
-            <button id="problemDeleteAllInfo" class="toggle-key" style="color: crimson; font-weight:bold;">R - 회로 초기화</button>
-          </div>
-          <div id="problemMoveButtonWrapper">
-            <div id="problemMoveButtons">
-              <button id="problemMoveUpBtn">↑</button>
-              <button id="problemMoveLeftBtn">←</button>
-              <button id="problemMoveDownBtn">↓</button>
-              <button id="problemMoveRightBtn">→</button>
+          <div style="display:flex; justify-content:space-between; gap:1rem;">
+            <div style="display:flex; flex-direction:column; gap:0.5rem;">
+              <div>
+                <label id="inputLabel" for="inputCount">입력</label>
+                <input id="inputCount" type="number" min="1" max="6" value="1" style="width:40px;">
+                <label id="outputLabel" for="outputCount">출력</label>
+                <input id="outputCount" type="number" min="1" max="6" value="1" style="width:40px;">
+                <br>
+                <label id="rowLabel" for="gridRows">행</label>
+                <input id="gridRows" type="number" min="1" max="15" value="6" style="width:40px;">
+                <label id="colLabel" for="gridCols">열</label>
+                <input id="gridCols" type="number" min="1" max="15" value="6" style="width:40px;">
+                <button id="updateIOBtn">적용</button>
+              </div>
+              <div id="testcaseContainer">
+                <table id="testcaseTable" border="1" style="font-size:0.9rem; text-align:center;">
+                  <thead></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <button id="addTestcaseRowBtn">+ 행 추가</button>
+              <button id="computeOutputsBtn">출력 계산</button>
+            </div>
+            <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem;">
+              <div style="text-align:center; line-height:1.6; margin-top:0.5rem;">
+                <button id="problemWireStatusInfo" class="toggle-key" style="color: darkgreen; font-weight:bold;">Ctrl - 도선 그리기</button>
+                <button id="problemWireDeleteInfo" class="toggle-key" style="color: crimson; font-weight:bold;">Shift - 도선/블록 삭제</button>
+                <button id="problemDeleteAllInfo" class="toggle-key" style="color: crimson; font-weight:bold;">R - 회로 초기화</button>
+              </div>
+              <div id="problemMoveButtonWrapper">
+                <div id="problemMoveButtons">
+                  <button id="problemMoveUpBtn">↑</button>
+                  <button id="problemMoveLeftBtn">←</button>
+                  <button id="problemMoveDownBtn">↓</button>
+                  <button id="problemMoveRightBtn">→</button>
+                </div>
+              </div>
             </div>
           </div>
           <div id="problemUsageSection" style="width:100%;">
