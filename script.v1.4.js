@@ -1935,25 +1935,26 @@ function setGridDimensions(rows, cols) {
 }
 
 
-function adjustGridZoom() {
-  const gridContainer = document.getElementById('gridContainer');
+function adjustGridZoom(containerId = 'gridContainer') {
+  const gridContainer = document.getElementById(containerId);
   if (!gridContainer) return;
 
-  const menuBar = document.getElementById('menuBar');
   const margin = 20;
-
   gridContainer.style.zoom = 1;
 
   let availableWidth = window.innerWidth - margin * 2;
   let availableHeight = window.innerHeight - margin * 2;
 
-  if (menuBar) {
-    const menuRect = menuBar.getBoundingClientRect();
-    const isVertical = menuRect.height > menuRect.width;
-    if (isVertical) {
-      availableWidth -= menuRect.width;
-    } else {
-      availableHeight -= menuRect.height;
+  if (containerId === 'gridContainer') {
+    const menuBar = document.getElementById('menuBar');
+    if (menuBar) {
+      const menuRect = menuBar.getBoundingClientRect();
+      const isVertical = menuRect.height > menuRect.width;
+      if (isVertical) {
+        availableWidth -= menuRect.width;
+      } else {
+        availableHeight -= menuRect.height;
+      }
     }
   }
 
@@ -3050,6 +3051,13 @@ function setupMenuToggle() {
   const gameArea = document.getElementById('gameArea');
   const toggleBtn = document.getElementById('menuToggleBtn');
   if (!menuBar || !gameArea || !toggleBtn) return;
+
+  menuBar.addEventListener('transitionend', e => {
+    if (e.propertyName === 'width') {
+      adjustGridZoom();
+    }
+  });
+
   toggleBtn.addEventListener('click', () => {
     menuBar.classList.toggle('collapsed');
     gameArea.classList.toggle('menu-collapsed');
@@ -4284,6 +4292,7 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
   initProblemBlockPanel();
   initTestcaseTable();
   markCircuitModified();
+  adjustGridZoom('problemGridContainer');
 });
 // 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
 const addRowBtn = document.getElementById('addTestcaseRowBtn');
@@ -4587,6 +4596,7 @@ function initProblemEditor() {
   document.addEventListener('keydown', handleProblemKeyDown);
   document.addEventListener('keyup', handleProblemKeyUp);
   markCircuitModified();
+  adjustGridZoom('problemGridContainer');
 }
 
 function initProblemBlockPanel() {
@@ -5469,7 +5479,10 @@ if (closeOrientationBtn) {
 }
 
 window.addEventListener('resize', checkOrientation);
-window.addEventListener('resize', adjustGridZoom);
+window.addEventListener('resize', () => {
+  adjustGridZoom();
+  adjustGridZoom('problemGridContainer');
+});
 const mqOrientation = window.matchMedia('(orientation: portrait)');
 if (mqOrientation.addEventListener) {
   mqOrientation.addEventListener('change', checkOrientation);
@@ -5478,3 +5491,4 @@ if (mqOrientation.addEventListener) {
 }
 checkOrientation();
 adjustGridZoom();
+adjustGridZoom('problemGridContainer');
