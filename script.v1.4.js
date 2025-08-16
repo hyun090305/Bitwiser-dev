@@ -5541,3 +5541,102 @@ if (mqOrientation.addEventListener) {
 checkOrientation();
 adjustGridZoom();
 adjustGridZoom('problemGridContainer');
+
+function renderGridToCanvas(gridId, canvasId) {
+  const gridEl = document.getElementById(gridId);
+  const canvas = document.getElementById(canvasId);
+  if (!gridEl || !canvas) return;
+  const cols = parseInt(getComputedStyle(gridEl).getPropertyValue('--grid-cols')) || GRID_COLS;
+  const rows = parseInt(getComputedStyle(gridEl).getPropertyValue('--grid-rows')) || GRID_ROWS;
+  const size = 50;
+  canvas.width = cols * size;
+  canvas.height = rows * size;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.strokeStyle = '#ccc';
+  for (let c = 0; c <= cols; c++) {
+    ctx.beginPath();
+    ctx.moveTo(c * size + 0.5, 0);
+    ctx.lineTo(c * size + 0.5, rows * size);
+    ctx.stroke();
+  }
+  for (let r = 0; r <= rows; r++) {
+    ctx.beginPath();
+    ctx.moveTo(0, r * size + 0.5);
+    ctx.lineTo(cols * size, r * size + 0.5);
+    ctx.stroke();
+  }
+  gridEl.querySelectorAll('.cell.block').forEach(cell => {
+    const idx = parseInt(cell.dataset.index);
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    ctx.fillStyle = '#e0e0ff';
+    ctx.fillRect(col * size, row * size, size, size);
+    ctx.strokeStyle = '#666';
+    ctx.strokeRect(col * size, row * size, size, size);
+    ctx.fillStyle = '#000';
+    const label = cell.dataset.name || cell.dataset.type || '';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, col * size + size / 2, row * size + size / 2);
+  });
+  gridEl.querySelectorAll('.cell.wire').forEach(cell => {
+    const idx = parseInt(cell.dataset.index);
+    const row = Math.floor(idx / cols);
+    const col = idx % cols;
+    ctx.fillStyle = '#000';
+    ctx.fillRect(col * size + size / 4, row * size + size / 4, size / 2, size / 2);
+  });
+}
+
+function renderBlockPanelToCanvas(panelId, canvasId) {
+  const panel = document.getElementById(panelId);
+  const canvas = document.getElementById(canvasId);
+  if (!panel || !canvas) return;
+  const rect = panel.getBoundingClientRect();
+  canvas.width = rect.width;
+  canvas.height = rect.height;
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  panel.querySelectorAll('.blockIcon').forEach(icon => {
+    const r = icon.getBoundingClientRect();
+    const x = r.left - rect.left;
+    const y = r.top - rect.top;
+    const w = r.width;
+    const h = r.height;
+    ctx.fillStyle = '#e0e0ff';
+    ctx.fillRect(x, y, w, h);
+    ctx.strokeStyle = '#666';
+    ctx.strokeRect(x, y, w, h);
+    const label = icon.dataset.name || icon.dataset.type || '';
+    ctx.fillStyle = '#000';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, x + w / 2, y + h / 2);
+  });
+}
+
+function observeGridCanvas(gridId, canvasId) {
+  const gridEl = document.getElementById(gridId);
+  if (!gridEl) return;
+  const observer = new MutationObserver(() => renderGridToCanvas(gridId, canvasId));
+  observer.observe(gridEl, { childList: true, attributes: true, subtree: true });
+  renderGridToCanvas(gridId, canvasId);
+}
+
+function observePanelCanvas(panelId, canvasId) {
+  const panel = document.getElementById(panelId);
+  if (!panel) return;
+  const observer = new MutationObserver(() => renderBlockPanelToCanvas(panelId, canvasId));
+  observer.observe(panel, { childList: true, attributes: true, subtree: true });
+  renderBlockPanelToCanvas(panelId, canvasId);
+}
+
+window.addEventListener('load', () => {
+  observeGridCanvas('grid', 'gridCanvas');
+  observeGridCanvas('moduleGrid', 'moduleGridCanvas');
+  observeGridCanvas('problemGrid', 'problemGridCanvas');
+  observePanelCanvas('blockPanel', 'blockPanelCanvas');
+  observePanelCanvas('moduleBlockPanel', 'moduleBlockPanelCanvas');
+  observePanelCanvas('problemBlockPanel', 'problemBlockPanelCanvas');
+});
