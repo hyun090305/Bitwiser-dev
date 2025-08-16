@@ -184,12 +184,16 @@
         style="display:flex; gap:1rem; align-items:flex-start;">
 
         <!-- 좌측: 블록 패널 -->
-        <div id="moduleBlockPanel" style="width: 120px;">
-          <!-- JS로 채워집니다 -->
+        <div id="moduleBlockWrapper" style="position:relative; width: 120px;">
+          <canvas id="moduleBlockPanelCanvas"></canvas>
+          <div id="moduleBlockPanel" style="width: 120px;">
+            <!-- JS로 채워집니다 -->
+          </div>
         </div>
 
         <!-- 중앙: 회로 그리드 -->
         <div id="moduleGridContainer" class="grid" style="position: relative;">
+          <canvas id="moduleGridCanvas"></canvas>
           <div id="moduleGrid"></div>
           <div id="moduleGridOverlay"></div>
         </div>
@@ -265,11 +269,13 @@
 
     <div id="problem-screen" class="screen" style="display:none; padding:0;">
       <div style="display:flex; gap:1rem; align-items:flex-start; justify-content:flex-start; width:fit-content;margin:auto;">
-        <div id="problemLeftPanel" style="display:flex; flex-direction:column; align-items:center;margin:auto;">
+        <div id="problemLeftPanel" style="display:flex; flex-direction:column; align-items:center;margin:auto; position:relative;">
+          <canvas id="problemBlockPanelCanvas"></canvas>
           <div id="problemBlockPanel"></div>
           <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag here to delete</div>
         </div>
         <div id="problemGridContainer" class="grid" style="position:relative;margin:auto;">
+          <canvas id="problemGridCanvas"></canvas>
           <div id="problemGrid"></div>
           <div id="problemGridOverlay"></div>
         </div>
@@ -405,13 +411,15 @@
         <div id="gameLayout">
 
         <!-- 블록 패널 -->
-        <div id="leftPanel">
+        <div id="leftPanel" style="position:relative;">
+          <canvas id="blockPanelCanvas"></canvas>
           <div id="blockPanel" style="margin: 0; width: auto; flex-direction: row;"></div>
           <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag here to delete</div>
         </div>
 
         <!-- 회로 그리드 -->
         <div id="gridContainer" style="position: relative;">
+          <canvas id="gridCanvas"></canvas>
           <div id="grid" class="grid"></div>
           <div id="gridOverlay"></div>
         </div>
