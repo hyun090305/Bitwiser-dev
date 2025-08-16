@@ -2565,33 +2565,3 @@ html, body {
   }
 }
 
-/* Canvas 기반 그리드 및 블록 패널 */
-#gridCanvas,
-#moduleGridCanvas,
-#problemGridCanvas,
-#blockPanelCanvas,
-#moduleBlockPanelCanvas,
-#problemBlockPanelCanvas {
-  position: absolute;
-  top: 0;
-  left: 0;
-}
-
-#grid,
-#moduleGrid,
-#problemGrid,
-#blockPanel,
-#moduleBlockPanel,
-#problemBlockPanel {
-  opacity: 0;
-}
-
-#leftPanel,
-#moduleBlockWrapper,
-#problemLeftPanel,
-#gridContainer,
-#moduleGridContainer,
-#problemGridContainer {
-  position: relative;
-}
-
