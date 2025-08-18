@@ -1092,7 +1092,6 @@ function buildBlockPanel(panel, blocks) {
   blocks.forEach(block => {
     const div = document.createElement('div');
     div.className = 'blockIcon';
-    div.draggable = true;
     div.dataset.type = block.type;
     if (block.name) div.dataset.name = block.name;
     div.textContent = block.type === 'JUNCTION' ? 'JUNC' : (block.name || block.type);
@@ -1131,25 +1130,14 @@ function buildBlockPanel(panel, blocks) {
 
 function attachDragHandlersToBlockIcons() {
   document.querySelectorAll(".blockIcon").forEach(icon => {
-    icon.addEventListener("dragstart", e => {
-      if (isWireDrawing) {
-        e.preventDefault();
-        return;
-      }
-      const type = e.target.dataset.type;
-      if (!["AND", "OR", "NOT", "INPUT", "OUTPUT", "WIRE", "JUNCTION"].includes(type)) return;
-      e.dataTransfer.setData("text/plain", type);
-      lastDraggedType = type;
-      lastDraggedIcon = e.target;
-      lastDraggedFromCell = null;
-      lastDraggedName = e.target.dataset.name || null;
-
-      // 👇 이 줄을 추가!
-      // 투명한 1×1px 이미지를 드래그 이미지로 지정해서
-      // 원본 요소(툴팁 포함) 대신 아무것도 보이지 않게 함
-      const img = new Image();
-      img.src = "data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=";
-      e.dataTransfer.setDragImage(img, 0, 0);
+    icon.removeAttribute("draggable");
+    icon.addEventListener("mousedown", e => {
+      e.preventDefault();
+      const controller = getCurrentController();
+      if (!controller) return;
+      const type = icon.dataset.type;
+      const name = icon.dataset.name || null;
+      controller.startBlockDrag(type, name);
     });
   });
 }
@@ -2228,15 +2216,17 @@ function setupGrid(containerId, rows, cols) {
     import('./src/canvas/controller.js').then(c => {
       const { createController } = c;
       const circuit = makeCircuit(rows, cols);
-      if (prefix) {
-        window.problemCircuit = circuit;
-      } else {
-        window.playCircuit = circuit;
-      }
-      createController({ bgCanvas, contentCanvas, overlayCanvas }, circuit, {
+      const controller = createController({ bgCanvas, contentCanvas, overlayCanvas }, circuit, {
         wireStatusInfo: document.getElementById(prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'),
         wireDeleteInfo: document.getElementById(prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo')
       });
+      if (prefix) {
+        window.problemCircuit = circuit;
+        window.problemController = controller;
+      } else {
+        window.playCircuit = circuit;
+        window.playController = controller;
+      }
     });
   });
 }
@@ -4129,6 +4119,14 @@ function getBlockPanel() {
     return document.getElementById("problemBlockPanel");
   }
   return document.getElementById("blockPanel");
+}
+
+function getCurrentController() {
+  const problemScreen = document.getElementById("problem-screen");
+  if (problemScreen && problemScreen.style.display !== "none") {
+    return window.problemController;
+  }
+  return window.playController;
 }
 const createProblemBtn         = document.getElementById('createProblemBtn');
 const problemScreen            = document.getElementById('problem-screen');
