@@ -207,9 +207,6 @@ function isTextInputFocused() {
 const statusToggle  = document.getElementById("wireStatusInfo");
 const deleteToggle  = document.getElementById("wireDeleteInfo");
 const resetToggle   = document.getElementById("DeleteAllInfo");
-const moduleStatusToggle = document.getElementById('moduleWireStatusInfo');
-const moduleDeleteToggle = document.getElementById('moduleWireDeleteInfo');
-const moduleResetToggle  = document.getElementById('moduleDeleteAllInfo');
 const problemStatusToggle = document.getElementById('problemWireStatusInfo');
 const problemDeleteToggle = document.getElementById('problemWireDeleteInfo');
 const problemResetToggle  = document.getElementById('problemDeleteAllInfo');
@@ -233,9 +230,6 @@ function setupKeyToggles() {
     [statusToggle, 'Control'],
     [deleteToggle, 'Shift'],
     [resetToggle, 'r'],
-    [moduleStatusToggle, 'Control'],
-    [moduleDeleteToggle, 'Shift'],
-    [moduleResetToggle, 'r'],
     [problemStatusToggle, 'Control'],
     [problemDeleteToggle, 'Shift'],
     [problemResetToggle, 'r']
@@ -585,7 +579,7 @@ document.querySelectorAll('.trash-area').forEach(trashEl => {
   trashEl.addEventListener('dragover', e => e.preventDefault());
   trashEl.addEventListener('drop', () => {
     if (["INPUT", "OUTPUT"].includes(lastDraggedType)) {
-      const panel = getBlockPanel();  // blockPanel 또는 moduleBlockPanel 반환 :contentReference[oaicite:1]{index=1}
+      const panel = getBlockPanel();  // blockPanel 또는 problemBlockPanel 반환
       const icon = panel.querySelector(
         `.blockIcon[data-type="${lastDraggedType}"][data-name="${lastDraggedName}"]`
       );
@@ -1159,7 +1153,7 @@ function attachDragHandlersToBlockIcons() {
 document.addEventListener("keydown", (e) => {
   if (e.key.toLowerCase() === "r") {
     if (isTextInputFocused()) {
-      [resetToggle, moduleResetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
+      [resetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
       return;
     }
     const gameScreen = document.getElementById("gameScreen");
@@ -2181,7 +2175,7 @@ function setupGrid(containerId, rows, cols) {
       const name = cell.dataset.name;
       // ② INPUT/OUTPUT이면 아이콘 복원
       if (["INPUT", "OUTPUT"].includes(type)) {
-        const panel = getBlockPanel();  // blockPanel 또는 moduleBlockPanel 반환
+        const panel = getBlockPanel();  // blockPanel 또는 problemBlockPanel 반환
         const icon = panel.querySelector(
           `.blockIcon[data-type="${type}"][data-name="${name}"]`
         );
@@ -2793,8 +2787,55 @@ function saveRanking(levelId, blockCounts, usedWires, hintsUsed /*, timeMs */) {
 
 function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
   const nickname = localStorage.getItem("username") || "익명";
-  const entry = { nickname, blockCounts, usedWires, hintsUsed, timestamp: new Date().toISOString() };
-  db.ref(`problems/${problemKey}/ranking`).push(entry);
+  const entry = {
+    nickname,
+    blockCounts,
+    usedWires,
+    hintsUsed,
+    timestamp: new Date().toISOString()
+  };
+  const rankingRef = db.ref(`problems/${problemKey}/ranking`);
+
+  const sumBlocks = e =>
+    Object.values(e.blockCounts || {}).reduce((s, x) => s + x, 0);
+
+  const isBetter = (a, b) => {
+    const aB = sumBlocks(a), bB = sumBlocks(b);
+    if (aB !== bB) return aB < bB;
+    if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
+    const aH = a.hintsUsed ?? 0, bH = b.hintsUsed ?? 0;
+    if (aH !== bH) return aH < bH;
+    return new Date(a.timestamp) < new Date(b.timestamp);
+  };
+
+  rankingRef.orderByChild("nickname").equalTo(nickname)
+    .once("value", snapshot => {
+      if (!snapshot.exists()) {
+        rankingRef.push(entry);
+        return;
+      }
+
+      let bestKey = null;
+      let bestVal = null;
+      const dupKeys = [];
+
+      snapshot.forEach(child => {
+        const val = child.val();
+        const key = child.key;
+        if (!bestVal || isBetter(val, bestVal)) {
+          if (bestKey) dupKeys.push(bestKey);
+          bestKey = key;
+          bestVal = val;
+        } else {
+          dupKeys.push(key);
+        }
+      });
+
+      if (isBetter(entry, bestVal)) {
+        rankingRef.child(bestKey).set(entry);
+      }
+      dupKeys.forEach(k => rankingRef.child(k).remove());
+    });
 }
 
 function showProblemRanking(problemKey) {
@@ -2807,7 +2848,11 @@ function showProblemRanking(problemKey) {
     .orderByChild('timestamp')
     .once('value', snap => {
       const entries = [];
-      snap.forEach(ch => entries.push(ch.val()));
+      // snapshot.forEach의 콜백이 truthy 값을 반환하면 순회가 중단되므로
+      // return 값을 명시하지 않은 블록 형태로 작성하여 모든 랭킹을 수집합니다.
+      snap.forEach(ch => {
+        entries.push(ch.val());
+      });
 
       if (entries.length === 0) {
         listEl.innerHTML = `
@@ -2826,7 +2871,23 @@ function showProblemRanking(problemKey) {
       }
 
       const sumBlocks = e => Object.values(e.blockCounts || {}).reduce((s,x)=>s+x,0);
-      entries.sort((a,b)=>{
+      const isBetter = (a,b)=>{
+        const aB=sumBlocks(a), bB=sumBlocks(b);
+        if(aB!==bB) return aB<bB;
+        if(a.usedWires!==b.usedWires) return a.usedWires<b.usedWires;
+        const aH=(a.hintsUsed??0), bH=(b.hintsUsed??0);
+        if(aH!==bH) return aH<bH;
+        return new Date(a.timestamp)<new Date(b.timestamp);
+      };
+
+      const bestByNickname = {};
+      entries.forEach(e => {
+        const cur = bestByNickname[e.nickname];
+        if (!cur || isBetter(e, cur)) bestByNickname[e.nickname] = e;
+      });
+      const uniqueEntries = Object.values(bestByNickname);
+
+      uniqueEntries.sort((a,b)=>{
         const aB=sumBlocks(a), bB=sumBlocks(b);
         if(aB!==bB) return aB-bB;
         if(a.usedWires!==b.usedWires) return a.usedWires-b.usedWires;
@@ -2844,7 +2905,7 @@ function showProblemRanking(problemKey) {
         `<th>${t('thTime')}</th>`
       ].join('');
 
-      const bodyRows = entries.map((e,i)=>{
+      const bodyRows = uniqueEntries.map((e,i)=>{
         const counts = allowedTypes.map(t=>e.blockCounts?.[t]??0).map(c=>`<td>${c}</td>`).join('');
         const timeStr = new Date(e.timestamp).toLocaleString();
         const nickname = e.nickname;
@@ -3991,67 +4052,6 @@ function isLevelUnlocked(level) {
   return true;
 }
 
-const exitBtn = document.getElementById('exit-module-mode');
-const moduleScreen = document.getElementById('module-editor-screen');
-
-
-exitBtn.addEventListener('click', () => {
-  // 1) 모듈 제작창 숨기기
-  moduleScreen.style.display = 'none';
-  // 2) 모듈 관리창 보이기
-  managementScreen.style.display = 'flex';
-});
-function handleModuleKeyDown(e) {
-  const moduleScreen = document.getElementById('module-editor-screen');
-  if (!moduleScreen || moduleScreen.style.display === 'none') return;
-  // ── 0) “모듈 저장 모달”이 떠 있는 동안은 아무 동작도 하지 않음 ──
-  if (moduleSaveModal.style.display === 'flex') {
-    return;
-  }
-
-  // ── 1) 입력창에 포커스 있을 땐 리턴 (기존 조건) ──
-  const active = document.activeElement;
-  if (active && (active.id === 'moduleNameInput' || active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) {
-    return;
-  }
-
-  // ── 2) Ctrl 키 누르면 wire 드로잉 모드 활성화 ──
-  if (e.key === 'Control') {
-    isWireDrawing = true;
-    moduleStatusToggle.classList.add('active');
-  }
-  // ── 3) Shift 키 누르면 삭제 모드 활성화 ──
-  else if (e.key === 'Shift') {
-    isWireDeleting = true;
-    moduleDeleteToggle.classList.add('active');
-  }
-  // ── 4) R 키 누르면 회로 초기화 ──
-  else if (e.key.toLowerCase() === 'r') {
-    if (isTextInputFocused()) {
-      [resetToggle, moduleResetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
-      return;
-    }
-    if (confirm(t('confirmDeleteAll'))) {
-      clearGrid();
-      initModuleBlockPanel();
-    }
-  }
-}
-
-function handleModuleKeyUp(e) {
-  const moduleScreen = document.getElementById('module-editor-screen');
-  if (!moduleScreen || moduleScreen.style.display === 'none') return;
-  if (e.key === 'Control') {
-    isWireDrawing = false
-    moduleStatusToggle.classList.remove('active');
-    clearWirePreview();         // 반쯤 그려진 wire preview 제거
-    wireTrace = [];
-  }
-  if (e.key === 'Shift') {
-    isWireDeleting = false;
-    moduleDeleteToggle.classList.remove('active');
-  }
-}
 
 function handleProblemKeyDown(e) {
   const problemScreen = document.getElementById('problem-screen');
@@ -4068,10 +4068,10 @@ function handleProblemKeyDown(e) {
     isWireDeleting = true;
     problemDeleteToggle.classList.add('active');
   } else if (e.key.toLowerCase() === 'r') {
-    if (isTextInputFocused()) {
-      [resetToggle, moduleResetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
-      return;
-    }
+      if (isTextInputFocused()) {
+        [resetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
+        return;
+      }
     if (confirm(t('confirmDeleteAll'))) {
       clearGrid();
       initProblemBlockPanel();
@@ -4097,119 +4097,12 @@ function handleProblemKeyUp(e) {
 }
 
 function getBlockPanel() {
-  const moduleScreen = document.getElementById("module-editor-screen");
-  if (moduleScreen && moduleScreen.style.display !== "none") {
-    return document.getElementById("moduleBlockPanel");
-  }
   const problemScreen = document.getElementById("problem-screen");
   if (problemScreen && problemScreen.style.display !== "none") {
     return document.getElementById("problemBlockPanel");
   }
   return document.getElementById("blockPanel");
 }
-// (1) 필요한 요소들 grab
-const saveModuleBtn          = document.getElementById('saveModuleBtn');
-const moduleSaveModal        = document.getElementById('moduleSaveModal');
-const modalBackdrop          = document.querySelector('#moduleSaveModal .modal-backdrop');
-const confirmSaveModuleBtn   = document.getElementById('confirmSaveModuleBtn');
-const cancelSaveModuleBtn    = document.getElementById('cancelSaveModuleBtn');
-const moduleNameInput        = document.getElementById('moduleNameInput');
-const moduleDescInput        = document.getElementById('moduleDescInput');
-
-saveModuleBtn.addEventListener('click', () => {
-  // 입력창 비우기
-  moduleNameInput.value = '';
-  moduleDescInput.value = '';
-
-  // 모달 보이기
-  moduleSaveModal.style.display = 'flex';
-  moduleNameInput.focus();
-});
-
-cancelSaveModuleBtn.addEventListener('click', () => {
-  moduleSaveModal.style.display = 'none';
-});
-
-modalBackdrop.addEventListener('click', () => {
-  moduleSaveModal.style.display = 'none';
-});
-
-
-
-confirmSaveModuleBtn.addEventListener('click', () => {
-  const moduleName = moduleNameInput.value.trim();
-  const moduleDesc = moduleDescInput.value.trim();
-
-  // 1) 이름 유효성 검사 (영문/숫자 1~8자)
-  if (!/^[A-Za-z0-9]{1,8}$/.test(moduleName)) {
-    alert('⚠️ 모듈 이름은 영문자(A–Z, a–z)와 숫자(0–9)만 사용하며, 최대 8자로 입력해주세요.');
-    moduleNameInput.focus();
-    return;
-  }
-
-  // 2) 중복 확인 (기존 키가 있으면 덮어쓰기 확인)
-  const key = 'module_' + moduleName;
-  if (localStorage.getItem(key)) {
-    const overwrite = confirm(`'${moduleName}' 모듈이 이미 존재합니다. 덮어쓰시겠습니까?`);
-    if (!overwrite) {
-      moduleNameInput.focus();
-      return;
-    }
-  }
-
-  // 3) 저장 로직 실행 (getModuleGridData(), getModuleWireData(), etc.)
-  saveModuleData(key, moduleDesc);
-
-  // 4) 저장 완료 알림
-  alert(`✅ '${moduleName}' 모듈이 저장되었습니다.`);
-
-  // 5) 모달 닫기
-  moduleSaveModal.style.display = 'none';
-
-  // 6) 모듈 제작 화면 숨기기
-  moduleScreen.style.display = 'none';
-
-  // 7) 모듈 관리 화면 표시 및 목록 갱신
-  managementScreen.style.display = 'flex';
-  renderModuleList();
-});
-
-// (5) 실제 저장 함수: saveCircuit을 그대로 따라, flow 포함
-function saveModuleData(key, description) {
-  // (a) 그리드 상태 수집 (셀 index/type/name/value/classes)
-  const gridData = getModuleGridData();
-  // (b) 전선 상태 수집 (x/y/dir)
-  const wireData = getModuleWireData();
-  // (c) wiresObj 수집 (startIdx, endIdx, pathIdxs)
-  const wiresObjData = wires.map(w => ({
-    startIdx: +w.start.dataset.index,
-    endIdx:   +w.end.dataset.index,
-    pathIdxs: w.path.map(c => +c.dataset.index)
-  }));
-  // (d) 사용 블록/전선 개수
-  const usedBlocks = countUsedBlocks();
-  const usedWires  = countUsedWires();
-
-  // (e) 저장할 객체
-  const moduleData = {
-    timestamp: new Date().toISOString(),
-    description: description,
-    grid:  gridData,
-    wires: wireData,
-    wiresObj: wiresObjData,
-    usedBlocks: usedBlocks,
-    usedWires:  usedWires
-  };
-
-  // (f) localStorage에 저장
-  localStorage.setItem(key, JSON.stringify(moduleData));
-}
-
-const manageModulesBtn         = document.getElementById('manageModulesBtn');
-const managementScreen         = document.getElementById('module-management-screen');
-const backToMainFromManagement = document.getElementById('backToMainFromManagement');
-const createModuleBtn          = document.getElementById('createModuleBtn');
-const moduleList               = document.getElementById('moduleList');
 const createProblemBtn         = document.getElementById('createProblemBtn');
 const problemScreen            = document.getElementById('problem-screen');
 const backToMainFromProblem    = document.getElementById('backToMainFromProblem');
@@ -4227,28 +4120,6 @@ const cancelSaveProblemBtn     = document.getElementById('cancelSaveProblemBtn')
 const problemTitleInput        = document.getElementById('problemTitleInput');
 const problemDescInput         = document.getElementById('problemDescInput');
 const fixIOCheck               = document.getElementById('fixIOCheck');
-
-//— ① 메인 → 모듈 관리
-if (manageModulesBtn) {
-  manageModulesBtn.addEventListener('click', () => {
-    firstScreen.style.display      = 'none';
-    managementScreen.style.display = 'flex';
-    renderModuleList();
-  });
-}
-
-//— ② 모듈 관리 → 메인
-backToMainFromManagement.addEventListener('click', () => {
-  managementScreen.style.display = 'none';
-  firstScreen.style.display      = '';
-});
-
-//— ③ 모듈 관리 → 새 제작창  
-createModuleBtn.addEventListener('click', () => {
-  managementScreen.style.display = 'none';
-  moduleScreen.style.display     = 'block';
-  initModuleEditor();  // 모듈 에디터 초기화 함수 호출 fileciteturn28file1
-});
 
 //— ④ 메인 → 문제 출제 화면
 if (createProblemBtn) {
@@ -4322,8 +4193,10 @@ if (saveProblemBtn) saveProblemBtn.addEventListener('click', () => {
   problemTitleInput.focus();
 });
 if (confirmSaveProblemBtn) confirmSaveProblemBtn.addEventListener('click', () => {
-  problemSaveModal.style.display = 'none';
-  saveProblem();
+  // saveProblem이 true를 반환할 때만 모달을 닫습니다.
+  if (saveProblem()) {
+    problemSaveModal.style.display = 'none';
+  }
 });
 if (cancelSaveProblemBtn) cancelSaveProblemBtn.addEventListener('click', () => {
   problemSaveModal.style.display = 'none';
@@ -4345,252 +4218,6 @@ if (viewProblemListBtn) viewProblemListBtn.addEventListener('click', showProblem
   if (closeHintMsgBtn) closeHintMsgBtn.addEventListener('click', () => {
     document.getElementById('hintMessageModal').style.display = 'none';
   });
-
-/**
- * localStorage에서 "module_"로 시작하는 모든 항목을 찾고,
- * <ul id="moduleList"> 아래에 <li>로 렌더링합니다.
- *
- * 저장된 키 형식: "module_<모듈이름>"
- * 화면에 보여줄 모듈 이름: key.substring(7)  (즉, "module_" 뒤부터 끝까지)
- */
-function renderModuleList() {
-  // 1) 기존 목록 초기화
-  moduleList.innerHTML = '';
-
-  // 2) localStorage에 module_로 시작하는 키들만 골라옴
-  const moduleKeys = Object.keys(localStorage)
-    .filter(key => key.startsWith('module_'))
-    .sort(); // 필요하면 정렬 기준을 바꿀 수 있습니다.
-
-  // 3) 저장된 모듈이 하나도 없으면 안내 문구
-  if (moduleKeys.length === 0) {
-    const emptyMsg = document.createElement('div');
-    emptyMsg.className = 'empty-message';
-    emptyMsg.textContent = t('noModules');
-    moduleList.appendChild(emptyMsg);
-    return;
-  }
-
-  // 4) 각 키마다 <li> 생성
-  moduleKeys.forEach(key => {
-    // key 예시: "module_AND"
-    const moduleName = key.substring(7); // "module_" 뒤부터 끝까지
-
-    // li 요소 생성
-    const li = document.createElement('li');
-    li.className = 'module-item';
-
-    // 4-1) 모듈 이름 텍스트
-    const nameSpan = document.createElement('span');
-    nameSpan.className = 'module-name';
-    nameSpan.textContent = moduleName;
-    li.appendChild(nameSpan);
-
-    // 4-2) 불러오기 버튼
-    const loadBtn = document.createElement('button');
-    loadBtn.className = 'btn-load';
-    loadBtn.textContent = t('loadBtn');
-    loadBtn.addEventListener('click', () => {
-      // (a) 모듈 관리창 감추고, 모듈 제작창 보이기
-      managementScreen.style.display = 'none';
-      moduleScreen.style.display     = 'block';
-
-      // (b) 에디터 초기화
-      initModuleEditor();
-      // (c) 저장된 모듈 데이터 로드 (key 전체 사용)
-      loadModule(moduleName);
-    });
-    li.appendChild(loadBtn);
-
-    // 4-3) 삭제 버튼
-    const deleteBtn = document.createElement('button');
-    deleteBtn.className = 'btn-delete';
-    deleteBtn.textContent = t('deleteBtn');
-    deleteBtn.addEventListener('click', () => {
-      const confirmed = confirm(t('confirmDeleteModule').replace('{module}', moduleName));
-      if (!confirmed) return;
-
-      // localStorage에서 해당 키 제거
-      localStorage.removeItem(key);
-      // 목록 갱신
-      renderModuleList();
-    });
-    li.appendChild(deleteBtn);
-
-    // 4-4) <ul>에 붙이기
-    moduleList.appendChild(li);
-  });
-}
-
-
-/**
- * localStorage 에 저장된 모듈을 불러와
- * 모듈 제작 모드에 로드합니다.
- * @param {string} moduleName - module_<이름> 으로 저장된 키의 이름(“IN1” 같은 접두사 없이)
- */
-function loadModule(moduleKey) {
-  moduleKey = 'module_' + moduleKey
-  const data = JSON.parse(localStorage.getItem(moduleKey));
-  if (!data) return alert(t('moduleLoadFailed'));
-
-  // 1) 그리드·전선 초기화
-  clearGrid();   // 전역 grid 변수 대상 → moduleGrid
-  clearWires();
-
-  // 2) 셀 상태 복원
-  const cells = grid.querySelectorAll('.cell');
-  data.grid.forEach(state => {
-    const cell = cells[state.index];
-    cell.className = 'cell';
-    if (state.type)  cell.dataset.type  = state.type;
-    if (state.name)  cell.dataset.name  = state.name;
-    if (state.value) cell.dataset.value = state.value;
-    // 저장된 모든 CSS 클래스(flow, wire-*, block 등) 복원
-    state.classes.forEach(c => cell.classList.add(c));
-
-    // INPUT/OUTPUT이면 클릭 핸들러 바인딩
-    if (state.type === 'INPUT' || state.type === 'OUTPUT') {
-      attachInputClickHandlers(cell);
-    }
-    // 블록이면 draggable + 텍스트 표시
-    if (state.type && state.type !== 'WIRE') {
-      cell.classList.add('block');
-      if (state.type === 'INPUT')
-        cell.textContent = state.name;
-        //cell.textContent = `${state.name}(${state.value})`;
-      else if (state.type === 'OUTPUT')
-        cell.textContent = state.name;
-      else if (state.type === 'JUNCTION')
-        cell.textContent = 'JUNC';
-      else
-        cell.textContent = state.type;
-      cell.draggable = true;
-    }
-  });
-
-  // 3) DOM 상 전선 복원
-  data.wires.forEach(w => {
-    placeWireAt(w.x, w.y, w.dir);
-  });
-
-  // 4) wiresObj 복원 (내부 wires 배열)
-  if (data.wiresObj) {
-    wires = data.wiresObj.map(obj => ({
-      start: cells[obj.startIdx],
-      end:   cells[obj.endIdx],
-      path:  obj.pathIdxs.map(i => cells[i])
-    }));
-  }
-
-  // 5) 사용된 INPUT/OUTPUT 아이콘 숨기기
-  const panel = document.getElementById('moduleBlockPanel');
-  const usedNames = data.grid
-    .filter(s => s.type === 'INPUT' || s.type === 'OUTPUT')
-    .map(s => s.name);
-  panel.querySelectorAll('.blockIcon').forEach(icon => {
-    const { type, name } = icon.dataset;
-    if ((type === 'INPUT' || type === 'OUTPUT') && usedNames.includes(name)) {
-      icon.style.display = 'none';
-    }
-  });
-}
-
-/**
- * 모듈 제작 모드로 들어올 때 호출합니다.
- * setupGrid, clearGrid, setGridDimensions, initModuleBlockPanel, 키 핸들러 바인딩 등을
- * 한 곳에 묶어 두었습니다.
- */
-function initModuleEditor() {
-  // 0) 화면 전환 (caller 쪽에서 이미 mainScreen 숨기고 moduleScreen 띄우고 있다면 생략 가능)
-  mainScreen.style.display   = 'none';
-  moduleScreen.style.display = 'block';
-
-  // 1) 모듈 이름 입력창 초기화
-  const nameInput = document.getElementById('moduleNameInput');
-  nameInput.value = '';
-
-  // 2) 상태 메시지 초기화
-  moduleStatusToggle.classList.remove('active');
-  moduleDeleteToggle.classList.remove('active');
-
-  // 3) 그리드 초기화 (6×6 고정)
-  setupGrid('moduleGrid', 6, 6);
-  clearGrid();
-  setGridDimensions(6, 6);
-
-  // 4) 블록 패널 초기화
-  initModuleBlockPanel();  // 내부에서 moduleBlockPanel을 완전히 재생성합니다
-
-  // 5) 드래그 핸들러 재바인딩
-  attachDragHandlersToBlockIcons();
-
-  // 6) 키보드 이벤트 바인딩
-  document.addEventListener('keydown', handleModuleKeyDown);
-  document.addEventListener('keyup',   handleModuleKeyUp);
-}
-
-/**
- * #moduleBlockPanel 안에 모듈용 블록 아이콘을 초기화해서 붙이는 함수입니다.
- * 모듈 제작 모드로 진입할 때 반드시 호출되어야 합니다.
- */
-function initModuleBlockPanel() {
-  // 1) moduleBlockPanel 요소 grab
-  const panel = document.getElementById('moduleBlockPanel');
-  panel.innerHTML = ''; // 기존 내용 전부 지우고
-
-  // 2) 기본 블록 목록 정의
-  const moduleBlocks = [
-    { type: "INPUT",  name: "IN1" },
-    { type: "OUTPUT", name: "OUT1" },
-    { type: "AND" },
-    { type: "OR" },
-    { type: "NOT" },
-    { type: "JUNCTION" }
-  ];
-
-  // 3) 블록 아이콘 생성 및 패널에 추가
-  moduleBlocks.forEach(block => {
-    const div = document.createElement('div');
-    div.className    = 'blockIcon';
-    div.draggable    = true;
-    div.dataset.type = block.type;
-    if (block.name) div.dataset.name = block.name;
-    div.textContent = block.name || block.type;
-    panel.appendChild(div);
-  });
-
-  // WIRE는 별도 단축키로 그리므로 패널에 추가하지 않음
-
-  // 5) 드래그 핸들러 다시 바인딩
-  //    이 함수는 기존 attachDragHandlersToBlockIcons 정의를 재사용합니다.
-  attachDragHandlersToBlockIcons();
-}
-
-// (1) module 전용 그리드 상태 불러오기
-function getModuleGridData() {
-  return Array.from(
-    document.querySelectorAll('#moduleGrid .cell')
-  ).map(cell => ({
-    index: +cell.dataset.index,
-    type:  cell.dataset.type  || null,
-    name:  cell.dataset.name  || null,
-    value: cell.dataset.value || null,
-    classes: Array.from(cell.classList)
-                  .filter(c => c !== 'cell')
-  }));
-}
-
-// (2) module 전용 전선 상태 불러오기
-function getModuleWireData() {
-  return Array.from(
-    document.querySelectorAll('#moduleGrid .cell.wire')
-  ).map(cell => {
-    const dir = Array.from(cell.classList)
-                     .find(c => c.startsWith('wire-'))
-                     .split('-')[1];
-    return { x: cell.col, y: cell.row, dir };
-  });
-}
 
 // -------------------- 사용자 정의 문제 편집 --------------------
 function initProblemEditor() {
@@ -4770,15 +4397,28 @@ function collectProblemData() {
 }
 
 function saveProblem() {
+  const title = problemTitleInput.value.trim();
+  const desc  = problemDescInput.value.trim();
+  if (!title) {
+    alert(t('problemTitleRequired'));
+    problemTitleInput.focus();
+    return false;
+  }
+  if (!desc) {
+    alert(t('problemDescRequired'));
+    problemDescInput.focus();
+    return false;
+  }
   if (!problemOutputsValid) {
     alert(t('computeOutputsFirst'));
-    return;
+    return false;
   }
   const data = collectProblemData();
   const key = db.ref('problems').push().key;
   db.ref('problems/' + key).set(data)
     .then(() => alert(t('problemSaved')))
     .catch(err => alert(t('saveFailed').replace('{error}', err)));
+  return true;
 }
 
 function showProblemList() {

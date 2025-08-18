@@ -1658,9 +1658,6 @@ html, body {
     overflow-y: auto;
   }
 
-  #module-editor-screen {
-    min-height: 100vh;
-  }
 
   /* ② 메인 카드(#mainScreen) 가 가진 margin:auto 를 수직 여백만 남기도록 변경 */
   #mainArea > #mainScreen {
@@ -1778,17 +1775,7 @@ html, body {
     /* 포커스 아웃라인 제거 */
   }
 
-  #module-editor-screen {
-  display: none;
-  padding: 2rem;
-  background-color: #fff;
-  border: 2px solid #666;
-  max-width: 600px;
-  margin: 2rem auto;
-}
-
-#moduleGrid,
-#problemGrid {
+  #problemGrid {
   display: grid;
   gap: 2px;
   border: 2px solid black;
@@ -1798,9 +1785,8 @@ html, body {
 }
 
 /* 공통: 게임 모드 · 모듈 모드 블록 패널 모두에 적용 */
-#blockPanel,
-#moduleBlockPanel,
-#problemBlockPanel {
+  #blockPanel,
+  #problemBlockPanel {
   display: flex;               /* 세로 정렬을 위해 flex 사용 */
   flex-direction: row;      /* 수직 방향으로 블록 나열 */
   align-items: stretch;        /* 폭을 부모에 맞춤 */
@@ -1811,9 +1797,8 @@ html, body {
 }
 
 /* 블록 아이콘 크기·정렬 (필요시 조정) */
-#blockPanel .blockIcon,
-#moduleBlockPanel .blockIcon,
-#problemBlockPanel .blockIcon {
+  #blockPanel .blockIcon,
+  #problemBlockPanel .blockIcon {
   width: 50px;
   height: 30px;
   text-align: center;          /* 텍스트 중앙 정렬 */
@@ -1846,40 +1831,8 @@ html, body {
   cursor: pointer;
 }
 
-/* 화면 제목 */
-.module-management-screen .screen-title {
-  margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-  margin-bottom: 1.5rem;
-}
-
-/* 모듈 목록 */
-.module-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  max-width: 360px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.module-list .module-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
-}
-
-.module-list .module-item:last-child {
-  border-bottom: none;
-}
-
-/* 사용자 문제 목록 */
-.problem-list {
+  /* 사용자 문제 목록 */
+  .problem-list {
   list-style: none;
   padding: 0;
   margin: 0 auto;
@@ -1900,29 +1853,8 @@ html, body {
   border-bottom: none;
 }
 
-.module-item .module-name {
-  font-size: 1rem;
-  color: #333;
-  word-break: break-all;
-}
-
-/* 불러오기 버튼 */
-.btn-load {
-  padding: 0.4rem 0.8rem;
-  border: 1px solid #008cba;
-  background: #00aaff;
-  color: white;
-  border-radius: 3px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.btn-load:hover {
-  background: #008cba;
-}
-
-/* 새 모듈 만들기 버튼 */
-.btn-primary {
+  /* Primary button */
+  .btn-primary {
   margin-top: 1.5rem;
   padding: 0.75rem 1.5rem;
   border: none;
