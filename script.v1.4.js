@@ -454,6 +454,7 @@ function finish(e) {
   statusToggle.classList.remove("active");
 }
 
+// 이전: DOM 기반 와이어 연쇄 해제
 function disconnectWiresCascade(startBlock) {
   // startBlock에 직접 연결된 wire만 추출
   const related = wires.filter(w => w.start === startBlock || w.end === startBlock);
@@ -524,6 +525,7 @@ function coordToIndex({ row, col }) {
 }
 
 // 두 셀 인덱스 사이의 “격자 보간” 경로를 반환
+// 이전: DOM 기반 경로 보간 함수
 function getInterpolatedIndices(fromIdx, toIdx) {
   const p0 = indexToCoord(fromIdx);
   const p1 = indexToCoord(toIdx);
@@ -636,6 +638,7 @@ function updateOneWireDirection(cell) {
   applyWireDirection(cell, dirs);
 }
 
+// 이전: DOM 기반 와이어 렌더링 함수 (Canvas 전환으로 미사용 예정)
 function drawWirePath(path) {
   path.forEach(c => c.classList.remove("wire-preview"));
   path.forEach(c => {
@@ -742,6 +745,7 @@ function getDirectionBetween(fromCell, toCell) {
 }
 
 // 수정 후:
+// 이전: div 기반 와이어 방향 클래스 적용
 function applyWireDirection(cell, dirs) {
   /* ▼▼▼ ① 교차 방지 필터  ▼▼▼ */
   if (dirs.length > 2) {
@@ -811,6 +815,7 @@ function setupInputToggles() {
 }
 
 /* 3) 회로 평가 엔진 (BFS 기반) */
+// 이전: DOM 기반 회로 평가 로직
 function evaluateCircuit() {
   showCircuitError(false);
   // 1) 모든 블록과 INPUT 초기값 준비
@@ -874,6 +879,7 @@ function evaluateCircuit() {
 
 
 /* 4) 블록별 논리 연산 수행 */
+// 이전: DOM 기반 블록 연산 함수
 function computeBlock(node, values) {
   const row = node.row;
   const col = node.col;
