@@ -17,10 +17,6 @@ let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 
-// Canvas-based circuit state
-let activeCircuit = null;
-let activeController = null;
-
 let lastSavedKey = null;
 let pendingClearedLevel = null;
 
@@ -1050,7 +1046,7 @@ function startLevel(level) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
   showLevelIntro(level, () => {
-    setupGrid("gridContainer", rows, cols);
+    setupGrid("grid", rows, cols);
     clearGrid();
     setupBlockPanel(level);
     setGridDimensions(rows, cols);
@@ -1933,19 +1929,16 @@ function renderStageList(stageList) {
 function setGridDimensions(rows, cols) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
-  const cellSize = (window.CanvasModules && window.CanvasModules.CELL) || 50;
-  const prefix = grid && grid.id && grid.id.startsWith('problem') ? 'problem' : '';
-  const canvases = {
-    bg: document.getElementById(prefix + 'BgCanvas'),
-    content: document.getElementById(prefix + 'ContentCanvas'),
-    overlay: document.getElementById(prefix + 'OverlayCanvas')
-  };
-  Object.values(canvases).forEach(cv => {
-    if (cv) {
-      cv.style.width = cols * cellSize + 'px';
-      cv.style.height = rows * cellSize + 'px';
-    }
-  });
+
+  if (grid) {
+    // ① CSS 변수만 업데이트
+    grid.style.setProperty('--grid-rows', rows);
+    grid.style.setProperty('--grid-cols', cols);
+
+    // ② inline grid-template 은 제거하거나 주석 처리
+    // grid.style.gridTemplateRows   = `repeat(${rows}, 1fr)`;
+    // grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+  }
 }
 
 
@@ -4191,7 +4184,7 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols);
+  setupGrid('problemGrid', rows, cols);
   setGridDimensions(rows, cols);
   clearGrid();
   clearWires();
@@ -4249,7 +4242,7 @@ function initProblemEditor() {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols);
+  setupGrid('problemGrid', rows, cols);
   clearGrid();
   setGridDimensions(rows, cols);
   initProblemBlockPanel();
@@ -4483,7 +4476,7 @@ function loadProblem(key) {
     document.getElementById('outputCount').value = data.outputCount || 1;
     document.getElementById('gridRows').value = data.gridRows || 6;
     document.getElementById('gridCols').value = data.gridCols || 6;
-    setupGrid('problemGridContainer', data.gridRows || 6, data.gridCols || 6);
+    setupGrid('problemGrid', data.gridRows || 6, data.gridCols || 6);
     setGridDimensions(data.gridRows || 6, data.gridCols || 6);
     initProblemBlockPanel();
     initTestcaseTable();
@@ -4818,7 +4811,7 @@ function startCustomProblem(key, problem) {
   currentLevel = null;
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  setupGrid('gridContainer', rows, cols);
+  setupGrid('grid', rows, cols);
   clearGrid();
   setupCustomBlockPanel(problem);
   placeFixedIO(problem);
@@ -5184,49 +5177,6 @@ if (closeOrientationBtn) {
   closeOrientationBtn.addEventListener('click', () => {
     if (orientationModal) orientationModal.style.display = 'none';
   });
-}
-
-// 새 Canvas 기반 grid 초기화
-function setupGrid(containerId, rows, cols) {
-  GRID_COLS = cols;
-  GRID_ROWS = rows;
-  grid = document.getElementById(containerId);
-
-  const prefix = containerId.startsWith('problem') ? 'problem' : '';
-  const canvases = {
-    bgCanvas: document.getElementById(prefix + 'BgCanvas'),
-    contentCanvas: document.getElementById(prefix + 'ContentCanvas'),
-    overlayCanvas: document.getElementById(prefix + 'OverlayCanvas')
-  };
-  const ui = prefix
-    ? {
-        wireStatusInfo: document.getElementById('problemWireStatusInfo'),
-        wireDeleteInfo: document.getElementById('problemWireDeleteInfo')
-      }
-    : {
-        wireStatusInfo: document.getElementById('wireStatusInfo'),
-        wireDeleteInfo: document.getElementById('wireDeleteInfo')
-      };
-  const mods = window.CanvasModules || {};
-  if (!mods.makeCircuit || !mods.createController) return;
-  const circuit = mods.makeCircuit(rows, cols);
-  const controller = mods.createController(canvases, circuit, ui);
-  activeCircuit = circuit;
-  activeController = controller;
-  return circuit;
-}
-
-// 이전: DOM 기반 clearGrid
-function clearGrid() {
-  if (!activeCircuit) return;
-  activeCircuit.blocks = {};
-  activeCircuit.wires = {};
-  const mods = window.CanvasModules || {};
-  if (mods.renderContent && activeController) {
-    const canvas = activeController?.canvasSet?.contentCanvas || document.getElementById('contentCanvas');
-    const ctx = canvas.getContext('2d');
-    mods.renderContent(ctx, activeCircuit, 0);
-  }
 }
 
 window.addEventListener('resize', checkOrientation);
