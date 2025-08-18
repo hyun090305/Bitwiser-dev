@@ -126,5 +126,5 @@ export function createController(canvasSet, circuit, ui = {}) {
     }
   });
 
-  return { state, circuit };
+  return { state, circuit, canvasSet, contentCtx };
 }
