@@ -488,14 +488,20 @@
         bgCanvas: document.getElementById('bgCanvas'),
         contentCanvas: document.getElementById('contentCanvas'),
         overlayCanvas: document.getElementById('overlayCanvas')
-      }, circuit);
+      }, circuit, {
+        wireStatusInfo: document.getElementById('wireStatusInfo'),
+        wireDeleteInfo: document.getElementById('wireDeleteInfo')
+      });
 
       const problemCircuit = makeCircuit();
       createController({
         bgCanvas: document.getElementById('problemBgCanvas'),
         contentCanvas: document.getElementById('problemContentCanvas'),
         overlayCanvas: document.getElementById('problemOverlayCanvas')
-      }, problemCircuit);
+      }, problemCircuit, {
+        wireStatusInfo: document.getElementById('problemWireStatusInfo'),
+        wireDeleteInfo: document.getElementById('problemWireDeleteInfo')
+      });
     </script>
 
     <div id="levelIntroModal" style="display:none" class="modal">
