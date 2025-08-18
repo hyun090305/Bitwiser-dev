@@ -295,16 +295,15 @@ html, body {
   }
 
 
-  #grid {
+  /* 이전: #grid div 기반 레이아웃 */
+  /* #grid {
     display: grid;
     gap: 2px;
     border: 2px solid black;
     grid-template-columns: repeat(var(--grid-cols, 6), 50px);
-    /* 기존 */
     grid-template-rows: repeat(var(--grid-rows, 6), 50px);
     touch-action: auto;
-    /* 추가 */
-  }
+  } */
   #gridContainer {
     flex-shrink: 0;
     display: flex;
@@ -358,7 +357,8 @@ html, body {
     padding: 5px 20px;
     width: 100%;
   }
-  .cell {
+  /* 이전: div 기반 셀/배선 스타일 */
+  /* .cell {
     border: 1px solid #ccc;
     box-sizing: border-box;
     position: relative;
@@ -381,7 +381,6 @@ html, body {
     background-color: #ffe;
   }
 
-  /* ── 수직선 (│) 은 ::before 에만 그리기 ── */
   .cell.wire.wire-up::before,
   .cell.wire.wire-down::before {
     content: '';
@@ -401,7 +400,6 @@ html, body {
     height: 50%;
   }
 
-  /* ── 수평선 (─) 은 ::after 에만 그리기 ── */
   .cell.wire.wire-left::after,
   .cell.wire.wire-right::after {
     content: '';
@@ -421,23 +419,19 @@ html, body {
     width: 50%;
   }
 
-  /* ── 두 방향이 동시에 있을 땐 전체 길이로 ── */
-  /* 세로 전체 (│) */
   .cell.wire.wire-up.wire-down::before {
     top: 0;
     height: 100%;
   }
 
-  /* 가로 전체 (─) */
   .cell.wire.wire-left.wire-right::after {
     left: 0;
     width: 100%;
   }
 
-  /* ── 배선 미리보기 강조 ── */
   .cell.wire-preview {
     background: #ffeca0;
-  }
+  } */
 
   /* ── 블록 아이콘 스타일 ── */
   .blockIcon {
@@ -1367,7 +1361,8 @@ html, body {
     /* 중복되어도 무방 */
   }
 
-  #gridOverlay {
+  /* 이전: #gridOverlay, #problemGridOverlay 사용 */
+  /* #gridOverlay {
     display: none;
     position: absolute;
     top: 0;
@@ -1389,6 +1384,13 @@ html, body {
     background: rgba(255, 255, 255, 0.6);
     z-index: 1000;
     cursor: not-allowed;
+  } */
+
+  #gridContainer canvas,
+  #problemGridContainer canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
   }
 
   .blockIcon {
