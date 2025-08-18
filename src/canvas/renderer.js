@@ -13,19 +13,21 @@ export function setupCanvas(canvas, width, height) {
 }
 
 // Draw grid lines snapped to half-pixels for crisp rendering
-export function drawGrid(ctx, rows, cols) {
+// xOffset allows the grid to be rendered with a horizontal offset,
+// so a left-side palette can share the same canvas.
+export function drawGrid(ctx, rows, cols, xOffset = 0) {
   ctx.save();
   ctx.strokeStyle = '#ccc';
   ctx.lineWidth = 1;
   for (let r = 0; r <= rows; r++) {
     const y = r * CELL + 0.5;
     ctx.beginPath();
-    ctx.moveTo(0, y);
-    ctx.lineTo(cols * CELL, y);
+    ctx.moveTo(xOffset, y);
+    ctx.lineTo(xOffset + cols * CELL, y);
     ctx.stroke();
   }
   for (let c = 0; c <= cols; c++) {
-    const x = c * CELL + 0.5;
+    const x = xOffset + c * CELL + 0.5;
     ctx.beginPath();
     ctx.moveTo(x, 0);
     ctx.lineTo(x, rows * CELL);
@@ -35,9 +37,10 @@ export function drawGrid(ctx, rows, cols) {
 }
 
 // Blocks are drawn as rounded rectangles with text labels
-export function drawBlock(ctx, block) {
+// xOffset shifts drawing horizontally for grid placement.
+export function drawBlock(ctx, block, xOffset = 0) {
   const { r, c } = block.pos;
-  const x = c * CELL;
+  const x = xOffset + c * CELL;
   const y = r * CELL;
   ctx.save();
   ctx.fillStyle = '#b3e5fc'; // light blue
@@ -56,7 +59,7 @@ export function drawBlock(ctx, block) {
 }
 
 // Draw a wire path with flowing dashed line
-export function drawWire(ctx, wire, phase = 0) {
+export function drawWire(ctx, wire, phase = 0, xOffset = 0) {
   if (!wire.path || wire.path.length < 2) return;
   ctx.save();
   ctx.strokeStyle = '#111';
@@ -65,18 +68,18 @@ export function drawWire(ctx, wire, phase = 0) {
   ctx.lineDashOffset = (-phase) % 52;
   ctx.beginPath();
   const start = wire.path[0];
-  ctx.moveTo(start.c * CELL + CELL / 2, start.r * CELL + CELL / 2);
+  ctx.moveTo(xOffset + start.c * CELL + CELL / 2, start.r * CELL + CELL / 2);
   for (let i = 1; i < wire.path.length; i++) {
     const p = wire.path[i];
-    ctx.lineTo(p.c * CELL + CELL / 2, p.r * CELL + CELL / 2);
+    ctx.lineTo(xOffset + p.c * CELL + CELL / 2, p.r * CELL + CELL / 2);
   }
   ctx.stroke();
   ctx.restore();
 }
 
 // Render the circuit: wires then blocks to keep z-order
-export function renderContent(ctx, circuit, phase = 0) {
-  ctx.clearRect(0, 0, circuit.cols * CELL, circuit.rows * CELL);
-  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase));
-  Object.values(circuit.blocks).forEach(b => drawBlock(ctx, b));
+export function renderContent(ctx, circuit, phase = 0, xOffset = 0) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, xOffset));
+  Object.values(circuit.blocks).forEach(b => drawBlock(ctx, b, xOffset));
 }
