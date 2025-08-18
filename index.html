@@ -490,7 +490,10 @@
         overlayCanvas: document.getElementById('overlayCanvas')
       }, circuit, {
         wireStatusInfo: document.getElementById('wireStatusInfo'),
-        wireDeleteInfo: document.getElementById('wireDeleteInfo')
+        wireDeleteInfo: document.getElementById('wireDeleteInfo'),
+        trash: document.querySelector('#leftPanel .trash-area'),
+        usedBlocksEl: document.getElementById('usedBlocks'),
+        usedWiresEl: document.getElementById('usedWires')
       });
 
       const problemCircuit = makeCircuit();
@@ -500,7 +503,10 @@
         overlayCanvas: document.getElementById('problemOverlayCanvas')
       }, problemCircuit, {
         wireStatusInfo: document.getElementById('problemWireStatusInfo'),
-        wireDeleteInfo: document.getElementById('problemWireDeleteInfo')
+        wireDeleteInfo: document.getElementById('problemWireDeleteInfo'),
+        trash: document.querySelector('#problemLeftPanel .trash-area'),
+        usedBlocksEl: document.getElementById('problemUsedBlocks'),
+        usedWiresEl: document.getElementById('problemUsedWires')
       });
     </script>
 
