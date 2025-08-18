@@ -220,10 +220,6 @@ const problemMoveDownBtn  = document.getElementById('problemMoveDownBtn');
 const problemMoveLeftBtn  = document.getElementById('problemMoveLeftBtn');
 const problemMoveRightBtn = document.getElementById('problemMoveRightBtn');
 let grid;
-// Canvas based circuits for play/problem screens
-let currentCircuit = null;
-let gameCircuit = null;
-let problemCircuit = null;
 
 function simulateKey(key, type = 'keydown') {
   const ev = new KeyboardEvent(type, { key, bubbles: true });
@@ -1986,45 +1982,233 @@ function adjustGridZoom(containerId = 'gridContainer') {
  * @param {number} rows
  * @param {number} cols
  */
-async function setupGrid(containerId, rows, cols) {
-  // Canvas 기반 setupGrid (이전 DOM 구현 대체)
-  GRID_COLS = cols;
-  GRID_ROWS = rows;
+function setupGrid(containerId, rows, cols) {
+  GRID_COLS = cols
+  GRID_ROWS = rows
   grid = document.getElementById(containerId);
-  if (!grid) {
-    const mapping = containerId === 'problemGrid'
-      ? { bg: 'problemBgCanvas', content: 'problemContentCanvas', overlay: 'problemOverlayCanvas', wireInfo: 'problemWireStatusInfo', deleteInfo: 'problemWireDeleteInfo' }
-      : { bg: 'bgCanvas', content: 'contentCanvas', overlay: 'overlayCanvas', wireInfo: 'wireStatusInfo', deleteInfo: 'wireDeleteInfo' };
-    try {
-      const [modelMod, controllerMod] = await Promise.all([
-        import('./src/canvas/model.js'),
-        import('./src/canvas/controller.js')
-      ]);
-      const circuit = modelMod.makeCircuit(rows, cols);
-      if (containerId === 'problemGrid') {
-        problemCircuit = circuit;
-      } else {
-        gameCircuit = circuit;
-      }
-      currentCircuit = circuit;
-      controllerMod.createController({
-        bgCanvas: document.getElementById(mapping.bg),
-        contentCanvas: document.getElementById(mapping.content),
-        overlayCanvas: document.getElementById(mapping.overlay)
-      }, circuit, {
-        wireStatusInfo: document.getElementById(mapping.wireInfo),
-        wireDeleteInfo: document.getElementById(mapping.deleteInfo)
-      });
-    } catch (err) {
-      console.error('Canvas setup failed', err);
-    }
-    return;
-  }
 
-  // Fallback: 기존 DOM 그리드 로직 (간략화)
   grid.style.setProperty('--grid-cols', cols);
   grid.style.setProperty('--grid-rows', rows);
   grid.innerHTML = "";
+
+  for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.index = i;
+    cell.row = Math.floor(i / GRID_COLS);
+    cell.col = i % GRID_COLS;
+    cell.addEventListener("dragover", e => e.preventDefault());
+
+    /* drop */
+    cell.addEventListener("drop", e => {
+      e.preventDefault();
+      if (cell.dataset.type) return;
+
+      const type = e.dataTransfer.getData("text/plain");
+      if (!["AND", "OR", "NOT", "INPUT", "OUTPUT", "WIRE", "JUNCTION"].includes(type)) return;
+      if (type === "INPUT" || type === "OUTPUT") {
+        // 이름(name)과 초기값(value) 세팅
+        cell.classList.add("block");
+        cell.dataset.type = type;
+        cell.dataset.name = lastDraggedName || lastDraggedIcon?.dataset.name;
+        if (type === 'INPUT') {
+          cell.dataset.value = '0';
+          cell.textContent = cell.dataset.name;
+          //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+          // 드롭 시점에 바로 click 리스너 등록
+          cell.onclick = () => {
+            cell.dataset.value = cell.dataset.value === '0' ? '1' : '0';
+            cell.textContent = cell.dataset.name; 
+            //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+            cell.classList.toggle('active', cell.dataset.value === '1');
+            evaluateCircuit();
+          };
+        } else {
+          cell.textContent = cell.dataset.name;
+        }
+        cell.draggable = true;
+        // 배치된 아이콘 하나만 사라지도록 유지 (다른 INPUT 아이콘엔 영향 없음)
+        if (lastDraggedIcon) lastDraggedIcon.style.display = "none";
+      }
+      else if (type === "WIRE") {
+        cell.classList.add("wire");
+        cell.dataset.type = "WIRE";
+      } 
+      else if (type === "JUNCTION") {
+        cell.classList.add("block");
+        cell.textContent = "JUNC";
+        cell.dataset.type = type;
+        cell.draggable = true;
+      } else {
+        cell.classList.add("block");
+        cell.textContent = type;
+        cell.dataset.type = type;
+        cell.draggable = true;
+      }
+
+      if (["INPUT", "OUTPUT"].includes(type) && lastDraggedIcon)
+        lastDraggedIcon.style.display = "none";
+
+      /* 원래 셀 비우기 */
+      if (lastDraggedFromCell && lastDraggedFromCell !== cell) {
+        // ─── 수정: cascade delete 호출 ───
+        disconnectWiresCascade(lastDraggedFromCell);
+        resetCell(lastDraggedFromCell);
+        // 기존 셀 초기화 로직
+        lastDraggedFromCell.classList.remove("block", "wire");
+        lastDraggedFromCell.textContent = "";
+        delete lastDraggedFromCell.dataset.type;
+        lastDraggedFromCell.removeAttribute("draggable");
+      }
+      markCircuitModified();
+      lastDraggedType = lastDraggedIcon = lastDraggedFromCell = null;
+    });
+
+
+
+    /* 셀 dragstart (wire 모드면 차단) */
+    cell.addEventListener("dragstart", e => {
+      if (isWireDrawing) { e.preventDefault(); return; }
+      const t = cell.dataset.type;
+      if (!t || t === "WIRE") return;
+      e.dataTransfer.setData("text/plain", t);
+      lastDraggedType = t;
+      lastDraggedFromCell = cell;
+      lastDraggedName = cell.dataset.name || null;
+    });
+
+    cell.addEventListener("click", (e) => {
+      if ((e.shiftKey || isWireDeleting) && cell.dataset.type === "WIRE") {
+        // (1) 클릭한 셀이 포함된 wire path 찾기
+        const targetWires = wires.filter(w => w.path.includes(cell));
+
+        // (2) 해당 wire들을 지움
+        targetWires.forEach(w => {
+          w.path.forEach(c => {
+            if (c.dataset.type === "WIRE") {
+              c.className = "cell";
+              c.removeAttribute("data-type");
+            }
+          });
+        });
+
+        // (3) wires 배열에서 제거
+        wires = wires.filter(w => !targetWires.includes(w));
+        markCircuitModified();
+      }
+    });
+
+
+    cell.style.setProperty('--col', i % GRID_COLS);
+    cell.style.setProperty('--row', Math.floor(i / GRID_COLS));
+    cell.row = Math.floor(i / GRID_COLS);
+    cell.col = i % GRID_COLS;
+    grid.appendChild(cell);
+  }
+  grid.addEventListener("mousedown", e => {
+    const cell = e.target;
+    if (!isWireDrawing || !cell.classList.contains("cell")) return;
+
+    /* 시작은 블록만 허용 */
+    const t = cell.dataset.type;
+    if (!t || t === "WIRE") return;
+
+    isMouseDown = true;
+    wireTrace = [cell];
+
+    document.addEventListener("mousemove", track);
+    document.addEventListener("mouseup", finish);
+  });
+
+  grid.addEventListener("touchstart", e => {
+    const cell = e.target.closest('.cell');
+    if (!isWireDrawing || !cell) return;
+
+    const t = cell.dataset.type;
+    if (!t || t === "WIRE") return;
+
+    isMouseDown = true;
+    wireTrace = [cell];
+
+    document.addEventListener("touchmove", trackTouch, { passive: false });
+    document.addEventListener("touchend", finishTouch);
+  }, { passive: false });
+
+  grid.addEventListener("mousemove", e => {
+    if (!isWireDrawing) return;
+    // 커서 바로 밑의 요소 찾기
+    if (wireTrace.length === 0) return;   // 시작 셀 없으면 종료
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el?.closest(".cell");
+    if (!cell) return;
+
+    const idx = parseInt(cell.dataset.index, 10);
+
+    // 이전: const lastIdx = wireTrace[wireTrace.length - 1];
+    // 이전: if (idx === lastIdx) return;
+    const lastIdx = Number(wireTrace.at(-1).dataset.index);
+    if (idx === lastIdx) return;
+
+    // 두 점 사이 모든 셀을 채워 줌
+    const path = getInterpolatedIndices(lastIdx, idx);
+
+    // 이전:
+    // path.forEach(i => {
+    //   if (!wireTrace.map(c => c.dataset.index).includes(i)) {
+    //     wireTrace.push(i);
+    //   }
+    // });
+    path.forEach(i => {
+      const cellEl = grid.children[i];
+      if (!wireTrace.includes(cellEl)) {      /* ← 이미 들어갔는지 바로 확인 */
+        cellEl.classList.add("wire-preview");
+        wireTrace.push(cellEl);
+      }
+    });
+
+    // wire 미리보기 업데이트
+    //drawWirePreview(wireTrace);
+  });
+
+  grid.addEventListener("touchmove", gridTouchMove, { passive: false });
+  grid.addEventListener('click', e => {
+    if (!isWireDeleting) return;
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+
+    if (cell.classList.contains('block')) {
+      if (cell.dataset.fixed === '1') return;
+      // ① 연결된 전선 전체 삭제
+      disconnectWiresCascade(cell);
+
+      const type = cell.dataset.type;
+      const name = cell.dataset.name;
+      // ② INPUT/OUTPUT이면 아이콘 복원
+      if (["INPUT", "OUTPUT"].includes(type)) {
+        const panel = getBlockPanel();  // blockPanel 또는 problemBlockPanel 반환
+        const icon = panel.querySelector(
+          `.blockIcon[data-type="${type}"][data-name="${name}"]`
+        );
+        if (icon) {
+          icon.style.display = "inline-flex";
+        }
+      }
+
+      // ③ 셀 초기화
+      resetCell(cell);                          // ← 모든 data-* 제거까지 한 번에
+    }
+    else if (cell.classList.contains('wire')) {
+      // wire 셀만 지울 땐 기존 로직 유지
+      cell.className = 'cell';
+      delete cell.dataset.type;
+      delete cell.dataset.directions;
+    }
+    markCircuitModified();
+  });
+  // ——— 그리드 밖 마우스 탈출 시 취소 ———
+  grid.addEventListener('mouseleave', cancelWireDrawing);
+  grid.addEventListener('touchcancel', cancelWireDrawing);
+  adjustGridZoom();
   updateUsageCounts();
 }
 
@@ -3532,26 +3716,15 @@ function getWireData() {
 }
 // 이전: countUsedBlocks 미정의
 function countUsedBlocks() {
-  if (!grid && currentCircuit) {
-    return Object.keys(currentCircuit.blocks || {}).length;
-  }
-  return grid ? grid.querySelectorAll('.cell.block').length : 0;
+  return grid.querySelectorAll('.cell.block').length;
 }
 
 // 이전: countUsedWires 미정의
 function countUsedWires() {
-  if (!grid && currentCircuit) {
-    return Object.keys(currentCircuit.wires || {}).length;
-  }
-  return grid ? grid.querySelectorAll('.cell.wire').length : 0;
+  return grid.querySelectorAll('.cell.wire').length;
 }
 // 이전: clearGrid 미정의
 function clearGrid() {
-  if (!grid && currentCircuit) {
-    currentCircuit.blocks = {};
-    currentCircuit.wires = {};
-    return;
-  }
   // 전체 셀에 대해 클래스 및 데이터 속성 초기화
   grid.querySelectorAll('.cell').forEach(cell => {
     if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') {
@@ -3593,12 +3766,9 @@ function clearWires() {
 }
 
 function updateUsageCounts() {
-  const blockCount = grid
-    ? grid.querySelectorAll('.cell.block').length
-    : (currentCircuit ? Object.keys(currentCircuit.blocks || {}).length : 0);
-  const wireCount = grid
-    ? grid.querySelectorAll('.cell.wire').length
-    : (currentCircuit ? Object.keys(currentCircuit.wires || {}).length : 0);
+  if (!grid) return;
+  const blockCount = grid.querySelectorAll('.cell.block').length;
+  const wireCount = grid.querySelectorAll('.cell.wire').length;
   [document.getElementById('usedBlocks'),
    document.getElementById('problemUsedBlocks')]
     .filter(Boolean)
