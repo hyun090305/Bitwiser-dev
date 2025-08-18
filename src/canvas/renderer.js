@@ -86,18 +86,27 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect) {
   ctx.clearRect(0, 0, panelWidth, canvasHeight);
   items.forEach(item => {
     ctx.save();
-    ctx.fillStyle = '#eee';
-    ctx.strokeStyle = '#333';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(item.x, item.y, item.w, item.h);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#000';
-    ctx.font = '12px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
+    if (item.kind === 'label') {
+      // group title
+      ctx.fillStyle = '#333';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      ctx.fillText(item.label, item.x, item.y);
+    } else {
+      ctx.fillStyle = '#eee';
+      ctx.strokeStyle = '#333';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.rect(item.x, item.y, item.w, item.h);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#000';
+      ctx.font = '12px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
+    }
     ctx.restore();
   });
   if (trashRect) {

@@ -1422,25 +1422,7 @@ html, body {
   touch-action: auto;
 }
 
-/* 공통: 게임 모드 · 모듈 모드 블록 패널 모두에 적용 */
-  #blockPanel,
-  #problemBlockPanel {
-  display: flex;               /* 세로 정렬을 위해 flex 사용 */
-  flex-direction: row;      /* 수직 방향으로 블록 나열 */
-  align-items: stretch;        /* 폭을 부모에 맞춤 */
-  gap: 1rem;                   /* 블록 간격: 원하시는 px/em 단위로 조정 가능 */
-  padding: 0.5rem 0;           /* 상하 여백(옵션) */
-  max-height: 80vh;            /* 최대 높이 제한 */
-  overflow: visible;           /* tooltip이 밖으로 보이도록 */
-}
-
-/* 블록 아이콘 크기·정렬 (필요시 조정) */
-  #blockPanel .blockIcon,
-  #problemBlockPanel .blockIcon {
-  width: 50px;
-  height: 30px;
-  text-align: center;          /* 텍스트 중앙 정렬 */
-}
+/* block panels removed in canvas-based version */
 
 /* ── 화면(.screen) 공통 ── */
 .screen {
