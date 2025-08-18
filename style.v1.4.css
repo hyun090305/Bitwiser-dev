@@ -304,7 +304,7 @@ html, body {
     grid-template-rows: repeat(var(--grid-rows, 6), 50px);
     touch-action: auto;
   } */
-  #canvasContainer {
+  #gridContainer {
     flex-shrink: 0;
     display: flex;
     justify-content: center;
@@ -987,7 +987,7 @@ html, body {
     margin: 5px;
   }
 
-  #canvasContainer {
+  #gridContainer {
     position: relative;
     /* 중복되어도 무방 */
   }
@@ -1017,7 +1017,7 @@ html, body {
     cursor: not-allowed;
   } */
 
-  #canvasContainer canvas,
+  #gridContainer canvas,
   #problemGridContainer canvas {
     position: absolute;
     top: 0;
@@ -2125,7 +2125,7 @@ html, body {
     padding-bottom: 0;
   }
 
-  #canvasContainer {
+  #gridContainer {
     margin-bottom: 0;
   }
 }

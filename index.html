@@ -301,8 +301,14 @@
         <!-- 전체 게임 영역: 좌측 메뉴 + 중앙 그리드 + 우측 안내 -->
         <div id="gameLayout">
 
-        <!-- 통합 캔버스 -->
-        <div id="canvasContainer" style="position: relative;">
+        <!-- 블록 패널 -->
+        <div id="leftPanel">
+          <div id="blockPanel" style="margin: 0; width: auto; flex-direction: row;"></div>
+          <div id="trash" class="trash-area" style="margin-top: 20px;">🗑️ Drag here to delete</div>
+        </div>
+
+        <!-- 회로 그리드 -->
+        <div id="gridContainer" style="position: relative;">
           <canvas id="bgCanvas" style="position: relative;"></canvas>
           <canvas id="contentCanvas"></canvas>
           <canvas id="overlayCanvas"></canvas>
@@ -473,6 +479,7 @@
     <script src="lang.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <script src="background.js"></script>
+    <script src="script.v1.4.js"></script>
     <script type="module">
       import { makeCircuit } from './src/canvas/model.js';
       import { createController } from './src/canvas/controller.js';
@@ -484,8 +491,22 @@
       }, circuit, {
         wireStatusInfo: document.getElementById('wireStatusInfo'),
         wireDeleteInfo: document.getElementById('wireDeleteInfo'),
+        trash: document.querySelector('#leftPanel .trash-area'),
         usedBlocksEl: document.getElementById('usedBlocks'),
         usedWiresEl: document.getElementById('usedWires')
+      });
+
+      const problemCircuit = makeCircuit();
+      createController({
+        bgCanvas: document.getElementById('problemBgCanvas'),
+        contentCanvas: document.getElementById('problemContentCanvas'),
+        overlayCanvas: document.getElementById('problemOverlayCanvas')
+      }, problemCircuit, {
+        wireStatusInfo: document.getElementById('problemWireStatusInfo'),
+        wireDeleteInfo: document.getElementById('problemWireDeleteInfo'),
+        trash: document.querySelector('#problemLeftPanel .trash-area'),
+        usedBlocksEl: document.getElementById('problemUsedBlocks'),
+        usedWiresEl: document.getElementById('problemUsedWires')
       });
     </script>
 
