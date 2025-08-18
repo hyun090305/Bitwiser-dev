@@ -1,5 +1,19 @@
 import { CELL } from './model.js';
 
+function roundRect(ctx, x, y, w, h, r = 6) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
 // Utility to prepare canvas for HiDPI displays
 export function setupCanvas(canvas, width, height) {
   const dpr = window.devicePixelRatio || 1;
@@ -40,15 +54,14 @@ export function drawBlock(ctx, block, offsetX = 0) {
   const x = offsetX + c * CELL;
   const y = r * CELL;
   ctx.save();
-  ctx.fillStyle = '#b3e5fc'; // light blue
-  ctx.strokeStyle = '#1565c0'; // dark blue
+  ctx.fillStyle = '#dcd8ff';
+  ctx.strokeStyle = '#a4a1de';
   ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.rect(x + 4, y + 4, CELL - 8, CELL - 8);
+  roundRect(ctx, x + 4, y + 4, CELL - 8, CELL - 8, 6);
   ctx.fill();
   ctx.stroke();
-  ctx.fillStyle = '#0d47a1';
-  ctx.font = '12px sans-serif';
+  ctx.fillStyle = '#3f3d96';
+  ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(block.name || block.type, x + CELL / 2, y + CELL / 2);
@@ -61,8 +74,14 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
   ctx.save();
   ctx.strokeStyle = '#111';
   ctx.lineWidth = 2;
-  ctx.setLineDash([26, 26]);
-  ctx.lineDashOffset = (-phase) % 52;
+  ctx.setLineDash([20, 20]);
+  ctx.lineDashOffset = (-phase) % 40;
+  // highlight cells traversed by wire (excluding endpoints)
+  for (let i = 1; i < wire.path.length - 1; i++) {
+    const p = wire.path[i];
+    ctx.fillStyle = '#fffce0';
+    ctx.fillRect(offsetX + p.c * CELL + 1, p.r * CELL + 1, CELL - 2, CELL - 2);
+  }
   ctx.beginPath();
   const start = wire.path[0];
   ctx.moveTo(offsetX + start.c * CELL + CELL / 2, start.r * CELL + CELL / 2);
@@ -87,22 +106,21 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect) {
   items.forEach(item => {
     ctx.save();
     if (item.kind === 'label') {
-      // group title
-      ctx.fillStyle = '#333';
-      ctx.font = '12px sans-serif';
-      ctx.textAlign = 'left';
+      // group title centered above each column
+      ctx.fillStyle = '#555';
+      ctx.font = 'bold 12px sans-serif';
+      ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
-      ctx.fillText(item.label, item.x, item.y);
+      ctx.fillText(item.label, item.x + item.w / 2, item.y);
     } else {
-      ctx.fillStyle = '#eee';
-      ctx.strokeStyle = '#333';
+      ctx.fillStyle = '#e6e4ff';
+      ctx.strokeStyle = '#8887c2';
       ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.rect(item.x, item.y, item.w, item.h);
+      roundRect(ctx, item.x, item.y, item.w, item.h, 6);
       ctx.fill();
       ctx.stroke();
-      ctx.fillStyle = '#000';
-      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#3f3d96';
+      ctx.font = '14px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
@@ -111,18 +129,20 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect) {
   });
   if (trashRect) {
     ctx.save();
-    ctx.fillStyle = '#ffe5e5';
-    ctx.strokeStyle = '#aa0000';
+    ctx.fillStyle = '#fff2f2';
+    ctx.strokeStyle = '#c44';
     ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(trashRect.x, trashRect.y, trashRect.w, trashRect.h);
+    roundRect(ctx, trashRect.x, trashRect.y, trashRect.w, trashRect.h, 6);
     ctx.fill();
+    ctx.setLineDash([6,4]);
     ctx.stroke();
-    ctx.fillStyle = '#aa0000';
-    ctx.font = '14px sans-serif';
-    ctx.textAlign = 'center';
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#c44';
+    ctx.font = '12px sans-serif';
+    ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
-    ctx.fillText('🗑', trashRect.x + trashRect.w / 2, trashRect.y + trashRect.h / 2);
+    ctx.fillText('🗑', trashRect.x + 8, trashRect.y + trashRect.h / 2);
+    ctx.fillText('Drag here to delete', trashRect.x + 28, trashRect.y + trashRect.h / 2);
     ctx.restore();
   }
 }

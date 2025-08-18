@@ -11,45 +11,52 @@ export function pxToCell(x, y, circuit, offsetX = 0) {
 
 export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const { palette = [], paletteGroups = [], panelWidth = 120 } = options;
+  const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
   const { bgCanvas, contentCanvas, overlayCanvas } = canvasSet;
-  const canvasWidth = panelWidth + circuit.cols * CELL;
+  let panelTotalWidth = panelWidth;
   let canvasHeight = circuit.rows * CELL;
   let paletteItems = [];
 
   if (paletteGroups.length > 0) {
-    let y = 10;
-    paletteGroups.forEach(g => {
-      paletteItems.push({ kind: 'label', label: g.label, x: 10, y, w: panelWidth - 20, h: LABEL_H });
+    const colWidth = (panelWidth - (paletteGroups.length + 1) * gap) / paletteGroups.length;
+    panelTotalWidth = panelWidth;
+    let colHeights = new Array(paletteGroups.length).fill(0);
+    paletteGroups.forEach((g, gi) => {
+      let x = gap + gi * (colWidth + gap);
+      let y = 10;
+      paletteItems.push({ kind: 'label', label: g.label, x, y, w: colWidth, h: LABEL_H });
       y += LABEL_H + 5;
       g.items.forEach(it => {
-        paletteItems.push({ type: it.type, label: it.label || it.type, x: 10, y, w: panelWidth - 20, h: PALETTE_ITEM_H - 10 });
+        paletteItems.push({ type: it.type, label: it.label || it.type, x, y, w: colWidth, h: PALETTE_ITEM_H - 10 });
         y += PALETTE_ITEM_H;
       });
-      y += 10;
+      colHeights[gi] = y;
     });
-    canvasHeight = Math.max(canvasHeight, y + PALETTE_ITEM_H);
-    var trashRect = { x: 10, y: y, w: panelWidth - 20, h: PALETTE_ITEM_H - 20 };
+    canvasHeight = Math.max(canvasHeight, Math.max(...colHeights) + PALETTE_ITEM_H);
+    var trashRect = { x: gap, y: canvasHeight - PALETTE_ITEM_H, w: panelTotalWidth - 2 * gap, h: PALETTE_ITEM_H - 20 };
   } else {
+    panelTotalWidth = panelWidth;
     paletteItems = palette.map((type, i) => ({
       type,
       label: type,
-      x: 10,
+      x: gap,
       y: 10 + i * PALETTE_ITEM_H,
-      w: panelWidth - 20,
+      w: panelWidth - 2 * gap,
       h: PALETTE_ITEM_H - 20,
     }));
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 60);
-    var trashRect = { x: 10, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 20, h: PALETTE_ITEM_H - 20 };
+    var trashRect = { x: gap, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 2 * gap, h: PALETTE_ITEM_H - 20 };
   }
 
+  const canvasWidth = panelTotalWidth + circuit.cols * CELL;
   const bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   const contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   const overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
-  drawGrid(bgCtx, circuit.rows, circuit.cols, panelWidth);
-  drawPanel(bgCtx, paletteItems, panelWidth, canvasHeight, trashRect);
-  startEngine(contentCtx, circuit, (ctx, circ, phase) => renderContent(ctx, circ, phase, panelWidth));
+  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
+  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect);
+  startEngine(contentCtx, circuit, (ctx, circ, phase) => renderContent(ctx, circ, phase, panelTotalWidth));
 
   const state = {
     mode: 'idle',
@@ -119,7 +126,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     } else if (e.key.toLowerCase() === 'r') {
       circuit.blocks = {};
       circuit.wires = {};
-      renderContent(contentCtx, circuit, 0, panelWidth);
+      renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
     }
   });
@@ -148,7 +155,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', e => {
     const { offsetX, offsetY } = e;
-    if (offsetX < panelWidth) {
+    if (offsetX < panelTotalWidth) {
       const item = paletteItems.find(it =>
         it.type &&
         offsetX >= it.x && offsetX <= it.x + it.w &&
@@ -159,8 +166,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return;
     }
-    if (offsetX >= panelWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
-      const cell = pxToCell(offsetX, offsetY, circuit, panelWidth);
+    if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
+      const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
       if (state.mode === 'wireDrawing') {
         state.wireTrace = [coord(cell.r, cell.c)];
       } else if (state.mode === 'deleting') {
@@ -188,7 +195,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             }
           });
         }
-        renderContent(contentCtx, circuit, 0, panelWidth);
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       } else {
         const bid = Object.keys(circuit.blocks).find(id => {
@@ -211,13 +218,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const endBlock = blockAt(state.wireTrace[state.wireTrace.length - 1]);
         circuit.wires[id] = newWire({ id, path: [...state.wireTrace], startBlockId: startBlock.id, endBlockId: endBlock.id });
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
-        renderContent(contentCtx, circuit, 0, panelWidth);
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
-      if (offsetX >= panelWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
-        const cell = pxToCell(offsetX, offsetY, circuit, panelWidth);
+      if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
+        const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
         const id = state.draggingBlock.id || ('b' + Date.now());
         circuit.blocks[id] = newBlock({
           id,
@@ -225,7 +232,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           name: state.draggingBlock.name,
           pos: cell
         });
-        renderContent(contentCtx, circuit, 0, panelWidth);
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       }
       state.draggingBlock = null;
@@ -244,8 +251,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   overlayCanvas.addEventListener('mousemove', e => {
     const { offsetX, offsetY } = e;
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && e.buttons === 1) {
-      if (offsetX < panelWidth || offsetX >= canvasWidth || offsetY < 0 || offsetY >= circuit.rows * CELL) return;
-      const cell = pxToCell(offsetX, offsetY, circuit, panelWidth);
+      if (offsetX < panelTotalWidth || offsetX >= canvasWidth || offsetY < 0 || offsetY >= circuit.rows * CELL) return;
+      const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
@@ -255,16 +262,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.lineWidth = 2;
         overlayCtx.setLineDash([8, 8]);
         overlayCtx.beginPath();
-        overlayCtx.moveTo(panelWidth + state.wireTrace[0].c * CELL + CELL / 2, state.wireTrace[0].r * CELL + CELL / 2);
+        overlayCtx.moveTo(panelTotalWidth + state.wireTrace[0].c * CELL + CELL / 2, state.wireTrace[0].r * CELL + CELL / 2);
         state.wireTrace.forEach(p => {
-          overlayCtx.lineTo(panelWidth + p.c * CELL + CELL / 2, p.r * CELL + CELL / 2);
+          overlayCtx.lineTo(panelTotalWidth + p.c * CELL + CELL / 2, p.r * CELL + CELL / 2);
         });
         overlayCtx.stroke();
         overlayCtx.restore();
       }
     } else {
-      if (offsetX >= panelWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
-        const cell = pxToCell(offsetX, offsetY, circuit, panelWidth);
+      if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
+        const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
           const b = circuit.blocks[state.dragCandidate.id];
           if (b) {
@@ -283,7 +290,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
                 delete circuit.wires[wid];
               }
             });
-            renderContent(contentCtx, circuit, 0, panelWidth);
+            renderContent(contentCtx, circuit, 0, panelTotalWidth);
             updateUsageCounts();
           }
           state.dragCandidate = null;
@@ -292,7 +299,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (state.draggingBlock) {
           overlayCtx.save();
           overlayCtx.globalAlpha = 0.5;
-          drawBlock(overlayCtx, { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell }, panelWidth);
+          drawBlock(overlayCtx, { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell }, panelTotalWidth);
           overlayCtx.restore();
         }
       } else {
@@ -324,13 +331,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             delete circuit.wires[wid];
           }
         });
-        renderContent(contentCtx, circuit, 0, panelWidth);
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
-      } else if (ox < panelWidth || ox >= canvasWidth || oy < 0 || oy >= circuit.rows * CELL) {
+      } else if (ox < panelTotalWidth || ox >= canvasWidth || oy < 0 || oy >= circuit.rows * CELL) {
         if (state.draggingBlock.origPos) {
           const { id, type, name, origPos } = state.draggingBlock;
           circuit.blocks[id] = newBlock({ id, type, name, pos: origPos });
-          renderContent(contentCtx, circuit, 0, panelWidth);
+          renderContent(contentCtx, circuit, 0, panelTotalWidth);
           updateUsageCounts();
         }
       }
