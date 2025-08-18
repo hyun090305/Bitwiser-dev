@@ -295,15 +295,17 @@ html, body {
   }
 
 
-  /* 이전: #grid div 기반 레이아웃 */
-  /* #grid {
-    display: grid;
-    gap: 2px;
-    border: 2px solid black;
-    grid-template-columns: repeat(var(--grid-cols, 6), 50px);
-    grid-template-rows: repeat(var(--grid-rows, 6), 50px);
-    touch-action: auto;
-  } */
+  /* 회로 그리드 */
+#grid, #problemGrid {
+  display: grid;
+  gap: 2px;
+  border: 2px solid black;
+  grid-template-columns: repeat(var(--grid-cols, 6), 50px);
+  grid-template-rows: repeat(var(--grid-rows, 6), 50px);
+  touch-action: auto;
+  position: relative;
+  z-index: 1;
+}
   #gridContainer {
     flex-shrink: 0;
     display: flex;
@@ -1776,16 +1778,6 @@ html, body {
     outline: none;
     /* 포커스 아웃라인 제거 */
   }
-
-  #problemGrid {
-  display: grid;
-  gap: 2px;
-  border: 2px solid black;
-  grid-template-columns: repeat(var(--grid-cols, 6), 50px);
-  grid-template-rows: repeat(var(--grid-rows, 6), 50px);
-  touch-action: auto;
-}
-
 /* 공통: 게임 모드 · 모듈 모드 블록 패널 모두에 적용 */
   #blockPanel,
   #problemBlockPanel {
