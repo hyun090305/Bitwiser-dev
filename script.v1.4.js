@@ -1243,7 +1243,7 @@ async function gradeLevelAnimated(level) {
 
   if (junctionError) {
     alert("❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
-    overlay?.style.display = "none";
+    if (overlay) overlay.style.display = "none";
     isScoring = false;
     return;
   }
@@ -1260,7 +1260,7 @@ async function gradeLevelAnimated(level) {
     });
   if (outputError) {
     alert("❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
-    overlay?.style.display = "none";
+    if (overlay) overlay.style.display = "none";
     isScoring = false;
     return;
   }
@@ -1277,7 +1277,7 @@ async function gradeLevelAnimated(level) {
   const missingOutputs = requiredOutputs.filter(name => !actualOutputNames.includes(name));
   if (missingOutputs.length > 0) {
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    overlay?.style.display = "none";
+    if (overlay) overlay.style.display = "none";
     isScoring = false;
     return;
   }
@@ -1469,7 +1469,7 @@ async function gradeLevelAnimated(level) {
 function returnToEditScreen() {
   // 채점 모드 해제
   isScoring = false;
-  overlay?.style.display = "none";
+  if (overlay) overlay.style.display = "none";
 
   // 원래 편집 UI 복원
   const blockPanel = document.getElementById("blockPanel");
@@ -2640,7 +2640,7 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   if (isScoring) return;
   if (currentCustomProblem == null && currentLevel == null) return;
   isScoring = true;
-  overlay?.style.display = "block";
+  if (overlay) overlay.style.display = "block";
   if (currentCustomProblem) {
     gradeProblemAnimated(currentCustomProblemKey, currentCustomProblem);
   } else {
@@ -4837,7 +4837,7 @@ async function gradeProblemAnimated(key, problem) {
   });
   if (junctionError){
     alert('❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
-    overlay?.style.display='none';
+    if(overlay) overlay.style.display='none';
     isScoring=false; return; }
   let outputError=false;
   Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'))
@@ -4847,7 +4847,7 @@ async function gradeProblemAnimated(key, problem) {
     });
   if(outputError){
     alert('❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
-    overlay?.style.display='none';
+    if(overlay) overlay.style.display='none';
     isScoring=false;return;
   }
 
@@ -4857,7 +4857,7 @@ async function gradeProblemAnimated(key, problem) {
   const missingOutputs = requiredOutputs.filter(n=>!actualOutputNames.includes(n));
   if(missingOutputs.length>0){
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    overlay?.style.display='none';
+    if(overlay) overlay.style.display='none';
     isScoring=false;return;
   }
 
