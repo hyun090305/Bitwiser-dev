@@ -1613,7 +1613,7 @@ function markLevelCleared(level) {
 * row, col이 범위를 벗어나면 null을, 아니면 그 위치의 .cell 요소를 돌려줍니다.
 */
 function getCell(row, col) {
-  if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return null;
+  if (!grid || row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return null;
   return grid.children[row * GRID_COLS + col];
 }
 
@@ -1980,6 +1980,10 @@ function setupGrid(containerId, rows, cols) {
   GRID_COLS = cols
   GRID_ROWS = rows
   grid = document.getElementById(containerId);
+  if (!grid) {
+    console.warn(`Grid container "${containerId}" not found. Skipping grid setup.`);
+    return;
+  }
 
   grid.style.setProperty('--grid-cols', cols);
   grid.style.setProperty('--grid-rows', rows);
@@ -3710,15 +3714,16 @@ function getWireData() {
 }
 // 이전: countUsedBlocks 미정의
 function countUsedBlocks() {
-  return grid.querySelectorAll('.cell.block').length;
+  return grid ? grid.querySelectorAll('.cell.block').length : 0;
 }
 
 // 이전: countUsedWires 미정의
 function countUsedWires() {
-  return grid.querySelectorAll('.cell.wire').length;
+  return grid ? grid.querySelectorAll('.cell.wire').length : 0;
 }
 // 이전: clearGrid 미정의
 function clearGrid() {
+  if (!grid) return;
   // 전체 셀에 대해 클래스 및 데이터 속성 초기화
   grid.querySelectorAll('.cell').forEach(cell => {
     if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') {
