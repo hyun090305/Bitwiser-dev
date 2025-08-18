@@ -558,54 +558,6 @@ document.addEventListener("click", e => {
 });
 
 // 드래그 종료 시 INPUT/OUTPUT 복구
-document.addEventListener("dragend", () => {
-  if (["INPUT", "OUTPUT"].includes(lastDraggedType)) {
-    // 현재 사용 중인 grid 내부에서만 존재 여부를 확인한다.
-    const found = [...grid.querySelectorAll(".cell")].some(
-      c => c.dataset.type === lastDraggedType
-    );
-    if (!found && lastDraggedIcon) {
-      lastDraggedIcon.style.display = "inline-flex";
-    }
-  }
-  lastDraggedName = null;
-  lastDraggedType = null;
-  lastDraggedIcon = null;
-  lastDraggedFromCell = null;
-});
-
-// 선택지 드래그
-attachDragHandlersToBlockIcons()
-
-// 휴지통 처리
-document.querySelectorAll('.trash-area').forEach(trashEl => {
-  trashEl.addEventListener('dragover', e => e.preventDefault());
-  trashEl.addEventListener('drop', () => {
-    if (["INPUT", "OUTPUT"].includes(lastDraggedType)) {
-      const panel = getBlockPanel();  // blockPanel 또는 problemBlockPanel 반환
-      const icon = panel.querySelector(
-        `.blockIcon[data-type="${lastDraggedType}"][data-name="${lastDraggedName}"]`
-      );
-      if (icon) icon.style.display = "inline-flex";
-    }
-    if (lastDraggedFromCell) {
-      // ─── 수정: cascade delete 호출 ───
-      disconnectWiresCascade(lastDraggedFromCell);
-      resetCell(lastDraggedFromCell);
-      // 기존 블록 삭제 로직
-      lastDraggedFromCell.classList.remove("block", "wire");
-      lastDraggedFromCell.innerText = "";
-      delete lastDraggedFromCell.dataset.type;
-      lastDraggedFromCell.removeAttribute("draggable");
-    }
-    markCircuitModified();
-    lastDraggedType = null;
-    lastDraggedIcon = null;
-    lastDraggedFromCell = null;
-  });
-});
-
-
 
 
 function updateOneWireDirection(cell) {
@@ -1046,8 +998,7 @@ function startLevel(level) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
   showLevelIntro(level, () => {
-    setupGrid("gridContainer", rows, cols);
-    setupBlockPanel(level);
+    setupGrid("gridContainer", rows, cols, createPaletteForLevel(level));
     setGridDimensions(rows, cols);
     currentLevel = parseInt(level);
     const title = document.getElementById("gameTitle");
@@ -1059,86 +1010,6 @@ function startLevel(level) {
     nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
 
     collapseMenuBarForMobile();
-  });
-}
-
-
-function buildBlockPanel(panel, blocks) {
-  panel.innerHTML = '';
-
-  const inoutRow = document.createElement('div');
-  inoutRow.className = 'blockRow';
-  const inoutTitle = document.createElement('div');
-  inoutTitle.className = 'blockRowTitle';
-  inoutTitle.textContent = 'IN/OUT';
-  const inoutContainer = document.createElement('div');
-  inoutContainer.className = 'blockRowContent';
-  inoutRow.appendChild(inoutTitle);
-  inoutRow.appendChild(inoutContainer);
-
-  const gateRow = document.createElement('div');
-  gateRow.className = 'blockRow';
-  const gateTitle = document.createElement('div');
-  gateTitle.className = 'blockRowTitle';
-  gateTitle.textContent = 'GATE';
-  const gateContainer = document.createElement('div');
-  gateContainer.className = 'blockRowContent';
-  gateRow.appendChild(gateTitle);
-  gateRow.appendChild(gateContainer);
-
-  panel.appendChild(inoutRow);
-  panel.appendChild(gateRow);
-
-  blocks.forEach(block => {
-    const div = document.createElement('div');
-    div.className = 'blockIcon';
-    div.dataset.type = block.type;
-    if (block.name) div.dataset.name = block.name;
-    div.textContent = block.type === 'JUNCTION' ? 'JUNC' : (block.name || block.type);
-    div.dataset.tooltip = (() => {
-      switch (block.type) {
-        case 'AND': return 'AND 게이트: 여러러 입력이 모두 1일 때만 출력이 1';
-        case 'OR':  return 'OR 게이트: 여러러 입력 중 하나라도 1이면 출력이 1';
-        case 'NOT': return 'NOT 게이트: 입력의 반대(0↔1)를 출력';
-        case 'INPUT': return `입력(${block.name}): 클릭하여 0↔1 전환 가능`;
-        case 'OUTPUT': return `출력(${block.name})`;
-        case 'JUNCTION': return 'JUNCTION: 하나의 신호를 여러 방향으로 나눔(입력이 하나만 연결되어야 함, 값이 1이면 테두리 점선표시)';
-        default: return '';
-      }
-    })();
-
-    if (block.type === 'INPUT' || block.type === 'OUTPUT') {
-      inoutContainer.appendChild(div);
-    } else {
-      gateContainer.appendChild(div);
-    }
-  });
-
-  attachDragHandlersToBlockIcons();
-}
-
-  function setupBlockPanel(level) {
-    const panel = getBlockPanel();
-    const blocks = levelBlockSets[level];
-    if (!blocks) {
-      panel.innerHTML = '';
-      return;
-    }
-    buildBlockPanel(panel, blocks);
-  }
-
-
-function attachDragHandlersToBlockIcons() {
-  document.querySelectorAll(".blockIcon").forEach(icon => {
-    icon.removeAttribute("draggable");
-    icon.addEventListener("mousedown", e => {
-      e.preventDefault();
-      const controller = getCurrentController();
-      if (!controller) return;
-      const type = icon.dataset.type;
-      const name = icon.dataset.name || null;
-      controller.startBlockDrag(type, name);
-    });
   });
 }
 
@@ -1158,16 +1029,13 @@ document.addEventListener("keydown", (e) => {
     if (confirm(t('confirmDeleteAll'))) {
       clearGrid();
       if (problemScreen.style.display !== "none") {
-        initProblemBlockPanel();
+        setupGrid('problemGridContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
         initTestcaseTable();
       } else if (currentCustomProblem) {
-        setupCustomBlockPanel(currentCustomProblem);
+        setupGrid('gridContainer', GRID_ROWS, GRID_COLS, createPaletteForCustom(currentCustomProblem));
+        if (currentCustomProblem.fixIO) placeFixedIO(currentCustomProblem);
       } else {
-        setupBlockPanel(currentLevel);
-      }
-      grid.querySelectorAll('.cell').forEach(cell => delete cell.onclick);
-      if (currentCustomProblem && currentCustomProblem.fixIO) {
-        grid.querySelectorAll('.cell.block[data-type="INPUT"]').forEach(cell => attachInputClickHandlers(cell));
+        setupGrid('gridContainer', GRID_ROWS, GRID_COLS, createPaletteForLevel(currentLevel));
       }
     }
   }
@@ -1279,9 +1147,12 @@ async function gradeLevelAnimated(level) {
   let allCorrect = true;
 
   // UI 전환
-  document.getElementById("blockPanel").style.display = "none";
-  document.getElementById("rightPanel").style.display = "none";
-  document.getElementById("gradingArea").style.display = "block";
+  const bp = document.getElementById("blockPanel");
+  if (bp) bp.style.display = "none";
+  const rp = document.getElementById("rightPanel");
+  if (rp) rp.style.display = "none";
+  const ga = document.getElementById("gradingArea");
+  if (ga) ga.style.display = "block";
   const gradingArea = document.getElementById("gradingArea");
   gradingArea.innerHTML = "<b>채점 결과:</b><br><br>";
 
@@ -1916,16 +1787,6 @@ function renderStageList(stageList) {
 function setGridDimensions(rows, cols) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
-
-  if (grid) {
-    // ① CSS 변수만 업데이트
-    grid.style.setProperty('--grid-rows', rows);
-    grid.style.setProperty('--grid-cols', cols);
-
-    // ② inline grid-template 은 제거하거나 주석 처리
-    // grid.style.gridTemplateRows   = `repeat(${rows}, 1fr)`;
-    // grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
-  }
 }
 
 
@@ -2173,13 +2034,7 @@ function setupGridOld(containerId, rows, cols) {
       const name = cell.dataset.name;
       // ② INPUT/OUTPUT이면 아이콘 복원
       if (["INPUT", "OUTPUT"].includes(type)) {
-        const panel = getBlockPanel();  // blockPanel 또는 problemBlockPanel 반환
-        const icon = panel.querySelector(
-          `.blockIcon[data-type="${type}"][data-name="${name}"]`
-        );
-        if (icon) {
-          icon.style.display = "inline-flex";
-        }
+        // block panel handled by canvas; no icon restoration needed
       }
 
       // ③ 셀 초기화
@@ -2201,7 +2056,7 @@ function setupGridOld(containerId, rows, cols) {
 }
 
 // Canvas 기반 그리드 설정
-function setupGrid(containerId, rows, cols) {
+function setupGrid(containerId, rows, cols, paletteGroups) {
   GRID_COLS = cols;
   GRID_ROWS = rows;
   const container = document.getElementById(containerId);
@@ -2219,6 +2074,9 @@ function setupGrid(containerId, rows, cols) {
       const controller = createController({ bgCanvas, contentCanvas, overlayCanvas }, circuit, {
         wireStatusInfo: document.getElementById(prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'),
         wireDeleteInfo: document.getElementById(prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo')
+      }, {
+        paletteGroups,
+        panelWidth: 120
       });
       if (prefix) {
         window.problemCircuit = circuit;
@@ -3643,18 +3501,18 @@ function loadCircuit(key) {
   }
   // ▼ circuit 불러올 때 사용된 INPUT/OUTPUT 블록 아이콘 숨기기
   const panel = document.getElementById('blockPanel');
-  // data.grid 에 복원된 셀 상태 중 INPUT/OUTPUT 타입만 골라 이름(name) 리스트 생성
-  const usedNames = data.grid
-    .filter(state => state.type === 'INPUT' || state.type === 'OUTPUT')
-    .map(state => state.name);
-  panel.querySelectorAll('.blockIcon').forEach(icon => {
-    const type = icon.dataset.type;
-    const name = icon.dataset.name;
-    // 같은 이름의 INPUT/OUTPUT 아이콘이 있으면 숨김 처리
-    if ((type === 'INPUT' || type === 'OUTPUT') && usedNames.includes(name)) {
-      icon.style.display = 'none';
-    }
-  });
+  if (panel) {
+    const usedNames = data.grid
+      .filter(state => state.type === 'INPUT' || state.type === 'OUTPUT')
+      .map(state => state.name);
+    panel.querySelectorAll('.blockIcon').forEach(icon => {
+      const type = icon.dataset.type;
+      const name = icon.dataset.name;
+      if ((type === 'INPUT' || type === 'OUTPUT') && usedNames.includes(name)) {
+        icon.style.display = 'none';
+      }
+    });
+  }
   markCircuitModified();
 }
 
@@ -4091,7 +3949,7 @@ function handleProblemKeyDown(e) {
       }
     if (confirm(t('confirmDeleteAll'))) {
       clearGrid();
-      initProblemBlockPanel();
+      setupGrid('problemGridContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
       initTestcaseTable();
       markCircuitModified();
     }
@@ -4111,14 +3969,6 @@ function handleProblemKeyUp(e) {
     isWireDeleting = false;
     problemDeleteToggle.classList.remove('active');
   }
-}
-
-function getBlockPanel() {
-  const problemScreen = document.getElementById("problem-screen");
-  if (problemScreen && problemScreen.style.display !== "none") {
-    return document.getElementById("problemBlockPanel");
-  }
-  return document.getElementById("blockPanel");
 }
 
 function getCurrentController() {
@@ -4197,11 +4047,10 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols);
+  setupGrid('problemGridContainer', rows, cols, createPaletteForProblem());
   setGridDimensions(rows, cols);
   clearGrid();
   clearWires();
-  initProblemBlockPanel();
   initTestcaseTable();
   markCircuitModified();
   adjustGridZoom('problemGridContainer');
@@ -4255,10 +4104,9 @@ function initProblemEditor() {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols);
+  setupGrid('problemGridContainer', rows, cols, createPaletteForProblem());
   clearGrid();
   setGridDimensions(rows, cols);
-  initProblemBlockPanel();
   initTestcaseTable();
   document.removeEventListener('keydown', handleProblemKeyDown);
   document.removeEventListener('keyup', handleProblemKeyUp);
@@ -4268,16 +4116,6 @@ function initProblemEditor() {
   adjustGridZoom('problemGridContainer');
 }
 
-function initProblemBlockPanel() {
-  const panel = document.getElementById('problemBlockPanel');
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const blocks = [];
-  for (let i = 1; i <= inputCnt; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
-  for (let j = 1; j <= outputCnt; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
-  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(t => blocks.push({ type: t }));
-  buildBlockPanel(panel, blocks);
-}
 
 function initTestcaseTable() {
   const table = document.getElementById('testcaseTable');
@@ -4489,9 +4327,8 @@ function loadProblem(key) {
     document.getElementById('outputCount').value = data.outputCount || 1;
     document.getElementById('gridRows').value = data.gridRows || 6;
     document.getElementById('gridCols').value = data.gridCols || 6;
-    setupGrid('problemGridContainer', data.gridRows || 6, data.gridCols || 6);
+    setupGrid('problemGridContainer', data.gridRows || 6, data.gridCols || 6, createPaletteForProblem());
     setGridDimensions(data.gridRows || 6, data.gridCols || 6);
-    initProblemBlockPanel();
     initTestcaseTable();
 
     document.getElementById('problemTitleInput').value = data.title || '';
@@ -4782,36 +4619,15 @@ function showHint(index) {
   });
 }
 
-function setupCustomBlockPanel(problem) {
-  const panel = document.getElementById('blockPanel');
-  const blocks = [];
-  if (!problem.fixIO) {
-    for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
-    for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
-  }
-  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(t => blocks.push({ type: t }));
-  buildBlockPanel(panel, blocks);
-}
-
 function placeFixedIO(problem) {
-  if (!problem.fixIO || !problem.grid) return;
-  const cells = document.querySelectorAll('#grid .cell');
+  if (!problem.fixIO || !problem.grid || !window.playController) return;
+  const circuit = window.playController.circuit;
   problem.grid.forEach(state => {
     if (state.type === 'INPUT' || state.type === 'OUTPUT') {
-      const cell = cells[state.index];
-      cell.className = 'cell block';
-      cell.dataset.type = state.type;
-      cell.dataset.name = state.name;
-      if (state.type === 'INPUT') {
-        cell.dataset.value = state.value || '0';
-        cell.textContent = state.name;
-        attachInputClickHandlers(cell);
-        cell.classList.toggle('active', cell.dataset.value === '1');
-      } else {
-        cell.textContent = state.name;
-      }
-      cell.draggable = false;
-      cell.dataset.fixed = '1';
+      const r = Math.floor(state.index / GRID_COLS);
+      const c = state.index % GRID_COLS;
+      const id = 'fixed_' + state.name + '_' + state.index;
+      circuit.blocks[id] = { id, type: state.type, name: state.name, pos: { r, c }, value: state.type === 'INPUT' ? (state.value === '1') : false };
     }
   });
 }
@@ -4824,9 +4640,8 @@ function startCustomProblem(key, problem) {
   currentLevel = null;
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  setupGrid('gridContainer', rows, cols);
+  setupGrid('gridContainer', rows, cols, createPaletteForCustom(problem));
   clearGrid();
-  setupCustomBlockPanel(problem);
   placeFixedIO(problem);
   setGridDimensions(rows, cols);
   const prevMenuBtn = document.getElementById('prevStageBtnMenu');
@@ -4884,9 +4699,12 @@ async function gradeProblemAnimated(key, problem) {
   }
 
   let allCorrect=true;
-  document.getElementById('blockPanel').style.display='none';
-  document.getElementById('rightPanel').style.display='none';
-  document.getElementById('gradingArea').style.display='block';
+  const bp2 = document.getElementById('blockPanel');
+  if (bp2) bp2.style.display='none';
+  const rp2 = document.getElementById('rightPanel');
+  if (rp2) rp2.style.display='none';
+  const ga2 = document.getElementById('gradingArea');
+  if (ga2) ga2.style.display='block';
   const gradingArea=document.getElementById('gradingArea');
   gradingArea.innerHTML='<b>채점 결과:</b><br><br>';
 
@@ -5206,3 +5024,43 @@ if (mqOrientation.addEventListener) {
 checkOrientation();
 adjustGridZoom();
 adjustGridZoom('problemGridContainer');
+
+function buildPaletteGroups(blocks) {
+  const inout = [];
+  const gate = [];
+  blocks.forEach(b => {
+    const item = { type: b.type, label: b.name || (b.type === 'JUNCTION' ? 'JUNC' : b.type) };
+    if (b.type === 'INPUT' || b.type === 'OUTPUT') inout.push(item);
+    else gate.push(item);
+  });
+  const groups = [];
+  if (inout.length) groups.push({ label: 'IN/OUT', items: inout });
+  if (gate.length) groups.push({ label: 'GATE', items: gate });
+  return groups;
+}
+
+function createPaletteForLevel(level) {
+  const blocks = levelBlockSets[level] || [];
+  return buildPaletteGroups(blocks);
+}
+
+function createPaletteForProblem() {
+  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
+  const blocks = [];
+  for (let i = 1; i <= inputCnt; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
+  for (let j = 1; j <= outputCnt; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
+  return buildPaletteGroups(blocks);
+}
+
+function createPaletteForCustom(problem) {
+  const blocks = [];
+  if (!problem.fixIO) {
+    for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
+    for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
+  }
+  ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
+  return buildPaletteGroups(blocks);
+}
+

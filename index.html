@@ -161,7 +161,6 @@
 
     <div id="problem-screen" class="screen" style="display:none; padding:0;">
       <div style="display:flex; gap:1rem; align-items:flex-start; justify-content:flex-start; width:fit-content;margin:auto;">
-        <div id="problemBlockPanel" style="display:none;"></div>
         <div id="problemCanvasContainer" style="position:relative;margin:auto;">
           <canvas id="problemBgCanvas"></canvas>
           <canvas id="problemContentCanvas"></canvas>
@@ -475,6 +474,10 @@
       import { makeCircuit } from './src/canvas/model.js';
       import { createController } from './src/canvas/controller.js';
       const circuit = makeCircuit();
+      const demoGroups = [
+        { label: 'IN/OUT', items: [{ type: 'INPUT', label: 'IN' }, { type: 'OUTPUT', label: 'OUT' }] },
+        { label: 'GATE', items: [{ type: 'AND' }, { type: 'OR' }, { type: 'NOT' }, { type: 'JUNCTION', label: 'JUNC' }] }
+      ];
       createController({
         bgCanvas: document.getElementById('bgCanvas'),
         contentCanvas: document.getElementById('contentCanvas'),
@@ -485,7 +488,7 @@
         usedBlocksEl: document.getElementById('usedBlocks'),
         usedWiresEl: document.getElementById('usedWires')
       }, {
-        palette: ['INPUT','OUTPUT','AND','OR','NOT','JUNCTION'],
+        paletteGroups: demoGroups,
         panelWidth: 120
       });
 
@@ -500,7 +503,7 @@
         usedBlocksEl: document.getElementById('problemUsedBlocks'),
         usedWiresEl: document.getElementById('problemUsedWires')
       }, {
-        palette: ['INPUT','OUTPUT','AND','OR','NOT','JUNCTION'],
+        paletteGroups: demoGroups,
         panelWidth: 120
       });
     </script>

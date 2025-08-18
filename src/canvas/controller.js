@@ -10,24 +10,44 @@ export function pxToCell(x, y, circuit, offsetX = 0) {
 }
 
 export function createController(canvasSet, circuit, ui = {}, options = {}) {
-  const { palette = [], panelWidth = 120 } = options;
+  const { palette = [], paletteGroups = [], panelWidth = 120 } = options;
   const PALETTE_ITEM_H = 50;
+  const LABEL_H = 20;
   const { bgCanvas, contentCanvas, overlayCanvas } = canvasSet;
   const canvasWidth = panelWidth + circuit.cols * CELL;
-  const canvasHeight = Math.max(circuit.rows * CELL, palette.length * PALETTE_ITEM_H + 60);
+  let canvasHeight = circuit.rows * CELL;
+  let paletteItems = [];
+
+  if (paletteGroups.length > 0) {
+    let y = 10;
+    paletteGroups.forEach(g => {
+      paletteItems.push({ kind: 'label', label: g.label, x: 10, y, w: panelWidth - 20, h: LABEL_H });
+      y += LABEL_H + 5;
+      g.items.forEach(it => {
+        paletteItems.push({ type: it.type, label: it.label || it.type, x: 10, y, w: panelWidth - 20, h: PALETTE_ITEM_H - 10 });
+        y += PALETTE_ITEM_H;
+      });
+      y += 10;
+    });
+    canvasHeight = Math.max(canvasHeight, y + PALETTE_ITEM_H);
+    var trashRect = { x: 10, y: y, w: panelWidth - 20, h: PALETTE_ITEM_H - 20 };
+  } else {
+    paletteItems = palette.map((type, i) => ({
+      type,
+      label: type,
+      x: 10,
+      y: 10 + i * PALETTE_ITEM_H,
+      w: panelWidth - 20,
+      h: PALETTE_ITEM_H - 20,
+    }));
+    canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 60);
+    var trashRect = { x: 10, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 20, h: PALETTE_ITEM_H - 20 };
+  }
+
   const bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   const contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   const overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelWidth);
-  const paletteItems = palette.map((type, i) => ({
-    type,
-    label: type,
-    x: 10,
-    y: 10 + i * PALETTE_ITEM_H,
-    w: panelWidth - 20,
-    h: PALETTE_ITEM_H - 20,
-  }));
-  const trashRect = { x: 10, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 20, h: PALETTE_ITEM_H - 20 };
   drawPanel(bgCtx, paletteItems, panelWidth, canvasHeight, trashRect);
   startEngine(contentCtx, circuit, (ctx, circ, phase) => renderContent(ctx, circ, phase, panelWidth));
 
@@ -130,6 +150,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const { offsetX, offsetY } = e;
     if (offsetX < panelWidth) {
       const item = paletteItems.find(it =>
+        it.type &&
         offsetX >= it.x && offsetX <= it.x + it.w &&
         offsetY >= it.y && offsetY <= it.y + it.h
       );
