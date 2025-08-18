@@ -304,13 +304,16 @@ html, body {
     grid-template-rows: repeat(var(--grid-rows, 6), 50px);
     touch-action: auto;
   } */
-  #gridContainer {
+  #gridContainer,
+  #canvasContainer,
+  #problemCanvasContainer {
     flex-shrink: 0;
     display: flex;
     justify-content: center;
     align-items: center;
     /* 메뉴바 높이에 맞춰 조정 */
     box-sizing: border-box;
+    position: relative;
   }
 
 #gameArea {
@@ -1018,7 +1021,9 @@ html, body {
   } */
 
   #gridContainer canvas,
-  #problemGridContainer canvas {
+  #problemGridContainer canvas,
+  #canvasContainer canvas,
+  #problemCanvasContainer canvas {
     position: absolute;
     top: 0;
     left: 0;
@@ -2125,7 +2130,9 @@ html, body {
     padding-bottom: 0;
   }
 
-  #gridContainer {
+  #gridContainer,
+  #canvasContainer,
+  #problemCanvasContainer {
     margin-bottom: 0;
   }
 }
