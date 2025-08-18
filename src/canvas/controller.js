@@ -222,7 +222,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', e => {
     const { offsetX, offsetY } = e;
-    if (state.mode === 'wireDrawing') {
+    if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && e.buttons === 1) {
       if (offsetX < panelWidth || offsetX >= canvasWidth || offsetY < 0 || offsetY >= circuit.rows * CELL) return;
       const cell = pxToCell(offsetX, offsetY, circuit, panelWidth);
       const last = state.wireTrace[state.wireTrace.length - 1];
