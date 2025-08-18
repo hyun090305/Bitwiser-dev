@@ -1046,8 +1046,7 @@ function startLevel(level) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
   showLevelIntro(level, () => {
-    setupGrid("grid", rows, cols);
-    clearGrid();
+    setupGrid("gridContainer", rows, cols);
     setupBlockPanel(level);
     setGridDimensions(rows, cols);
     currentLevel = parseInt(level);
@@ -1982,7 +1981,8 @@ function adjustGridZoom(containerId = 'gridContainer') {
  * @param {number} rows
  * @param {number} cols
  */
-function setupGrid(containerId, rows, cols) {
+// 이전: DOM 기반 그리드 설정
+function setupGridOld(containerId, rows, cols) {
   GRID_COLS = cols
   GRID_ROWS = rows
   grid = document.getElementById(containerId);
@@ -2210,6 +2210,35 @@ function setupGrid(containerId, rows, cols) {
   grid.addEventListener('touchcancel', cancelWireDrawing);
   adjustGridZoom();
   updateUsageCounts();
+}
+
+// Canvas 기반 그리드 설정
+function setupGrid(containerId, rows, cols) {
+  GRID_COLS = cols;
+  GRID_ROWS = rows;
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  const prefix = containerId === 'problemGridContainer' ? 'problem' : '';
+  const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
+  const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
+  const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
+
+  import('./src/canvas/model.js').then(m => {
+    const { makeCircuit } = m;
+    import('./src/canvas/controller.js').then(c => {
+      const { createController } = c;
+      const circuit = makeCircuit(rows, cols);
+      if (prefix) {
+        window.problemCircuit = circuit;
+      } else {
+        window.playCircuit = circuit;
+      }
+      createController({ bgCanvas, contentCanvas, overlayCanvas }, circuit, {
+        wireStatusInfo: document.getElementById(prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'),
+        wireDeleteInfo: document.getElementById(prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo')
+      });
+    });
+  });
 }
 
 function resetCell(cell) {
@@ -3725,43 +3754,29 @@ function countUsedWires() {
 }
 // 이전: clearGrid 미정의
 function clearGrid() {
-  // 전체 셀에 대해 클래스 및 데이터 속성 초기화
-  grid.querySelectorAll('.cell').forEach(cell => {
-    if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') {
-      if (cell.dataset.type === 'INPUT') {
-        cell.dataset.value = '0';
-        cell.classList.remove('active');
-        attachInputClickHandlers(cell);
-      }
-      return;
-    }
-    cell.className = 'cell';
-    cell.textContent = '';
-    delete cell.dataset.type;
-    delete cell.dataset.name;
-    delete cell.dataset.value;
-    delete cell.dataset.val;
-    delete cell.dataset.fixed;
-    cell.removeAttribute('draggable');
-    delete cell.onclick;
-  });
-
-  // 전선 관련 상태 초기화
+  // Canvas 기반 회로 초기화
+  if (window.playCircuit) {
+    window.playCircuit.blocks = {};
+    window.playCircuit.wires = {};
+  }
+  if (window.problemCircuit) {
+    window.problemCircuit.blocks = {};
+    window.problemCircuit.wires = {};
+  }
   wires = [];
   wireTrace = [];
   markCircuitModified();
 }
 
 function clearWires() {
-
-  // 수정: 전역 grid 대상
-  grid.querySelectorAll('.cell.wire').forEach(cell => {
-    cell.classList.remove('wire');
-    Array.from(cell.classList)
-      .filter(c => c.startsWith('wire-'))
-      .forEach(c => cell.classList.remove(c));
-    delete cell.dataset.type;
-  });
+  if (window.playCircuit) {
+    window.playCircuit.wires = {};
+  }
+  if (window.problemCircuit) {
+    window.problemCircuit.wires = {};
+  }
+  wires = [];
+  wireTrace = [];
   markCircuitModified();
 }
 
@@ -4184,7 +4199,7 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGrid', rows, cols);
+  setupGrid('problemGridContainer', rows, cols);
   setGridDimensions(rows, cols);
   clearGrid();
   clearWires();
@@ -4242,7 +4257,7 @@ function initProblemEditor() {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGrid', rows, cols);
+  setupGrid('problemGridContainer', rows, cols);
   clearGrid();
   setGridDimensions(rows, cols);
   initProblemBlockPanel();
@@ -4476,7 +4491,7 @@ function loadProblem(key) {
     document.getElementById('outputCount').value = data.outputCount || 1;
     document.getElementById('gridRows').value = data.gridRows || 6;
     document.getElementById('gridCols').value = data.gridCols || 6;
-    setupGrid('problemGrid', data.gridRows || 6, data.gridCols || 6);
+    setupGrid('problemGridContainer', data.gridRows || 6, data.gridCols || 6);
     setGridDimensions(data.gridRows || 6, data.gridCols || 6);
     initProblemBlockPanel();
     initTestcaseTable();
@@ -4811,7 +4826,7 @@ function startCustomProblem(key, problem) {
   currentLevel = null;
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  setupGrid('grid', rows, cols);
+  setupGrid('gridContainer', rows, cols);
   clearGrid();
   setupCustomBlockPanel(problem);
   placeFixedIO(problem);
