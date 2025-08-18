@@ -85,6 +85,7 @@ function resetCaptureCanvas() {
 
 // 초기 로딩 관련
 const initialTasks = [];
+let stageDataPromise = Promise.resolve();
 function hideLoadingScreen() {
   const el = document.getElementById('loadingScreen');
   if (el) el.style.display = 'none';
@@ -1581,7 +1582,7 @@ function loadClearedLevelsFromDb() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
-  const p = loadStageData().then(() => {
+  stageDataPromise = loadStageData().then(() => {
     const prevMenuBtn = document.getElementById('prevStageBtnMenu');
     const nextMenuBtn = document.getElementById('nextStageBtnMenu');
 
@@ -1597,7 +1598,7 @@ window.addEventListener("DOMContentLoaded", () => {
     enableTouchDrag();
     return loadClearedLevelsFromDb();
   });
-  initialTasks.push(p);
+  initialTasks.push(stageDataPromise);
 });
 
 function markLevelCleared(level) {
@@ -2432,7 +2433,9 @@ function finishTutorial() {
   localStorage.setItem('tutorialCompleted', 'true');
   tutModal.style.display = 'none';
   lockOrientationLandscape();
-  startLevel(getLowestUnclearedStage());
+  stageDataPromise.then(() => {
+    startLevel(getLowestUnclearedStage());
+  });
   document.body.classList.add('game-active');
   document.getElementById('firstScreen').style.display = 'none';
   document.getElementById('chapterStageScreen').style.display = 'none';
