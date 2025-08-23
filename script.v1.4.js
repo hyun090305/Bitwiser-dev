@@ -999,7 +999,8 @@ async function startLevel(level) {
   GRID_ROWS = rows;
   GRID_COLS = cols;
   showLevelIntro(level, () => {
-    setupGrid("gridContainer", rows, cols, createPaletteForLevel(level));
+    // 캔버스 기반 그리드 세팅
+    setupGrid("canvasContainer", rows, cols, createPaletteForLevel(level));
     setGridDimensions(rows, cols);
     currentLevel = parseInt(level);
     const title = document.getElementById("gameTitle");
@@ -1030,13 +1031,13 @@ document.addEventListener("keydown", (e) => {
     if (confirm(t('confirmDeleteAll'))) {
       clearGrid();
       if (problemScreen.style.display !== "none") {
-        setupGrid('problemGridContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
+        setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
         initTestcaseTable();
       } else if (currentCustomProblem) {
-        setupGrid('gridContainer', GRID_ROWS, GRID_COLS, createPaletteForCustom(currentCustomProblem));
+        setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForCustom(currentCustomProblem));
         if (currentCustomProblem.fixIO) placeFixedIO(currentCustomProblem);
       } else {
-        setupGrid('gridContainer', GRID_ROWS, GRID_COLS, createPaletteForLevel(currentLevel));
+        setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForLevel(currentLevel));
       }
     }
   }
@@ -1791,7 +1792,7 @@ function setGridDimensions(rows, cols) {
 }
 
 
-function adjustGridZoom(containerId = 'gridContainer') {
+function adjustGridZoom(containerId = 'canvasContainer') {
   const gridContainer = document.getElementById(containerId);
   if (!gridContainer) return;
 
@@ -1801,7 +1802,7 @@ function adjustGridZoom(containerId = 'gridContainer') {
   let availableWidth = window.innerWidth - margin * 2;
   let availableHeight = window.innerHeight - margin * 2;
 
-  if (containerId === 'gridContainer') {
+  if (containerId === 'canvasContainer') {
     const menuBar = document.getElementById('menuBar');
     if (menuBar) {
       const menuRect = menuBar.getBoundingClientRect();
@@ -2062,7 +2063,7 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
   GRID_ROWS = rows;
   const container = document.getElementById(containerId);
   if (!container) return;
-  const prefix = containerId === 'problemGridContainer' ? 'problem' : '';
+  const prefix = containerId === 'problemCanvasContainer' ? 'problem' : '';
   const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
   const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
   const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
@@ -2086,6 +2087,8 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
         window.playCircuit = circuit;
         window.playController = controller;
       }
+      // 새 그리드 크기에 맞춰 화면을 조정
+      adjustGridZoom(containerId);
     });
   });
 }
@@ -3950,7 +3953,7 @@ function handleProblemKeyDown(e) {
       }
     if (confirm(t('confirmDeleteAll'))) {
       clearGrid();
-      setupGrid('problemGridContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
+      setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
       initTestcaseTable();
       markCircuitModified();
     }
@@ -4048,13 +4051,13 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols, createPaletteForProblem());
+  setupGrid('problemCanvasContainer', rows, cols, createPaletteForProblem());
   setGridDimensions(rows, cols);
   clearGrid();
   clearWires();
   initTestcaseTable();
   markCircuitModified();
-  adjustGridZoom('problemGridContainer');
+  adjustGridZoom('problemCanvasContainer');
 });
 // 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
 const addRowBtn = document.getElementById('addTestcaseRowBtn');
@@ -4105,7 +4108,7 @@ function initProblemEditor() {
   const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
   document.getElementById('gridRows').value = rows;
   document.getElementById('gridCols').value = cols;
-  setupGrid('problemGridContainer', rows, cols, createPaletteForProblem());
+  setupGrid('problemCanvasContainer', rows, cols, createPaletteForProblem());
   clearGrid();
   setGridDimensions(rows, cols);
   initTestcaseTable();
@@ -4114,7 +4117,7 @@ function initProblemEditor() {
   document.addEventListener('keydown', handleProblemKeyDown);
   document.addEventListener('keyup', handleProblemKeyUp);
   markCircuitModified();
-  adjustGridZoom('problemGridContainer');
+  adjustGridZoom('problemCanvasContainer');
 }
 
 
@@ -4328,7 +4331,7 @@ function loadProblem(key) {
     document.getElementById('outputCount').value = data.outputCount || 1;
     document.getElementById('gridRows').value = data.gridRows || 6;
     document.getElementById('gridCols').value = data.gridCols || 6;
-    setupGrid('problemGridContainer', data.gridRows || 6, data.gridCols || 6, createPaletteForProblem());
+    setupGrid('problemCanvasContainer', data.gridRows || 6, data.gridCols || 6, createPaletteForProblem());
     setGridDimensions(data.gridRows || 6, data.gridCols || 6);
     initTestcaseTable();
 
@@ -4641,7 +4644,7 @@ function startCustomProblem(key, problem) {
   currentLevel = null;
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  setupGrid('gridContainer', rows, cols, createPaletteForCustom(problem));
+  setupGrid('canvasContainer', rows, cols, createPaletteForCustom(problem));
   clearGrid();
   placeFixedIO(problem);
   setGridDimensions(rows, cols);
@@ -5014,7 +5017,7 @@ if (closeOrientationBtn) {
 window.addEventListener('resize', checkOrientation);
 window.addEventListener('resize', () => {
   adjustGridZoom();
-  adjustGridZoom('problemGridContainer');
+  adjustGridZoom('problemCanvasContainer');
 });
 const mqOrientation = window.matchMedia('(orientation: portrait)');
 if (mqOrientation.addEventListener) {
@@ -5024,7 +5027,7 @@ if (mqOrientation.addEventListener) {
 }
 checkOrientation();
 adjustGridZoom();
-adjustGridZoom('problemGridContainer');
+adjustGridZoom('problemCanvasContainer');
 
 function buildPaletteGroups(blocks) {
   const inout = [];
