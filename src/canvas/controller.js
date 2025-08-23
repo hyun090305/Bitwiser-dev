@@ -135,7 +135,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function isValidWire(trace) {
-    if (trace.length < 2) return false;
+    // Require at least one intermediate cell so adjacent blocks cannot be linked
+    if (trace.length < 3) return false;
     const startBlock = blockAt(trace[0]);
     const endBlock = blockAt(trace[trace.length - 1]);
     if (!startBlock || !endBlock || startBlock.id === endBlock.id) return false;
