@@ -53,7 +53,7 @@ export function setWireFlows(circuit) {
 export function startEngine(ctx, circuit, renderer) {
   let phase = 0;
   function tick() {
-    phase = (phase + 2) % 52;
+    phase = (phase + 2) % 40;
     renderer(ctx, circuit, phase);
     requestAnimationFrame(tick);
   }

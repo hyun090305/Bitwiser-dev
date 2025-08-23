@@ -129,6 +129,7 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, group
     ctx.restore();
   });
   items.forEach(item => {
+    if (item.hidden) return;
     ctx.save();
     // palette item style matches block appearance
     ctx.fillStyle = '#dcd8ff';

@@ -39,6 +39,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           y: currentY,
           w: colWidth - 2 * padding,
           h: PALETTE_ITEM_H - 20,
+          hidden: false,
         });
         currentY += PALETTE_ITEM_H;
       });
@@ -65,6 +66,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       y: 10 + i * PALETTE_ITEM_H,
       w: panelWidth - 2 * gap,
       h: PALETTE_ITEM_H - 20,
+      hidden: false,
     }));
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 60);
     var trashRect = { x: gap, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 2 * gap, h: PALETTE_ITEM_H - 20 };
@@ -77,6 +79,26 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) => renderContent(ctx, circ, phase, panelTotalWidth));
+
+  function redrawPanel() {
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+  }
+
+  function hidePaletteItem(type, label) {
+    const item = paletteItems.find(it => it.type === type && it.label === label);
+    if (item) {
+      item.hidden = true;
+      redrawPanel();
+    }
+  }
+
+  function showPaletteItem(type, label) {
+    const item = paletteItems.find(it => it.type === type && it.label === label);
+    if (item) {
+      item.hidden = false;
+      redrawPanel();
+    }
+  }
 
   const state = {
     mode: 'idle',
@@ -146,6 +168,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     } else if (e.key.toLowerCase() === 'r') {
       circuit.blocks = {};
       circuit.wires = {};
+      paletteItems.forEach(it => it.hidden = false);
+      redrawPanel();
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
     }
@@ -196,6 +220,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           return b.pos.r === cell.r && b.pos.c === cell.c;
         });
         if (bid) {
+          const b = circuit.blocks[bid];
+          if (b && (b.type === 'INPUT' || b.type === 'OUTPUT')) {
+            showPaletteItem(b.type, b.name);
+          }
           delete circuit.blocks[bid];
           Object.keys(circuit.wires).forEach(wid => {
             const w = circuit.wires[wid];
@@ -252,6 +280,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           name: state.draggingBlock.name,
           pos: cell
         });
+        if (state.draggingBlock.type === 'INPUT' || state.draggingBlock.type === 'OUTPUT') {
+          hidePaletteItem(state.draggingBlock.type, state.draggingBlock.name);
+        }
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       }
@@ -343,6 +374,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const oy = e.clientY - rect.top;
       const overTrash = ox >= trashRect.x && ox <= trashRect.x + trashRect.w && oy >= trashRect.y && oy <= trashRect.y + trashRect.h;
       if (overTrash && state.draggingBlock.id) {
+        if (state.draggingBlock.type === 'INPUT' || state.draggingBlock.type === 'OUTPUT') {
+          showPaletteItem(state.draggingBlock.type, state.draggingBlock.name);
+        }
         Object.keys(circuit.wires).forEach(wid => {
           const w = circuit.wires[wid];
           if (w.startBlockId === state.draggingBlock.id || w.endBlockId === state.draggingBlock.id) {
