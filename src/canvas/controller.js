@@ -271,21 +271,43 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
-      if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < circuit.rows * CELL) {
+      if (
+        offsetX >= panelTotalWidth &&
+        offsetX < canvasWidth &&
+        offsetY >= 0 &&
+        offsetY < circuit.rows * CELL
+      ) {
         const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
         const id = state.draggingBlock.id || ('b' + Date.now());
         circuit.blocks[id] = newBlock({
           id,
           type: state.draggingBlock.type,
           name: state.draggingBlock.name,
-          pos: cell
+          pos: cell,
         });
-        if (state.draggingBlock.type === 'INPUT' || state.draggingBlock.type === 'OUTPUT') {
-          hidePaletteItem(state.draggingBlock.type, state.draggingBlock.name);
+        if (
+          state.draggingBlock.type === 'INPUT' ||
+          state.draggingBlock.type === 'OUTPUT'
+        ) {
+          hidePaletteItem(
+            state.draggingBlock.type,
+            state.draggingBlock.name
+          );
         }
-        renderContent(contentCtx, circuit, 0, panelTotalWidth);
-        updateUsageCounts();
+      } else {
+        if (
+          state.draggingBlock.id &&
+          (state.draggingBlock.type === 'INPUT' ||
+            state.draggingBlock.type === 'OUTPUT')
+        ) {
+          showPaletteItem(
+            state.draggingBlock.type,
+            state.draggingBlock.name
+          );
+        }
       }
+      renderContent(contentCtx, circuit, 0, panelTotalWidth);
+      updateUsageCounts();
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.dragCandidate) {

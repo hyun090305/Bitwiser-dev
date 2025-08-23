@@ -990,7 +990,8 @@ document.getElementById("backToLevelsBtn").onclick = () => {
 
 
 
-function startLevel(level) {
+async function startLevel(level) {
+  await stageDataPromise;
   resetCaptureCanvas();
   wireTrace = [];
   wires = [];
