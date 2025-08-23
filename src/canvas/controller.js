@@ -57,14 +57,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
     canvasHeight = Math.max(
       canvasHeight,
-      Math.max(...colHeights) + PALETTE_ITEM_H
+      Math.max(...colHeights) + 10
     );
-    var trashRect = {
-      x: gap,
-      y: canvasHeight - PALETTE_ITEM_H,
-      w: panelTotalWidth - 2 * gap,
-      h: PALETTE_ITEM_H - 20,
-    };
   } else {
     panelTotalWidth = panelWidth;
     paletteItems = palette.map((type, i) => ({
@@ -76,8 +70,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       h: PALETTE_ITEM_H - 20,
       hidden: false,
     }));
-    canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 60);
-    var trashRect = { x: gap, y: canvasHeight - PALETTE_ITEM_H, w: panelWidth - 2 * gap, h: PALETTE_ITEM_H - 20 };
+    canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 20);
   }
 
   const canvasWidth = panelTotalWidth + gridWidth;
@@ -96,13 +89,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   };
 
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
-  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) =>
     renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId)
   );
 
   function redrawPanel() {
-    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects);
   }
 
   function hidePaletteItem(type, label) {
@@ -444,12 +437,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const point = e.changedTouches?.[0] || e;
       const ox = (point.clientX - rect.left) / scale;
       const oy = (point.clientY - rect.top) / scale;
-      const overTrash =
-        ox >= trashRect.x &&
-        ox <= trashRect.x + trashRect.w &&
-        oy >= trashRect.y &&
-        oy <= trashRect.y + trashRect.h;
-      if (overTrash && state.draggingBlock.id) {
+      const outsideGrid =
+        ox < panelTotalWidth ||
+        ox >= canvasWidth ||
+        oy < 0 ||
+        oy >= gridHeight;
+      if (outsideGrid && state.draggingBlock.id) {
         if (
           state.draggingBlock.type === 'INPUT' ||
           state.draggingBlock.type === 'OUTPUT'
@@ -466,13 +459,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         });
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
-      } else if (ox < panelTotalWidth || ox >= canvasWidth || oy < 0 || oy >= gridHeight) {
-        if (state.draggingBlock.origPos) {
-          const { id, type, name, origPos } = state.draggingBlock;
-          circuit.blocks[id] = newBlock({ id, type, name, pos: origPos });
-          renderContent(contentCtx, circuit, 0, panelTotalWidth);
-          updateUsageCounts();
-        }
       }
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);

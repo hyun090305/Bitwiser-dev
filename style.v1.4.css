@@ -449,20 +449,6 @@ html, body {
     cursor: grab;
   }
 
-  /* ── 휴지통 ── */
-  #trash {
-    width: 200px;
-    height: 50px;
-    margin: 20px auto;
-    border: 2px dashed #F87171;
-    background-color: #FEE2E2;
-    color: #7F1D1D;
-    font-weight: bold;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
   /* 이전: div 기반 wire/flow 및 블록 상태 스타일은 Canvas 전환으로 제거되었습니다 */
 
   #gradingTable {
