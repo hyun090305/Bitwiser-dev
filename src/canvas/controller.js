@@ -211,19 +211,21 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', e => {
     const { offsetX, offsetY } = e;
-    if (offsetX < panelTotalWidth) {
-      const item = paletteItems.find(it =>
-        it.type &&
-        offsetX >= it.x && offsetX <= it.x + it.w &&
-        offsetY >= it.y && offsetY <= it.y + it.h
+    const scale = parseFloat(e.target?.dataset.scale || '1');
+    const x = offsetX / scale;
+    const y = offsetY / scale;
+    if (x < panelTotalWidth) {
+      const item = paletteItems.find(
+        it =>
+          it.type && x >= it.x && x <= it.x + it.w && y >= it.y && y <= it.y + it.h
       );
       if (item) {
         state.draggingBlock = { type: item.type, name: item.label };
       }
       return;
     }
-    if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < gridHeight) {
-      const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
+    if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+      const cell = pxToCell(x, y, circuit, panelTotalWidth);
       if (state.mode === 'wireDrawing') {
         state.wireTrace = [coord(cell.r, cell.c)];
       } else if (state.mode === 'deleting') {
@@ -271,6 +273,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mouseup', e => {
     const { offsetX, offsetY } = e;
+    const scale = parseFloat(e.target?.dataset.scale || '1');
+    const x = offsetX / scale;
+    const y = offsetY / scale;
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 1) {
       if (isValidWire(state.wireTrace)) {
         const id = 'w' + Date.now();
@@ -283,13 +288,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
-      if (
-        offsetX >= panelTotalWidth &&
-        offsetX < canvasWidth &&
-        offsetY >= 0 &&
-        offsetY < gridHeight
-      ) {
-        const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth);
         const id = state.draggingBlock.id || ('b' + Date.now());
         circuit.blocks[id] = newBlock({
           id,
@@ -335,10 +335,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', e => {
     const { offsetX, offsetY } = e;
+    const scale = parseFloat(e.target?.dataset.scale || '1');
+    const x = offsetX / scale;
+    const y = offsetY / scale;
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && e.buttons === 1) {
       state.hoverBlockId = null;
-      if (offsetX < panelTotalWidth || offsetX >= canvasWidth || offsetY < 0 || offsetY >= gridHeight) return;
-      const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
+      const cell = pxToCell(x, y, circuit, panelTotalWidth);
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
@@ -362,8 +365,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.restore();
       }
     } else {
-      if (offsetX >= panelTotalWidth && offsetX < canvasWidth && offsetY >= 0 && offsetY < gridHeight) {
-        const cell = pxToCell(offsetX, offsetY, circuit, panelTotalWidth);
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth);
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
@@ -418,8 +421,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   document.addEventListener('mouseup', e => {
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
-      const ox = e.clientX - rect.left;
-      const oy = e.clientY - rect.top;
+      const scale = parseFloat(overlayCanvas.dataset.scale || '1');
+      const ox = (e.clientX - rect.left) / scale;
+      const oy = (e.clientY - rect.top) / scale;
       const overTrash = ox >= trashRect.x && ox <= trashRect.x + trashRect.w && oy >= trashRect.y && oy <= trashRect.y + trashRect.h;
       if (overTrash && state.draggingBlock.id) {
         if (state.draggingBlock.type === 'INPUT' || state.draggingBlock.type === 'OUTPUT') {

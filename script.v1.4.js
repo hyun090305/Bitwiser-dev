@@ -1797,8 +1797,6 @@ function adjustGridZoom(containerId = 'canvasContainer') {
   if (!gridContainer) return;
 
   const margin = 20;
-  gridContainer.style.zoom = 1;
-
   let availableWidth = window.innerWidth - margin * 2;
   let availableHeight = window.innerHeight - margin * 2;
 
@@ -1815,16 +1813,23 @@ function adjustGridZoom(containerId = 'canvasContainer') {
     }
   }
 
-  const gcRect = gridContainer.getBoundingClientRect();
+  const firstCanvas = gridContainer.querySelector('canvas');
+  if (!firstCanvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const baseWidth = firstCanvas.width / dpr;
+  const baseHeight = firstCanvas.height / dpr;
+
   const scale = Math.min(
-    availableWidth / gcRect.width,
-    availableHeight / gcRect.height,
+    availableWidth / baseWidth,
+    availableHeight / baseHeight,
     1
   );
 
-  if (scale < 1) {
-    gridContainer.style.zoom = scale;
-  }
+  gridContainer.querySelectorAll('canvas').forEach(c => {
+    c.style.width = baseWidth * scale + 'px';
+    c.style.height = baseHeight * scale + 'px';
+    c.dataset.scale = scale;
+  });
 }
 
 /**
