@@ -1,4 +1,5 @@
 export const CELL = 50; // px — existing CSS cell size
+export const GAP = 2;   // px gap between cells and around the grid
 
 export function makeCircuit(rows = 6, cols = 6) {
   return { rows, cols, blocks: {}, wires: {} };

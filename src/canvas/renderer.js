@@ -1,4 +1,4 @@
-import { CELL } from './model.js';
+import { CELL, GAP } from './model.js';
 
 function roundRect(ctx, x, y, w, h, r = 6) {
   ctx.beginPath();
@@ -26,50 +26,41 @@ export function setupCanvas(canvas, width, height) {
   return ctx;
 }
 
-// Draw grid lines snapped to half-pixels for crisp rendering
+// Draw grid as individual tiles with gaps similar to GIF rendering
 export function drawGrid(ctx, rows, cols, offsetX = 0) {
+  const width = cols * (CELL + GAP) + GAP;
+  const height = rows * (CELL + GAP) + GAP;
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.fillRect(offsetX, 0, cols * CELL, rows * CELL);
-  // inner grid lines in light gray similar to legacy DOM grid
+  ctx.fillRect(offsetX, 0, width, height);
   ctx.strokeStyle = '#ddd';
   ctx.lineWidth = 1;
-  for (let r = 0; r <= rows; r++) {
-    const y = r * CELL + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(offsetX, y);
-    ctx.lineTo(offsetX + cols * CELL, y);
-    ctx.stroke();
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      const x = offsetX + GAP + c * (CELL + GAP);
+      const y = GAP + r * (CELL + GAP);
+      ctx.strokeRect(x, y, CELL, CELL);
+    }
   }
-  for (let c = 0; c <= cols; c++) {
-    const x = offsetX + c * CELL + 0.5;
-    ctx.beginPath();
-    ctx.moveTo(x, 0);
-    ctx.lineTo(x, rows * CELL);
-    ctx.stroke();
-  }
-  // outer border slightly darker
-  ctx.strokeStyle = '#bbb';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(offsetX + 0.5, 0.5, cols * CELL, rows * CELL);
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = GAP;
+  ctx.strokeRect(offsetX + GAP / 2, GAP / 2, width - GAP, height - GAP);
   ctx.restore();
 }
 
 // Blocks are drawn as rounded rectangles with text labels
 export function drawBlock(ctx, block, offsetX = 0) {
   const { r, c } = block.pos;
-  const x = offsetX + c * CELL;
-  const y = r * CELL;
+  const x = offsetX + GAP + c * (CELL + GAP);
+  const y = GAP + r * (CELL + GAP);
   ctx.save();
-  ctx.fillStyle = '#dcd8ff';
-  ctx.strokeStyle = '#a4a1de';
+  ctx.fillStyle = '#e0e0ff';
+  ctx.strokeStyle = '#000';
   ctx.lineWidth = 2;
-  roundRect(ctx, x + 4, y + 4, CELL - 8, CELL - 8, 6);
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = '#3f3d96';
-  // use Noto Sans KR for block labels
-  ctx.font = '14px "Noto Sans KR", sans-serif';
+  ctx.fillRect(x, y, CELL, CELL);
+  ctx.strokeRect(x, y, CELL, CELL);
+  ctx.fillStyle = '#000';
+  ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(block.name || block.type, x + CELL / 2, y + CELL / 2);
@@ -84,19 +75,25 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
   ctx.lineWidth = 2;
   ctx.setLineDash([20, 20]);
   ctx.lineDashOffset = (-phase) % 40;
-  // highlight cells traversed by wire (excluding endpoints)
   for (let i = 1; i < wire.path.length - 1; i++) {
     const p = wire.path[i];
-    // highlight cell similar to DOM version
-    ctx.fillStyle = '#fff9d6';
-    ctx.fillRect(offsetX + p.c * CELL + 1, p.r * CELL + 1, CELL - 2, CELL - 2);
+    ctx.fillStyle = '#ffe';
+    const x = offsetX + GAP + p.c * (CELL + GAP);
+    const y = GAP + p.r * (CELL + GAP);
+    ctx.fillRect(x, y, CELL, CELL);
   }
   ctx.beginPath();
   const start = wire.path[0];
-  ctx.moveTo(offsetX + start.c * CELL + CELL / 2, start.r * CELL + CELL / 2);
+  ctx.moveTo(
+    offsetX + GAP + start.c * (CELL + GAP) + CELL / 2,
+    GAP + start.r * (CELL + GAP) + CELL / 2
+  );
   for (let i = 1; i < wire.path.length; i++) {
     const p = wire.path[i];
-    ctx.lineTo(offsetX + p.c * CELL + CELL / 2, p.r * CELL + CELL / 2);
+    ctx.lineTo(
+      offsetX + GAP + p.c * (CELL + GAP) + CELL / 2,
+      GAP + p.r * (CELL + GAP) + CELL / 2
+    );
   }
   ctx.stroke();
   ctx.restore();
