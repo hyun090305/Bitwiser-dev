@@ -39,7 +39,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
     for (let c = 0; c < cols; c++) {
       const x = offsetX + GAP + c * (CELL + GAP);
       const y = GAP + r * (CELL + GAP);
-      ctx.strokeRect(x, y, CELL, CELL);
+      roundRect(ctx, x, y, CELL, CELL, 3);
+      ctx.stroke();
     }
   }
   ctx.strokeStyle = '#666';
@@ -49,16 +50,33 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
 }
 
 // Blocks are drawn as rounded rectangles with text labels
-export function drawBlock(ctx, block, offsetX = 0) {
+export function drawBlock(ctx, block, offsetX = 0, hovered = false) {
   const { r, c } = block.pos;
   const x = offsetX + GAP + c * (CELL + GAP);
   const y = GAP + r * (CELL + GAP);
   ctx.save();
-  ctx.fillStyle = '#e0e0ff';
-  ctx.strokeStyle = '#000';
-  ctx.lineWidth = 2;
-  ctx.fillRect(x, y, CELL, CELL);
-  ctx.strokeRect(x, y, CELL, CELL);
+
+  // Drop shadow for a subtle 3D effect
+  ctx.shadowColor = 'rgba(0,0,0,0.25)';
+  ctx.shadowBlur = hovered ? 8 : 4;
+  ctx.shadowOffsetX = 2;
+  ctx.shadowOffsetY = 2;
+
+  // Gradient fill for depth
+  const grad = ctx.createLinearGradient(x, y, x, y + CELL);
+  if (hovered) {
+    grad.addColorStop(0, '#fdfdff');
+    grad.addColorStop(1, '#c8c8ff');
+  } else {
+    grad.addColorStop(0, '#f0f0ff');
+    grad.addColorStop(1, '#d0d0ff');
+  }
+  ctx.fillStyle = grad;
+  roundRect(ctx, x, y, CELL, CELL, 6);
+  ctx.fill();
+
+  // Text
+  ctx.shadowColor = 'transparent';
   ctx.fillStyle = '#000';
   ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
   ctx.textAlign = 'center';
@@ -100,10 +118,12 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
 }
 
 // Render the circuit: wires then blocks to keep z-order
-export function renderContent(ctx, circuit, phase = 0, offsetX = 0) {
+export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = null) {
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX));
-  Object.values(circuit.blocks).forEach(b => drawBlock(ctx, b, offsetX));
+  Object.values(circuit.blocks).forEach(b =>
+    drawBlock(ctx, b, offsetX, b.id === hoverId)
+  );
 }
 
 // Draw palette and trash area on the left panel
