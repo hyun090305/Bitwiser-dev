@@ -131,7 +131,6 @@ function enableTouchDrag() {
     // 드롭 가능 요소만 허용
     if (dropTarget) {
       const cell  = dropTarget.closest('.cell');
-      const trash = dropTarget.closest('.trash-area');
       if (cell) {
         const ctrlActive = e.ctrlKey || statusToggle.classList.contains('active');
         if (!(ctrlActive && (!cell.dataset.type || cell.dataset.type === 'WIRE'))) {
@@ -139,8 +138,6 @@ function enableTouchDrag() {
         } else {
           dropTarget = null;
         }
-      } else if (trash) {
-        dropTarget = trash;
       } else {
         dropTarget = null;
       }

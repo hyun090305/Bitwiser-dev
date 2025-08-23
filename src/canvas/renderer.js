@@ -126,8 +126,8 @@ export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = nu
   );
 }
 
-// Draw palette and trash area on the left panel
-export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, groups = []) {
+// Draw palette on the left panel
+export function drawPanel(ctx, items, panelWidth, canvasHeight, groups = []) {
   ctx.clearRect(0, 0, panelWidth, canvasHeight);
   groups.forEach(g => {
     ctx.save();
@@ -148,36 +148,23 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, group
   items.forEach(item => {
     if (item.hidden) return;
     ctx.save();
-    // palette item style matches block appearance
-    ctx.fillStyle = '#dcd8ff';
-    ctx.strokeStyle = '#a4a1de';
-    ctx.lineWidth = 2;
+    // mimic block appearance in palette items
+    ctx.shadowColor = 'rgba(0,0,0,0.25)';
+    ctx.shadowBlur = 4;
+    ctx.shadowOffsetX = 2;
+    ctx.shadowOffsetY = 2;
+    const grad = ctx.createLinearGradient(item.x, item.y, item.x, item.y + item.h);
+    grad.addColorStop(0, '#f0f0ff');
+    grad.addColorStop(1, '#d0d0ff');
+    ctx.fillStyle = grad;
     roundRect(ctx, item.x, item.y, item.w, item.h, 6);
     ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#3f3d96';
-    ctx.font = '14px "Noto Sans KR", sans-serif';
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#000';
+    ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
     ctx.restore();
   });
-  if (trashRect) {
-    ctx.save();
-    ctx.fillStyle = '#fff2f2';
-    ctx.strokeStyle = '#c44';
-    ctx.lineWidth = 2;
-    roundRect(ctx, trashRect.x, trashRect.y, trashRect.w, trashRect.h, 6);
-    ctx.fill();
-    ctx.setLineDash([6,4]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    ctx.fillStyle = '#c44';
-    ctx.font = '12px "Noto Sans KR", sans-serif';
-    ctx.textAlign = 'left';
-    ctx.textBaseline = 'middle';
-    ctx.fillText('🗑', trashRect.x + 8, trashRect.y + trashRect.h / 2);
-    ctx.fillText('Drag here to delete', trashRect.x + 28, trashRect.y + trashRect.h / 2);
-    ctx.restore();
-  }
 }
