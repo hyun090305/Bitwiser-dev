@@ -14,28 +14,48 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
+  const GROUP_PADDING = 8;
   const { bgCanvas, contentCanvas, overlayCanvas } = canvasSet;
   let panelTotalWidth = panelWidth;
   let canvasHeight = circuit.rows * CELL;
   let paletteItems = [];
+  let groupRects = [];
 
   if (paletteGroups.length > 0) {
-    const colWidth = (panelWidth - (paletteGroups.length + 1) * gap) / paletteGroups.length;
+    const colWidth =
+      (panelWidth - (paletteGroups.length + 1) * gap) / paletteGroups.length;
     panelTotalWidth = panelWidth;
     let colHeights = new Array(paletteGroups.length).fill(0);
     paletteGroups.forEach((g, gi) => {
-      let x = gap + gi * (colWidth + gap);
-      let y = 10;
-      paletteItems.push({ kind: 'label', label: g.label, x, y, w: colWidth, h: LABEL_H });
-      y += LABEL_H + 5;
+      const x = gap + gi * (colWidth + gap);
+      const y = 10;
+      const padding = GROUP_PADDING;
+      let currentY = y + padding + LABEL_H + 5;
       g.items.forEach(it => {
-        paletteItems.push({ type: it.type, label: it.label || it.type, x, y, w: colWidth, h: PALETTE_ITEM_H - 10 });
-        y += PALETTE_ITEM_H;
+        paletteItems.push({
+          type: it.type,
+          label: it.label || it.type,
+          x: x + padding,
+          y: currentY,
+          w: colWidth - 2 * padding,
+          h: PALETTE_ITEM_H - 20,
+        });
+        currentY += PALETTE_ITEM_H;
       });
-      colHeights[gi] = y;
+      const groupHeight = LABEL_H + 5 + g.items.length * PALETTE_ITEM_H + padding * 2 - 10;
+      groupRects.push({ label: g.label, x, y, w: colWidth, h: groupHeight, padding });
+      colHeights[gi] = y + groupHeight;
     });
-    canvasHeight = Math.max(canvasHeight, Math.max(...colHeights) + PALETTE_ITEM_H);
-    var trashRect = { x: gap, y: canvasHeight - PALETTE_ITEM_H, w: panelTotalWidth - 2 * gap, h: PALETTE_ITEM_H - 20 };
+    canvasHeight = Math.max(
+      canvasHeight,
+      Math.max(...colHeights) + PALETTE_ITEM_H
+    );
+    var trashRect = {
+      x: gap,
+      y: canvasHeight - PALETTE_ITEM_H,
+      w: panelTotalWidth - 2 * gap,
+      h: PALETTE_ITEM_H - 20,
+    };
   } else {
     panelTotalWidth = panelWidth;
     paletteItems = palette.map((type, i) => ({
@@ -55,7 +75,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   const overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
-  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect);
+  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) => renderContent(ctx, circ, phase, panelTotalWidth));
 
   const state = {
