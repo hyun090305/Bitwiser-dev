@@ -170,6 +170,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     delBtn?.classList.toggle('active', state.mode === 'deleting');
   }
 
+  // 공통 포인터 좌표 계산 (마우스/터치)
+  function getPointerPos(e) {
+    const rect = e.target.getBoundingClientRect();
+    const scale = parseFloat(e.target?.dataset.scale || '1');
+    const point = e.touches?.[0] || e.changedTouches?.[0] || e;
+    return {
+      x: (point.clientX - rect.left) / scale,
+      y: (point.clientY - rect.top) / scale,
+    };
+  }
+
   document.addEventListener('keydown', e => {
     if (e.key === 'Control') {
       state.mode = 'wireDrawing';
@@ -209,11 +220,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     updateButtons();
   });
 
-  overlayCanvas.addEventListener('mousedown', e => {
-    const { offsetX, offsetY } = e;
-    const scale = parseFloat(e.target?.dataset.scale || '1');
-    const x = offsetX / scale;
-    const y = offsetY / scale;
+  function handlePointerDown(e) {
+    const { x, y } = getPointerPos(e);
     if (x < panelTotalWidth) {
       const item = paletteItems.find(
         it =>
@@ -269,13 +277,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         }
       }
     }
-  });
+  }
 
-  overlayCanvas.addEventListener('mouseup', e => {
-    const { offsetX, offsetY } = e;
-    const scale = parseFloat(e.target?.dataset.scale || '1');
-    const x = offsetX / scale;
-    const y = offsetY / scale;
+  overlayCanvas.addEventListener('mousedown', handlePointerDown);
+  overlayCanvas.addEventListener('touchstart', e => {
+    e.preventDefault();
+    handlePointerDown(e);
+  }, { passive: false });
+
+  function handlePointerUp(e) {
+    const { x, y } = getPointerPos(e);
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 1) {
       if (isValidWire(state.wireTrace)) {
         const id = 'w' + Date.now();
@@ -331,14 +342,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.dragCandidate = null;
     }
     state.wireTrace = [];
-  });
+  }
 
-  overlayCanvas.addEventListener('mousemove', e => {
-    const { offsetX, offsetY } = e;
-    const scale = parseFloat(e.target?.dataset.scale || '1');
-    const x = offsetX / scale;
-    const y = offsetY / scale;
-    if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && e.buttons === 1) {
+  overlayCanvas.addEventListener('mouseup', handlePointerUp);
+  overlayCanvas.addEventListener('touchend', handlePointerUp);
+
+  function handlePointerMove(e) {
+    const { x, y } = getPointerPos(e);
+    if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
       if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
       const cell = pxToCell(x, y, circuit, panelTotalWidth);
@@ -408,25 +419,41 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       }
     }
-  });
+  }
 
-  document.addEventListener('mousemove', e => {
+  overlayCanvas.addEventListener('mousemove', handlePointerMove);
+  overlayCanvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    handlePointerMove(e);
+  }, { passive: false });
+
+  function handleDocMove(e) {
     if (!state.draggingBlock) return;
     const rect = overlayCanvas.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX >= rect.right || e.clientY < rect.top || e.clientY >= rect.bottom) {
+    const point = e.touches?.[0] || e;
+    if (point.clientX < rect.left || point.clientX >= rect.right || point.clientY < rect.top || point.clientY >= rect.bottom) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
-  });
+    if (e.touches) e.preventDefault();
+  }
 
-  document.addEventListener('mouseup', e => {
+  function handleDocUp(e) {
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
       const scale = parseFloat(overlayCanvas.dataset.scale || '1');
-      const ox = (e.clientX - rect.left) / scale;
-      const oy = (e.clientY - rect.top) / scale;
-      const overTrash = ox >= trashRect.x && ox <= trashRect.x + trashRect.w && oy >= trashRect.y && oy <= trashRect.y + trashRect.h;
+      const point = e.changedTouches?.[0] || e;
+      const ox = (point.clientX - rect.left) / scale;
+      const oy = (point.clientY - rect.top) / scale;
+      const overTrash =
+        ox >= trashRect.x &&
+        ox <= trashRect.x + trashRect.w &&
+        oy >= trashRect.y &&
+        oy <= trashRect.y + trashRect.h;
       if (overTrash && state.draggingBlock.id) {
-        if (state.draggingBlock.type === 'INPUT' || state.draggingBlock.type === 'OUTPUT') {
+        if (
+          state.draggingBlock.type === 'INPUT' ||
+          state.draggingBlock.type === 'OUTPUT'
+        ) {
           showPaletteItem(state.draggingBlock.type, state.draggingBlock.name);
         }
         Object.keys(circuit.wires).forEach(wid => {
@@ -451,7 +478,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
     state.dragCandidate = null;
-  });
+  }
+
+  document.addEventListener('mousemove', handleDocMove);
+  document.addEventListener('touchmove', handleDocMove, { passive: false });
+  document.addEventListener('mouseup', handleDocUp);
+  document.addEventListener('touchend', handleDocUp);
 
   function startBlockDrag(type, name) {
     state.draggingBlock = { type, name };
