@@ -2078,7 +2078,7 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
         wireDeleteInfo: document.getElementById(prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo')
       }, {
         paletteGroups,
-        panelWidth: 120
+        panelWidth: 180
       });
       if (prefix) {
         window.problemCircuit = circuit;

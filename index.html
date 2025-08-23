@@ -470,43 +470,7 @@
     <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
     <script src="background.js"></script>
     <script src="script.v1.4.js"></script>
-    <script type="module">
-      import { makeCircuit } from './src/canvas/model.js';
-      import { createController } from './src/canvas/controller.js';
-      const circuit = makeCircuit();
-      const demoGroups = [
-        { label: 'IN/OUT', items: [{ type: 'INPUT', label: 'IN' }, { type: 'OUTPUT', label: 'OUT' }] },
-        { label: 'GATE', items: [{ type: 'AND' }, { type: 'OR' }, { type: 'NOT' }, { type: 'JUNCTION', label: 'JUNC' }] }
-      ];
-      createController({
-        bgCanvas: document.getElementById('bgCanvas'),
-        contentCanvas: document.getElementById('contentCanvas'),
-        overlayCanvas: document.getElementById('overlayCanvas')
-      }, circuit, {
-        wireStatusInfo: document.getElementById('wireStatusInfo'),
-        wireDeleteInfo: document.getElementById('wireDeleteInfo'),
-        usedBlocksEl: document.getElementById('usedBlocks'),
-        usedWiresEl: document.getElementById('usedWires')
-      }, {
-        paletteGroups: demoGroups,
-        panelWidth: 180
-      });
-
-      const problemCircuit = makeCircuit();
-      createController({
-        bgCanvas: document.getElementById('problemBgCanvas'),
-        contentCanvas: document.getElementById('problemContentCanvas'),
-        overlayCanvas: document.getElementById('problemOverlayCanvas')
-      }, problemCircuit, {
-        wireStatusInfo: document.getElementById('problemWireStatusInfo'),
-        wireDeleteInfo: document.getElementById('problemWireDeleteInfo'),
-        usedBlocksEl: document.getElementById('problemUsedBlocks'),
-        usedWiresEl: document.getElementById('problemUsedWires')
-      }, {
-        paletteGroups: demoGroups,
-        panelWidth: 180
-      });
-    </script>
+    <!-- Removed redundant module script that duplicated canvas initialization -->
 
     <div id="levelIntroModal" style="display:none" class="modal">
       <div class="modal-content">
