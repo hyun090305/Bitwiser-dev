@@ -27,17 +27,18 @@ export function setupCanvas(canvas, width, height) {
 }
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
-export function drawGrid(ctx, rows, cols, offsetX = 0) {
+// Context should be pre-translated and scaled so grid starts at (0,0)
+export function drawGrid(ctx, rows, cols) {
   const width = cols * (CELL + GAP) + GAP;
   const height = rows * (CELL + GAP) + GAP;
   ctx.save();
   ctx.fillStyle = '#fff';
-  ctx.fillRect(offsetX, 0, width, height);
+  ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = '#ddd';
   ctx.lineWidth = 1;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const x = offsetX + GAP + c * (CELL + GAP);
+      const x = GAP + c * (CELL + GAP);
       const y = GAP + r * (CELL + GAP);
       roundRect(ctx, x, y, CELL, CELL, 3);
       ctx.stroke();
@@ -45,14 +46,15 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
   }
   ctx.strokeStyle = '#666';
   ctx.lineWidth = GAP;
-  ctx.strokeRect(offsetX + GAP / 2, GAP / 2, width - GAP, height - GAP);
+  ctx.strokeRect(GAP / 2, GAP / 2, width - GAP, height - GAP);
   ctx.restore();
 }
 
 // Blocks are drawn as rounded rectangles with text labels
-export function drawBlock(ctx, block, offsetX = 0, hovered = false) {
+// Context should be transformed before calling
+export function drawBlock(ctx, block, hovered = false) {
   const { r, c } = block.pos;
-  const x = offsetX + GAP + c * (CELL + GAP);
+  const x = GAP + c * (CELL + GAP);
   const y = GAP + r * (CELL + GAP);
   ctx.save();
 
@@ -86,7 +88,8 @@ export function drawBlock(ctx, block, offsetX = 0, hovered = false) {
 }
 
 // Draw a wire path with flowing dashed line
-export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
+// Context should be transformed before calling
+export function drawWire(ctx, wire, phase = 0) {
   if (!wire.path || wire.path.length < 2) return;
   ctx.save();
   ctx.strokeStyle = '#111';
@@ -96,20 +99,20 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
   for (let i = 1; i < wire.path.length - 1; i++) {
     const p = wire.path[i];
     ctx.fillStyle = '#ffe';
-    const x = offsetX + GAP + p.c * (CELL + GAP);
+    const x = GAP + p.c * (CELL + GAP);
     const y = GAP + p.r * (CELL + GAP);
     ctx.fillRect(x, y, CELL, CELL);
   }
   ctx.beginPath();
   const start = wire.path[0];
   ctx.moveTo(
-    offsetX + GAP + start.c * (CELL + GAP) + CELL / 2,
+    GAP + start.c * (CELL + GAP) + CELL / 2,
     GAP + start.r * (CELL + GAP) + CELL / 2
   );
   for (let i = 1; i < wire.path.length; i++) {
     const p = wire.path[i];
     ctx.lineTo(
-      offsetX + GAP + p.c * (CELL + GAP) + CELL / 2,
+      GAP + p.c * (CELL + GAP) + CELL / 2,
       GAP + p.r * (CELL + GAP) + CELL / 2
     );
   }
@@ -118,11 +121,11 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
 }
 
 // Render the circuit: wires then blocks to keep z-order
-export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = null) {
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX));
+// Context should be transformed and cleared by caller
+export function renderContent(ctx, circuit, phase = 0, hoverId = null) {
+  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase));
   Object.values(circuit.blocks).forEach(b =>
-    drawBlock(ctx, b, offsetX, b.id === hoverId)
+    drawBlock(ctx, b, b.id === hoverId)
   );
 }
 
