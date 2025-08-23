@@ -29,6 +29,8 @@ export function setupCanvas(canvas, width, height) {
 // Draw grid lines snapped to half-pixels for crisp rendering
 export function drawGrid(ctx, rows, cols, offsetX = 0) {
   ctx.save();
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(offsetX, 0, cols * CELL, rows * CELL);
   ctx.strokeStyle = '#ccc';
   ctx.lineWidth = 1;
   for (let r = 0; r <= rows; r++) {
@@ -45,6 +47,9 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
     ctx.lineTo(x, rows * CELL);
     ctx.stroke();
   }
+  ctx.strokeStyle = '#888';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(offsetX + 0.5, 0.5, cols * CELL, rows * CELL);
   ctx.restore();
 }
 
@@ -101,30 +106,36 @@ export function renderContent(ctx, circuit, phase = 0, offsetX = 0) {
 }
 
 // Draw palette and trash area on the left panel
-export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect) {
+export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, groups = []) {
   ctx.clearRect(0, 0, panelWidth, canvasHeight);
+  groups.forEach(g => {
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#ccc';
+    ctx.lineWidth = 1;
+    roundRect(ctx, g.x, g.y, g.w, g.h, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#555';
+    ctx.font = 'bold 12px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText(g.label, g.x + g.w / 2, g.y + g.padding);
+    ctx.restore();
+  });
   items.forEach(item => {
     ctx.save();
-    if (item.kind === 'label') {
-      // group title centered above each column
-      ctx.fillStyle = '#555';
-      ctx.font = 'bold 12px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
-      ctx.fillText(item.label, item.x + item.w / 2, item.y);
-    } else {
-      ctx.fillStyle = '#e6e4ff';
-      ctx.strokeStyle = '#8887c2';
-      ctx.lineWidth = 2;
-      roundRect(ctx, item.x, item.y, item.w, item.h, 6);
-      ctx.fill();
-      ctx.stroke();
-      ctx.fillStyle = '#3f3d96';
-      ctx.font = '14px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
-    }
+    ctx.fillStyle = '#e6e4ff';
+    ctx.strokeStyle = '#8887c2';
+    ctx.lineWidth = 2;
+    roundRect(ctx, item.x, item.y, item.w, item.h, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = '#3f3d96';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
     ctx.restore();
   });
   if (trashRect) {
