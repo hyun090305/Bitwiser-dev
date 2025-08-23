@@ -2,15 +2,17 @@ import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import { drawGrid, renderContent, setupCanvas, drawBlock, drawPanel } from './renderer.js';
 import { evaluate, startEngine } from './engine.js';
 
-// Convert pixel coordinates to cell indices (clamped to grid)
-export function pxToCell(x, y, circuit, offsetX = 0) {
+// Convert pixel coordinates to cell indices considering view transform
+export function pxToCell(x, y, circuit, offsetX = 0, view = { scale: 1, offsetX: 0, offsetY: 0 }) {
+  const gx = (x - offsetX - view.offsetX) / view.scale;
+  const gy = (y - view.offsetY) / view.scale;
   const r = Math.min(
     circuit.rows - 1,
-    Math.max(0, Math.floor((y - GAP) / (CELL + GAP)))
+    Math.max(0, Math.floor((gy - GAP) / (CELL + GAP)))
   );
   const c = Math.min(
     circuit.cols - 1,
-    Math.max(0, Math.floor((x - offsetX - GAP) / (CELL + GAP)))
+    Math.max(0, Math.floor((gx - GAP) / (CELL + GAP)))
   );
   return { r, c };
 }
@@ -85,6 +87,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   const overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
 
+  const view = { scale: 1, offsetX: 0, offsetY: 0 };
+
   const state = {
     mode: 'idle',
     placingType: null,
@@ -95,14 +99,33 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     hoverBlockId: null,
   };
 
-  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
-  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
-  startEngine(contentCtx, circuit, (ctx, circ, phase) =>
-    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId)
-  );
+  let pinchData = null;
+
+  function renderAll(phase = 0) {
+    bgCtx.setTransform(1, 0, 0, 1, 0, 0);
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+    bgCtx.save();
+    bgCtx.translate(panelTotalWidth + view.offsetX, view.offsetY);
+    bgCtx.scale(view.scale, view.scale);
+    drawGrid(bgCtx, circuit.rows, circuit.cols);
+    bgCtx.restore();
+
+    contentCtx.setTransform(1, 0, 0, 1, 0, 0);
+    contentCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    contentCtx.save();
+    contentCtx.translate(panelTotalWidth + view.offsetX, view.offsetY);
+    contentCtx.scale(view.scale, view.scale);
+    renderContent(contentCtx, circuit, phase, state.hoverBlockId);
+    contentCtx.restore();
+
+    overlayCtx.setTransform(1, 0, 0, 1, 0, 0);
+  }
+
+  renderAll();
+  startEngine(contentCtx, circuit, (ctx, circ, phase) => renderAll(phase));
 
   function redrawPanel() {
-    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+    renderAll();
   }
 
   function hidePaletteItem(type, label) {
@@ -139,6 +162,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function cellHasWire(cell) {
     return Object.values(circuit.wires).some(w => w.path.some(p => p.r === cell.r && p.c === cell.c));
+  }
+
+  function isInGrid(x, y) {
+    const gx = (x - panelTotalWidth - view.offsetX) / view.scale;
+    const gy = (y - view.offsetY) / view.scale;
+    return gx >= 0 && gx < gridWidth && gy >= 0 && gy < gridHeight;
   }
 
   function isValidWire(trace) {
@@ -193,8 +222,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       circuit.wires = {};
       paletteItems.forEach(it => it.hidden = false);
       redrawPanel();
-      renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
+      renderAll();
     }
   });
 
@@ -221,6 +250,20 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function handlePointerDown(e) {
+    if (e.touches && e.touches.length === 2) {
+      const rect = overlayCanvas.getBoundingClientRect();
+      const s = parseFloat(overlayCanvas.dataset.scale || '1');
+      const [t1, t2] = e.touches;
+      pinchData = {
+        dist: Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY),
+        scale: view.scale,
+        offsetX: view.offsetX,
+        offsetY: view.offsetY,
+        centerX: ((t1.clientX + t2.clientX) / 2 - rect.left) / s - panelTotalWidth,
+        centerY: ((t1.clientY + t2.clientY) / 2 - rect.top) / s,
+      };
+      return;
+    }
     const { x, y } = getPointerPos(e);
     if (x < panelTotalWidth) {
       const item = paletteItems.find(
@@ -232,8 +275,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return;
     }
-    if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-      const cell = pxToCell(x, y, circuit, panelTotalWidth);
+    if (isInGrid(x, y)) {
+      const cell = pxToCell(x, y, circuit, panelTotalWidth, view);
       if (state.mode === 'wireDrawing') {
         state.wireTrace = [coord(cell.r, cell.c)];
       } else if (state.mode === 'deleting') {
@@ -265,7 +308,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             }
           });
         }
-        renderContent(contentCtx, circuit, 0, panelTotalWidth);
+        renderAll();
         updateUsageCounts();
       } else {
         const bid = Object.keys(circuit.blocks).find(id => {
@@ -286,6 +329,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   function handlePointerUp(e) {
+    if (pinchData) {
+      if (e.touches && e.touches.length >= 2) return;
+      pinchData = null;
+      return;
+    }
     const { x, y } = getPointerPos(e);
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 1) {
       if (isValidWire(state.wireTrace)) {
@@ -294,13 +342,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const endBlock = blockAt(state.wireTrace[state.wireTrace.length - 1]);
         circuit.wires[id] = newWire({ id, path: [...state.wireTrace], startBlockId: startBlock.id, endBlockId: endBlock.id });
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
-        renderContent(contentCtx, circuit, 0, panelTotalWidth);
+        renderAll();
         updateUsageCounts();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
-      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pxToCell(x, y, circuit, panelTotalWidth);
+      if (isInGrid(x, y)) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth, view);
         const id = state.draggingBlock.id || ('b' + Date.now());
         circuit.blocks[id] = newBlock({
           id,
@@ -329,7 +377,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           );
         }
       }
-      renderContent(contentCtx, circuit, 0, panelTotalWidth);
+      renderAll();
       updateUsageCounts();
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -348,27 +396,43 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   overlayCanvas.addEventListener('touchend', handlePointerUp);
 
   function handlePointerMove(e) {
+    if (pinchData && e.touches && e.touches.length === 2) {
+      const rect = overlayCanvas.getBoundingClientRect();
+      const s = parseFloat(overlayCanvas.dataset.scale || '1');
+      const [t1, t2] = e.touches;
+      const dist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
+      const scaleFactor = dist / pinchData.dist;
+      view.scale = Math.max(0.5, Math.min(3, pinchData.scale * scaleFactor));
+      const centerX = ((t1.clientX + t2.clientX) / 2 - rect.left) / s - panelTotalWidth;
+      const centerY = ((t1.clientY + t2.clientY) / 2 - rect.top) / s;
+      view.offsetX = pinchData.offsetX + (centerX - pinchData.centerX);
+      view.offsetY = pinchData.offsetY + (centerY - pinchData.centerY);
+      renderAll();
+      return;
+    }
     const { x, y } = getPointerPos(e);
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
-      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
-      const cell = pxToCell(x, y, circuit, panelTotalWidth);
+      if (!isInGrid(x, y)) return;
+      const cell = pxToCell(x, y, circuit, panelTotalWidth, view);
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         overlayCtx.save();
+        overlayCtx.translate(panelTotalWidth + view.offsetX, view.offsetY);
+        overlayCtx.scale(view.scale, view.scale);
         overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
         overlayCtx.lineWidth = 2;
         overlayCtx.setLineDash([8, 8]);
         overlayCtx.beginPath();
         overlayCtx.moveTo(
-          panelTotalWidth + GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
+          GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
           GAP + state.wireTrace[0].r * (CELL + GAP) + CELL / 2
         );
         state.wireTrace.forEach(p => {
           overlayCtx.lineTo(
-            panelTotalWidth + GAP + p.c * (CELL + GAP) + CELL / 2,
+            GAP + p.c * (CELL + GAP) + CELL / 2,
             GAP + p.r * (CELL + GAP) + CELL / 2
           );
         });
@@ -376,8 +440,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.restore();
       }
     } else {
-      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pxToCell(x, y, circuit, panelTotalWidth);
+      if (isInGrid(x, y)) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth, view);
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
@@ -398,7 +462,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
                 delete circuit.wires[wid];
               }
             });
-            renderContent(contentCtx, circuit, 0, panelTotalWidth);
+            renderAll();
             updateUsageCounts();
           }
           state.dragCandidate = null;
@@ -406,11 +470,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         if (state.draggingBlock) {
           overlayCtx.save();
+          overlayCtx.translate(panelTotalWidth + view.offsetX, view.offsetY);
+          overlayCtx.scale(view.scale, view.scale);
           overlayCtx.globalAlpha = 0.5;
           drawBlock(
             overlayCtx,
-            { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell },
-            panelTotalWidth
+            { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell }
           );
           overlayCtx.restore();
         }
@@ -464,14 +529,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             delete circuit.wires[wid];
           }
         });
-        renderContent(contentCtx, circuit, 0, panelTotalWidth);
+        renderAll();
         updateUsageCounts();
-      } else if (ox < panelTotalWidth || ox >= canvasWidth || oy < 0 || oy >= gridHeight) {
-        if (state.draggingBlock.origPos) {
-          const { id, type, name, origPos } = state.draggingBlock;
-          circuit.blocks[id] = newBlock({ id, type, name, pos: origPos });
-          renderContent(contentCtx, circuit, 0, panelTotalWidth);
-          updateUsageCounts();
+      } else {
+        const gx = (ox - panelTotalWidth - view.offsetX) / view.scale;
+        const gy = (oy - view.offsetY) / view.scale;
+        if (gx < 0 || gx >= gridWidth || gy < 0 || gy >= gridHeight) {
+          if (state.draggingBlock.origPos) {
+            const { id, type, name, origPos } = state.draggingBlock;
+            circuit.blocks[id] = newBlock({ id, type, name, pos: origPos });
+            renderAll();
+            updateUsageCounts();
+          }
         }
       }
       state.draggingBlock = null;
