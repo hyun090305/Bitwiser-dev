@@ -292,38 +292,64 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
+      let placed = false;
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pxToCell(x, y, circuit, panelTotalWidth);
-        const id = state.draggingBlock.id || ('b' + Date.now());
-        circuit.blocks[id] = newBlock({
-          id,
-          type: state.draggingBlock.type,
-          name: state.draggingBlock.name,
-          pos: cell,
-        });
-        if (
-          state.draggingBlock.type === 'INPUT' ||
-          state.draggingBlock.type === 'OUTPUT'
-        ) {
-          hidePaletteItem(
-            state.draggingBlock.type,
-            state.draggingBlock.name
-          );
+        if (state.draggingBlock.id) {
+          const collision = blockAt(cell) || cellHasWire(cell);
+          const target = collision ? state.draggingBlock.origPos : cell;
+          const id = state.draggingBlock.id;
+          circuit.blocks[id] = newBlock({
+            id,
+            type: state.draggingBlock.type,
+            name: state.draggingBlock.name,
+            pos: target,
+          });
+          placed = true;
+          if (
+            target.r === state.draggingBlock.origPos.r &&
+            target.c === state.draggingBlock.origPos.c &&
+            state.draggingBlock.wires
+          ) {
+            state.draggingBlock.wires.forEach(w => {
+              circuit.wires[w.id] = w;
+              const endB = circuit.blocks[w.endBlockId];
+              if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
+            });
+          }
+        } else if (!blockAt(cell) && !cellHasWire(cell)) {
+          const id = 'b' + Date.now();
+          circuit.blocks[id] = newBlock({
+            id,
+            type: state.draggingBlock.type,
+            name: state.draggingBlock.name,
+            pos: cell,
+          });
+          placed = true;
+          if (
+            state.draggingBlock.type === 'INPUT' ||
+            state.draggingBlock.type === 'OUTPUT'
+          ) {
+            hidePaletteItem(
+              state.draggingBlock.type,
+              state.draggingBlock.name
+            );
+          }
         }
-      } else {
-        if (
-          state.draggingBlock.id &&
-          (state.draggingBlock.type === 'INPUT' ||
-            state.draggingBlock.type === 'OUTPUT')
-        ) {
-          showPaletteItem(
-            state.draggingBlock.type,
-            state.draggingBlock.name
-          );
-        }
+      } else if (
+        state.draggingBlock.id &&
+        (state.draggingBlock.type === 'INPUT' ||
+          state.draggingBlock.type === 'OUTPUT')
+      ) {
+        showPaletteItem(
+          state.draggingBlock.type,
+          state.draggingBlock.name
+        );
       }
-      renderContent(contentCtx, circuit, 0, panelTotalWidth);
-      updateUsageCounts();
+      if (placed) {
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
+        updateUsageCounts();
+      }
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.dragCandidate) {
@@ -376,21 +402,24 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
           const b = circuit.blocks[state.dragCandidate.id];
           if (b) {
-            state.draggingBlock = {
-              id: state.dragCandidate.id,
-              type: b.type,
-              name: b.name,
-              origPos: b.pos
-            };
-            delete circuit.blocks[state.dragCandidate.id];
+            const removedWires = [];
             Object.keys(circuit.wires).forEach(wid => {
               const w = circuit.wires[wid];
               if (w.startBlockId === state.dragCandidate.id || w.endBlockId === state.dragCandidate.id) {
+                removedWires.push(w);
                 const endB = circuit.blocks[w.endBlockId];
                 if (endB) endB.inputs = (endB.inputs || []).filter(x => x !== w.startBlockId);
                 delete circuit.wires[wid];
               }
             });
+            state.draggingBlock = {
+              id: state.dragCandidate.id,
+              type: b.type,
+              name: b.name,
+              origPos: b.pos,
+              wires: removedWires
+            };
+            delete circuit.blocks[state.dragCandidate.id];
             renderContent(contentCtx, circuit, 0, panelTotalWidth);
             updateUsageCounts();
           }
