@@ -10,7 +10,7 @@ export function pxToCell(x, y, circuit, offsetX = 0) {
 }
 
 export function createController(canvasSet, circuit, ui = {}, options = {}) {
-  const { palette = [], paletteGroups = [], panelWidth = 120 } = options;
+  const { palette = [], paletteGroups = [], panelWidth = 180 } = options;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
