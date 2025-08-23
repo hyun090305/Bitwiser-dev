@@ -2,15 +2,16 @@ import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import { drawGrid, renderContent, setupCanvas, drawBlock, drawPanel } from './renderer.js';
 import { evaluate, startEngine } from './engine.js';
 
-// Convert pixel coordinates to cell indices, considering scale and pan.
-export function pxToCell(x, y, circuit, panelOffset = 0, scale = 1, pan = { x: 0, y: 0 }) {
-  const gx = (x - panelOffset - pan.x) / scale;
-  const gy = (y - pan.y) / scale;
-  const gridW = circuit.cols * (CELL + GAP) + GAP;
-  const gridH = circuit.rows * (CELL + GAP) + GAP;
-  if (gx < 0 || gy < 0 || gx >= gridW || gy >= gridH) return null;
-  const r = Math.floor((gy - GAP) / (CELL + GAP));
-  const c = Math.floor((gx - GAP) / (CELL + GAP));
+// Convert pixel coordinates to cell indices (clamped to grid)
+export function pxToCell(x, y, circuit, offsetX = 0) {
+  const r = Math.min(
+    circuit.rows - 1,
+    Math.max(0, Math.floor((y - GAP) / (CELL + GAP)))
+  );
+  const c = Math.min(
+    circuit.cols - 1,
+    Math.max(0, Math.floor((x - offsetX - GAP) / (CELL + GAP)))
+  );
   return { r, c };
 }
 
@@ -27,8 +28,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let canvasHeight = gridHeight;
   let paletteItems = [];
   let groupRects = [];
-  let gridScale = 1;
-  let gridOffset = { x: 0, y: 0 };
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -96,49 +95,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     hoverBlockId: null,
   };
 
-  let isPinching = false;
-  let lastPinchDist = 0;
-  let lastMid = { x: 0, y: 0 };
-
-  function touchDist(a, b) {
-    const dx = a.clientX - b.clientX;
-    const dy = a.clientY - b.clientY;
-    return Math.hypot(dx, dy);
-  }
-
-  function touchMid(a, b) {
-    return { x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 };
-  }
-
-  function drawBackground() {
-    bgCtx.setTransform(1, 0, 0, 1, 0, 0);
-    bgCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
-    bgCtx.save();
-    bgCtx.translate(panelTotalWidth + gridOffset.x, gridOffset.y);
-    bgCtx.scale(gridScale, gridScale);
-    drawGrid(bgCtx, circuit.rows, circuit.cols, 0);
-    bgCtx.restore();
-  }
-
-  function drawForeground(phase = 0) {
-    contentCtx.setTransform(1, 0, 0, 1, 0, 0);
-    contentCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    contentCtx.save();
-    contentCtx.translate(panelTotalWidth + gridOffset.x, gridOffset.y);
-    contentCtx.scale(gridScale, gridScale);
-    renderContent(contentCtx, circuit, phase, 0, state.hoverBlockId);
-    contentCtx.restore();
-  }
-
-  drawBackground();
-  drawForeground();
-  startEngine(contentCtx, circuit, (ctx, circ, phase) => {
-    drawForeground(phase);
-  });
+  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
+  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
+  startEngine(contentCtx, circuit, (ctx, circ, phase) =>
+    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId)
+  );
 
   function redrawPanel() {
-    drawBackground();
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, trashRect, groupRects);
   }
 
   function hidePaletteItem(type, label) {
@@ -209,10 +173,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   // 공통 포인터 좌표 계산 (마우스/터치)
   function getPointerPos(e) {
     const rect = e.target.getBoundingClientRect();
+    const scale = parseFloat(e.target?.dataset.scale || '1');
     const point = e.touches?.[0] || e.changedTouches?.[0] || e;
     return {
-      x: point.clientX - rect.left,
-      y: point.clientY - rect.top,
+      x: (point.clientX - rect.left) / scale,
+      y: (point.clientY - rect.top) / scale,
     };
   }
 
@@ -267,8 +232,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return;
     }
-    const cell = pxToCell(x, y, circuit, panelTotalWidth, gridScale, gridOffset);
-    if (cell) {
+    if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+      const cell = pxToCell(x, y, circuit, panelTotalWidth);
       if (state.mode === 'wireDrawing') {
         state.wireTrace = [coord(cell.r, cell.c)];
       } else if (state.mode === 'deleting') {
@@ -300,7 +265,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             }
           });
         }
-        drawForeground();
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       } else {
         const bid = Object.keys(circuit.blocks).find(id => {
@@ -316,17 +281,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
-    if (e.touches.length === 2) {
-      isPinching = true;
-      state.wireTrace = [];
-      state.draggingBlock = null;
-      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      lastPinchDist = touchDist(e.touches[0], e.touches[1]);
-      const rect = overlayCanvas.getBoundingClientRect();
-      const m = touchMid(e.touches[0], e.touches[1]);
-      lastMid = { x: m.x - rect.left, y: m.y - rect.top };
-      return;
-    }
     e.preventDefault();
     handlePointerDown(e);
   }, { passive: false });
@@ -340,13 +294,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const endBlock = blockAt(state.wireTrace[state.wireTrace.length - 1]);
         circuit.wires[id] = newWire({ id, path: [...state.wireTrace], startBlockId: startBlock.id, endBlockId: endBlock.id });
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
-        drawForeground();
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
-      const cell = pxToCell(x, y, circuit, panelTotalWidth, gridScale, gridOffset);
-      if (cell) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth);
         const id = state.draggingBlock.id || ('b' + Date.now());
         circuit.blocks[id] = newBlock({
           id,
@@ -375,7 +329,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           );
         }
       }
-      drawForeground();
+      renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -391,38 +345,30 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   overlayCanvas.addEventListener('mouseup', handlePointerUp);
-  overlayCanvas.addEventListener('touchend', e => {
-    if (isPinching) {
-      if (e.touches.length < 2) isPinching = false;
-      return;
-    }
-    handlePointerUp(e);
-  });
+  overlayCanvas.addEventListener('touchend', handlePointerUp);
 
   function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
-      const cell = pxToCell(x, y, circuit, panelTotalWidth, gridScale, gridOffset);
-      if (!cell) return;
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
+      const cell = pxToCell(x, y, circuit, panelTotalWidth);
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         overlayCtx.save();
-        overlayCtx.translate(panelTotalWidth + gridOffset.x, gridOffset.y);
-        overlayCtx.scale(gridScale, gridScale);
         overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
         overlayCtx.lineWidth = 2;
         overlayCtx.setLineDash([8, 8]);
         overlayCtx.beginPath();
         overlayCtx.moveTo(
-          GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
+          panelTotalWidth + GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
           GAP + state.wireTrace[0].r * (CELL + GAP) + CELL / 2
         );
         state.wireTrace.forEach(p => {
           overlayCtx.lineTo(
-            GAP + p.c * (CELL + GAP) + CELL / 2,
+            panelTotalWidth + GAP + p.c * (CELL + GAP) + CELL / 2,
             GAP + p.r * (CELL + GAP) + CELL / 2
           );
         });
@@ -430,8 +376,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.restore();
       }
     } else {
-      const cell = pxToCell(x, y, circuit, panelTotalWidth, gridScale, gridOffset);
-      if (cell) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth);
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
@@ -452,7 +398,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
                 delete circuit.wires[wid];
               }
             });
-            drawForeground();
+            renderContent(contentCtx, circuit, 0, panelTotalWidth);
             updateUsageCounts();
           }
           state.dragCandidate = null;
@@ -461,12 +407,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (state.draggingBlock) {
           overlayCtx.save();
           overlayCtx.globalAlpha = 0.5;
-          overlayCtx.translate(panelTotalWidth + gridOffset.x, gridOffset.y);
-          overlayCtx.scale(gridScale, gridScale);
           drawBlock(
             overlayCtx,
             { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell },
-            0
+            panelTotalWidth
           );
           overlayCtx.restore();
         }
@@ -479,25 +423,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
-    if (isPinching && e.touches.length === 2) {
-      e.preventDefault();
-      const dist = touchDist(e.touches[0], e.touches[1]);
-      const rect = overlayCanvas.getBoundingClientRect();
-      const m = touchMid(e.touches[0], e.touches[1]);
-      const mid = { x: m.x - rect.left, y: m.y - rect.top };
-      const scaleFactor = dist / lastPinchDist;
-      gridScale = Math.min(Math.max(gridScale * scaleFactor, 0.5), 3);
-      gridOffset.x = mid.x - (mid.x - gridOffset.x) * scaleFactor;
-      gridOffset.y = mid.y - (mid.y - gridOffset.y) * scaleFactor;
-      gridOffset.x += mid.x - lastMid.x;
-      gridOffset.y += mid.y - lastMid.y;
-      lastPinchDist = dist;
-      lastMid = mid;
-      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      drawBackground();
-      drawForeground();
-      return;
-    }
     e.preventDefault();
     handlePointerMove(e);
   }, { passive: false });
@@ -515,9 +440,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function handleDocUp(e) {
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
+      const scale = parseFloat(overlayCanvas.dataset.scale || '1');
       const point = e.changedTouches?.[0] || e;
-      const ox = point.clientX - rect.left;
-      const oy = point.clientY - rect.top;
+      const ox = (point.clientX - rect.left) / scale;
+      const oy = (point.clientY - rect.top) / scale;
       const overTrash =
         ox >= trashRect.x &&
         ox <= trashRect.x + trashRect.w &&
@@ -538,14 +464,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             delete circuit.wires[wid];
           }
         });
-        drawForeground();
+        renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
-      } else {
-        const cell = pxToCell(ox, oy, circuit, panelTotalWidth, gridScale, gridOffset);
-        if (!cell && state.draggingBlock.origPos) {
+      } else if (ox < panelTotalWidth || ox >= canvasWidth || oy < 0 || oy >= gridHeight) {
+        if (state.draggingBlock.origPos) {
           const { id, type, name, origPos } = state.draggingBlock;
           circuit.blocks[id] = newBlock({ id, type, name, pos: origPos });
-          drawForeground();
+          renderContent(contentCtx, circuit, 0, panelTotalWidth);
           updateUsageCounts();
         }
       }

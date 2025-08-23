@@ -1794,7 +1794,7 @@ function setGridDimensions(rows, cols) {
 
 function adjustGridZoom(containerId = 'canvasContainer') {
   const gridContainer = document.getElementById(containerId);
-  if (!gridContainer || gridContainer.dataset.fixed === 'true') return;
+  if (!gridContainer) return;
 
   const margin = 20;
   let availableWidth = window.innerWidth - margin * 2;
