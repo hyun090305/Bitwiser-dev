@@ -31,7 +31,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
   ctx.save();
   ctx.fillStyle = '#fff';
   ctx.fillRect(offsetX, 0, cols * CELL, rows * CELL);
-  ctx.strokeStyle = '#ccc';
+  // inner grid lines in light gray similar to legacy DOM grid
+  ctx.strokeStyle = '#ddd';
   ctx.lineWidth = 1;
   for (let r = 0; r <= rows; r++) {
     const y = r * CELL + 0.5;
@@ -47,7 +48,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0) {
     ctx.lineTo(x, rows * CELL);
     ctx.stroke();
   }
-  ctx.strokeStyle = '#888';
+  // outer border slightly darker
+  ctx.strokeStyle = '#bbb';
   ctx.lineWidth = 2;
   ctx.strokeRect(offsetX + 0.5, 0.5, cols * CELL, rows * CELL);
   ctx.restore();
@@ -66,7 +68,8 @@ export function drawBlock(ctx, block, offsetX = 0) {
   ctx.fill();
   ctx.stroke();
   ctx.fillStyle = '#3f3d96';
-  ctx.font = '14px sans-serif';
+  // use Noto Sans KR for block labels
+  ctx.font = '14px "Noto Sans KR", sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(block.name || block.type, x + CELL / 2, y + CELL / 2);
@@ -84,7 +87,8 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
   // highlight cells traversed by wire (excluding endpoints)
   for (let i = 1; i < wire.path.length - 1; i++) {
     const p = wire.path[i];
-    ctx.fillStyle = '#fffce0';
+    // highlight cell similar to DOM version
+    ctx.fillStyle = '#fff9d6';
     ctx.fillRect(offsetX + p.c * CELL + 1, p.r * CELL + 1, CELL - 2, CELL - 2);
   }
   ctx.beginPath();
@@ -111,13 +115,14 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, group
   groups.forEach(g => {
     ctx.save();
     ctx.fillStyle = '#fff';
-    ctx.strokeStyle = '#ccc';
+    ctx.strokeStyle = '#ddd';
     ctx.lineWidth = 1;
     roundRect(ctx, g.x, g.y, g.w, g.h, 8);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#555';
-    ctx.font = 'bold 12px sans-serif';
+    // group headings in Noto Sans KR
+    ctx.font = 'bold 12px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(g.label, g.x + g.w / 2, g.y + g.padding);
@@ -125,14 +130,15 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, group
   });
   items.forEach(item => {
     ctx.save();
-    ctx.fillStyle = '#e6e4ff';
-    ctx.strokeStyle = '#8887c2';
+    // palette item style matches block appearance
+    ctx.fillStyle = '#dcd8ff';
+    ctx.strokeStyle = '#a4a1de';
     ctx.lineWidth = 2;
     roundRect(ctx, item.x, item.y, item.w, item.h, 6);
     ctx.fill();
     ctx.stroke();
     ctx.fillStyle = '#3f3d96';
-    ctx.font = '14px sans-serif';
+    ctx.font = '14px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
@@ -149,7 +155,7 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, trashRect, group
     ctx.stroke();
     ctx.setLineDash([]);
     ctx.fillStyle = '#c44';
-    ctx.font = '12px sans-serif';
+    ctx.font = '12px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'left';
     ctx.textBaseline = 'middle';
     ctx.fillText('🗑', trashRect.x + 8, trashRect.y + trashRect.h / 2);
