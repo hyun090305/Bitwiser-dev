@@ -2073,13 +2073,22 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
     import('./src/canvas/controller.js').then(c => {
       const { createController } = c;
       const circuit = makeCircuit(rows, cols);
-      const controller = createController({ bgCanvas, contentCanvas, overlayCanvas }, circuit, {
-        wireStatusInfo: document.getElementById(prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'),
-        wireDeleteInfo: document.getElementById(prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo')
-      }, {
-        paletteGroups,
-        panelWidth: 120
-      });
+      const controller = createController(
+        { bgCanvas, contentCanvas, overlayCanvas },
+        circuit,
+        {
+          wireStatusInfo: document.getElementById(
+            prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'
+          ),
+          wireDeleteInfo: document.getElementById(
+            prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo'
+          )
+        },
+        {
+          paletteGroups,
+          panelWidth: 180
+        }
+      );
       if (prefix) {
         window.problemCircuit = circuit;
         window.problemController = controller;
