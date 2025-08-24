@@ -86,6 +86,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     draggingBlock: null,
     dragCandidate: null,
     hoverBlockId: null,
+    pointerDown: null,
+    pointerMoved: false,
   };
 
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
@@ -239,6 +241,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handlePointerDown(e) {
     const { x, y } = getPointerPos(e);
+    state.pointerDown = { x, y };
+    state.pointerMoved = false;
     if (x < panelTotalWidth) {
       const item = paletteItems.find(
         it =>
@@ -304,6 +308,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handlePointerUp(e) {
     const { x, y } = getPointerPos(e);
+    if (!state.pointerMoved && state.mode === 'idle') {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pxToCell(x, y, circuit, panelTotalWidth);
+        const blk = blockAt(cell);
+        if (blk && blk.type === 'INPUT') {
+          blk.value = !blk.value;
+          evaluateCircuit(circuit);
+          renderContent(contentCtx, circuit, 0, panelTotalWidth);
+        }
+      }
+    }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 1) {
       if (isValidWire(state.wireTrace)) {
         const id = 'w' + Date.now();
@@ -378,29 +393,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
     // Clear any pending drag candidate after pointer release
-    state.dragCandidate = null;
-    state.wireTrace = [];
-  }
-
-  overlayCanvas.addEventListener('mouseup', handlePointerUp);
-  overlayCanvas.addEventListener('touchend', handlePointerUp);
-
-  // Toggle INPUT block values on simple clicks
-  function handleCanvasClick(e) {
-    if (state.mode !== 'idle') return;
-    const { x, y } = getPointerPos(e);
-    if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
-    const cell = pxToCell(x, y, circuit, panelTotalWidth);
-    const blk = blockAt(cell);
-    if (blk && blk.type === 'INPUT') {
-      blk.value = !blk.value;
-      evaluateCircuit(circuit);
+      state.dragCandidate = null;
+      state.wireTrace = [];
+      state.pointerDown = null;
+      state.pointerMoved = false;
     }
-  }
-  overlayCanvas.addEventListener('click', handleCanvasClick);
 
-  function handlePointerMove(e) {
+    overlayCanvas.addEventListener('mouseup', handlePointerUp);
+    overlayCanvas.addEventListener('touchend', handlePointerUp);
+
+    function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
+    if (state.pointerDown) {
+      const dx = x - state.pointerDown.x;
+      const dy = y - state.pointerDown.y;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) state.pointerMoved = true;
+    }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
       if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
@@ -533,6 +541,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
     state.dragCandidate = null;
+    state.pointerDown = null;
+    state.pointerMoved = false;
   }
 
   document.addEventListener('mousemove', handleDocMove);
