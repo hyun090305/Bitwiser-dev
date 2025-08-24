@@ -2478,9 +2478,17 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   isScoring = true;
   if (overlay) overlay.style.display = "block";
   if (currentCustomProblem) {
-    gradeProblemAnimated(currentCustomProblemKey, currentCustomProblem);
+    if (window.playCircuit) {
+      gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
+    } else {
+      gradeProblemAnimated(currentCustomProblemKey, currentCustomProblem);
+    }
   } else {
-    gradeLevelAnimated(currentLevel);
+    if (window.playCircuit) {
+      gradeLevelCanvas(currentLevel);
+    } else {
+      gradeLevelAnimated(currentLevel);
+    }
   }
 });
 
@@ -4754,6 +4762,223 @@ async function gradeProblemAnimated(key, problem) {
     const hintsUsed=parseInt(localStorage.getItem(`hintsUsed_${key}`)||'0');
     saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
   }
+}
+
+async function gradeLevelCanvas(level) {
+  const testCases = levelAnswers[level];
+  const circuit = window.playCircuit;
+  if (!testCases || !circuit) return;
+  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+
+  const blocks = Object.values(circuit.blocks);
+  for (const b of blocks) {
+    if (b.type === 'JUNCTION' || b.type === 'OUTPUT') {
+      const incoming = Object.values(circuit.wires).filter(w => w.endBlockId === b.id);
+      if (incoming.length > 1) {
+        alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
+        if (overlay) overlay.style.display = 'none';
+        isScoring = false;
+        return;
+      }
+    }
+  }
+
+  const requiredOutputs = (levelBlockSets[level] || [])
+    .filter(b => b.type === 'OUTPUT')
+    .map(b => b.name);
+  const actualOutputNames = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
+  const missingOutputs = requiredOutputs.filter(n => !actualOutputNames.includes(n));
+  if (missingOutputs.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
+    if (overlay) overlay.style.display = 'none';
+    isScoring = false;
+    return;
+  }
+
+  let allCorrect = true;
+  const bp = document.getElementById('blockPanel');
+  if (bp) bp.style.display = 'none';
+  const rp = document.getElementById('rightPanel');
+  if (rp) rp.style.display = 'none';
+  const gradingArea = document.getElementById('gradingArea');
+  if (gradingArea) {
+    gradingArea.style.display = 'block';
+    gradingArea.innerHTML = '<b>채점 결과:</b><br><br>';
+  }
+
+  const inputs = blocks.filter(b => b.type === 'INPUT');
+  const outputs = blocks.filter(b => b.type === 'OUTPUT');
+
+  for (const test of testCases) {
+    inputs.forEach(inp => { inp.value = test.inputs[inp.name] ?? 0; });
+    evaluateCircuit(circuit);
+    await new Promise(r => setTimeout(r, 100));
+
+    let correct = true;
+    const actualText = outputs.map(out => {
+      const actual = out.value ? 1 : 0;
+      const expected = test.expected[out.name];
+      if (actual !== expected) correct = false;
+      return `${out.name}=${actual}`;
+    }).join(', ');
+
+    const expectedText = Object.entries(test.expected).map(([k, v]) => `${k}=${v}`).join(', ');
+    const inputText = Object.entries(test.inputs).map(([k, v]) => `${k}=${v}`).join(', ');
+
+    if (!document.getElementById('gradingTable')) {
+      gradingArea.innerHTML += `
+      <table id="gradingTable">
+        <thead>
+          <tr>
+            <th>${t('thInput')}</th>
+            <th>${t('thExpected')}</th>
+            <th>${t('thActual')}</th>
+            <th>${t('thResult')}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+    }
+    const tbody = document.querySelector('#gradingTable tbody');
+    const tr = document.createElement('tr');
+    tr.className = correct ? 'correct' : 'wrong';
+
+    const tdInput = document.createElement('td');
+    tdInput.textContent = inputText;
+    const tdExpected = document.createElement('td');
+    tdExpected.textContent = expectedText;
+    const tdActual = document.createElement('td');
+    tdActual.textContent = actualText;
+    const tdResult = document.createElement('td');
+    tdResult.style.fontWeight = 'bold';
+    tdResult.style.color = correct ? 'green' : 'red';
+    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
+
+    tr.append(tdInput, tdExpected, tdActual, tdResult);
+    tbody.appendChild(tr);
+    if (!correct) allCorrect = false;
+  }
+
+  const summary = document.createElement('div');
+  summary.id = 'gradeResultSummary';
+  summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
+  gradingArea.appendChild(summary);
+
+  const returnBtn = document.createElement('button');
+  returnBtn.id = 'returnToEditBtn';
+  returnBtn.textContent = t('returnToEditBtn');
+  gradingArea.appendChild(returnBtn);
+  document.getElementById('returnToEditBtn').addEventListener('click', returnToEditScreen);
+}
+
+async function gradeProblemCanvas(key, problem) {
+  const circuit = window.playCircuit;
+  if (!circuit) return;
+  const inNames = Array.from({ length: problem.inputCount }, (_, i) => 'IN' + (i + 1));
+  const outNames = Array.from({ length: problem.outputCount }, (_, i) => 'OUT' + (i + 1));
+  const testCases = problem.table.map(row => ({
+    inputs: Object.fromEntries(inNames.map(n => [n, row[n]])),
+    expected: Object.fromEntries(outNames.map(n => [n, row[n]]))
+  }));
+  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+
+  const blocks = Object.values(circuit.blocks);
+  for (const b of blocks) {
+    if (b.type === 'JUNCTION' || b.type === 'OUTPUT') {
+      const incoming = Object.values(circuit.wires).filter(w => w.endBlockId === b.id);
+      if (incoming.length > 1) {
+        alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
+        if (overlay) overlay.style.display = 'none';
+        isScoring = false;
+        return;
+      }
+    }
+  }
+
+  const requiredOutputs = outNames;
+  const actualOutputNames = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
+  const missingOutputs = requiredOutputs.filter(n => !actualOutputNames.includes(n));
+  if (missingOutputs.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
+    if (overlay) overlay.style.display = 'none';
+    isScoring = false;
+    return;
+  }
+
+  let allCorrect = true;
+  const bp = document.getElementById('blockPanel');
+  if (bp) bp.style.display = 'none';
+  const rp = document.getElementById('rightPanel');
+  if (rp) rp.style.display = 'none';
+  const gradingArea = document.getElementById('gradingArea');
+  if (gradingArea) {
+    gradingArea.style.display = 'block';
+    gradingArea.innerHTML = '<b>채점 결과:</b><br><br>';
+  }
+
+  const inputs = blocks.filter(b => b.type === 'INPUT');
+  const outputs = blocks.filter(b => b.type === 'OUTPUT');
+
+  for (const test of testCases) {
+    inputs.forEach(inp => { inp.value = test.inputs[inp.name] ?? 0; });
+    evaluateCircuit(circuit);
+    await new Promise(r => setTimeout(r, 100));
+
+    let correct = true;
+    const actualText = outputs.map(out => {
+      const actual = out.value ? 1 : 0;
+      const expected = test.expected[out.name];
+      if (actual !== expected) correct = false;
+      return `${out.name}=${actual}`;
+    }).join(', ');
+
+    const expectedText = Object.entries(test.expected).map(([k, v]) => `${k}=${v}`).join(', ');
+    const inputText = Object.entries(test.inputs).map(([k, v]) => `${k}=${v}`).join(', ');
+
+    if (!document.getElementById('gradingTable')) {
+      gradingArea.innerHTML += `
+      <table id="gradingTable">
+        <thead>
+          <tr>
+            <th>${t('thInput')}</th>
+            <th>${t('thExpected')}</th>
+            <th>${t('thActual')}</th>
+            <th>${t('thResult')}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+    }
+    const tbody = document.querySelector('#gradingTable tbody');
+    const tr = document.createElement('tr');
+    tr.className = correct ? 'correct' : 'wrong';
+
+    const tdInput = document.createElement('td');
+    tdInput.textContent = inputText;
+    const tdExpected = document.createElement('td');
+    tdExpected.textContent = expectedText;
+    const tdActual = document.createElement('td');
+    tdActual.textContent = actualText;
+    const tdResult = document.createElement('td');
+    tdResult.style.fontWeight = 'bold';
+    tdResult.style.color = correct ? 'green' : 'red';
+    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
+
+    tr.append(tdInput, tdExpected, tdActual, tdResult);
+    tbody.appendChild(tr);
+    if (!correct) allCorrect = false;
+  }
+
+  const summary = document.createElement('div');
+  summary.id = 'gradeResultSummary';
+  summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
+  gradingArea.appendChild(summary);
+
+  const returnBtn = document.createElement('button');
+  returnBtn.id = 'returnToEditBtn';
+  returnBtn.textContent = t('returnToEditBtn');
+  gradingArea.appendChild(returnBtn);
+  document.getElementById('returnToEditBtn').addEventListener('click', returnToEditScreen);
 }
 
 // ----- GIF 캡처 기능 -----
