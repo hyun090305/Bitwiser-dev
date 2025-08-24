@@ -95,7 +95,8 @@ export function startEngine(ctx, circuit, renderer) {
     // in-memory circuit model so block states stay in sync with
     // current connections and input values.
     evaluateCircuit(circuit);
-    phase = (phase + 2) % 40;
+    // Slow wire flow animation by updating phase more gradually
+    phase = (phase + 1) % 40;
     renderer(ctx, circuit, phase);
     requestAnimationFrame(tick);
   }
