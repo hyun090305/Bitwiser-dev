@@ -976,17 +976,19 @@ document.addEventListener("keydown", (e) => {
     if (problemScreen.style.display !== "none" && gameScreen.style.display === "none") return;
     if (gameScreen.style.display === "none" && problemScreen.style.display === "none") return;
 
-    if (confirm(t('confirmDeleteAll'))) {
-      clearGrid();
-      if (problemScreen.style.display !== "none") {
-        setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
-        initTestcaseTable();
-      } else if (currentCustomProblem) {
-        setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForCustom(currentCustomProblem));
-        if (currentCustomProblem.fixIO) placeFixedIO(currentCustomProblem);
-      } else {
-        setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForLevel(currentLevel));
-      }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (!confirm(t('confirmDeleteAll'))) return;
+
+    clearGrid();
+    if (problemScreen.style.display !== "none") {
+      setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
+      initTestcaseTable();
+    } else if (currentCustomProblem) {
+      setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForCustom(currentCustomProblem));
+      if (currentCustomProblem.fixIO) placeFixedIO(currentCustomProblem);
+    } else {
+      setupGrid('canvasContainer', GRID_ROWS, GRID_COLS, createPaletteForLevel(currentLevel));
     }
   }
   if (e.key === "Control") {
@@ -3842,16 +3844,17 @@ function handleProblemKeyDown(e) {
     isWireDeleting = true;
     problemDeleteToggle.classList.add('active');
   } else if (e.key.toLowerCase() === 'r') {
-      if (isTextInputFocused()) {
-        [resetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
-        return;
-      }
-    if (confirm(t('confirmDeleteAll'))) {
-      clearGrid();
-      setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
-      initTestcaseTable();
-      markCircuitModified();
+    if (isTextInputFocused()) {
+      [resetToggle, problemResetToggle].forEach(btn => btn && btn.classList.remove('active'));
+      return;
     }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (!confirm(t('confirmDeleteAll'))) return;
+    clearGrid();
+    setupGrid('problemCanvasContainer', GRID_ROWS, GRID_COLS, createPaletteForProblem());
+    initTestcaseTable();
+    markCircuitModified();
   }
 }
 
