@@ -91,6 +91,10 @@ export function setWireFlows(circuit) {
 export function startEngine(ctx, circuit, renderer) {
   let phase = 0;
   function tick() {
+    // Recompute circuit values every frame based solely on the
+    // in-memory circuit model so block states stay in sync with
+    // current connections and input values.
+    evaluateCircuit(circuit);
     phase = (phase + 2) % 40;
     renderer(ctx, circuit, phase);
     requestAnimationFrame(tick);
