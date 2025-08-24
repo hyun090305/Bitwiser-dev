@@ -453,37 +453,6 @@ function finish(e) {
   statusToggle.classList.remove("active");
 }
 
-// 이전: DOM 기반 와이어 연쇄 해제
-function disconnectWiresCascade(startBlock) {
-  // startBlock에 직접 연결된 wire만 추출
-  const related = wires.filter(w => w.start === startBlock || w.end === startBlock);
-
-  related.forEach(w => {
-    // 전선 셀 초기화
-    w.path.forEach(c => {
-      if (c.dataset.type === "WIRE") {
-        c.classList.remove(
-          "wire", "wire-preview",
-          "wire-up", "wire-down", "wire-left", "wire-right",
-          "flow-left", "flow-right", "flow-up", "flow-down",
-          "h", "v", "corner"
-        );
-        delete c.dataset.type;
-      }
-    });
-
-    // 연결된 반대편 블록은 남겨둠
-    const neighbor = (w.start === startBlock) ? w.end : w.start;
-    if (neighbor.dataset.type && neighbor.dataset.type !== "WIRE") {
-      neighbor.draggable = true;
-    }
-  });
-
-  // wires 배열에서 해당 연결 제거
-  wires = wires.filter(w => w.start !== startBlock && w.end !== startBlock);
-  markCircuitModified();
-}
-
 /*--------------------------------------------------
   5.  보조 함수
 --------------------------------------------------*/
@@ -634,22 +603,6 @@ function drawWirePath(path) {
   });
   markCircuitModified();
 
-  for (let i = 0; i < path.length; i++) {
-    const cell = path[i];
-    cell.classList.remove("flow-left", "flow-right", "flow-up", "flow-down"); // 혹시 남아있을 때 대비
-
-    // (1) 이전 셀 → 현재 셀 방향
-    if (i > 0) {
-      const prev = path[i - 1];
-      cell.classList.add(getFlowClass(prev, cell));
-    }
-    // (2) 현재 셀 → 다음 셀 방향
-    if (i < path.length - 1) {
-      const next = path[i + 1];
-      cell.classList.add(getFlowClass(cell, next));
-    }
-  }
-
   evaluateCircuit();
 }
 function getNeighbourWireDirs(cell) {
@@ -734,16 +687,6 @@ function applyWireDirection(cell, dirs) {
 }
 
 
-
-// 새로 추가
-function getFlowClass(curr, next) {
-  const c = +curr.dataset.index, n = +next.dataset.index;
-  const g = GRID_COLS;
-  if (n === c + 1) return "flow-right";
-  if (n === c - 1) return "flow-left";
-  if (n === c + g) return "flow-down";
-  return "flow-up";   // n === c - g
-}
 
 /* 2) INPUT 블록 토글 설정 (0 ↔ 1) */
 function setupInputToggles() {
@@ -842,34 +785,30 @@ function computeBlock(node, values) {
     return values.get(node);
   }
 
-  // 위쪽에서 들어오는 신호: static wire-down + flow-down 둘 다 있어야
+  // 위쪽에서 들어오는 신호: wire-down 방향이면 인정
   const upCell = getCell(row - 1, col);
-  // 이전: if (upCell?.classList.contains("flow-down")) {
-  if (upCell?.classList.contains("wire-down") && upCell.classList.contains("flow-down")) {
+  if (upCell?.classList.contains("wire-down")) {
     const src = getBlockNodeFlow(row - 1, col, node);
     if (src) incoming.push(src);
   }
 
-  // 아래쪽에서 들어오는 신호: static wire-up + flow-up 둘 다 있어야
+  // 아래쪽에서 들어오는 신호: wire-up 방향이면 인정
   const downCell = getCell(row + 1, col);
-  // 이전: if (downCell?.classList.contains("flow-up")) {
-  if (downCell?.classList.contains("wire-up") && downCell.classList.contains("flow-up")) {
+  if (downCell?.classList.contains("wire-up")) {
     const src = getBlockNodeFlow(row + 1, col, node);
     if (src) incoming.push(src);
   }
 
-  // 왼쪽에서 들어오는 신호: static wire-right + flow-right 둘 다 있어야
+  // 왼쪽에서 들어오는 신호: wire-right 방향이면 인정
   const leftCell = getCell(row, col - 1);
-  // 이전: if (leftCell?.classList.contains("flow-right")) {
-  if (leftCell?.classList.contains("wire-right") && leftCell.classList.contains("flow-right")) {
+  if (leftCell?.classList.contains("wire-right")) {
     const src = getBlockNodeFlow(row, col - 1, node);
     if (src) incoming.push(src);
   }
 
-  // 오른쪽에서 들어오는 신호: static wire-left + flow-left 둘 다 있어야
+  // 오른쪽에서 들어오는 신호: wire-left 방향이면 인정
   const rightCell = getCell(row, col + 1);
-  // 이전: if (rightCell?.classList.contains("flow-left")) {
-  if (rightCell?.classList.contains("wire-left") && rightCell.classList.contains("flow-left")) {
+  if (rightCell?.classList.contains("wire-left")) {
     const src = getBlockNodeFlow(row, col + 1, node);
     if (src) incoming.push(src);
   }
@@ -1066,21 +1005,19 @@ function getIncomingBlocks(node) {
   const col = node.col;
   const incoming = [];
 
-  // wireDir: static wire 클래스, flowDir: flow 클래스
-  const check = (r, c, wireDir, flowDir) => {
+  const check = (r, c, wireDir) => {
     const cell = getCell(r, c);
-    if (cell?.classList.contains(wireDir)
-      && cell.classList.contains(flowDir)) {
+    if (cell?.classList.contains(wireDir)) {
       const src = getBlockNodeFlow(r, c, node);
       if (src) incoming.push(src);
     }
   };
 
   // 위↓, 아래↑, 왼→, 오←
-  check(row - 1, col, 'wire-down', 'flow-down');
-  check(row + 1, col, 'wire-up', 'flow-up');
-  check(row, col - 1, 'wire-right', 'flow-right');
-  check(row, col + 1, 'wire-left', 'flow-left');
+  check(row - 1, col, 'wire-down');
+  check(row + 1, col, 'wire-up');
+  check(row, col - 1, 'wire-right');
+  check(row, col + 1, 'wire-left');
 
   return incoming;
 }
@@ -1534,15 +1471,8 @@ function getBlockNode(startRow, startCol, excludeCell) {
 }
 
 /**
- * flow- 클래스를 역방향으로만 따라가면서
- * 블록을 찾아오는 함수입니다.
- *
- * startRow, startCol: computeBlock이 시작한 첫 번째 wire 셀 좌표
- * excludeNode: computeBlock이 호출된 자기 자신 노드 (순환 방지용)
- */
-/**
  * 시작 좌표에서 블록까지 연결된 wire 경로를 역추적합니다.
- * - flow-* 없이 wire-* static 클래스만 사용
+ * - wire-* static 클래스를 사용
  * - 꺾인 코너(wire-up + wire-right 등)도 getNeighbourWireDirs로 모두 반환
  */
 function getBlockNodeFlow(startRow, startCol, excludeNode) {
@@ -1906,10 +1836,7 @@ function setupGridOld(containerId, rows, cols) {
 
       /* 원래 셀 비우기 */
       if (lastDraggedFromCell && lastDraggedFromCell !== cell) {
-        // ─── 수정: cascade delete 호출 ───
-        disconnectWiresCascade(lastDraggedFromCell);
         resetCell(lastDraggedFromCell);
-        // 기존 셀 초기화 로직
         lastDraggedFromCell.classList.remove("block", "wire");
         lastDraggedFromCell.textContent = "";
         delete lastDraggedFromCell.dataset.type;
@@ -2034,9 +1961,6 @@ function setupGridOld(containerId, rows, cols) {
 
     if (cell.classList.contains('block')) {
       if (cell.dataset.fixed === '1') return;
-      // ① 연결된 전선 전체 삭제
-      disconnectWiresCascade(cell);
-
       const type = cell.dataset.type;
       const name = cell.dataset.name;
       // ② INPUT/OUTPUT이면 아이콘 복원

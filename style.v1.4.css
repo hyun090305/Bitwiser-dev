@@ -360,81 +360,6 @@ html, body {
     padding: 5px 20px;
     width: 100%;
   }
-  /* 이전: div 기반 셀/배선 스타일 */
-  /* .cell {
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    position: relative;
-    background-color: white;
-    width: 50px;
-    height: 50px;
-  }
-
-  .cell.block {
-    background-color: #e0e0ff;
-    color: #003366;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .cell.wire {
-    position: relative;
-    background-color: #ffe;
-  }
-
-  .cell.wire.wire-up::before,
-  .cell.wire.wire-down::before {
-    content: '';
-    position: absolute;
-    left: 50%;
-    background-color: black;
-    transform: translateX(-50%);
-  }
-
-  .cell.wire.wire-up::before {
-    top: 0;
-    height: 50%;
-  }
-
-  .cell.wire.wire-down::before {
-    bottom: 0;
-    height: 50%;
-  }
-
-  .cell.wire.wire-left::after,
-  .cell.wire.wire-right::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    background-color: black;
-    transform: translateY(-50%);
-  }
-
-  .cell.wire.wire-left::after {
-    left: 0;
-    width: 50%;
-  }
-
-  .cell.wire.wire-right::after {
-    right: 0;
-    width: 50%;
-  }
-
-  .cell.wire.wire-up.wire-down::before {
-    top: 0;
-    height: 100%;
-  }
-
-  .cell.wire.wire-left.wire-right::after {
-    left: 0;
-    width: 100%;
-  }
-
-  .cell.wire-preview {
-    background: #ffeca0;
-  } */
 
   /* ── 블록 아이콘 스타일 ── */
   .blockIcon {
@@ -449,7 +374,6 @@ html, body {
     cursor: grab;
   }
 
-  /* 이전: div 기반 wire/flow 및 블록 상태 스타일은 Canvas 전환으로 제거되었습니다 */
 
   #gradingTable {
     width: 100%;
