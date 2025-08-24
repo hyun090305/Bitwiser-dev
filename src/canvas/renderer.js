@@ -75,8 +75,17 @@ export function drawBlock(ctx, block, offsetX = 0, hovered = false) {
   roundRect(ctx, x, y, CELL, CELL, 6);
   ctx.fill();
 
-  // Text
+  // Highlight active INPUT/OUTPUT/JUNCTION blocks with a dashed border
   ctx.shadowColor = 'transparent';
+  if (block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)) {
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Text
   ctx.fillStyle = '#000';
   ctx.font = 'bold 16px "Noto Sans KR", sans-serif';
   ctx.textAlign = 'center';

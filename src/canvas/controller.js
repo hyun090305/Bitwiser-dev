@@ -376,19 +376,28 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    } else if (state.dragCandidate) {
-      const blk = circuit.blocks[state.dragCandidate.id];
-      if (blk && blk.type === 'INPUT') {
-        blk.value = !blk.value;
-        evaluateCircuit(circuit);
-      }
-      state.dragCandidate = null;
     }
+    // Clear any pending drag candidate after pointer release
+    state.dragCandidate = null;
     state.wireTrace = [];
   }
 
   overlayCanvas.addEventListener('mouseup', handlePointerUp);
   overlayCanvas.addEventListener('touchend', handlePointerUp);
+
+  // Toggle INPUT block values on simple clicks
+  function handleCanvasClick(e) {
+    if (state.mode !== 'idle') return;
+    const { x, y } = getPointerPos(e);
+    if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
+    const cell = pxToCell(x, y, circuit, panelTotalWidth);
+    const blk = blockAt(cell);
+    if (blk && blk.type === 'INPUT') {
+      blk.value = !blk.value;
+      evaluateCircuit(circuit);
+    }
+  }
+  overlayCanvas.addEventListener('click', handleCanvasClick);
 
   function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
