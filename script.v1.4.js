@@ -3552,71 +3552,13 @@ function markCircuitModified() {
 }
 
 function moveCircuit(dx, dy) {
-  if (!grid) return;
+  const controller = currentCustomProblem ? window.problemController : window.playController;
+  if (!controller) return;
   if (currentCustomProblem && currentCustomProblem.fixIO) return;
-  const cells = Array.from(grid.querySelectorAll('.cell.block, .cell.wire'));
-  if (cells.length === 0) return;
-
-  for (const cell of cells) {
-    const nr = cell.row + dy;
-    const nc = cell.col + dx;
-    if (nr < 0 || nr >= GRID_ROWS || nc < 0 || nc >= GRID_COLS) {
-      return;
-    }
+  const moved = controller.moveCircuit(dx, dy);
+  if (moved) {
+    markCircuitModified();
   }
-
-  const states = cells.map(cell => {
-    const data = {};
-    for (const k in cell.dataset) {
-      if (k !== 'index') data[k] = cell.dataset[k];
-    }
-    return {
-      cell,
-      row: cell.row,
-      col: cell.col,
-      classes: Array.from(cell.classList).filter(c => c !== 'cell'),
-      data,
-      draggable: cell.draggable,
-      text: cell.textContent,
-    };
-  });
-
-  const map = new Map();
-  states.forEach(s => {
-    const target = grid.children[(s.row + dy) * GRID_COLS + (s.col + dx)];
-    map.set(s.cell, target);
-  });
-
-  states.forEach(s => {
-    s.cell.className = 'cell';
-    s.cell.draggable = false;
-    for (const k in s.cell.dataset) {
-      if (k !== 'index') delete s.cell.dataset[k];
-    }
-    s.cell.textContent = '';
-    s.cell.onclick = null;
-  });
-
-  states.forEach(s => {
-    const target = map.get(s.cell);
-    s.classes.forEach(cls => target.classList.add(cls));
-    for (const [k, v] of Object.entries(s.data)) {
-      target.dataset[k] = v;
-    }
-    target.draggable = s.draggable;
-    target.textContent = s.text;
-    if (target.dataset.type === 'INPUT' || target.dataset.type === 'OUTPUT') {
-      attachInputClickHandlers(target);
-    }
-  });
-
-  wires.forEach(w => {
-    w.path = w.path.map(c => map.get(c));
-    w.start = map.get(w.start);
-    w.end = map.get(w.end);
-  });
-
-  markCircuitModified();
 }
 // 이전: placeBlockAt 미정의
 function placeBlockAt(x, y, type) {
