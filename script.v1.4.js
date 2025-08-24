@@ -245,7 +245,9 @@ function setupKeyToggles() {
     } else {
       btn.addEventListener('click', () => {
         const active = !btn.classList.contains('active');
-        btn.classList.toggle('active', active);
+        bindings
+          .filter(([, k]) => k === key)
+          .forEach(([b]) => b.classList.toggle('active', active));
         simulateKey(key, active ? 'keydown' : 'keyup');
       });
     }
@@ -1921,7 +1923,8 @@ function setupGridOld(containerId, rows, cols) {
 
     /* 셀 dragstart (wire 모드면 차단) */
     cell.addEventListener("dragstart", e => {
-      if (isWireDrawing) { e.preventDefault(); return; }
+      const ctrlActive = e.ctrlKey || statusToggle.classList.contains('active');
+      if (isWireDrawing || ctrlActive) { e.preventDefault(); return; }
       const t = cell.dataset.type;
       if (!t || t === "WIRE") return;
       e.dataTransfer.setData("text/plain", t);
