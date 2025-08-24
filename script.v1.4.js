@@ -34,6 +34,7 @@ const gifModal = document.getElementById('gifModal');
 const closeGifModalBtn = document.getElementById('closeGifModal');
 const gifPreview = document.getElementById('gifPreview');
 const saveGifBtn = document.getElementById('saveGifBtn');
+const copyGifBtn = document.getElementById('copyGifBtn');
 const shareGifBtn = document.getElementById('shareGifBtn');
 const gifLoadingModal = document.getElementById('gifLoadingModal');
 const gifLoadingText = document.getElementById('gifLoadingText');
@@ -53,7 +54,26 @@ if (closeGifModalBtn) {
 if (saveGifBtn) {
   saveGifBtn.addEventListener('click', () => {
     if (!currentGifUrl) return;
-    window.open(currentGifUrl, '_blank');
+    const link = document.createElement('a');
+    link.href = currentGifUrl;
+    link.download = 'circuit.gif';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  });
+}
+if (copyGifBtn) {
+  copyGifBtn.addEventListener('click', async () => {
+    if (!currentGifBlob) return;
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({ [currentGifBlob.type]: currentGifBlob })
+      ]);
+      alert('이미지가 클립보드에 복사되었습니다.');
+    } catch (err) {
+      console.error(err);
+      alert('이미지 복사에 실패했습니다.');
+    }
   });
 }
 if (shareGifBtn) {
