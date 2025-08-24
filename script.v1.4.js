@@ -3247,6 +3247,9 @@ const savedModal = document.getElementById('savedModal');
 const closeSavedModal = document.getElementById('closeSavedModal');
 const savedList = document.getElementById('savedList');
 
+// Version tag for canvas-based circuit saves
+const CURRENT_CIRCUIT_VERSION = 2;
+
 // IndexedDB helpers for storing GIFs
 const GIF_DB_NAME = 'bitwiser-gifs';
 const GIF_STORE = 'gifs';
@@ -3409,76 +3412,16 @@ document.getElementById('closeSavedModal')
 function loadCircuit(key) {
   const data = JSON.parse(localStorage.getItem(key));
   if (!data) return alert(t('loadFailedNoData'));
-
-  clearGrid();
-  clearWires();
-
-  // ① 셀 상태 복원
-  const cells = document.querySelectorAll('#grid .cell');
-  data.grid.forEach(state => {
-    const cell = cells[state.index];
-    // 클래스 초기화 후
-    cell.className = 'cell';
-    // dataset 복원
-    if (state.type) cell.dataset.type = state.type;
-    if (state.name) cell.dataset.name = state.name;
-    if (state.value) cell.dataset.value = state.value;
-    // CSS 클래스 복원
-    state.classes.forEach(c => cell.classList.add(c));
-    // 블록/입력값 텍스트, 핸들러 바인딩
-    if (state.type === 'INPUT' || state.type === 'OUTPUT') {
-      attachInputClickHandlers(cell);
-    }
-    if (state.type && state.type !== 'WIRE') {
-      cell.classList.add('block');
-      if (state.type === 'INPUT')
-        cell.textContent = state.name;
-        //cell.textContent = `${state.name}(${state.value})`;
-      else if (state.type === 'OUTPUT')
-        cell.textContent = state.name;
-      else if (state.type === 'JUNCTION')
-        cell.textContent = 'JUNC';
-      else
-        cell.textContent = state.type;
-      cell.draggable = true;
-    }
-  });
-
-  // ② DOM wire 복원
-  data.wires.forEach(w => {
-    placeWireAt(w.x, w.y, w.dir);
-    const idx = w.y * GRID_COLS + w.x;
-    const cell = cells[idx];
-  });
-
-  // ── 여기서 wires 배열 복원 ──
-  if (data.wiresObj) {
-    wires = data.wiresObj.map(obj => ({
-      start: cells[obj.startIdx],
-      end: cells[obj.endIdx],
-      path: obj.pathIdxs.map(i => cells[i])
-    }));
-    if (wires.some(w => w.path.length <= 2)) {
-      clearGrid();
-      clearWires();
-      alert('invalid circuit!');
-      return;
-    }
+  if (data.version !== CURRENT_CIRCUIT_VERSION || !data.circuit) {
+    alert(t('incompatibleCircuit'));
+    return;
   }
-  // ▼ circuit 불러올 때 사용된 INPUT/OUTPUT 블록 아이콘 숨기기
-  const panel = document.getElementById('blockPanel');
-  if (panel) {
-    const usedNames = data.grid
-      .filter(state => state.type === 'INPUT' || state.type === 'OUTPUT')
-      .map(state => state.name);
-    panel.querySelectorAll('.blockIcon').forEach(icon => {
-      const type = icon.dataset.type;
-      const name = icon.dataset.name;
-      if ((type === 'INPUT' || type === 'OUTPUT') && usedNames.includes(name)) {
-        icon.style.display = 'none';
-      }
-    });
-  }
+  const circuit = window.playCircuit || window.problemCircuit;
+  if (!circuit) return;
+  circuit.rows = data.circuit.rows;
+  circuit.cols = data.circuit.cols;
+  circuit.blocks = data.circuit.blocks || {};
+  circuit.wires = data.circuit.wires || {};
   markCircuitModified();
 }
 
@@ -3498,24 +3441,23 @@ function highlightOutputErrors() {
 }
 
 async function saveCircuit() {
+  const circuit = window.playCircuit || window.problemCircuit;
+  if (!circuit) throw new Error('No circuit to save');
+
+  const wireCells = new Set();
+  Object.values(circuit.wires).forEach(w => {
+    w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
+  });
+
   const data = {
+    version: CURRENT_CIRCUIT_VERSION,
     stageId: currentLevel,
     problemKey: currentCustomProblemKey,
     problemTitle: currentCustomProblem ? currentCustomProblem.title : undefined,
     timestamp: new Date().toISOString(),
-    grid: getGridData(),
-    wires: getWireData(),
-
-    // 이전: wiresObj 프로퍼티가 없었습니다
-    // 추가: 실제 런타임 wires 배열을 저장해서 나중에 그대로 복원
-    wiresObj: wires.map(w => ({
-      startIdx: Number(w.start.dataset.index),
-      endIdx: Number(w.end.dataset.index),
-      pathIdxs: w.path.map(c => Number(c.dataset.index))
-    })),
-
-    usedBlocks: countUsedBlocks(),
-    usedWires: countUsedWires()
+    circuit,
+    usedBlocks: Object.keys(circuit.blocks).length,
+    usedWires: wireCells.size
   };
 
   const timestampMs = Date.now();
@@ -3535,34 +3477,6 @@ async function saveCircuit() {
     alert('회로 저장 중 오류가 발생했습니다.');
     throw e;
   }
-}
-
-function getGridData() {
-  return Array.from(document.querySelectorAll('#grid .cell')).map(cell => ({
-    index: +cell.dataset.index,
-    type: cell.dataset.type || null,
-    name: cell.dataset.name || null,
-    value: cell.dataset.value || null,
-    classes: Array.from(cell.classList).filter(c => c !== 'cell'),
-  }));
-}
-
-function getWireData() {
-  return Array.from(grid.querySelectorAll('.cell.wire')).map(cell => {
-    const dir = Array.from(cell.classList)
-      .find(c => c.startsWith('wire-'))
-      .split('-')[1];
-    return { x: cell.col, y: cell.row, dir };
-  });
-}
-// 이전: countUsedBlocks 미정의
-function countUsedBlocks() {
-  return grid.querySelectorAll('.cell.block').length;
-}
-
-// 이전: countUsedWires 미정의
-function countUsedWires() {
-  return grid.querySelectorAll('.cell.wire').length;
 }
 // 이전: clearGrid 미정의
 function clearGrid() {
@@ -3593,6 +3507,25 @@ function clearWires() {
 }
 
 function updateUsageCounts() {
+  const circuit = window.playCircuit || window.problemCircuit;
+  if (circuit) {
+    const blockCount = Object.keys(circuit.blocks).length;
+    const wireCells = new Set();
+    Object.values(circuit.wires).forEach(w => {
+      w.path?.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
+    });
+    const wireCount = wireCells.size;
+    [document.getElementById('usedBlocks'),
+     document.getElementById('problemUsedBlocks')]
+      .filter(Boolean)
+      .forEach(el => el.textContent = blockCount);
+    [document.getElementById('usedWires'),
+     document.getElementById('problemUsedWires')]
+      .filter(Boolean)
+      .forEach(el => el.textContent = wireCount);
+    return;
+  }
+
   if (!grid) return;
   const blockCount = grid.querySelectorAll('.cell.block').length;
   const wireCount = grid.querySelectorAll('.cell.wire').length;
