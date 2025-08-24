@@ -4998,7 +4998,7 @@ async function captureGIF(onFinish) {
   const tempCtx = tempCanvas.getContext('2d');
 
   const gif = new GIF({ workers: 2, quality: 10, width: gridWidth, height: gridHeight });
-  const totalFrames = 16;
+  const totalFrames = 40;
 
   for (let f = 0; f < totalFrames; f++) {
     tempCtx.clearRect(0, 0, gridWidth, gridHeight);
