@@ -576,6 +576,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.draggingBlock = { type, name };
   }
 
+  function moveCircuit(dx, dy) {
+    if (!dx && !dy) return false;
+    const blocks = Object.values(circuit.blocks);
+    const wires = Object.values(circuit.wires);
+    const okBlocks = blocks.every(b => {
+      const nr = b.pos.r + dy;
+      const nc = b.pos.c + dx;
+      return nr >= 0 && nr < circuit.rows && nc >= 0 && nc < circuit.cols;
+    });
+    const okWires = wires.every(w =>
+      w.path.every(p => {
+        const nr = p.r + dy;
+        const nc = p.c + dx;
+        return nr >= 0 && nr < circuit.rows && nc >= 0 && nc < circuit.cols;
+      })
+    );
+    if (!okBlocks || !okWires) return false;
+    blocks.forEach(b => {
+      b.pos.r += dy;
+      b.pos.c += dx;
+    });
+    wires.forEach(w => {
+      w.path = w.path.map(p => ({ r: p.r + dy, c: p.c + dx }));
+    });
+    overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId);
+    return true;
+  }
+
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit };
 }
