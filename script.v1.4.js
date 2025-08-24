@@ -243,7 +243,9 @@ function setupKeyToggles() {
         setTimeout(() => btn.classList.remove('active'), 150);
       });
     } else {
-      btn.addEventListener('click', () => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
         const active = !btn.classList.contains('active');
         bindings
           .filter(([, k]) => k === key)
