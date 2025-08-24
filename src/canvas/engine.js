@@ -1,36 +1,74 @@
-import { newBlock } from './model.js';
+// Return the upstream block connected by a wire, if any.
+// In the canvas model wires directly store start/end block ids so we can
+// simply look up the block.  excludeBlock can be provided to avoid
+// returning the same node when evaluating.
+export function getBlockNodeFlow(circuit, wire, excludeBlock) {
+  if (!wire || !wire.startBlockId) return null;
+  if (excludeBlock && wire.startBlockId === excludeBlock.id) return null;
+  return circuit.blocks[wire.startBlockId] || null;
+}
 
-// Basic evaluation of the circuit without DOM traversal
-export function evaluate(circuit) {
-  const blocks = circuit.blocks;
-  const getValue = id => blocks[id]?.value || false;
+// Compute the logical output of a single block given current values.
+export function computeBlock(circuit, block, values) {
+  // INPUT blocks simply keep their assigned value
+  if (block.type === 'INPUT') {
+    return values.get(block.id);
+  }
+
+  // gather incoming blocks via wires that end at this block
+  const incoming = Object.values(circuit.wires)
+    .filter(w => w.endBlockId === block.id)
+    .map(w => getBlockNodeFlow(circuit, w, block))
+    .filter(Boolean);
+
+  const readyVals = incoming
+    .map(b => values.get(b.id))
+    .filter(v => v !== undefined);
+
+  switch (block.type) {
+    case 'AND':
+      return readyVals.every(v => v);
+    case 'OR':
+      return readyVals.some(v => v);
+    case 'NOT':
+      return !readyVals[0];
+    case 'OUTPUT':
+      return readyVals.some(v => v);
+    case 'JUNCTION':
+      return readyVals[0];
+    default:
+      return undefined;
+  }
+}
+
+// Basic evaluation of the circuit using the in-memory circuit model
+// instead of traversing DOM cells.
+export function evaluateCircuit(circuit) {
+  const values = new Map();
+  Object.values(circuit.blocks)
+    .filter(b => b.type === 'INPUT')
+    .forEach(b => values.set(b.id, !!b.value));
+
   let changed = true;
   let guard = 0;
   while (changed && guard++ < 1000) {
     changed = false;
-    Object.values(blocks).forEach(b => {
-      const old = b.value;
-      switch (b.type) {
-        case 'INPUT':
-          break; // value already set
-        case 'NOT':
-          b.value = !getValue(b.inputs?.[0]);
-          break;
-        case 'AND':
-          b.value = (b.inputs || []).every(id => getValue(id));
-          break;
-        case 'OR':
-          b.value = (b.inputs || []).some(id => getValue(id));
-          break;
-        case 'JUNCTION':
-          // pass-through
-          b.value = getValue(b.inputs?.[0]);
-          break;
+    Object.values(circuit.blocks).forEach(b => {
+      const oldVal = values.get(b.id);
+      const newVal = computeBlock(circuit, b, values);
+      if (newVal !== undefined && newVal !== oldVal) {
+        values.set(b.id, newVal);
+        changed = true;
       }
-      if (old !== b.value) changed = true;
     });
   }
-  return blocks;
+
+  // apply computed values back to blocks
+  Object.values(circuit.blocks).forEach(b => {
+    b.value = values.get(b.id) || false;
+  });
+
+  return circuit.blocks;
 }
 
 // Compute directional flow for each wire based on path

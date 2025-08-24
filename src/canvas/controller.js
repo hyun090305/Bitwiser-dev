@@ -1,6 +1,6 @@
 import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import { drawGrid, renderContent, setupCanvas, drawBlock, drawPanel } from './renderer.js';
-import { evaluate, startEngine } from './engine.js';
+import { evaluateCircuit, startEngine } from './engine.js';
 
 // Convert pixel coordinates to cell indices (clamped to grid)
 export function pxToCell(x, y, circuit, offsetX = 0) {
@@ -357,7 +357,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const blk = circuit.blocks[state.dragCandidate.id];
       if (blk && blk.type === 'INPUT') {
         blk.value = !blk.value;
-        evaluate(circuit);
+        evaluateCircuit(circuit);
       }
       state.dragCandidate = null;
     }
