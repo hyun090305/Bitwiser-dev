@@ -121,9 +121,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function updateUsageCounts() {
     const blockCount = Object.keys(circuit.blocks).length;
-    const wireCount = Object.keys(circuit.wires).length;
+    const wireCells = new Set();
+    Object.values(circuit.wires).forEach(w => {
+      w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
+    });
     if (usedBlocksEl) usedBlocksEl.textContent = blockCount;
-    if (usedWiresEl) usedWiresEl.textContent = wireCount;
+    if (usedWiresEl) usedWiresEl.textContent = wireCells.size;
   }
 
   function blockAt(cell) {
