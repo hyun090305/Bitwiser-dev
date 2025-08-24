@@ -2011,6 +2011,12 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
           ),
           wireDeleteInfo: document.getElementById(
             prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo'
+          ),
+          usedBlocksEl: document.getElementById(
+            prefix ? `${prefix}UsedBlocks` : 'usedBlocks'
+          ),
+          usedWiresEl: document.getElementById(
+            prefix ? `${prefix}UsedWires` : 'usedWires'
           )
         },
         {
