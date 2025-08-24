@@ -4970,23 +4970,51 @@ async function gradeProblemCanvas(key, problem) {
 // ----- GIF 캡처 기능 -----
 
 async function captureGIF(onFinish) {
-  const canvases = document.querySelectorAll('#canvasContainer canvas');
-  if (canvases.length === 0) return;
+  const bgCanvas = document.getElementById('bgCanvas');
+  const contentCanvas = document.getElementById('contentCanvas');
+  if (!bgCanvas || !contentCanvas) return;
 
-  const width = canvases[0].width;
-  const height = canvases[0].height;
+  const dpr = window.devicePixelRatio || 1;
+  const totalWidth = bgCanvas.width / dpr;
+  const totalHeight = bgCanvas.height / dpr;
+
+  let gridWidth = totalWidth;
+  let gridHeight = totalHeight;
+  let panelWidth = 0;
+
+  try {
+    const { CELL, GAP } = await import('./src/canvas/model.js');
+    const circuit = window.playController?.circuit || window.problemController?.circuit;
+    if (circuit) {
+      gridWidth = circuit.cols * (CELL + GAP) + GAP;
+      gridHeight = circuit.rows * (CELL + GAP) + GAP;
+      panelWidth = totalWidth - gridWidth;
+    }
+  } catch (_) {}
 
   const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = width;
-  tempCanvas.height = height;
+  tempCanvas.width = gridWidth;
+  tempCanvas.height = gridHeight;
   const tempCtx = tempCanvas.getContext('2d');
 
-  const gif = new GIF({ workers: 2, quality: 10, width, height });
+  const gif = new GIF({ workers: 2, quality: 10, width: gridWidth, height: gridHeight });
   const totalFrames = 16;
 
   for (let f = 0; f < totalFrames; f++) {
-    tempCtx.clearRect(0, 0, width, height);
-    canvases.forEach(c => tempCtx.drawImage(c, 0, 0));
+    tempCtx.clearRect(0, 0, gridWidth, gridHeight);
+    [bgCanvas, contentCanvas].forEach(c => {
+      tempCtx.drawImage(
+        c,
+        panelWidth * dpr,
+        0,
+        gridWidth * dpr,
+        gridHeight * dpr,
+        0,
+        0,
+        gridWidth,
+        gridHeight
+      );
+    });
     gif.addFrame(tempCanvas, { delay: 50, copy: true });
     await new Promise(r => setTimeout(r, 50));
   }
