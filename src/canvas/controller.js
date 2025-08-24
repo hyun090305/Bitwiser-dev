@@ -137,6 +137,26 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return Object.values(circuit.wires).some(w => w.path.some(p => p.r === cell.r && p.c === cell.c));
   }
 
+  function isValidWireTrace(trace) {
+    const seen = new Set();
+    for (let i = 0; i < trace.length; i++) {
+      const p = trace[i];
+      const key = `${p.r},${p.c}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      if (i > 0) {
+        const prev = trace[i - 1];
+        const dr = Math.abs(p.r - prev.r);
+        const dc = Math.abs(p.c - prev.c);
+        if (dr + dc !== 1) return false;
+      }
+      if (i > 0 && i < trace.length - 1) {
+        if (blockAt(p) || cellHasWire(p)) return false;
+      }
+    }
+    return true;
+  }
+
   function isValidWire(trace) {
     // Require at least one intermediate cell so adjacent blocks cannot be linked
     if (trace.length < 3) return false;
@@ -379,6 +399,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
+        if (!isValidWireTrace(state.wireTrace)) {
+          state.wireTrace = [];
+          overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+          state.mode = 'idle';
+          updateButtons();
+          return;
+        }
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         overlayCtx.save();
         overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
