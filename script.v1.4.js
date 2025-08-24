@@ -3504,8 +3504,7 @@ async function saveCircuit() {
     localStorage.setItem(key, JSON.stringify(data));
 
     // capture GIF and store in IndexedDB
-    const state = getCircuitSnapshot();
-    const blob = await new Promise(resolve => captureGIF(state, resolve));
+    const blob = await new Promise(resolve => captureGIF(resolve));
     await saveGifToDB(key, blob);
 
     console.log(`Circuit saved: ${key}`, data);
@@ -5124,28 +5123,31 @@ function drawCaptureFrame(ctx, state, frame, scale = 1) {
   ctx.strokeRect(border / 2, border / 2, ctx.canvas.width - border, ctx.canvas.height - border);
 }
 
-function captureGIF(state, onFinish) {
-  const canvas = document.getElementById('contentCanvas');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
+async function captureGIF(onFinish) {
+  const bgCanvas = document.getElementById('bgCanvas');
+  const contentCanvas = document.getElementById('contentCanvas');
+  const overlayCanvas = document.getElementById('overlayCanvas');
+  if (!bgCanvas || !contentCanvas || !overlayCanvas) return;
 
-  const cellSize = 50;
-  const gap = 2;
-  const border = 2;
-  const x = border + state.minCol * (cellSize + gap) - border;
-  const y = border + state.minRow * (cellSize + gap) - border;
-  const width = (state.maxCol - state.minCol + 1) * (cellSize + gap) - gap + border * 2;
-  const height = (state.maxRow - state.minRow + 1) * (cellSize + gap) - gap + border * 2;
+  const width = contentCanvas.width;
+  const height = contentCanvas.height;
 
-  const original = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const tempCanvas = document.createElement('canvas');
+  tempCanvas.width = width;
+  tempCanvas.height = height;
+  const tempCtx = tempCanvas.getContext('2d');
+
   const gif = new GIF({ workers: 2, quality: 10, width, height });
+  const totalFrames = 16;
 
-  for (let f = 0; f < state.totalFrames; f++) {
-    drawCaptureFrame(ctx, state, f, 1);
-    gif.addFrame(canvas, { delay: 50, copy: true, x, y, width, height });
+  for (let f = 0; f < totalFrames; f++) {
+    tempCtx.clearRect(0, 0, width, height);
+    tempCtx.drawImage(bgCanvas, 0, 0);
+    tempCtx.drawImage(contentCanvas, 0, 0);
+    tempCtx.drawImage(overlayCanvas, 0, 0);
+    gif.addFrame(tempCanvas, { delay: 50, copy: true });
+    await new Promise(r => setTimeout(r, 50));
   }
-
-  ctx.putImageData(original, 0, 0);
 
   gif.on('finished', blob => {
     if (typeof onFinish === 'function') onFinish(blob);
@@ -5155,10 +5157,9 @@ function captureGIF(state, onFinish) {
 }
 
 function handleGIFExport() {
-  const state = getCircuitSnapshot();
   if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
   if (gifLoadingModal) gifLoadingModal.style.display = 'flex';
-  captureGIF(state, blob => {
+  captureGIF(blob => {
     if (gifLoadingModal) gifLoadingModal.style.display = 'none';
     currentGifBlob = blob;
     if (currentGifUrl) URL.revokeObjectURL(currentGifUrl);
