@@ -30,7 +30,6 @@ function showCircuitError(show) {
 }
 
 // GIF 생성 관련 요소들
-const captureCanvas = document.getElementById('captureCanvas');
 const gifModal = document.getElementById('gifModal');
 const closeGifModalBtn = document.getElementById('closeGifModal');
 const gifPreview = document.getElementById('gifPreview');
@@ -40,8 +39,6 @@ const gifLoadingModal = document.getElementById('gifLoadingModal');
 const gifLoadingText = document.getElementById('gifLoadingText');
 let currentGifBlob = null;
 let currentGifUrl = null;
-// GIF 해상도를 키우기 위한 배율
-const GIF_SCALE = 2;
 if (closeGifModalBtn) {
   closeGifModalBtn.addEventListener('click', () => {
     if (gifModal) gifModal.style.display = 'none';
@@ -73,14 +70,6 @@ if (shareGifBtn) {
       alert('이 브라우저에서는 공유하기를 지원하지 않습니다.');
     }
   });
-}
-
-function resetCaptureCanvas() {
-  if (!captureCanvas) return;
-  const ctx = captureCanvas.getContext('2d');
-  ctx.clearRect(0, 0, captureCanvas.width, captureCanvas.height);
-  captureCanvas.width = 0;
-  captureCanvas.height = 0;
 }
 
 // 초기 로딩 관련
@@ -932,7 +921,6 @@ document.getElementById("backToLevelsBtn").onclick = () => {
 
 async function startLevel(level) {
   await stageDataPromise;
-  resetCaptureCanvas();
   wireTrace = [];
   wires = [];
   const [rows, cols] = levelGridSizes[level] || [6, 6];
@@ -3516,7 +3504,6 @@ async function saveCircuit() {
     localStorage.setItem(key, JSON.stringify(data));
 
     // capture GIF and store in IndexedDB
-    resetCaptureCanvas();
     const state = getCircuitSnapshot();
     const blob = await new Promise(resolve => captureGIF(state, resolve));
     await saveGifToDB(key, blob);
@@ -5036,13 +5023,13 @@ function drawRoundedRect(ctx, x, y, width, height, radius) {
   ctx.closePath();
 }
 
-function drawCaptureFrame(ctx, state, frame) {
-  const cellSize = 50 * GIF_SCALE;
-  const gap = 2 * GIF_SCALE;
-  const border = 2 * GIF_SCALE;
+function drawCaptureFrame(ctx, state, frame, scale = 1) {
+  const cellSize = 50 * scale;
+  const gap = 2 * scale;
+  const border = 2 * scale;
   const rows = state.rows;
   const cols = state.cols;
-  const radius = 4 * GIF_SCALE;
+  const radius = 4 * scale;
 
   ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   ctx.fillStyle = '#fff';
@@ -5057,7 +5044,7 @@ function drawCaptureFrame(ctx, state, frame) {
       const y = border + r * (cellSize + gap);
       ctx.fillStyle = wireCells.has(`${r},${c}`) ? '#ffe' : '#fff';
       ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1 * GIF_SCALE;
+      ctx.lineWidth = 1 * scale;
       drawRoundedRect(ctx, x, y, cellSize, cellSize, radius);
       ctx.fill();
       ctx.stroke();
@@ -5072,9 +5059,9 @@ function drawCaptureFrame(ctx, state, frame) {
 
     ctx.save();
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2 * GIF_SCALE;
-    ctx.setLineDash([16 * GIF_SCALE, 16 * GIF_SCALE]);
-    ctx.lineDashOffset = -(frame * 2 * GIF_SCALE);
+    ctx.lineWidth = 2 * scale;
+    ctx.setLineDash([16 * scale, 16 * scale]);
+    ctx.lineDashOffset = -(frame * 2 * scale);
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (let i = 1; i < pts.length; i++) {
@@ -5089,7 +5076,7 @@ function drawCaptureFrame(ctx, state, frame) {
     const y = border + b.row * (cellSize + gap);
     ctx.fillStyle = '#e0e0ff';
     ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1 * GIF_SCALE;
+    ctx.lineWidth = 1 * scale;
     drawRoundedRect(ctx, x, y, cellSize, cellSize, radius);
     ctx.fill();
     ctx.stroke();
@@ -5107,26 +5094,22 @@ function drawCaptureFrame(ctx, state, frame) {
 }
 
 function captureGIF(state, onFinish) {
-  const cellSize = 50 * GIF_SCALE;
-  const gap = 2 * GIF_SCALE;
-  const border = 2 * GIF_SCALE;
-  const cols = Math.max(1, Math.floor(Number(state.cols)));
-  const rows = Math.max(1, Math.floor(Number(state.rows)));
-  captureCanvas.width = border * 2 + cols * cellSize + (cols - 1) * gap;
-  captureCanvas.height = border * 2 + rows * cellSize + (rows - 1) * gap;
-  const ctx = captureCanvas.getContext('2d');
-  const width = captureCanvas.width;
-  const height = captureCanvas.height;
-  const gif = new GIF({ workers: 2, quality: 10 });
+  const canvas = document.getElementById('contentCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const width = canvas.width;
+  const height = canvas.height;
+  const original = ctx.getImageData(0, 0, width, height);
+  const gif = new GIF({ workers: 2, quality: 10, width, height });
 
   for (let f = 0; f < state.totalFrames; f++) {
-    drawCaptureFrame(ctx, state, f);
-    const frame = ctx.getImageData(0, 0, width, height);
-    gif.addFrame(frame, { delay: 50 });
+    drawCaptureFrame(ctx, state, f, 1);
+    gif.addFrame(canvas, { delay: 50, copy: true, x: 0, y: 0, width, height });
   }
 
+  ctx.putImageData(original, 0, 0);
+
   gif.on('finished', blob => {
-    resetCaptureCanvas();
     if (typeof onFinish === 'function') onFinish(blob);
   });
 
@@ -5134,7 +5117,6 @@ function captureGIF(state, onFinish) {
 }
 
 function handleGIFExport() {
-  resetCaptureCanvas();
   const state = getCircuitSnapshot();
   if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
   if (gifLoadingModal) gifLoadingModal.style.display = 'flex';
