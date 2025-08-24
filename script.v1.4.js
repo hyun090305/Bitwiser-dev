@@ -5006,7 +5006,38 @@ function getCircuitSnapshot() {
   const rows = Math.max(1, Math.floor(Number(GRID_ROWS)));
   const cols = Math.max(1, Math.floor(Number(GRID_COLS)));
 
-  return { blocks: blockSnap, wires: wireSnap, rows, cols, totalFrames: 16 };
+  // 회로가 차지하는 최소/최대 행열 계산
+  let minRow = rows, maxRow = 0, minCol = cols, maxCol = 0;
+  blockSnap.forEach(b => {
+    if (b.row < minRow) minRow = b.row;
+    if (b.row > maxRow) maxRow = b.row;
+    if (b.col < minCol) minCol = b.col;
+    if (b.col > maxCol) maxCol = b.col;
+  });
+  wireSnap.forEach(w => {
+    w.path.forEach(p => {
+      if (p.row < minRow) minRow = p.row;
+      if (p.row > maxRow) maxRow = p.row;
+      if (p.col < minCol) minCol = p.col;
+      if (p.col > maxCol) maxCol = p.col;
+    });
+  });
+  if (minRow > maxRow || minCol > maxCol) {
+    minRow = minCol = 0;
+    maxRow = maxCol = 0;
+  }
+
+  return {
+    blocks: blockSnap,
+    wires: wireSnap,
+    rows,
+    cols,
+    totalFrames: 16,
+    minRow,
+    maxRow,
+    minCol,
+    maxCol
+  };
 }
 
 function drawRoundedRect(ctx, x, y, width, height, radius) {
@@ -5097,14 +5128,21 @@ function captureGIF(state, onFinish) {
   const canvas = document.getElementById('contentCanvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const width = canvas.width;
-  const height = canvas.height;
-  const original = ctx.getImageData(0, 0, width, height);
+
+  const cellSize = 50;
+  const gap = 2;
+  const border = 2;
+  const x = border + state.minCol * (cellSize + gap) - border;
+  const y = border + state.minRow * (cellSize + gap) - border;
+  const width = (state.maxCol - state.minCol + 1) * (cellSize + gap) - gap + border * 2;
+  const height = (state.maxRow - state.minRow + 1) * (cellSize + gap) - gap + border * 2;
+
+  const original = ctx.getImageData(0, 0, canvas.width, canvas.height);
   const gif = new GIF({ workers: 2, quality: 10, width, height });
 
   for (let f = 0; f < state.totalFrames; f++) {
     drawCaptureFrame(ctx, state, f, 1);
-    gif.addFrame(canvas, { delay: 50, copy: true, x: 0, y: 0, width, height });
+    gif.addFrame(canvas, { delay: 50, copy: true, x, y, width, height });
   }
 
   ctx.putImageData(original, 0, 0);
