@@ -243,6 +243,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
+    let handled = false;
     if (x < panelTotalWidth) {
       const item = paletteItems.find(
         it =>
@@ -250,14 +251,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       );
       if (item) {
         state.draggingBlock = { type: item.type, name: item.label };
+        handled = true;
       }
-      return;
-    }
-    if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+    } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
       const cell = pxToCell(x, y, circuit, panelTotalWidth);
       if (state.mode === 'wireDrawing') {
         state.wireTrace = [coord(cell.r, cell.c)];
+        handled = true;
       } else if (state.mode === 'deleting') {
+        let deleted = false;
         const bid = Object.keys(circuit.blocks).find(id => {
           const b = circuit.blocks[id];
           return b.pos.r === cell.r && b.pos.c === cell.c;
@@ -276,6 +278,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               delete circuit.wires[wid];
             }
           });
+          deleted = true;
         } else {
           Object.keys(circuit.wires).forEach(id => {
             const w = circuit.wires[id];
@@ -283,11 +286,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               const endB = circuit.blocks[w.endBlockId];
               if (endB) endB.inputs = (endB.inputs || []).filter(x => x !== w.startBlockId);
               delete circuit.wires[id];
+              deleted = true;
             }
           });
         }
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
+        handled = deleted;
       } else {
         const bid = Object.keys(circuit.blocks).find(id => {
           const b = circuit.blocks[id];
@@ -295,15 +300,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         });
         if (bid) {
           state.dragCandidate = { id: bid, start: cell };
+          handled = true;
         }
       }
     }
+    return handled;
   }
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
-    e.preventDefault();
-    handlePointerDown(e);
+    const handled = handlePointerDown(e);
+    if (handled) e.preventDefault();
   }, { passive: false });
 
   function handlePointerUp(e) {
@@ -493,8 +500,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
-    e.preventDefault();
     handlePointerMove(e);
+    if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
+      e.preventDefault();
+    }
   }, { passive: false });
 
   function handleDocMove(e) {
