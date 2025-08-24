@@ -4969,168 +4969,12 @@ async function gradeProblemCanvas(key, problem) {
 
 // ----- GIF 캡처 기능 -----
 
-function getCircuitSnapshot() {
-  const blocks = Array.from(grid.querySelectorAll('.cell.block'));
-  const values = new Map();
-  blocks
-    .filter(b => b.dataset.type === 'INPUT')
-    .forEach(b => values.set(b, b.dataset.value === '1'));
-
-  let changed = true;
-  while (changed) {
-    changed = false;
-    for (const node of blocks) {
-      const oldVal = values.get(node);
-      const newVal = computeBlock(node, values);
-      if (newVal !== undefined && newVal !== oldVal) {
-        values.set(node, newVal);
-        changed = true;
-      }
-    }
-  }
-
-  const blockSnap = blocks.map(b => ({
-    row: b.row,
-    col: b.col,
-    type: b.dataset.type,
-    name: b.dataset.name || b.dataset.type,
-    active: values.get(b) || false
-  }));
-
-  const wireSnap = wires.map(w => ({
-    path: w.path.map(c => ({ row: c.row, col: c.col })),
-    active: values.get(w.start) || false
-  }));
-
-  const rows = Math.max(1, Math.floor(Number(GRID_ROWS)));
-  const cols = Math.max(1, Math.floor(Number(GRID_COLS)));
-
-  // 회로가 차지하는 최소/최대 행열 계산
-  let minRow = rows, maxRow = 0, minCol = cols, maxCol = 0;
-  blockSnap.forEach(b => {
-    if (b.row < minRow) minRow = b.row;
-    if (b.row > maxRow) maxRow = b.row;
-    if (b.col < minCol) minCol = b.col;
-    if (b.col > maxCol) maxCol = b.col;
-  });
-  wireSnap.forEach(w => {
-    w.path.forEach(p => {
-      if (p.row < minRow) minRow = p.row;
-      if (p.row > maxRow) maxRow = p.row;
-      if (p.col < minCol) minCol = p.col;
-      if (p.col > maxCol) maxCol = p.col;
-    });
-  });
-  if (minRow > maxRow || minCol > maxCol) {
-    minRow = minCol = 0;
-    maxRow = maxCol = 0;
-  }
-
-  return {
-    blocks: blockSnap,
-    wires: wireSnap,
-    rows,
-    cols,
-    totalFrames: 16,
-    minRow,
-    maxRow,
-    minCol,
-    maxCol
-  };
-}
-
-function drawRoundedRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-}
-
-function drawCaptureFrame(ctx, state, frame, scale = 1) {
-  const cellSize = 50 * scale;
-  const gap = 2 * scale;
-  const border = 2 * scale;
-  const rows = state.rows;
-  const cols = state.cols;
-  const radius = 4 * scale;
-
-  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-  ctx.fillStyle = '#fff';
-  ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
-
-  const wireCells = new Set();
-  state.wires.forEach(w => w.path.forEach(p => wireCells.add(`${p.row},${p.col}`)));
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const x = border + c * (cellSize + gap);
-      const y = border + r * (cellSize + gap);
-      ctx.fillStyle = wireCells.has(`${r},${c}`) ? '#ffe' : '#fff';
-      ctx.strokeStyle = '#ccc';
-      ctx.lineWidth = 1 * scale;
-      drawRoundedRect(ctx, x, y, cellSize, cellSize, radius);
-      ctx.fill();
-      ctx.stroke();
-    }
-  }
-
-  state.wires.forEach(w => {
-    const pts = w.path.map(p => ({
-      x: border + p.col * (cellSize + gap) + cellSize / 2,
-      y: border + p.row * (cellSize + gap) + cellSize / 2
-    }));
-
-    ctx.save();
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2 * scale;
-    ctx.setLineDash([16 * scale, 16 * scale]);
-    ctx.lineDashOffset = -(frame * 2 * scale);
-    ctx.beginPath();
-    ctx.moveTo(pts[0].x, pts[0].y);
-    for (let i = 1; i < pts.length; i++) {
-      ctx.lineTo(pts[i].x, pts[i].y);
-    }
-    ctx.stroke();
-    ctx.restore();
-  });
-
-  state.blocks.forEach(b => {
-    const x = border + b.col * (cellSize + gap);
-    const y = border + b.row * (cellSize + gap);
-    ctx.fillStyle = '#e0e0ff';
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 1 * scale;
-    drawRoundedRect(ctx, x, y, cellSize, cellSize, radius);
-    ctx.fill();
-    ctx.stroke();
-    ctx.fillStyle = '#000';
-    ctx.font = 'bold ' + (cellSize / 3) + 'px "Noto Sans KR"';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const label = b.type === 'JUNCTION' ? 'JUNC' : (b.name || b.type || '');
-    ctx.fillText(label, x + cellSize / 2, y + cellSize / 2);
-  });
-
-  ctx.lineWidth = border;
-  ctx.strokeStyle = '#666';
-  ctx.strokeRect(border / 2, border / 2, ctx.canvas.width - border, ctx.canvas.height - border);
-}
-
 async function captureGIF(onFinish) {
-  const bgCanvas = document.getElementById('bgCanvas');
-  const contentCanvas = document.getElementById('contentCanvas');
-  const overlayCanvas = document.getElementById('overlayCanvas');
-  if (!bgCanvas || !contentCanvas || !overlayCanvas) return;
+  const canvases = document.querySelectorAll('#canvasContainer canvas');
+  if (canvases.length === 0) return;
 
-  const width = contentCanvas.width;
-  const height = contentCanvas.height;
+  const width = canvases[0].width;
+  const height = canvases[0].height;
 
   const tempCanvas = document.createElement('canvas');
   tempCanvas.width = width;
@@ -5142,9 +4986,7 @@ async function captureGIF(onFinish) {
 
   for (let f = 0; f < totalFrames; f++) {
     tempCtx.clearRect(0, 0, width, height);
-    tempCtx.drawImage(bgCanvas, 0, 0);
-    tempCtx.drawImage(contentCanvas, 0, 0);
-    tempCtx.drawImage(overlayCanvas, 0, 0);
+    canvases.forEach(c => tempCtx.drawImage(c, 0, 0));
     gif.addFrame(tempCanvas, { delay: 50, copy: true });
     await new Promise(r => setTimeout(r, 50));
   }
