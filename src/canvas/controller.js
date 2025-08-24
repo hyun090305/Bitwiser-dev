@@ -131,6 +131,19 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (usedWiresEl) usedWiresEl.textContent = wireCells.size;
   }
 
+  function syncPaletteWithCircuit() {
+    paletteItems.forEach(it => {
+      if (it.type === 'INPUT' || it.type === 'OUTPUT') {
+        const exists = Object.values(circuit.blocks).some(
+          b => b.type === it.type && b.name === it.label
+        );
+        it.hidden = exists;
+      }
+    });
+    redrawPanel();
+    updateUsageCounts();
+  }
+
   function blockAt(cell) {
     return Object.values(circuit.blocks).find(b => b.pos.r === cell.r && b.pos.c === cell.c);
   }
@@ -564,5 +577,5 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   updateUsageCounts();
-  return { state, circuit, startBlockDrag };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit };
 }

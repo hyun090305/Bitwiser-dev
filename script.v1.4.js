@@ -3423,6 +3423,8 @@ function loadCircuit(key) {
   circuit.blocks = data.circuit.blocks || {};
   circuit.wires = data.circuit.wires || {};
   markCircuitModified();
+  const controller = window.playController || window.problemController;
+  controller?.syncPaletteWithCircuit?.();
 }
 
 function highlightOutputErrors() {
