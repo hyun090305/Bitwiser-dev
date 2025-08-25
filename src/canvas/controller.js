@@ -2,6 +2,9 @@ import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import { drawGrid, renderContent, setupCanvas, drawBlock, drawPanel } from './renderer.js';
 import { evaluateCircuit, startEngine } from './engine.js';
 
+let keydownHandler = null;
+let keyupHandler = null;
+
 // Convert pixel coordinates to cell indices (clamped to grid)
 export function pxToCell(x, y, circuit, offsetX = 0) {
   const r = Math.min(
@@ -213,7 +216,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
-  document.addEventListener('keydown', e => {
+  if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
+  keydownHandler = e => {
     if (e.key === 'Control') {
       state.mode = 'wireDrawing';
       updateButtons();
@@ -232,9 +236,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
     }
-  });
+  };
+  document.addEventListener('keydown', keydownHandler);
 
-  document.addEventListener('keyup', e => {
+  if (keyupHandler) document.removeEventListener('keyup', keyupHandler);
+  keyupHandler = e => {
     if (e.key === 'Control' && state.mode === 'wireDrawing') {
       state.mode = 'idle';
       state.wireTrace = [];
@@ -244,7 +250,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.mode = 'idle';
       updateButtons();
     }
-  });
+  };
+  document.addEventListener('keyup', keyupHandler);
 
   wireBtn?.addEventListener('click', () => {
     state.mode = state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing';
