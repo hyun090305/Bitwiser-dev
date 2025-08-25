@@ -728,15 +728,15 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
   GRID_COLS = cols;
   GRID_ROWS = rows;
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container) return Promise.resolve();
   const prefix = containerId === 'problemCanvasContainer' ? 'problem' : '';
   const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
   const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
   const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
 
-  import('./src/canvas/model.js').then(m => {
+  return import('./src/canvas/model.js').then(m => {
     const { makeCircuit } = m;
-    import('./src/canvas/controller.js').then(c => {
+    return import('./src/canvas/controller.js').then(c => {
       const { createController } = c;
       const circuit = makeCircuit(rows, cols);
       const controller = createController(
@@ -770,6 +770,7 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
       }
       // 새 그리드 크기에 맞춰 화면을 조정
       adjustGridZoom(containerId);
+      return controller;
     });
   });
 }
@@ -3042,14 +3043,14 @@ function placeFixedIO(problem) {
   window.playController?.placeFixedIO?.(problem);
 }
 
-function startCustomProblem(key, problem) {
+async function startCustomProblem(key, problem) {
   wires = [];
   currentCustomProblem = problem;
   currentCustomProblemKey = key;
   currentLevel = null;
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  setupGrid('canvasContainer', rows, cols, createPaletteForCustom(problem));
+  await setupGrid('canvasContainer', rows, cols, createPaletteForCustom(problem));
   clearGrid();
   placeFixedIO(problem);
   setGridDimensions(rows, cols);
