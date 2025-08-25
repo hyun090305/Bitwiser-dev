@@ -279,19 +279,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         });
         if (bid) {
           const b = circuit.blocks[bid];
-          if (b && (b.type === 'INPUT' || b.type === 'OUTPUT')) {
-            showPaletteItem(b.type, b.name);
-          }
-          delete circuit.blocks[bid];
-          Object.keys(circuit.wires).forEach(wid => {
-            const w = circuit.wires[wid];
-            if (w.startBlockId === bid || w.endBlockId === bid) {
-              const endB = circuit.blocks[w.endBlockId];
-              if (endB) endB.inputs = (endB.inputs || []).filter(x => x !== w.startBlockId);
-              delete circuit.wires[wid];
+          if (!b.fixed) {
+            if (b && (b.type === 'INPUT' || b.type === 'OUTPUT')) {
+              showPaletteItem(b.type, b.name);
             }
-          });
-          deleted = true;
+            delete circuit.blocks[bid];
+            Object.keys(circuit.wires).forEach(wid => {
+              const w = circuit.wires[wid];
+              if (w.startBlockId === bid || w.endBlockId === bid) {
+                const endB = circuit.blocks[w.endBlockId];
+                if (endB) endB.inputs = (endB.inputs || []).filter(x => x !== w.startBlockId);
+                delete circuit.wires[wid];
+              }
+            });
+            deleted = true;
+          }
+          handled = true;
         } else {
           Object.keys(circuit.wires).forEach(id => {
             const w = circuit.wires[id];
@@ -312,7 +315,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           return b.pos.r === cell.r && b.pos.c === cell.c;
         });
         if (bid) {
-          state.dragCandidate = { id: bid, start: cell };
+          const b = circuit.blocks[bid];
+          if (!b.fixed) {
+            state.dragCandidate = { id: bid, start: cell };
+          }
           handled = true;
         }
       }
