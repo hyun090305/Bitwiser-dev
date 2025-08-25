@@ -2813,10 +2813,6 @@ function isLevelUnlocked(level) {
   return true;
 }
 
-
-  }
-}
-
 function getCurrentController() {
   const problemScreen = document.getElementById("problem-screen");
   if (problemScreen && problemScreen.style.display !== "none") {
