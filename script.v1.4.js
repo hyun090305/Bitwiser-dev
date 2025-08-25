@@ -443,7 +443,6 @@ window.addEventListener("DOMContentLoaded", () => {
       returnToEditScreen();
       startLevel(currentLevel + 1);   // 다음 스테이지 시작
     });
-    enableTouchDrag();
     return loadClearedLevelsFromDb();
   });
   initialTasks.push(stageDataPromise);
