@@ -280,8 +280,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
       const cell = pxToCell(x, y, circuit, panelTotalWidth);
       if (state.mode === 'wireDrawing') {
-        state.wireTrace = [coord(cell.r, cell.c)];
-        handled = true;
+        if (blockAt(cell)) {
+          state.wireTrace = [coord(cell.r, cell.c)];
+          handled = true;
+        }
       } else if (state.mode === 'deleting') {
         let deleted = false;
         const bid = Object.keys(circuit.blocks).find(id => {
