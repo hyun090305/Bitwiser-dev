@@ -221,10 +221,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.mode = 'deleting';
       updateButtons();
     } else if (e.key.toLowerCase() === 'r') {
-      circuit.blocks = {};
+      if (!confirm(window.t('confirmDeleteAll'))) return;
+      const fixed = {};
+      Object.entries(circuit.blocks).forEach(([id, b]) => {
+        if (b.fixed) fixed[id] = b;
+      });
+      circuit.blocks = fixed;
       circuit.wires = {};
-      paletteItems.forEach(it => it.hidden = false);
-      redrawPanel();
+      syncPaletteWithCircuit();
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
     }
