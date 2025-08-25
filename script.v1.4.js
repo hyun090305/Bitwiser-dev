@@ -11,6 +11,13 @@ let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 let lastSavedKey = null;
 let pendingClearedLevel = null;
 
+// Preload heavy canvas modules so they are ready when a stage begins.
+// This reduces the delay caused by dynamic imports later in the game.
+['./src/canvas/model.js',
+ './src/canvas/controller.js',
+ './src/canvas/engine.js',
+ './src/canvas/renderer.js'].forEach(p => import(p));
+
 const circuitErrorMsg = document.getElementById('circuitError');
 let circuitHasError = false;
 function showCircuitError(show) {
