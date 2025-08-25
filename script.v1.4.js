@@ -3756,6 +3756,27 @@ async function gradeLevelCanvas(level) {
   gradingArea.appendChild(summary);
 
   if (allCorrect) {
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
+    let saveSuccess = false;
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess = true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
+      }
+    }
+    if (saveSuccess) showCircuitSavedModal();
+
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
     const nickname = localStorage.getItem('username') || '익명';
