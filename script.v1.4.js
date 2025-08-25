@@ -1556,7 +1556,6 @@ document.addEventListener("DOMContentLoaded", () => {
   initialTasks.push(showOverallRanking());  // 전체 랭킹 표시
   initialTasks.push(setupGoogleAuth());
 
-  setupKeyToggles();
   setupMenuToggle();
   setupSettings();
   setupGameAreaPadding();
