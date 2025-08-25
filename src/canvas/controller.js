@@ -460,25 +460,26 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           updateButtons();
           return;
         }
-        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-        overlayCtx.save();
-        overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
-        overlayCtx.lineWidth = 2;
-        overlayCtx.setLineDash([8, 8]);
-        overlayCtx.beginPath();
-        overlayCtx.moveTo(
-          panelTotalWidth + GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
-          GAP + state.wireTrace[0].r * (CELL + GAP) + CELL / 2
-        );
-        state.wireTrace.forEach(p => {
-          overlayCtx.lineTo(
-            panelTotalWidth + GAP + p.c * (CELL + GAP) + CELL / 2,
-            GAP + p.r * (CELL + GAP) + CELL / 2
-          );
-        });
-        overlayCtx.stroke();
-        overlayCtx.restore();
       }
+      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      overlayCtx.save();
+      overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
+      overlayCtx.lineWidth = 2;
+      overlayCtx.setLineDash([8, 8]);
+      overlayCtx.beginPath();
+      overlayCtx.moveTo(
+        panelTotalWidth + GAP + state.wireTrace[0].c * (CELL + GAP) + CELL / 2,
+        GAP + state.wireTrace[0].r * (CELL + GAP) + CELL / 2
+      );
+      state.wireTrace.forEach(p => {
+        overlayCtx.lineTo(
+          panelTotalWidth + GAP + p.c * (CELL + GAP) + CELL / 2,
+          GAP + p.r * (CELL + GAP) + CELL / 2
+        );
+      });
+      overlayCtx.lineTo(x, y);
+      overlayCtx.stroke();
+      overlayCtx.restore();
     } else {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pxToCell(x, y, circuit, panelTotalWidth);
