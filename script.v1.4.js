@@ -2485,6 +2485,9 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
 // 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
 const addRowBtn = document.getElementById('addTestcaseRowBtn');
 if (addRowBtn) addRowBtn.style.display = 'none';
+const computeOutputsBtn = document.getElementById('computeOutputsBtn');
+if (computeOutputsBtn)
+  computeOutputsBtn.addEventListener('click', computeProblemOutputs);
 if (saveProblemBtn) saveProblemBtn.addEventListener('click', () => {
   problemTitleInput.value = '';
   problemDescInput.value = '';
@@ -2601,20 +2604,34 @@ function addTestcaseRow() {
 
 // ----- 사용자 정의 문제 저장/불러오기 -----
 function getProblemGridData() {
-  return Array.from(document.querySelectorAll('#problemGrid .cell')).map(cell => ({
-    index: +cell.dataset.index,
-    type: cell.dataset.type || null,
-    name: cell.dataset.name || null,
-    value: cell.dataset.value || null,
-    classes: Array.from(cell.classList).filter(c => c !== 'cell')
+  const circuit = window.problemCircuit;
+  if (!circuit) return [];
+  return Object.values(circuit.blocks).map(b => ({
+    index: b.pos.r * GRID_COLS + b.pos.c,
+    type: b.type || null,
+    name: b.name || null,
+    value: b.type === 'INPUT' ? (b.value ? '1' : '0') : null,
+    classes: b.fixed ? ['fixed'] : []
   }));
 }
 
 function getProblemWireData() {
-  return Array.from(document.querySelectorAll('#problemGrid .cell.wire')).map(cell => {
-    const dir = Array.from(cell.classList).find(c => c.startsWith('wire-')).split('-')[1];
-    return { x: cell.col, y: cell.row, dir };
+  const circuit = window.problemCircuit;
+  if (!circuit) return [];
+  const wires = [];
+  Object.values(circuit.wires).forEach(w => {
+    for (let i = 0; i < w.path.length - 1; i++) {
+      const a = w.path[i];
+      const b = w.path[i + 1];
+      let dir = '';
+      if (b.r > a.r) dir = 'down';
+      else if (b.r < a.r) dir = 'up';
+      else if (b.c > a.c) dir = 'right';
+      else if (b.c < a.c) dir = 'left';
+      wires.push({ x: a.c, y: a.r, dir });
+    }
   });
+  return wires;
 }
 
 function getProblemTruthTable() {
@@ -2635,6 +2652,18 @@ function getProblemTruthTable() {
 }
 
 function collectProblemData() {
+  const circuit = window.problemCircuit;
+  const wiresObj = circuit
+    ? Object.values(circuit.wires).map(w => ({
+        startIdx:
+          circuit.blocks[w.startBlockId].pos.r * GRID_COLS +
+          circuit.blocks[w.startBlockId].pos.c,
+        endIdx:
+          circuit.blocks[w.endBlockId].pos.r * GRID_COLS +
+          circuit.blocks[w.endBlockId].pos.c,
+        pathIdxs: w.path.map(p => p.r * GRID_COLS + p.c)
+      }))
+    : [];
   return {
     title: document.getElementById('problemTitleInput').value.trim(),
     description: document.getElementById('problemDescInput').value.trim(),
@@ -2646,11 +2675,7 @@ function collectProblemData() {
     table: getProblemTruthTable(),
     grid: getProblemGridData(),
     wires: getProblemWireData(),
-    wiresObj: wires.map(w => ({
-      startIdx: +w.start.dataset.index,
-      endIdx: +w.end.dataset.index,
-      pathIdxs: w.path.map(c => +c.dataset.index)
-    })),
+    wiresObj,
     creator: localStorage.getItem('username') || '익명',
     timestamp: new Date().toISOString()
   };
@@ -2667,6 +2692,10 @@ function saveProblem() {
   if (!desc) {
     alert(t('problemDescRequired'));
     problemDescInput.focus();
+    return false;
+  }
+  if (!problemOutputsValid) {
+    alert(t('computeOutputsFirst'));
     return false;
   }
   const data = collectProblemData();
@@ -3017,9 +3046,17 @@ function placeFixedIO(problem) {
       const r = Math.floor(state.index / GRID_COLS);
       const c = state.index % GRID_COLS;
       const id = 'fixed_' + state.name + '_' + state.index;
-      circuit.blocks[id] = { id, type: state.type, name: state.name, pos: { r, c }, value: state.type === 'INPUT' ? (state.value === '1') : false };
+      circuit.blocks[id] = {
+        id,
+        type: state.type,
+        name: state.name,
+        pos: { r, c },
+        value: state.type === 'INPUT' ? (state.value === '1') : false,
+        fixed: true
+      };
     }
   });
+  window.playController?.syncPaletteWithCircuit?.();
 }
 
 function startCustomProblem(key, problem) {
@@ -3499,4 +3536,38 @@ function createPaletteForCustom(problem) {
   }
   ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
   return buildPaletteGroups(blocks);
+}
+
+async function computeProblemOutputs() {
+  const circuit = window.problemCircuit;
+  if (!circuit) return;
+  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
+  const inNames = Array.from({ length: inputCnt }, (_, i) => 'IN' + (i + 1));
+  const outNames = Array.from({ length: outputCnt }, (_, i) => 'OUT' + (i + 1));
+
+  const blocks = Object.values(circuit.blocks);
+  const actualOutputs = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
+  const missing = outNames.filter(n => !actualOutputs.includes(n));
+  if (missing.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missing.join(', ')));
+    return;
+  }
+
+  const inputs = inNames.map(name => blocks.find(b => b.type === 'INPUT' && b.name === name));
+  const outputs = outNames.map(name => blocks.find(b => b.type === 'OUTPUT' && b.name === name));
+
+  const rows = document.querySelectorAll('#testcaseTable tbody tr');
+  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+  rows.forEach(tr => {
+    const cells = tr.querySelectorAll('td');
+    inputs.forEach((inp, i) => {
+      if (inp) inp.value = cells[i].textContent.trim() === '1';
+    });
+    evaluateCircuit(circuit);
+    outputs.forEach((out, j) => {
+      if (out) cells[inputCnt + j].textContent = out.value ? 1 : 0;
+    });
+  });
+  problemOutputsValid = true;
 }
