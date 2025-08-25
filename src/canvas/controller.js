@@ -90,6 +90,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     pointerMoved: false,
   };
 
+  let interactionEnabled = true;
+  function setInteractionEnabled(enabled) {
+    interactionEnabled = enabled;
+  }
+
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) =>
@@ -214,6 +219,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   document.addEventListener('keydown', e => {
+    if (!interactionEnabled) return;
     if (e.key === 'Control') {
       state.mode = 'wireDrawing';
       updateButtons();
@@ -231,6 +237,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   document.addEventListener('keyup', e => {
+    if (!interactionEnabled) return;
     if (e.key === 'Control' && state.mode === 'wireDrawing') {
       state.mode = 'idle';
       state.wireTrace = [];
@@ -253,6 +260,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function handlePointerDown(e) {
+    if (!interactionEnabled) return false;
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
@@ -327,6 +335,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   function handlePointerUp(e) {
+    if (!interactionEnabled) return;
     const { x, y } = getPointerPos(e);
     if (!state.pointerMoved && state.mode === 'idle') {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
@@ -422,7 +431,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCanvas.addEventListener('mouseup', handlePointerUp);
     overlayCanvas.addEventListener('touchend', handlePointerUp);
 
-    function handlePointerMove(e) {
+  function handlePointerMove(e) {
+    if (!interactionEnabled) return;
     const { x, y } = getPointerPos(e);
     if (state.pointerDown) {
       const dx = x - state.pointerDown.x;
@@ -520,7 +530,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   function handleDocMove(e) {
-    if (!state.draggingBlock) return;
+    if (!interactionEnabled || !state.draggingBlock) return;
     const rect = overlayCanvas.getBoundingClientRect();
     const point = e.touches?.[0] || e;
     if (point.clientX < rect.left || point.clientX >= rect.right || point.clientY < rect.top || point.clientY >= rect.bottom) {
@@ -530,6 +540,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
+    if (!interactionEnabled) return;
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
       const scale = parseFloat(overlayCanvas.dataset.scale || '1');
@@ -606,5 +617,5 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, setInteractionEnabled };
 }
