@@ -12,6 +12,7 @@ let isMouseDown = false;
 let wireTrace = [];     // 드래그 경로
 let GRID_ROWS = 6;
 let GRID_COLS = 6;
+let wires = [];  // { path, start, end } 객체를 저장할 배열
 let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
@@ -99,6 +100,73 @@ function hideLoadingScreen() {
   if (el) el.style.display = 'none';
 }
 
+
+// --- 모바일 터치 기반 드래그 지원 폴리필 ---
+function enableTouchDrag() {
+  let dragEl = null;
+  const data = {};
+  const dt = {
+    setData: (t, v) => data[t] = v,
+    getData: t => data[t]
+  };
+
+  document.addEventListener('touchstart', e => {
+    const target = e.target.closest('[draggable="true"]');
+    if (!target) return;
+    dragEl = target;
+    data.text = '';
+    const ev = new Event('dragstart', { bubbles: true });
+    ev.dataTransfer = dt;
+    target.dispatchEvent(ev);
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (!dragEl) return;
+    const t = e.touches[0];
+    const el = document.elementFromPoint(t.clientX, t.clientY);
+    if (el) {
+      const over = new Event('dragover', { bubbles: true });
+      over.dataTransfer = dt;
+      el.dispatchEvent(over);
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  document.addEventListener('touchend', e => {
+    if (!dragEl) return;
+    const t = e.changedTouches[0];
+    let dropTarget = document.elementFromPoint(t.clientX, t.clientY);
+
+    // 드롭 가능 요소만 허용
+    if (dropTarget) {
+      const cell  = dropTarget.closest('.cell');
+      if (cell) {
+        const ctrlActive = e.ctrlKey || statusToggle.classList.contains('active');
+        if (!(ctrlActive && (!cell.dataset.type || cell.dataset.type === 'WIRE'))) {
+          dropTarget = cell;
+        } else {
+          dropTarget = null;
+        }
+      } else {
+        dropTarget = null;
+      }
+    }
+
+    if (dropTarget) {
+      const dropEv = new Event('drop', { bubbles: true });
+      dropEv.dataTransfer = dt;
+      dropTarget.dispatchEvent(dropEv);
+    }
+
+    const endEv = new Event('dragend', { bubbles: true });
+    endEv.dataTransfer = dt;
+    dragEl.dispatchEvent(endEv);
+    dragEl = null;
+  });
+}
+
+
+
 let levelTitles = {};
 let levelGridSizes = {};
 let levelBlockSets = {};
@@ -123,6 +191,17 @@ function loadStageData() {
     });
 }
 
+
+
+const validWireShapes = [
+  ["wire-up", "wire-down"],
+  ["wire-left", "wire-right"],
+  ["wire-up", "wire-right"],
+  ["wire-right", "wire-down"],
+  ["wire-down", "wire-left"],
+  ["wire-left", "wire-up"]
+];
+
 function isTextInputFocused() {
   const el = document.activeElement;
   if (!el) return false;
@@ -146,11 +225,628 @@ const problemMoveUpBtn    = document.getElementById('problemMoveUpBtn');
 const problemMoveDownBtn  = document.getElementById('problemMoveDownBtn');
 const problemMoveLeftBtn  = document.getElementById('problemMoveLeftBtn');
 const problemMoveRightBtn = document.getElementById('problemMoveRightBtn');
+let grid;
 
 function simulateKey(key, type = 'keydown') {
   const ev = new KeyboardEvent(type, { key, bubbles: true });
   document.dispatchEvent(ev);
 }
+
+function setupKeyToggles() {
+  const bindings = [
+    [statusToggle, 'Control'],
+    [deleteToggle, 'Shift'],
+    [resetToggle, 'r'],
+    [problemStatusToggle, 'Control'],
+    [problemDeleteToggle, 'Shift'],
+    [problemResetToggle, 'r']
+  ];
+
+  bindings.forEach(([btn, key]) => {
+    if (!btn) return;
+    if (key.toLowerCase() === 'r') {
+      btn.addEventListener('click', () => {
+        btn.classList.add('active');
+        simulateKey(key, 'keydown');
+        simulateKey(key, 'keyup');
+        setTimeout(() => btn.classList.remove('active'), 150);
+      });
+    } else {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const active = !btn.classList.contains('active');
+        bindings
+          .filter(([, k]) => k === key)
+          .forEach(([b]) => b.classList.toggle('active', active));
+        simulateKey(key, active ? 'keydown' : 'keyup');
+      });
+    }
+  });
+
+  document.addEventListener('keydown', e => {
+    if (isTextInputFocused() && e.key.toLowerCase() === 'r') {
+      bindings.forEach(([btn, key]) => {
+        if (key.toLowerCase() === 'r') btn.classList.remove('active');
+      });
+      return;
+    }
+    bindings.forEach(([btn, key]) => {
+      if (e.key === key) {
+        btn.classList.add('active');
+        if (key.toLowerCase() === 'r') {
+          setTimeout(() => btn.classList.remove('active'), 150);
+        }
+      }
+    });
+  });
+
+  document.addEventListener('keyup', e => {
+    bindings.forEach(([btn, key]) => {
+      if (e.key === key && key.toLowerCase() !== 'r') {
+        btn.classList.remove('active');
+      }
+    });
+  });
+}
+
+// (2) 페이지 로드 시 INPUT 블록 클릭으로 0↔1 토글 준비
+//setupInputToggles();
+
+/*--------------------------------------------------
+  3.  Grid 셀 생성 + 기본 Drag&Drop
+--------------------------------------------------*/
+
+
+/*--------------------------------------------------
+  4.  Wire 드래그 트래킹
+--------------------------------------------------*/
+
+// ——— wire 미리보기 완전 삭제 함수 ———
+function clearWirePreview() {
+  // 기존에는 페이지 내의 모든 그리드 셀을 탐색하던 탓에
+  // 문제 제작 화면에서 게임 화면으로 돌아왔을 때 숨겨진 셀까지
+  // 영향받아 회로 계산이 잘못되는 문제가 있었다.
+  // 현재 활성화된 grid 내부에서만 처리하도록 수정한다.
+  grid.querySelectorAll('.cell.wire-preview').forEach(cell => {
+    cell.classList.remove('wire-preview');
+  });
+}
+
+// ——— wire 그리기 취소 헬퍼 함수 ———
+function cancelWireDrawing() {
+  if (!isWireDrawing) return;
+  isWireDrawing = false;
+  wireTrace = [];
+  clearWirePreview();          // ① 미리보기 클래스 제거
+}
+
+
+
+
+function track(ev) {
+  const el = document.elementFromPoint(ev.clientX, ev.clientY);
+  if (!el || !el.classList.contains("cell")) return;
+
+  const last = wireTrace.at(-1);
+  if (el === last) return;
+
+  const elIdx = +el.dataset.index;
+
+  // ▶ 되돌아가는 경우 막기 (이전 셀로 역방향 이동 시 무시)
+  if (wireTrace.length >= 2) {
+    const prev = wireTrace[wireTrace.length - 2];
+    if (+prev.dataset.index === elIdx) return;
+  }
+
+  fillLShapeGap(last, el).forEach(mid => {
+    if (!mid || wireTrace.includes(mid) || mid.dataset.type === "WIRE") return;
+    mid.classList.add("wire-preview");
+    wireTrace.push(mid);
+  });
+
+  el.classList.add("wire-preview");
+  if (!wireTrace.includes(el)) {
+    el.classList.add("wire-preview");
+    wireTrace.push(el);
+  }
+  el.classList.add("wire-preview");
+}
+
+function trackTouch(e) {
+  const t = e.touches && e.touches[0];
+  if (!t) return;
+  track({ clientX: t.clientX, clientY: t.clientY });
+  e.preventDefault();
+}
+
+function finishTouch(e) {
+  document.removeEventListener("touchmove", trackTouch);
+  document.removeEventListener("touchend", finishTouch);
+  const t = e.changedTouches && e.changedTouches[0];
+  if (!t) return;
+  const target = document.elementFromPoint(t.clientX, t.clientY);
+  finish({ clientX: t.clientX, clientY: t.clientY, target });
+  e.preventDefault();
+}
+
+function gridTouchMove(e) {
+  if (!isWireDrawing) return;
+  if (wireTrace.length === 0) return;
+  const t = e.touches && e.touches[0];
+  if (!t) return;
+  const el = document.elementFromPoint(t.clientX, t.clientY);
+  const cell = el?.closest(".cell");
+  if (!cell) return;
+
+  const idx = parseInt(cell.dataset.index, 10);
+  const lastIdx = Number(wireTrace.at(-1).dataset.index);
+  if (idx === lastIdx) return;
+
+  const path = getInterpolatedIndices(lastIdx, idx);
+  path.forEach(i => {
+    const cellEl = grid.children[i];
+    if (!wireTrace.includes(cellEl)) {
+      cellEl.classList.add("wire-preview");
+      wireTrace.push(cellEl);
+    }
+  });
+  e.preventDefault();
+}
+
+// 셀 인덱스(문자열) → [row, col] 좌표
+function indexToCoord1(idx) {
+  const i = +idx;
+  return [Math.floor(i / GRID_COLS), i % GRID_COLS];
+}
+
+// 두 셀이 그리드 상에서 인접한지 확인 (맨해튼 거리 1)
+function areAdjacent(cellA, cellB) {
+  const [r1, c1] = indexToCoord1(cellA.dataset.index);
+  const [r2, c2] = indexToCoord1(cellB.dataset.index);
+  return Math.abs(r1 - r2) + Math.abs(c1 - c2) === 1;
+}
+
+function finish(e) {
+  // 1) 리스너 해제
+  document.removeEventListener("mousemove", track);
+  document.removeEventListener("mouseup", finish);
+  document.removeEventListener("touchmove", trackTouch);
+  document.removeEventListener("touchend", finishTouch);
+  isMouseDown = false;
+  const middle = wireTrace.slice(1, -1);
+  if (middle.some(c => c.dataset.type)) {
+    // 미리보기 지우고 원상복구
+    wireTrace.forEach(c => c.classList.remove("wire-preview"));
+    wireTrace = [];
+    isWireDrawing = false;
+    statusToggle.classList.remove("active");
+    return;
+  }
+  // 2) 드롭한 셀 확인 & 마지막에 추가
+  let dropCell = e.target.closest(".cell");
+  if (!dropCell || !grid.contains(dropCell)) dropCell = null;
+  if (dropCell && dropCell !== wireTrace.at(-1)) {
+    dropCell.classList.add("wire-preview");
+    wireTrace.push(dropCell);
+  }
+
+  // 3) 인접성 검사: wireTrace 상의 모든 인접 쌍이 실제 그리드에서 옆 칸인지 확인
+  for (let i = 1; i < wireTrace.length; i++) {
+    if (!areAdjacent(wireTrace[i - 1], wireTrace[i])) {
+      // 비인접 이동이 있으면 전부 취소
+      wireTrace.forEach(c => c.classList.remove("wire-preview"));
+      wireTrace = [];
+      isWireDrawing = false;
+      statusToggle.classList.remove("active");
+      return;
+    }
+  }
+
+  // 4) 기존 조건 검사
+  const start = wireTrace[0];
+  const end = wireTrace.at(-1);
+  const startIsBlock = start.dataset.type && start.dataset.type !== "WIRE";
+  const endIsBlock = end.dataset.type && end.dataset.type !== "WIRE";
+  const hasOldWire = wireTrace.some(c => c.dataset.type === "WIRE");
+
+  // 5) 실제 그리기 or 취소
+  if (startIsBlock && endIsBlock && wireTrace.length > 2 && !hasOldWire) {
+    drawWirePath(wireTrace);
+  } else {
+    // 조건 하나라도 만족 못 하면 전부 취소
+    wireTrace.forEach(c => c.classList.remove("wire-preview"));
+  }
+
+  // 6) 리셋
+  wireTrace = [];
+  isWireDrawing = false;
+  statusToggle.classList.remove("active");
+}
+
+/*--------------------------------------------------
+  5.  보조 함수
+--------------------------------------------------*/
+function fillLShapeGap(prev, curr) {
+  const pi = +prev.dataset.index, ci = +curr.dataset.index;
+  const pr = Math.floor(pi / GRID_COLS), pc = pi % GRID_COLS;
+  const cr = Math.floor(ci / GRID_COLS), cc = ci % GRID_COLS;
+
+  if (pr !== cr && pc !== cc) {                 // 대각선으로 건너뛴 경우
+    const mids = [];
+
+    // (1) prev 바로 위·아래 세로 칸
+    const vIdx = cr > pr ? pi + GRID_COLS : pi - GRID_COLS;
+    const vMid = grid.children[vIdx];
+    if (vMid && !vMid.dataset.type && !wireTrace.includes(vMid)) mids.push(vMid);
+
+    // (2) prev 바로 좌·우 가로 칸
+    const hIdx = cc > pc ? pi + 1 : pi - 1;
+    const hMid = grid.children[hIdx];
+    if (hMid && !hMid.dataset.type && !wireTrace.includes(hMid)) mids.push(hMid);
+
+    return mids;                                // 두 칸 모두 반환
+  }
+  return [];
+}
+
+// 인덱스 → {row, col}
+function indexToCoord(idx) {
+  return {
+    row: Math.floor(idx / GRID_COLS),
+    col: idx % GRID_COLS
+  };
+}
+
+// {row, col} → 인덱스
+function coordToIndex({ row, col }) {
+  return row * GRID_COLS + col;
+}
+
+// 두 셀 인덱스 사이의 “격자 보간” 경로를 반환
+// 이전: DOM 기반 경로 보간 함수
+function getInterpolatedIndices(fromIdx, toIdx) {
+  const p0 = indexToCoord(fromIdx);
+  const p1 = indexToCoord(toIdx);
+  const dx = p1.col - p0.col;
+  const dy = p1.row - p0.row;
+  const seq = [];
+
+  // 1) 가로 이동분 먼저 채우기
+  const stepX = dx === 0 ? 0 : dx / Math.abs(dx);
+  for (let i = 1; i <= Math.abs(dx); i++) {
+    seq.push(coordToIndex({ row: p0.row, col: p0.col + stepX * i }));
+  }
+
+  // 2) 세로 이동분 채우기
+  const stepY = dy === 0 ? 0 : dy / Math.abs(dy);
+  for (let i = 1; i <= Math.abs(dy); i++) {
+    seq.push(coordToIndex({ row: p0.row + stepY * i, col: p1.col }));
+  }
+
+  return seq;
+}
+
+
+// wire 모드 해제 (다른 곳 클릭 시)
+document.addEventListener("click", e => {
+  if (!e.target.closest('.toggle-key')) {
+    isWireDrawing = false;
+    statusToggle.classList.remove("active");
+  }
+});
+
+// 드래그 종료 시 INPUT/OUTPUT 복구
+
+
+function updateOneWireDirection(cell) {
+  const index = parseInt(cell.dataset.index);
+  const gridSize = GRID_COLS;
+  // 다른 화면의 그리드 셀까지 포함하지 않도록 현재 grid 기준으로 조회
+  const cells = grid.querySelectorAll(".cell");
+
+  const row = Math.floor(index / gridSize);
+  const col = index % gridSize;
+  const dirs = [];
+
+  const dirOffsets = [
+    { dir: "wire-up", r: -1, c: 0 },
+    { dir: "wire-down", r: +1, c: 0 },
+    { dir: "wire-left", r: 0, c: -1 },
+    { dir: "wire-right", r: 0, c: +1 },
+  ];
+
+  for (const { dir, r, c } of dirOffsets) {
+    const newRow = row + r;
+    const newCol = col + c;
+    if (newRow < 0 || newRow >= gridSize || newCol < 0 || newCol >= gridSize) continue;
+
+    const neighborIndex = newRow * gridSize + newCol;
+    const neighbor = cells[neighborIndex];
+    if (neighbor.dataset.type === "WIRE") dirs.push(dir);
+  }
+
+  applyWireDirection(cell, dirs);
+}
+
+// 이전: DOM 기반 와이어 렌더링 함수 (Canvas 전환으로 미사용 예정)
+function drawWirePath(path) {
+  path.forEach(c => c.classList.remove("wire-preview"));
+  path.forEach(c => {
+    if (!c.dataset.type) {
+      c.dataset.type = "WIRE";
+      c.classList.add("wire");
+    }
+  });
+
+  const total = path.length;
+  for (let i = 0; i < total; i++) {
+    const cell = path[i];
+    const dirs = new Set();
+
+    // 시작 셀: 다음 셀 기준으로 방향 지정
+    if (i === 0 && total > 1) {
+      getDirectionBetween(cell, path[1]).forEach(d => dirs.add(d));
+    }
+    // 끝 셀: 이전 셀 기준으로 방향 지정
+    else if (i === total - 1 && total > 1) {
+      getDirectionBetween(cell, path[total - 2]).forEach(d => dirs.add(d));
+    }
+    // 중간 셀: 앞뒤 기준으로 방향 지정
+    else {
+      if (i > 0) getDirectionBetween(cell, path[i - 1]).forEach(d => dirs.add(d));
+      if (i < total - 1) getDirectionBetween(cell, path[i + 1]).forEach(d => dirs.add(d));
+    }
+
+    if (!cell.classList.contains('block')) {
+      applyWireDirection(cell, Array.from(dirs));
+    }
+  }
+  // ▶ 시작·끝 블록이 draggable이어야만 이동 가능
+  const start = path[0], end = path[path.length - 1];
+  if (start.dataset.type && start.dataset.type !== "WIRE") start.draggable = true;
+  if (end.dataset.type && end.dataset.type !== "WIRE") end.draggable = true;
+
+  wires.push({
+    path: [...path],       // Array<cell> 복사
+    start: path[0],        // 시작 블록 cell
+    end: path[path.length - 1]  // 끝 블록 cell
+  });
+  markCircuitModified();
+
+  evaluateCircuit();
+}
+function getNeighbourWireDirs(cell) {
+  const idx = +cell.dataset.index, g = GRID_COLS;
+  // 현재 보이는 grid의 셀만 고려한다
+  const cells = grid.querySelectorAll(".cell");
+  const map = [
+    { d: "wire-up", n: idx - g },
+    { d: "wire-down", n: idx + g },
+    { d: "wire-left", n: (idx % g !== 0) ? idx - 1 : -1 },
+    { d: "wire-right", n: (idx % g !== g - 1) ? idx + 1 : -1 }
+  ];
+  return map.reduce((out, { d, n }) => {
+    // ✅ 반드시 “현재 cell에 static 클래스 d가 붙어 있어야”  
+    // ✅ 그리고 이웃 셀이 실제 wire이어야
+    if (n >= 0 && n < cells.length
+      && cell.classList.contains(d)
+      && cells[n].dataset.type) {
+      out.push(d);
+    }
+    return out;
+  }, []);
+}
+
+
+function getDirectionBetween(fromCell, toCell) {
+  const from = parseInt(fromCell.dataset.index);
+  const to = parseInt(toCell.dataset.index);
+  const gridSize = GRID_COLS;
+  const fromRow = Math.floor(from / gridSize);
+  const fromCol = from % gridSize;
+  const toRow = Math.floor(to / gridSize);
+  const toCol = to % gridSize;
+
+  if (fromRow === toRow) {
+    if (fromCol - 1 === toCol) return ["wire-left"];
+    if (fromCol + 1 === toCol) return ["wire-right"];
+  }
+  if (fromCol === toCol) {
+    if (fromRow - 1 === toRow) return ["wire-up"];
+    if (fromRow + 1 === toRow) return ["wire-down"];
+  }
+  return [];
+}
+
+// 수정 후:
+// 이전: div 기반 와이어 방향 클래스 적용
+function applyWireDirection(cell, dirs) {
+  /* ▼▼▼ ① 교차 방지 필터  ▼▼▼ */
+  if (dirs.length > 2) {
+    const keep = [];
+    if (dirs.includes("wire-left") || dirs.includes("wire-right")) {
+      keep.push(dirs.includes("wire-left") ? "wire-left" : "wire-right");
+    }
+    if (dirs.includes("wire-up") || dirs.includes("wire-down")) {
+      keep.push(dirs.includes("wire-up") ? "wire-up" : "wire-down");
+    }
+    dirs = keep;   // 세 방향 이상일 때만 L자(두 방향)로 축소
+  }
+  /* ▲▲▲ ① 끝  ▲▲▲ */
+
+  /* ② 기존 코드: 클래스 리셋 및 재적용 */
+  cell.classList.remove(
+    'wire-up', 'wire-down', 'wire-left', 'wire-right',
+    'h', 'v', 'corner'
+  );
+  cell.classList.add(...dirs);
+
+  const plain = dirs.map(d => d.replace('wire-', ''));
+
+  /* ③ 애니메이션용 클래스 유지 로직(변경 없음) */
+  const horiz = plain.some(p => p === 'left' || p === 'right');
+  const vert = plain.some(p => p === 'up' || p === 'down');
+
+  if (horiz && vert) {
+    cell.classList.add('corner');     // ㄱ 셀
+  } else if (horiz) {
+    cell.classList.add('h');          // 가로 직선
+  } else if (vert) {
+    cell.classList.add('v');          // 세로 직선
+  }
+}
+
+
+
+/* 2) INPUT 블록 토글 설정 (0 ↔ 1) */
+function setupInputToggles() {
+  grid.querySelectorAll('.cell.block').forEach(cell => {
+    if (cell.dataset.type === 'INPUT') {
+      cell.dataset.value = '0';
+      cell.textContent = cell.dataset.name;
+      //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+      cell.addEventListener('click', () => {
+        cell.dataset.value = cell.dataset.value === '0' ? '1' : '0';
+        cell.textContent = cell.dataset.name;
+        //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+        cell.classList.toggle('active', cell.dataset.value === '1');
+
+        evaluateCircuit();
+      });
+    }
+  });
+
+}
+
+/* 3) 회로 평가 엔진 (BFS 기반) */
+// 이전: DOM 기반 회로 평가 로직
+function evaluateCircuit() {
+  showCircuitError(false);
+  // 1) 모든 블록과 INPUT 초기값 준비
+  const blocks = Array.from(grid.querySelectorAll('.cell.block'));
+  const values = new Map();
+  blocks
+    .filter(b => b.dataset.type === 'INPUT')
+    .forEach(b => values.set(b, b.dataset.value === '1'));
+
+  // 2) 값이 더 이상 바뀌지 않을 때까지 반복
+  let changed = true;
+  let iterations = 0;
+  while (changed) {
+    if (iterations++ > 1000) {
+      showCircuitError(true);
+      return;
+    }
+    changed = false;
+    for (const node of blocks) {
+      const oldVal = values.get(node);
+      const newVal = computeBlock(node, values);
+      // newVal이 정의되어 있고(oldVal과 달라졌다면) 업데이트
+      if (newVal !== undefined && newVal !== oldVal) {
+        values.set(node, newVal);
+        changed = true;
+      }
+    }
+  }
+
+  // 3) OUTPUT 블록 화면 갱신
+  blocks
+    .filter(b => b.dataset.type === 'OUTPUT')
+    .forEach(out => {
+      const v = values.get(out) || false;
+      out.textContent = out.dataset.name
+      out.dataset.val = v
+      out.classList.toggle('active', v);
+    });
+
+  // JUNCTION 블록의 현재 상태에 따라 테두리 점선 표시
+  blocks
+    .filter(b => b.dataset.type === 'JUNCTION')
+    .forEach(junction => {
+      const v = values.get(junction) || false;
+      junction.classList.toggle('active', v);
+    });
+
+  const allBlocks = Array.from(grid.querySelectorAll('.cell.block'));
+  allBlocks
+    .filter(b => b.dataset.type === "JUNCTION")
+    .forEach(junction => {
+      const inputs = getIncomingBlocks(junction);
+      if (inputs.length > 1) {
+        junction.classList.add("error");
+      } else {
+        junction.classList.remove("error");
+      }
+    });
+  highlightOutputErrors();
+}
+
+
+/* 4) 블록별 논리 연산 수행 */
+// 이전: DOM 기반 블록 연산 함수
+function computeBlock(node, values) {
+  const row = node.row;
+  const col = node.col;
+  const type = node.dataset.type;
+  const incoming = [];
+
+  // INPUT 블록은 자신의 값을 바로 반환
+  if (type === "INPUT") {
+    return values.get(node);
+  }
+
+  // 위쪽에서 들어오는 신호: wire-down 방향이면 인정
+  const upCell = getCell(row - 1, col);
+  if (upCell?.classList.contains("wire-down")) {
+    const src = getBlockNodeFlow(row - 1, col, node);
+    if (src) incoming.push(src);
+  }
+
+  // 아래쪽에서 들어오는 신호: wire-up 방향이면 인정
+  const downCell = getCell(row + 1, col);
+  if (downCell?.classList.contains("wire-up")) {
+    const src = getBlockNodeFlow(row + 1, col, node);
+    if (src) incoming.push(src);
+  }
+
+  // 왼쪽에서 들어오는 신호: wire-right 방향이면 인정
+  const leftCell = getCell(row, col - 1);
+  if (leftCell?.classList.contains("wire-right")) {
+    const src = getBlockNodeFlow(row, col - 1, node);
+    if (src) incoming.push(src);
+  }
+
+  // 오른쪽에서 들어오는 신호: wire-left 방향이면 인정
+  const rightCell = getCell(row, col + 1);
+  if (rightCell?.classList.contains("wire-left")) {
+    const src = getBlockNodeFlow(row, col + 1, node);
+    if (src) incoming.push(src);
+  }
+
+  const readyVals = incoming
+    .map(n => values.get(n))
+    .filter(v => v !== undefined);
+
+  switch (type) {
+    case "AND":
+      return readyVals.every(v => v);
+    case "OR":
+      return readyVals.some(v => v);
+    case "NOT":
+      return !readyVals[0];
+    case "OUTPUT":
+      return readyVals.some(v => v);
+    case "JUNCTION":
+      return readyVals[0];
+    default:
+      return undefined;
+  }
+}
+
+
+
+
 
 const mainScreen = document.getElementById("firstScreen");
 const chapterStageScreen = document.getElementById("chapterStageScreen");
@@ -246,6 +942,7 @@ document.getElementById("backToLevelsBtn").onclick = () => {
 async function startLevel(level) {
   await stageDataPromise;
   wireTrace = [];
+  wires = [];
   const [rows, cols] = levelGridSizes[level] || [6, 6];
   GRID_ROWS = rows;
   GRID_COLS = cols;
@@ -314,6 +1011,275 @@ document.addEventListener("keyup", (e) => {
     deleteToggle.classList.remove("active");
   }
 });
+
+function getIncomingBlocks(node) {
+  const row = node.row;
+  const col = node.col;
+  const incoming = [];
+
+  const check = (r, c, wireDir) => {
+    const cell = getCell(r, c);
+    if (cell?.classList.contains(wireDir)) {
+      const src = getBlockNodeFlow(r, c, node);
+      if (src) incoming.push(src);
+    }
+  };
+
+  // 위↓, 아래↑, 왼→, 오←
+  check(row - 1, col, 'wire-down');
+  check(row + 1, col, 'wire-up');
+  check(row, col - 1, 'wire-right');
+  check(row, col + 1, 'wire-left');
+
+  return incoming;
+}
+
+async function gradeLevelAnimated(level) {
+  const testCases = levelAnswers[level];
+  if (!testCases) return;
+
+  const allBlocks = Array.from(grid.querySelectorAll('.cell.block'));
+  let junctionError = false;
+
+  allBlocks
+    .filter(b => b.dataset.type === "JUNCTION")
+    .forEach(junction => {
+      const inputs = getIncomingBlocks(junction);
+      if (inputs.length > 1) {
+        junction.classList.add("error");
+        junctionError = true;
+      } else {
+        junction.classList.remove("error");
+      }
+    });
+
+  if (junctionError) {
+    alert("❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
+    if (overlay) overlay.style.display = "none";
+    isScoring = false;
+    return;
+  }
+  let outputError = false;
+  Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'))
+    .forEach(output => {
+      const inputs = getIncomingBlocks(output);
+      if (inputs.length > 1) {
+        output.classList.add("error");
+        outputError = true;
+      } else {
+        output.classList.remove("error");
+      }
+    });
+  if (outputError) {
+    alert("❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
+    if (overlay) overlay.style.display = "none";
+    isScoring = false;
+    return;
+  }
+  // 🔒 [1] 현재 레벨에 필요한 OUTPUT 블록 이름 확인
+  const requiredOutputs = levelBlockSets[level]
+    .filter(block => block.type === "OUTPUT")
+    .map(block => block.name);
+
+  // 🔍 현재 화면에 있는 OUTPUT 셀 조사
+  const actualOutputCells = Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'));
+  const actualOutputNames = actualOutputCells.map(cell => cell.dataset.name);
+
+  // 🔒 [2] 누락된 출력 블록이 있으면 채점 막기
+  const missingOutputs = requiredOutputs.filter(name => !actualOutputNames.includes(name));
+  if (missingOutputs.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
+    if (overlay) overlay.style.display = "none";
+    isScoring = false;
+    return;
+  }
+
+  let allCorrect = true;
+
+  // UI 전환
+  const bp = document.getElementById("blockPanel");
+  if (bp) bp.style.display = "none";
+  const rp = document.getElementById("rightPanel");
+  if (rp) rp.style.display = "none";
+  const ga = document.getElementById("gradingArea");
+  if (ga) ga.style.display = "block";
+  const gradingArea = document.getElementById("gradingArea");
+  gradingArea.innerHTML = "<b>채점 결과:</b><br><br>";
+
+  const inputs = grid.querySelectorAll('.cell.block[data-type="INPUT"]');
+  const outputs = grid.querySelectorAll('.cell.block[data-type="OUTPUT"]');
+
+  for (const test of testCases) {
+    inputs.forEach(input => {
+      const name = input.dataset.name;
+      const value = test.inputs[name] ?? 0;
+      input.dataset.value = String(value);
+      //input.textContent = `${name}(${value})`;
+      input.classList.toggle('active', value === 1);
+    });
+    evaluateCircuit();
+    await new Promise(r => setTimeout(r, 100));
+
+
+
+    let correct = true;
+
+    const actualText = Array.from(outputs)
+      .map(out => {
+        const name = out.dataset.name;
+        const actual = + JSON.parse(out.dataset.val);
+        const expected = test.expected[name];
+        if (actual !== expected) correct = false;
+        return `${name}=${actual}`;
+      }).join(", ");
+
+    const expectedText = Object.entries(test.expected)
+      .map(([k, v]) => `${k}=${v}`).join(", ");
+    const inputText = Object.entries(test.inputs)
+      .map(([k, v]) => `${k}=${v}`).join(", ");
+
+    if (!correct) allCorrect = false;
+
+    if (!document.getElementById("gradingTable")) {
+      gradingArea.innerHTML += `
+      <table id="gradingTable">
+        <thead>
+          <tr>
+            <th>${t('thInput')}</th>
+            <th>${t('thExpected')}</th>
+            <th>${t('thActual')}</th>
+            <th>${t('thResult')}</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    `;
+    }
+    const tbody = document.querySelector("#gradingTable tbody");
+
+    const tr = document.createElement("tr");
+    tr.className = correct ? "correct" : "wrong";
+
+    const tdInput = document.createElement("td");
+    tdInput.textContent = inputText;
+
+    const tdExpected = document.createElement("td");
+    tdExpected.textContent = expectedText;
+
+    const tdActual = document.createElement("td");
+    tdActual.textContent = actualText;
+
+    const tdResult = document.createElement("td");
+    tdResult.style.fontWeight = "bold";
+    tdResult.style.color = correct ? "green" : "red";
+    tdResult.textContent = correct ? "✅ 정답" : "❌ 오답";
+
+    tr.append(tdInput, tdExpected, tdActual, tdResult);
+    tbody.appendChild(tr);
+  }
+
+  const summary = document.createElement("div");
+  summary.id = "gradeResultSummary";
+  summary.textContent = allCorrect ? "🎉 모든 테스트를 통과했습니다!" : "😢 일부 테스트에 실패했습니다.";
+  gradingArea.appendChild(summary);
+
+  const returnBtn = document.createElement("button");
+  returnBtn.id = "returnToEditBtn";
+  returnBtn.textContent = t('returnToEditBtn');
+  gradingArea.appendChild(returnBtn);
+
+  document.getElementById("returnToEditBtn")?.addEventListener("click", returnToEditScreen);
+
+  if (allCorrect) {
+    const clearedCard = document.querySelector(`.stageCard[data-stage="${level}"]`);
+    if (clearedCard && !clearedCard.classList.contains("cleared")) {
+      clearedCard.classList.add("cleared");
+      markLevelCleared(level);
+    }
+
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
+    let saveSuccess = false;
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess = true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
+      }
+    }
+    const blocks = Array.from(grid.querySelectorAll(".cell.block"));
+
+    // ② 타입별 개수 집계
+    const blockCounts = blocks.reduce((acc, cell) => {
+      const t = cell.dataset.type;
+      acc[t] = (acc[t] || 0) + 1;
+      return acc;
+    }, {});
+
+    // ③ 도선 수 집계
+    const usedWires = grid.querySelectorAll(".cell.wire").length;
+    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
+    const nickname = localStorage.getItem("username") || "익명";
+    const rankingsRef = db.ref(`rankings/${level}`);
+
+    pendingClearedLevel = null;
+
+    // ① 내 기록 조회 (nickname 기준)
+    rankingsRef.orderByChild("nickname").equalTo(nickname)
+      .once("value", snapshot => {
+        if (!snapshot.exists()) {
+          // 내 기록이 없으면 새로 저장
+          saveRanking(level, blockCounts, usedWires, hintsUsed);
+          pendingClearedLevel = level;
+        } else {
+          let best = null;
+          snapshot.forEach(child => {
+            const e = child.val();
+            // 기존/새 블록 개수 합계
+            const oldBlocks = Object.values(e.blockCounts || {}).reduce((a, b) => a + b, 0);
+            const newBlocks = Object.values(blockCounts).reduce((a, b) => a + b, 0);
+            // 기존/새 도선 개수
+            const oldWires = e.usedWires;
+            const newWires = usedWires;
+
+            // ✅ 수정: 오직 성능이 엄격히 개선된 경우에만 best 할당
+            if (
+              newBlocks < oldBlocks
+              || (newBlocks === oldBlocks && newWires < oldWires)
+            ) {
+              best = { key: child.key };
+              // nickname 당 보통 한 건만 있으므로, 더 돌 필요 없으면 false 리턴
+              return false;
+            }
+          });
+
+          // ③ 개선된 경우에만 업데이트 (동일 성능이라면 best가 null이므로 건너뜀)
+          if (best) {
+            rankingsRef.child(best.key).update({
+              blockCounts,
+              usedWires,
+              hintsUsed,
+              timestamp: new Date().toISOString()
+            });
+            pendingClearedLevel = level;
+          }
+        }
+
+        if (saveSuccess) showCircuitSavedModal();
+      });
+
+
+  }
+}
 
 function returnToEditScreen() {
   // 채점 모드 해제
@@ -443,6 +1409,7 @@ window.addEventListener("DOMContentLoaded", () => {
       returnToEditScreen();
       startLevel(currentLevel + 1);   // 다음 스테이지 시작
     });
+    enableTouchDrag();
     return loadClearedLevelsFromDb();
   });
   initialTasks.push(stageDataPromise);
@@ -454,6 +1421,310 @@ function markLevelCleared(level) {
     refreshClearedUI();
     renderChapterList();
   }
+}
+
+/**
+* row, col이 범위를 벗어나면 null을, 아니면 그 위치의 .cell 요소를 돌려줍니다.
+*/
+function getCell(row, col) {
+  if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return null;
+  return grid.children[row * GRID_COLS + col];
+}
+
+/**
+ * getCell로 가져온 셀 중에서 block(=INPUT/OUTPUT/AND/OR/NOT)일 때만 돌려줍니다.
+ */
+// 이전에 사용하셨던 getBlockNode(…) 함수는 지우고, 아래로 대체하세요.
+function getBlockNode(startRow, startCol, excludeCell) {
+  const visited = new Set();
+  // 탐색 대상 블록(self)의 좌표도 미리 방문 처리
+  if (excludeCell) {
+    visited.add(`${excludeCell.row},${excludeCell.col}`);
+  }
+
+  function dfs(r, c) {
+    const key = `${r},${c}`;
+    if (visited.has(key)) return null;
+    visited.add(key);
+
+    const cell = getCell(r, c);
+    if (!cell) return null;
+
+    // 블록이면 바로 반환
+    if (cell.dataset.type && cell.dataset.type !== "WIRE") {
+      return cell;
+    }
+
+    // wire 셀 → 연결된 방향만 따라 재귀 탐색
+    const dirs = {
+      "wire-up": { dr: -1, dc: 0, opp: "wire-down" },
+      "wire-down": { dr: 1, dc: 0, opp: "wire-up" },
+      "wire-left": { dr: 0, dc: -1, opp: "wire-right" },
+      "wire-right": { dr: 0, dc: 1, opp: "wire-left" },
+    };
+
+    for (const [cls, { dr, dc, opp }] of Object.entries(dirs)) {
+      if (!cell.classList.contains(cls)) continue;
+      const nr = r + dr, nc = c + dc;
+      const nbCell = getCell(nr, nc);
+      if (!nbCell) continue;
+      const isWireConn = nbCell.dataset.type === "WIRE"
+        && nbCell.classList.contains(opp);
+      const isBlockConn = nbCell.dataset.type && nbCell.dataset.type !== "WIRE";
+      if (isWireConn || isBlockConn) {
+        const found = dfs(nr, nc);
+        if (found) return found;
+      }
+    }
+    return null;
+  }
+
+  return dfs(startRow, startCol);
+}
+
+/**
+ * 시작 좌표에서 블록까지 연결된 wire 경로를 역추적합니다.
+ * - wire-* static 클래스를 사용
+ * - 꺾인 코너(wire-up + wire-right 등)도 getNeighbourWireDirs로 모두 반환
+ */
+function getBlockNodeFlow(startRow, startCol, excludeNode) {
+  const visited = new Set();
+  if (excludeNode) {
+    visited.add(`${excludeNode.row},${excludeNode.col}`);
+  }
+
+  // wire 클래스 ↔ 좌표 오프셋 매핑
+  const dirOffsets = {
+    "wire-up": { dr: -1, dc: 0, opp: "wire-down" },
+    "wire-down": { dr: 1, dc: 0, opp: "wire-up" },
+    "wire-left": { dr: 0, dc: -1, opp: "wire-right" },
+    "wire-right": { dr: 0, dc: 1, opp: "wire-left" }
+  };
+
+  function dfs(r, c) {
+    const key = `${r},${c}`;
+    if (visited.has(key)) return null;
+    visited.add(key);
+
+    const cell = getCell(r, c);
+    if (!cell) return null;
+
+    // 블록이면 바로 반환
+    if (cell.dataset.type && cell.dataset.type !== "WIRE") {
+      return cell;
+    }
+
+    // 현재 wire 셀의 모든 static 연결 방향을 가져옴
+    // (코너인 경우 ['wire-up','wire-right'] 등 두 방향)
+    const neighbourDirs = getNeighbourWireDirs(cell);  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+
+    for (const dir of neighbourDirs) {
+      const { dr, dc, opp } = dirOffsets[dir];
+      const nr = r + dr, nc = c + dc;
+      const nb = getCell(nr, nc);
+      if (!nb) continue;
+
+      // 이웃 셀이 wire라면 반대 static 클래스도 있어야, 혹은 블록이면 OK
+      const isWireConn = nb.dataset.type === "WIRE"
+        && nb.classList.contains(opp);
+      const isBlockConn = nb.dataset.type && nb.dataset.type !== "WIRE";
+      if (!isWireConn && !isBlockConn) {
+        continue;
+      }
+
+      const found = dfs(nr, nc);
+      if (found) return found;
+    }
+
+    return null;
+  }
+
+  return dfs(startRow, startCol);
+}
+
+// 피드백 전송
+// 1) 방명록 등록 함수
+function submitGuestEntry() {
+  // 이전: 입력창 value 또는 익명 사용
+  // const name = document.getElementById("guestName").value.trim() || "익명";
+
+  // 수정: 로그인(모달)된 username을 사용
+  const name = localStorage.getItem("username") || "익명";
+
+  const msg = document.getElementById("guestMessage").value.trim();
+  if (!msg) return alert("내용을 입력해주세요!");
+
+  const entry = { name, message: msg, time: Date.now() };
+  db.ref("guestbook").push(entry, err => {
+    if (err) alert("전송에 실패했습니다.");
+    else document.getElementById("guestMessage").value = "";
+  });
+}
+
+// 2) 실시간 방명록 목록 업데이트
+db.ref("guestbook").on("value", snapshot => {
+  const list = document.getElementById("guestbookList");
+  list.innerHTML = "";
+  const entries = [];
+  snapshot.forEach(child => {
+    entries.push(child.val());
+    return false;  // 반드시 false를 리턴해야 계속 순회합니다
+  });
+  entries.sort((a, b) => b.time - a.time);
+
+  for (const e of entries) {
+    const div = document.createElement("div");
+    div.style.margin = "10px 0";
+    const name = e.name;
+    const displayName = name.length > 20 ? name.slice(0, 20) + '...' : name;
+    div.innerHTML = `<b>${displayName}</b> (${new Date(e.time).toLocaleString()}):<br>${e.message}`;
+    list.appendChild(div);
+  }
+});
+
+/*
+// 실시간 반영
+firebase.database().ref("guestbook").on("value", (snapshot) => {
+  const list = document.getElementById("guestbookList");
+  list.innerHTML = "";
+  const entries = [];
+  snapshot.forEach(child => entries.push(child.val()));
+  entries.sort((a, b) => b.time - a.time); // 최신순
+
+  for (const e of entries) {
+    const div = document.createElement("div");
+    div.style.margin = "10px 0";
+    div.innerHTML = `<b>${e.name}</b> (${new Date(e.time).toLocaleString()}):<br>${e.message}`;
+    list.appendChild(div);
+  }
+});
+*/
+function showLevelIntro(level, callback) {
+  const modal = document.getElementById("levelIntroModal");
+  const title = document.getElementById("introTitle");
+  const desc = document.getElementById("introDesc");
+  const table = document.getElementById("truthTable");
+
+  const data = levelDescriptions[level];
+  if (!data) {
+    callback();  // 데이터 없으면 바로 시작
+    return;
+  }
+
+  title.textContent = data.title;
+  desc.textContent = data.desc;
+
+  // 진리표 렌더링
+  const keys = Object.keys(data.table[0]);
+  table.innerHTML = "";
+
+  // 헤더 행 생성
+  const headerRow = document.createElement("tr");
+  keys.forEach(k => {
+    const th = document.createElement("th");
+    th.textContent = k; // 특수문자 안전 처리
+    headerRow.appendChild(th);
+  });
+  table.appendChild(headerRow);
+
+  // 데이터 행 생성
+  data.table.forEach(row => {
+    const tr = document.createElement("tr");
+    keys.forEach(k => {
+      const td = document.createElement("td");
+      td.textContent = row[k];
+      tr.appendChild(td);
+    });
+    table.appendChild(tr);
+  });
+
+  modal.style.display = "flex";
+  modal.style.backgroundColor = "white";
+  document.getElementById("startLevelBtn").onclick = () => {
+    modal.style.display = "none";
+    showStageTutorial(level, callback);  // 레벨별 튜토리얼 표시 후 시작
+  };
+}
+
+
+function renderChapterList() {
+  chapterListEl.innerHTML = "";
+  const cleared = clearedLevelsFromDb;
+
+  chapterData.forEach((chapter, idx) => {
+    const item = document.createElement("div");
+    item.className = "chapterItem";
+    let unlocked = true;
+    if (chapter.id === 'user') {
+      unlocked = [1,2,3,4,5,6].every(s => cleared.includes(s));
+    } else if (idx > 0) {
+      const prevStages = chapterData[idx - 1].stages;
+      unlocked = prevStages.every(s => cleared.includes(s));
+    }
+    if (!unlocked) {
+      item.classList.add('locked');
+      item.textContent = `${chapter.name} 🔒`;
+      item.onclick = () => {
+        alert(`챕터 ${idx}의 스테이지를 모두 완료해야 다음 챕터가 열립니다.`);
+      };
+    } else {
+      item.textContent = chapter.name;
+      item.onclick = () => {
+        if (chapter.id === 'user') {
+          renderUserProblemList();
+          chapterStageScreen.style.display = 'none';
+          userProblemsScreen.style.display = 'block';
+        } else {
+          selectChapter(idx);
+        }
+      };
+    }
+    if (idx === selectedChapterIndex) item.classList.add('selected');
+    chapterListEl.appendChild(item);
+  });
+}
+
+function selectChapter(idx) {
+  selectedChapterIndex = idx;
+  renderChapterList();
+  const chapter = chapterData[idx];
+  if (chapter.id !== 'user') {
+    renderStageList(chapter.stages);
+  }
+}
+
+function renderStageList(stageList) {
+  stageListEl.innerHTML = "";
+  stageList.forEach(level => {
+    const card = document.createElement('div');
+    card.className = 'stageCard';
+    card.dataset.stage = level;
+    const title = levelTitles[level] ?? `Stage ${level}`;
+    let name = title;
+    let desc = "";
+    const parts = title.split(':');
+    if (parts.length > 1) {
+      name = parts[0];
+      desc = parts.slice(1).join(':').trim();
+    }
+    card.innerHTML = `<h3>${name}</h3><p>${desc}</p>`;
+    const unlocked = isLevelUnlocked(level);
+    if (!unlocked) {
+      card.classList.add('locked');
+    } else {
+      if (clearedLevelsFromDb.includes(level)) {
+        card.classList.add('cleared');
+      }
+      card.onclick = () => {
+        returnToEditScreen();
+        startLevel(level);
+        chapterStageScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        document.body.classList.add('game-active');
+      };
+    }
+    stageListEl.appendChild(card);
+  });
 }
 
 function setGridDimensions(rows, cols) {
@@ -508,6 +1779,226 @@ function adjustGridZoom(containerId = 'canvasContainer') {
  * @param {number} cols
  */
 // 이전: DOM 기반 그리드 설정
+function setupGridOld(containerId, rows, cols) {
+  GRID_COLS = cols
+  GRID_ROWS = rows
+  grid = document.getElementById(containerId);
+
+  grid.style.setProperty('--grid-cols', cols);
+  grid.style.setProperty('--grid-rows', rows);
+  grid.innerHTML = "";
+
+  for (let i = 0; i < GRID_COLS * GRID_ROWS; i++) {
+    const cell = document.createElement("div");
+    cell.className = "cell";
+    cell.dataset.index = i;
+    cell.row = Math.floor(i / GRID_COLS);
+    cell.col = i % GRID_COLS;
+    cell.addEventListener("dragover", e => e.preventDefault());
+
+    /* drop */
+    cell.addEventListener("drop", e => {
+      e.preventDefault();
+      if (cell.dataset.type) return;
+
+      const type = e.dataTransfer.getData("text/plain");
+      if (!["AND", "OR", "NOT", "INPUT", "OUTPUT", "WIRE", "JUNCTION"].includes(type)) return;
+      if (type === "INPUT" || type === "OUTPUT") {
+        // 이름(name)과 초기값(value) 세팅
+        cell.classList.add("block");
+        cell.dataset.type = type;
+        cell.dataset.name = lastDraggedName || lastDraggedIcon?.dataset.name;
+        if (type === 'INPUT') {
+          cell.dataset.value = '0';
+          cell.textContent = cell.dataset.name;
+          //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+          // 드롭 시점에 바로 click 리스너 등록
+          cell.onclick = () => {
+            cell.dataset.value = cell.dataset.value === '0' ? '1' : '0';
+            cell.textContent = cell.dataset.name; 
+            //cell.textContent = `${cell.dataset.name}(${cell.dataset.value})`;
+            cell.classList.toggle('active', cell.dataset.value === '1');
+            evaluateCircuit();
+          };
+        } else {
+          cell.textContent = cell.dataset.name;
+        }
+        cell.draggable = true;
+        // 배치된 아이콘 하나만 사라지도록 유지 (다른 INPUT 아이콘엔 영향 없음)
+        if (lastDraggedIcon) lastDraggedIcon.style.display = "none";
+      }
+      else if (type === "WIRE") {
+        cell.classList.add("wire");
+        cell.dataset.type = "WIRE";
+      } 
+      else if (type === "JUNCTION") {
+        cell.classList.add("block");
+        cell.textContent = "JUNC";
+        cell.dataset.type = type;
+        cell.draggable = true;
+      } else {
+        cell.classList.add("block");
+        cell.textContent = type;
+        cell.dataset.type = type;
+        cell.draggable = true;
+      }
+
+      if (["INPUT", "OUTPUT"].includes(type) && lastDraggedIcon)
+        lastDraggedIcon.style.display = "none";
+
+      /* 원래 셀 비우기 */
+      if (lastDraggedFromCell && lastDraggedFromCell !== cell) {
+        resetCell(lastDraggedFromCell);
+        lastDraggedFromCell.classList.remove("block", "wire");
+        lastDraggedFromCell.textContent = "";
+        delete lastDraggedFromCell.dataset.type;
+        lastDraggedFromCell.removeAttribute("draggable");
+      }
+      markCircuitModified();
+      lastDraggedType = lastDraggedIcon = lastDraggedFromCell = null;
+    });
+
+
+
+    /* 셀 dragstart (wire 모드면 차단) */
+    cell.addEventListener("dragstart", e => {
+      const ctrlActive = e.ctrlKey || statusToggle.classList.contains('active');
+      if (isWireDrawing || ctrlActive) { e.preventDefault(); return; }
+      const t = cell.dataset.type;
+      if (!t || t === "WIRE") return;
+      e.dataTransfer.setData("text/plain", t);
+      lastDraggedType = t;
+      lastDraggedFromCell = cell;
+      lastDraggedName = cell.dataset.name || null;
+    });
+
+    cell.addEventListener("click", (e) => {
+      if ((e.shiftKey || isWireDeleting) && cell.dataset.type === "WIRE") {
+        // (1) 클릭한 셀이 포함된 wire path 찾기
+        const targetWires = wires.filter(w => w.path.includes(cell));
+
+        // (2) 해당 wire들을 지움
+        targetWires.forEach(w => {
+          w.path.forEach(c => {
+            if (c.dataset.type === "WIRE") {
+              c.className = "cell";
+              c.removeAttribute("data-type");
+            }
+          });
+        });
+
+        // (3) wires 배열에서 제거
+        wires = wires.filter(w => !targetWires.includes(w));
+        markCircuitModified();
+      }
+    });
+
+
+    cell.style.setProperty('--col', i % GRID_COLS);
+    cell.style.setProperty('--row', Math.floor(i / GRID_COLS));
+    cell.row = Math.floor(i / GRID_COLS);
+    cell.col = i % GRID_COLS;
+    grid.appendChild(cell);
+  }
+  grid.addEventListener("mousedown", e => {
+    const cell = e.target;
+    if (!isWireDrawing || !cell.classList.contains("cell")) return;
+
+    /* 시작은 블록만 허용 */
+    const t = cell.dataset.type;
+    if (!t || t === "WIRE") return;
+
+    isMouseDown = true;
+    wireTrace = [cell];
+
+    document.addEventListener("mousemove", track);
+    document.addEventListener("mouseup", finish);
+  });
+
+  grid.addEventListener("touchstart", e => {
+    const cell = e.target.closest('.cell');
+    if (!isWireDrawing || !cell) return;
+
+    const t = cell.dataset.type;
+    if (!t || t === "WIRE") return;
+
+    isMouseDown = true;
+    wireTrace = [cell];
+
+    document.addEventListener("touchmove", trackTouch, { passive: false });
+    document.addEventListener("touchend", finishTouch);
+  }, { passive: false });
+
+  grid.addEventListener("mousemove", e => {
+    if (!isWireDrawing) return;
+    // 커서 바로 밑의 요소 찾기
+    if (wireTrace.length === 0) return;   // 시작 셀 없으면 종료
+    const el = document.elementFromPoint(e.clientX, e.clientY);
+    const cell = el?.closest(".cell");
+    if (!cell) return;
+
+    const idx = parseInt(cell.dataset.index, 10);
+
+    // 이전: const lastIdx = wireTrace[wireTrace.length - 1];
+    // 이전: if (idx === lastIdx) return;
+    const lastIdx = Number(wireTrace.at(-1).dataset.index);
+    if (idx === lastIdx) return;
+
+    // 두 점 사이 모든 셀을 채워 줌
+    const path = getInterpolatedIndices(lastIdx, idx);
+
+    // 이전:
+    // path.forEach(i => {
+    //   if (!wireTrace.map(c => c.dataset.index).includes(i)) {
+    //     wireTrace.push(i);
+    //   }
+    // });
+    path.forEach(i => {
+      const cellEl = grid.children[i];
+      if (!wireTrace.includes(cellEl)) {      /* ← 이미 들어갔는지 바로 확인 */
+        cellEl.classList.add("wire-preview");
+        wireTrace.push(cellEl);
+      }
+    });
+
+    // wire 미리보기 업데이트
+    //drawWirePreview(wireTrace);
+  });
+
+  grid.addEventListener("touchmove", gridTouchMove, { passive: false });
+  grid.addEventListener('click', e => {
+    if (!isWireDeleting) return;
+    const cell = e.target.closest('.cell');
+    if (!cell) return;
+
+    if (cell.classList.contains('block')) {
+      if (cell.dataset.fixed === '1') return;
+      const type = cell.dataset.type;
+      const name = cell.dataset.name;
+      // ② INPUT/OUTPUT이면 아이콘 복원
+      if (["INPUT", "OUTPUT"].includes(type)) {
+        // block panel handled by canvas; no icon restoration needed
+      }
+
+      // ③ 셀 초기화
+      resetCell(cell);                          // ← 모든 data-* 제거까지 한 번에
+    }
+    else if (cell.classList.contains('wire')) {
+      // wire 셀만 지울 땐 기존 로직 유지
+      cell.className = 'cell';
+      delete cell.dataset.type;
+      delete cell.dataset.directions;
+    }
+    markCircuitModified();
+  });
+  // ——— 그리드 밖 마우스 탈출 시 취소 ———
+  grid.addEventListener('mouseleave', cancelWireDrawing);
+  grid.addEventListener('touchcancel', cancelWireDrawing);
+  adjustGridZoom();
+  updateUsageCounts();
+}
+
+// Canvas 기반 그리드 설정
 function setupGrid(containerId, rows, cols, paletteGroups) {
   GRID_COLS = cols;
   GRID_ROWS = rows;
@@ -997,9 +2488,17 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   isScoring = true;
   if (overlay) overlay.style.display = "block";
   if (currentCustomProblem) {
-    gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
+    if (window.playCircuit) {
+      gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
+    } else {
+      gradeProblemAnimated(currentCustomProblemKey, currentCustomProblem);
+    }
   } else {
-    gradeLevelCanvas(currentLevel);
+    if (window.playCircuit) {
+      gradeLevelCanvas(currentLevel);
+    } else {
+      gradeLevelAnimated(currentLevel);
+    }
   }
 });
 
@@ -1555,6 +3054,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initialTasks.push(showOverallRanking());  // 전체 랭킹 표시
   initialTasks.push(setupGoogleAuth());
 
+  setupKeyToggles();
   setupMenuToggle();
   setupSettings();
   setupGameAreaPadding();
@@ -1929,6 +3429,21 @@ function loadCircuit(key) {
   controller?.syncPaletteWithCircuit?.();
 }
 
+function highlightOutputErrors() {
+  // 1) 기존 에러 표시 제거
+  grid.querySelectorAll('.cell[data-type="OUTPUT"].error')
+    .forEach(el => el.classList.remove('error'));
+
+  // 2) 각 OUTPUT 블록에 들어오는 전선 수 세기
+  grid.querySelectorAll('.cell[data-type="OUTPUT"]')
+    .forEach(block => {
+      const incomingCount = wires.filter(w => w.end === block).length;
+      if (incomingCount >= 2) {
+        block.classList.add('error');
+      }
+    });
+}
+
 async function saveCircuit() {
   const circuit = window.playCircuit || window.problemCircuit;
   if (!circuit) throw new Error('No circuit to save');
@@ -1978,6 +3493,7 @@ function clearGrid() {
     window.problemCircuit.blocks = {};
     window.problemCircuit.wires = {};
   }
+  wires = [];
   wireTrace = [];
   markCircuitModified();
 }
@@ -1989,6 +3505,7 @@ function clearWires() {
   if (window.problemCircuit) {
     window.problemCircuit.wires = {};
   }
+  wires = [];
   wireTrace = [];
   markCircuitModified();
 }
@@ -2012,11 +3529,26 @@ function updateUsageCounts() {
       .forEach(el => el.textContent = wireCount);
     return;
   }
+
+  if (!grid) return;
+  const blockCount = grid.querySelectorAll('.cell.block').length;
+  const wireCount = grid.querySelectorAll('.cell.wire').length;
+  [document.getElementById('usedBlocks'),
+   document.getElementById('problemUsedBlocks')]
+    .filter(Boolean)
+    .forEach(el => el.textContent = blockCount);
+  [document.getElementById('usedWires'),
+   document.getElementById('problemUsedWires')]
+    .filter(Boolean)
+    .forEach(el => el.textContent = wireCount);
 }
 
 function markCircuitModified() {
   problemOutputsValid = false;
   updateUsageCounts();
+  if (typeof evaluateCircuit === 'function' && grid) {
+    evaluateCircuit();
+  }
 }
 
 function moveCircuit(dx, dy) {
@@ -2027,6 +3559,40 @@ function moveCircuit(dx, dy) {
   if (moved) {
     markCircuitModified();
   }
+}
+// 이전: placeBlockAt 미정의
+function placeBlockAt(x, y, type) {
+  const idx = y * GRID_COLS + x;
+  // 수정:
+  const cell = grid.querySelectorAll('.cell')[idx];
+  cell.classList.add('block');
+  cell.dataset.type = type;
+  if (type === 'INPUT' || type === 'OUTPUT') {
+    attachInputClickHandlers(cell);
+    //cell.textContent = `${cell.dataset.name || type}(0)`;
+    cell.textContent = (cell.dataset.name || type);
+  } else {
+    cell.textContent = type;
+  }
+}
+
+// 이전: placeWireAt 미정의
+function placeWireAt(x, y, dir) {
+  const idx = y * GRID_COLS + x;
+  // 수정:
+  const cell = grid.querySelectorAll('.cell')[idx];
+  cell.classList.add('wire', `wire-${dir}`);
+  cell.dataset.type = 'WIRE';
+}
+
+function attachInputClickHandlers(cell) {
+  cell.onclick = () => {
+    const val = cell.dataset.value === '1' ? '0' : '1';
+    cell.dataset.value = val;
+    cell.textContent = cell.dataset.name;
+    cell.classList.toggle('active', val === '1');
+    evaluateCircuit();
+  };
 }
 
 function showOverallRanking() {
@@ -2454,10 +4020,7 @@ function addTestcaseRow() {
   table.querySelector('tbody').appendChild(tr);
 }
 
-async function computeOutputs() {
-  const circuit = window.problemCircuit || window.playCircuit;
-  if (!circuit) return;
-  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+function computeOutputs() {
   const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
   const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
   const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
@@ -2466,20 +4029,39 @@ async function computeOutputs() {
   rows.forEach(tr => {
     const inputs = Array.from(tr.querySelectorAll('td')).slice(0, inputCnt);
     inNames.forEach((name, idx) => {
-      const block = Object.values(circuit.blocks).find(b => b.type === 'INPUT' && b.name === name);
-      if (block) {
-        block.value = inputs[idx].textContent.trim() === '1';
+      const cell = grid.querySelector('.cell.block[data-type="INPUT"][data-name="' + name + '"]');
+      if (cell) {
+        cell.dataset.value = inputs[idx].textContent.trim() === '1' ? '1' : '0';
+        cell.classList.toggle('active', cell.dataset.value === '1');
       }
     });
-    evaluateCircuit(circuit);
+    evaluateCircuit();
     outNames.forEach((name, idx) => {
-      const block = Object.values(circuit.blocks).find(b => b.type === 'OUTPUT' && b.name === name);
-      const val = block && block.value ? '1' : '0';
+      const cell = grid.querySelector('.cell.block[data-type="OUTPUT"][data-name="' + name + '"]');
+      const val = cell ? (cell.dataset.val === 'true' || cell.dataset.val === '1' ? '1' : '0') : '0';
       const td = tr.querySelectorAll('td')[inputCnt + idx];
       if (td) td.textContent = val;
     });
   });
   problemOutputsValid = true;
+}
+
+// ----- 사용자 정의 문제 저장/불러오기 -----
+function getProblemGridData() {
+  return Array.from(document.querySelectorAll('#problemGrid .cell')).map(cell => ({
+    index: +cell.dataset.index,
+    type: cell.dataset.type || null,
+    name: cell.dataset.name || null,
+    value: cell.dataset.value || null,
+    classes: Array.from(cell.classList).filter(c => c !== 'cell')
+  }));
+}
+
+function getProblemWireData() {
+  return Array.from(document.querySelectorAll('#problemGrid .cell.wire')).map(cell => {
+    const dir = Array.from(cell.classList).find(c => c.startsWith('wire-')).split('-')[1];
+    return { x: cell.col, y: cell.row, dir };
+  });
 }
 
 function getProblemTruthTable() {
@@ -2500,7 +4082,6 @@ function getProblemTruthTable() {
 }
 
 function collectProblemData() {
-  const circuit = window.problemCircuit;
   return {
     title: document.getElementById('problemTitleInput').value.trim(),
     description: document.getElementById('problemDescInput').value.trim(),
@@ -2510,7 +4091,13 @@ function collectProblemData() {
     gridCols: parseInt(document.getElementById('gridCols').value) || 6,
     fixIO: document.getElementById('fixIOCheck').checked,
     table: getProblemTruthTable(),
-    circuit,
+    grid: getProblemGridData(),
+    wires: getProblemWireData(),
+    wiresObj: wires.map(w => ({
+      startIdx: +w.start.dataset.index,
+      endIdx: +w.end.dataset.index,
+      pathIdxs: w.path.map(c => +c.dataset.index)
+    })),
     creator: localStorage.getItem('username') || '익명',
     timestamp: new Date().toISOString()
   };
@@ -2604,15 +4191,38 @@ function loadProblem(key) {
       }
     });
 
-    const circuit = window.problemCircuit;
-    if (data.circuit && circuit) {
-      circuit.rows = data.circuit.rows || data.gridRows || 6;
-      circuit.cols = data.circuit.cols || data.gridCols || 6;
-      circuit.blocks = data.circuit.blocks || {};
-      circuit.wires = data.circuit.wires || {};
-      const controller = window.problemController;
-      controller?.syncPaletteWithCircuit?.();
-      markCircuitModified();
+    clearGrid();
+    clearWires();
+
+    const cells = document.querySelectorAll('#problemGrid .cell');
+    data.grid.forEach(state => {
+      const cell = cells[state.index];
+      cell.className = 'cell';
+      if (state.type) cell.dataset.type = state.type;
+      if (state.name) cell.dataset.name = state.name;
+      if (state.value) cell.dataset.value = state.value;
+      state.classes.forEach(c => cell.classList.add(c));
+      if (state.type === 'INPUT' || state.type === 'OUTPUT') {
+        attachInputClickHandlers(cell);
+      }
+      if (state.type && state.type !== 'WIRE') {
+        cell.classList.add('block');
+        if (state.type === 'INPUT') cell.textContent = state.name;
+        else if (state.type === 'OUTPUT') cell.textContent = state.name;
+        else if (state.type === 'JUNCTION') cell.textContent = 'JUNC';
+        else cell.textContent = state.type;
+        cell.draggable = true;
+      }
+    });
+
+    data.wires && data.wires.forEach(w => placeWireAt(w.x, w.y, w.dir));
+
+    if (data.wiresObj) {
+      wires = data.wiresObj.map(obj => ({
+        start: cells[obj.startIdx],
+        end: cells[obj.endIdx],
+        path: obj.pathIdxs.map(i => cells[i])
+      }));
     }
     problemOutputsValid = true;
   });
@@ -2854,17 +4464,21 @@ function showHint(index) {
 }
 
 function placeFixedIO(problem) {
-  if (!problem.fixIO || !problem.circuit || !window.playController) return;
+  if (!problem.fixIO || !problem.grid || !window.playController) return;
   const circuit = window.playController.circuit;
-  Object.values(problem.circuit.blocks || {}).forEach(b => {
-    if (b.type === 'INPUT' || b.type === 'OUTPUT') {
-      circuit.blocks[b.id] = { ...b };
+  problem.grid.forEach(state => {
+    if (state.type === 'INPUT' || state.type === 'OUTPUT') {
+      const r = Math.floor(state.index / GRID_COLS);
+      const c = state.index % GRID_COLS;
+      const id = 'fixed_' + state.name + '_' + state.index;
+      circuit.blocks[id] = { id, type: state.type, name: state.name, pos: { r, c }, value: state.type === 'INPUT' ? (state.value === '1') : false };
     }
   });
 }
 
 function startCustomProblem(key, problem) {
   wireTrace = [];
+  wires = [];
   currentCustomProblem = problem;
   currentCustomProblemKey = key;
   currentLevel = null;
@@ -2885,6 +4499,155 @@ function startCustomProblem(key, problem) {
   if (rp) rp.style.display = 'block';
   document.body.classList.add('game-active');
   collapseMenuBarForMobile();
+}
+
+async function gradeProblemAnimated(key, problem) {
+  const inNames = Array.from({length:problem.inputCount},(_,i)=>'IN'+(i+1));
+  const outNames = Array.from({length:problem.outputCount},(_,i)=>'OUT'+(i+1));
+  const testCases = problem.table.map(row=>({
+    inputs: Object.fromEntries(inNames.map(n=>[n,row[n]])),
+    expected: Object.fromEntries(outNames.map(n=>[n,row[n]]))
+  }));
+
+  const allBlocks = Array.from(grid.querySelectorAll('.cell.block'));
+  let junctionError = false;
+  allBlocks.filter(b=>b.dataset.type==='JUNCTION').forEach(junction=>{
+    const inputs = getIncomingBlocks(junction);
+    if (inputs.length>1){ junction.classList.add('error'); junctionError=true; }
+    else junction.classList.remove('error');
+  });
+  if (junctionError){
+    alert('❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
+    if(overlay) overlay.style.display='none';
+    isScoring=false; return; }
+  let outputError=false;
+  Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'))
+    .forEach(output=>{
+      const inputs=getIncomingBlocks(output);
+      if(inputs.length>1){output.classList.add('error');outputError=true;}else{output.classList.remove('error');}
+    });
+  if(outputError){
+    alert('❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
+    if(overlay) overlay.style.display='none';
+    isScoring=false;return;
+  }
+
+  const requiredOutputs = outNames;
+  const actualOutputCells = Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'));
+  const actualOutputNames = actualOutputCells.map(c=>c.dataset.name);
+  const missingOutputs = requiredOutputs.filter(n=>!actualOutputNames.includes(n));
+  if(missingOutputs.length>0){
+    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
+    if(overlay) overlay.style.display='none';
+    isScoring=false;return;
+  }
+
+  let allCorrect=true;
+  const bp2 = document.getElementById('blockPanel');
+  if (bp2) bp2.style.display='none';
+  const rp2 = document.getElementById('rightPanel');
+  if (rp2) rp2.style.display='none';
+  const ga2 = document.getElementById('gradingArea');
+  if (ga2) ga2.style.display='block';
+  const gradingArea=document.getElementById('gradingArea');
+  gradingArea.innerHTML='<b>채점 결과:</b><br><br>';
+
+  const inputs=grid.querySelectorAll('.cell.block[data-type="INPUT"]');
+  const outputs=grid.querySelectorAll('.cell.block[data-type="OUTPUT"]');
+
+  for(const test of testCases){
+    inputs.forEach(input=>{
+      const name=input.dataset.name;
+      const value=test.inputs[name]??0;
+      input.dataset.value=String(value);
+      input.classList.toggle('active',value===1);
+    });
+    evaluateCircuit();
+    await new Promise(r=>setTimeout(r,100));
+
+    let correct=true;
+    const actualText=Array.from(outputs).map(out=>{
+      const name=out.dataset.name;
+      const actual=+JSON.parse(out.dataset.val);
+      const expected=test.expected[name];
+      if(actual!==expected) correct=false;
+      return `${name}=${actual}`;
+    }).join(', ');
+    const expectedText=Object.entries(test.expected).map(([k,v])=>`${k}=${v}`).join(', ');
+    const inputText=Object.entries(test.inputs).map(([k,v])=>`${k}=${v}`).join(', ');
+    if(!correct) allCorrect=false;
+    if(!document.getElementById('gradingTable')){
+      gradingArea.innerHTML+=`
+      <table id="gradingTable">
+        <thead>
+          <tr><th>${t('thInput')}</th><th>${t('thExpected')}</th><th>${t('thActual')}</th><th>${t('thResult')}</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>`;
+    }
+      const tbody=document.querySelector('#gradingTable tbody');
+      const tr=document.createElement('tr');
+      tr.className=correct?'correct':'wrong';
+
+      const tdInput=document.createElement('td');
+      tdInput.textContent=inputText;
+
+      const tdExpected=document.createElement('td');
+      tdExpected.textContent=expectedText;
+
+      const tdActual=document.createElement('td');
+      tdActual.textContent=actualText;
+
+      const tdResult=document.createElement('td');
+      tdResult.style.fontWeight='bold';
+      tdResult.style.color=correct?'green':'red';
+      tdResult.textContent=correct?'✅ 정답':'❌ 오답';
+
+      tr.append(tdInput,tdExpected,tdActual,tdResult);
+      tbody.appendChild(tr);
+  }
+
+  const summary=document.createElement('div');
+  summary.id='gradeResultSummary';
+  summary.textContent=allCorrect?'🎉 모든 테스트를 통과했습니다!':'😢 일부 테스트에 실패했습니다.';
+  gradingArea.appendChild(summary);
+
+  const returnBtn=document.createElement('button');
+  returnBtn.id='returnToEditBtn';
+  returnBtn.textContent=t('returnToEditBtn');
+  gradingArea.appendChild(returnBtn);
+  document.getElementById('returnToEditBtn').addEventListener('click',returnToEditScreen);
+
+  if(allCorrect && key){
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
+    let saveSuccess=false;
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess=true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
+      }
+    }
+    if(saveSuccess) showCircuitSavedModal();
+
+    const blocks=Array.from(grid.querySelectorAll('.cell.block'));
+    const blockCounts=blocks.reduce((acc,c)=>{
+      const t=c.dataset.type; acc[t]=(acc[t]||0)+1; return acc;
+    },{});
+    const usedWires=grid.querySelectorAll('.cell.wire').length;
+    const hintsUsed=parseInt(localStorage.getItem(`hintsUsed_${key}`)||'0');
+    saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
+  }
 }
 
 async function gradeLevelCanvas(level) {
@@ -3266,4 +5029,3 @@ function createPaletteForCustom(problem) {
   ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
   return buildPaletteGroups(blocks);
 }
-
