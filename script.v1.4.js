@@ -339,274 +339,6 @@ async function startLevel(level) {
 
 
 
-function getIncomingBlocks(node) {
-  const row = node.row;
-  const col = node.col;
-  const incoming = [];
-
-  const check = (r, c, wireDir) => {
-    const cell = getCell(r, c);
-    if (cell?.classList.contains(wireDir)) {
-      const src = getBlockNodeFlow(r, c, node);
-      if (src) incoming.push(src);
-    }
-  };
-
-  // 위↓, 아래↑, 왼→, 오←
-  check(row - 1, col, 'wire-down');
-  check(row + 1, col, 'wire-up');
-  check(row, col - 1, 'wire-right');
-  check(row, col + 1, 'wire-left');
-
-  return incoming;
-}
-
-async function gradeLevelAnimated(level) {
-  const testCases = levelAnswers[level];
-  if (!testCases) return;
-
-  const allBlocks = Array.from(grid.querySelectorAll('.cell.block'));
-  let junctionError = false;
-
-  allBlocks
-    .filter(b => b.dataset.type === "JUNCTION")
-    .forEach(junction => {
-      const inputs = getIncomingBlocks(junction);
-      if (inputs.length > 1) {
-        junction.classList.add("error");
-        junctionError = true;
-      } else {
-        junction.classList.remove("error");
-      }
-    });
-
-  if (junctionError) {
-    alert("❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
-    if (overlay) overlay.style.display = "none";
-    isScoring = false;
-    return;
-  }
-  let outputError = false;
-  Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'))
-    .forEach(output => {
-      const inputs = getIncomingBlocks(output);
-      if (inputs.length > 1) {
-        output.classList.add("error");
-        outputError = true;
-      } else {
-        output.classList.remove("error");
-      }
-    });
-  if (outputError) {
-    alert("❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.");
-    if (overlay) overlay.style.display = "none";
-    isScoring = false;
-    return;
-  }
-  // 🔒 [1] 현재 레벨에 필요한 OUTPUT 블록 이름 확인
-  const requiredOutputs = levelBlockSets[level]
-    .filter(block => block.type === "OUTPUT")
-    .map(block => block.name);
-
-  // 🔍 현재 화면에 있는 OUTPUT 셀 조사
-  const actualOutputCells = Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'));
-  const actualOutputNames = actualOutputCells.map(cell => cell.dataset.name);
-
-  // 🔒 [2] 누락된 출력 블록이 있으면 채점 막기
-  const missingOutputs = requiredOutputs.filter(name => !actualOutputNames.includes(name));
-  if (missingOutputs.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    if (overlay) overlay.style.display = "none";
-    isScoring = false;
-    return;
-  }
-
-  let allCorrect = true;
-
-  // UI 전환
-  const bp = document.getElementById("blockPanel");
-  if (bp) bp.style.display = "none";
-  const rp = document.getElementById("rightPanel");
-  if (rp) rp.style.display = "none";
-  const ga = document.getElementById("gradingArea");
-  if (ga) ga.style.display = "block";
-  const gradingArea = document.getElementById("gradingArea");
-  gradingArea.innerHTML = "<b>채점 결과:</b><br><br>";
-
-  const inputs = grid.querySelectorAll('.cell.block[data-type="INPUT"]');
-  const outputs = grid.querySelectorAll('.cell.block[data-type="OUTPUT"]');
-
-  for (const test of testCases) {
-    inputs.forEach(input => {
-      const name = input.dataset.name;
-      const value = test.inputs[name] ?? 0;
-      input.dataset.value = String(value);
-      //input.textContent = `${name}(${value})`;
-      input.classList.toggle('active', value === 1);
-    });
-    evaluateCircuit();
-    await new Promise(r => setTimeout(r, 100));
-
-
-
-    let correct = true;
-
-    const actualText = Array.from(outputs)
-      .map(out => {
-        const name = out.dataset.name;
-        const actual = + JSON.parse(out.dataset.val);
-        const expected = test.expected[name];
-        if (actual !== expected) correct = false;
-        return `${name}=${actual}`;
-      }).join(", ");
-
-    const expectedText = Object.entries(test.expected)
-      .map(([k, v]) => `${k}=${v}`).join(", ");
-    const inputText = Object.entries(test.inputs)
-      .map(([k, v]) => `${k}=${v}`).join(", ");
-
-    if (!correct) allCorrect = false;
-
-    if (!document.getElementById("gradingTable")) {
-      gradingArea.innerHTML += `
-      <table id="gradingTable">
-        <thead>
-          <tr>
-            <th>${t('thInput')}</th>
-            <th>${t('thExpected')}</th>
-            <th>${t('thActual')}</th>
-            <th>${t('thResult')}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
-    `;
-    }
-    const tbody = document.querySelector("#gradingTable tbody");
-
-    const tr = document.createElement("tr");
-    tr.className = correct ? "correct" : "wrong";
-
-    const tdInput = document.createElement("td");
-    tdInput.textContent = inputText;
-
-    const tdExpected = document.createElement("td");
-    tdExpected.textContent = expectedText;
-
-    const tdActual = document.createElement("td");
-    tdActual.textContent = actualText;
-
-    const tdResult = document.createElement("td");
-    tdResult.style.fontWeight = "bold";
-    tdResult.style.color = correct ? "green" : "red";
-    tdResult.textContent = correct ? "✅ 정답" : "❌ 오답";
-
-    tr.append(tdInput, tdExpected, tdActual, tdResult);
-    tbody.appendChild(tr);
-  }
-
-  const summary = document.createElement("div");
-  summary.id = "gradeResultSummary";
-  summary.textContent = allCorrect ? "🎉 모든 테스트를 통과했습니다!" : "😢 일부 테스트에 실패했습니다.";
-  gradingArea.appendChild(summary);
-
-  const returnBtn = document.createElement("button");
-  returnBtn.id = "returnToEditBtn";
-  returnBtn.textContent = t('returnToEditBtn');
-  gradingArea.appendChild(returnBtn);
-
-  document.getElementById("returnToEditBtn")?.addEventListener("click", returnToEditScreen);
-
-  if (allCorrect) {
-    const clearedCard = document.querySelector(`.stageCard[data-stage="${level}"]`);
-    if (clearedCard && !clearedCard.classList.contains("cleared")) {
-      clearedCard.classList.add("cleared");
-      markLevelCleared(level);
-    }
-
-    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
-    let saveSuccess = false;
-    if (autoSave) {
-      try {
-        if (gifLoadingModal) {
-          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-          gifLoadingModal.style.display = 'flex';
-        }
-        await saveCircuit();
-        saveSuccess = true;
-      } catch (e) {
-        alert(t('saveFailed').replace('{error}', e));
-      } finally {
-        if (gifLoadingModal) {
-          gifLoadingModal.style.display = 'none';
-          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
-        }
-      }
-    }
-    const blocks = Array.from(grid.querySelectorAll(".cell.block"));
-
-    // ② 타입별 개수 집계
-    const blockCounts = blocks.reduce((acc, cell) => {
-      const t = cell.dataset.type;
-      acc[t] = (acc[t] || 0) + 1;
-      return acc;
-    }, {});
-
-    // ③ 도선 수 집계
-    const usedWires = grid.querySelectorAll(".cell.wire").length;
-    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
-    const nickname = localStorage.getItem("username") || "익명";
-    const rankingsRef = db.ref(`rankings/${level}`);
-
-    pendingClearedLevel = null;
-
-    // ① 내 기록 조회 (nickname 기준)
-    rankingsRef.orderByChild("nickname").equalTo(nickname)
-      .once("value", snapshot => {
-        if (!snapshot.exists()) {
-          // 내 기록이 없으면 새로 저장
-          saveRanking(level, blockCounts, usedWires, hintsUsed);
-          pendingClearedLevel = level;
-        } else {
-          let best = null;
-          snapshot.forEach(child => {
-            const e = child.val();
-            // 기존/새 블록 개수 합계
-            const oldBlocks = Object.values(e.blockCounts || {}).reduce((a, b) => a + b, 0);
-            const newBlocks = Object.values(blockCounts).reduce((a, b) => a + b, 0);
-            // 기존/새 도선 개수
-            const oldWires = e.usedWires;
-            const newWires = usedWires;
-
-            // ✅ 수정: 오직 성능이 엄격히 개선된 경우에만 best 할당
-            if (
-              newBlocks < oldBlocks
-              || (newBlocks === oldBlocks && newWires < oldWires)
-            ) {
-              best = { key: child.key };
-              // nickname 당 보통 한 건만 있으므로, 더 돌 필요 없으면 false 리턴
-              return false;
-            }
-          });
-
-          // ③ 개선된 경우에만 업데이트 (동일 성능이라면 best가 null이므로 건너뜀)
-          if (best) {
-            rankingsRef.child(best.key).update({
-              blockCounts,
-              usedWires,
-              hintsUsed,
-              timestamp: new Date().toISOString()
-            });
-            pendingClearedLevel = level;
-          }
-        }
-
-        if (saveSuccess) showCircuitSavedModal();
-      });
-
-
-  }
-}
 
 function returnToEditScreen() {
   // 채점 모드 해제
@@ -757,116 +489,7 @@ function getCell(row, col) {
   return grid.children[row * GRID_COLS + col];
 }
 
-/**
- * getCell로 가져온 셀 중에서 block(=INPUT/OUTPUT/AND/OR/NOT)일 때만 돌려줍니다.
- */
-// 이전에 사용하셨던 getBlockNode(…) 함수는 지우고, 아래로 대체하세요.
-function getBlockNode(startRow, startCol, excludeCell) {
-  const visited = new Set();
-  // 탐색 대상 블록(self)의 좌표도 미리 방문 처리
-  if (excludeCell) {
-    visited.add(`${excludeCell.row},${excludeCell.col}`);
-  }
 
-  function dfs(r, c) {
-    const key = `${r},${c}`;
-    if (visited.has(key)) return null;
-    visited.add(key);
-
-    const cell = getCell(r, c);
-    if (!cell) return null;
-
-    // 블록이면 바로 반환
-    if (cell.dataset.type && cell.dataset.type !== "WIRE") {
-      return cell;
-    }
-
-    // wire 셀 → 연결된 방향만 따라 재귀 탐색
-    const dirs = {
-      "wire-up": { dr: -1, dc: 0, opp: "wire-down" },
-      "wire-down": { dr: 1, dc: 0, opp: "wire-up" },
-      "wire-left": { dr: 0, dc: -1, opp: "wire-right" },
-      "wire-right": { dr: 0, dc: 1, opp: "wire-left" },
-    };
-
-    for (const [cls, { dr, dc, opp }] of Object.entries(dirs)) {
-      if (!cell.classList.contains(cls)) continue;
-      const nr = r + dr, nc = c + dc;
-      const nbCell = getCell(nr, nc);
-      if (!nbCell) continue;
-      const isWireConn = nbCell.dataset.type === "WIRE"
-        && nbCell.classList.contains(opp);
-      const isBlockConn = nbCell.dataset.type && nbCell.dataset.type !== "WIRE";
-      if (isWireConn || isBlockConn) {
-        const found = dfs(nr, nc);
-        if (found) return found;
-      }
-    }
-    return null;
-  }
-
-  return dfs(startRow, startCol);
-}
-
-/**
- * 시작 좌표에서 블록까지 연결된 wire 경로를 역추적합니다.
- * - wire-* static 클래스를 사용
- * - 꺾인 코너(wire-up + wire-right 등)도 getNeighbourWireDirs로 모두 반환
- */
-function getBlockNodeFlow(startRow, startCol, excludeNode) {
-  const visited = new Set();
-  if (excludeNode) {
-    visited.add(`${excludeNode.row},${excludeNode.col}`);
-  }
-
-  // wire 클래스 ↔ 좌표 오프셋 매핑
-  const dirOffsets = {
-    "wire-up": { dr: -1, dc: 0, opp: "wire-down" },
-    "wire-down": { dr: 1, dc: 0, opp: "wire-up" },
-    "wire-left": { dr: 0, dc: -1, opp: "wire-right" },
-    "wire-right": { dr: 0, dc: 1, opp: "wire-left" }
-  };
-
-  function dfs(r, c) {
-    const key = `${r},${c}`;
-    if (visited.has(key)) return null;
-    visited.add(key);
-
-    const cell = getCell(r, c);
-    if (!cell) return null;
-
-    // 블록이면 바로 반환
-    if (cell.dataset.type && cell.dataset.type !== "WIRE") {
-      return cell;
-    }
-
-    // 현재 wire 셀의 모든 static 연결 방향을 가져옴
-    // (코너인 경우 ['wire-up','wire-right'] 등 두 방향)
-    const neighbourDirs = getNeighbourWireDirs(cell);  // :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-
-    for (const dir of neighbourDirs) {
-      const { dr, dc, opp } = dirOffsets[dir];
-      const nr = r + dr, nc = c + dc;
-      const nb = getCell(nr, nc);
-      if (!nb) continue;
-
-      // 이웃 셀이 wire라면 반대 static 클래스도 있어야, 혹은 블록이면 OK
-      const isWireConn = nb.dataset.type === "WIRE"
-        && nb.classList.contains(opp);
-      const isBlockConn = nb.dataset.type && nb.dataset.type !== "WIRE";
-      if (!isWireConn && !isBlockConn) {
-        continue;
-      }
-
-      const found = dfs(nr, nc);
-      if (found) return found;
-    }
-
-    return null;
-  }
-
-  return dfs(startRow, startCol);
-}
 
 // 피드백 전송
 // 1) 방명록 등록 함수
@@ -1561,20 +1184,12 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   if (currentCustomProblem == null && currentLevel == null) return;
   isScoring = true;
   if (overlay) overlay.style.display = "block";
-  if (currentCustomProblem) {
-    if (window.playCircuit) {
+    if (currentCustomProblem) {
       gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
     } else {
-      gradeProblemAnimated(currentCustomProblemKey, currentCustomProblem);
-    }
-  } else {
-    if (window.playCircuit) {
       gradeLevelCanvas(currentLevel);
-    } else {
-      gradeLevelAnimated(currentLevel);
     }
-  }
-});
+  });
 
 const modalGoogleLoginBtn = document.getElementById('modalGoogleLoginBtn');
 const usernameSubmitBtn = document.getElementById('usernameSubmit');
@@ -2567,31 +2182,11 @@ function clearWires() {
   markCircuitModified();
 }
 
-function updateUsageCounts() {
-  const circuit = window.playCircuit || window.problemCircuit;
-  if (circuit) {
-    const blockCount = Object.keys(circuit.blocks).length;
-    const wireCells = new Set();
-    Object.values(circuit.wires).forEach(w => {
-      w.path?.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
-    });
-    const wireCount = wireCells.size;
-    [document.getElementById('usedBlocks'),
-     document.getElementById('problemUsedBlocks')]
-      .filter(Boolean)
-      .forEach(el => el.textContent = blockCount);
-    [document.getElementById('usedWires'),
-     document.getElementById('problemUsedWires')]
-      .filter(Boolean)
-      .forEach(el => el.textContent = wireCount);
-    return;
+  function markCircuitModified() {
+    problemOutputsValid = false;
+    window.playController?.syncPaletteWithCircuit?.();
+    window.problemController?.syncPaletteWithCircuit?.();
   }
-}
-
-function markCircuitModified() {
-  problemOutputsValid = false;
-  updateUsageCounts();
-}
 
 
 function moveCircuit(dx, dy) {
@@ -2611,7 +2206,6 @@ function placeBlockAt(x, y, type) {
   cell.classList.add('block');
   cell.dataset.type = type;
   if (type === 'INPUT' || type === 'OUTPUT') {
-    attachInputClickHandlers(cell);
     //cell.textContent = `${cell.dataset.name || type}(0)`;
     cell.textContent = (cell.dataset.name || type);
   } else {
@@ -2628,15 +2222,6 @@ function placeWireAt(x, y, dir) {
   cell.dataset.type = 'WIRE';
 }
 
-function attachInputClickHandlers(cell) {
-  cell.onclick = () => {
-    const val = cell.dataset.value === '1' ? '0' : '1';
-    cell.dataset.value = val;
-    cell.textContent = cell.dataset.name;
-    cell.classList.toggle('active', val === '1');
-    evaluateCircuit();
-  };
-}
 
 function showOverallRanking() {
   const listEl = document.getElementById("overallRankingList");
@@ -2900,7 +2485,6 @@ document.getElementById('updateIOBtn').addEventListener('click', () => {
 // 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
 const addRowBtn = document.getElementById('addTestcaseRowBtn');
 if (addRowBtn) addRowBtn.style.display = 'none';
-document.getElementById('computeOutputsBtn').addEventListener('click', computeOutputs);
 if (saveProblemBtn) saveProblemBtn.addEventListener('click', () => {
   problemTitleInput.value = '';
   problemDescInput.value = '';
@@ -3014,31 +2598,6 @@ function addTestcaseRow() {
   table.querySelector('tbody').appendChild(tr);
 }
 
-function computeOutputs() {
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
-  const inNames = Array.from({ length: inputCnt }, (_, i) => 'IN' + (i + 1));
-  const outNames = Array.from({ length: outputCnt }, (_, i) => 'OUT' + (i + 1));
-  rows.forEach(tr => {
-    const inputs = Array.from(tr.querySelectorAll('td')).slice(0, inputCnt);
-    inNames.forEach((name, idx) => {
-      const cell = grid.querySelector('.cell.block[data-type="INPUT"][data-name="' + name + '"]');
-      if (cell) {
-        cell.dataset.value = inputs[idx].textContent.trim() === '1' ? '1' : '0';
-        cell.classList.toggle('active', cell.dataset.value === '1');
-      }
-    });
-    evaluateCircuit();
-    outNames.forEach((name, idx) => {
-      const cell = grid.querySelector('.cell.block[data-type="OUTPUT"][data-name="' + name + '"]');
-      const val = cell ? (cell.dataset.val === 'true' || cell.dataset.val === '1' ? '1' : '0') : '0';
-      const td = tr.querySelectorAll('td')[inputCnt + idx];
-      if (td) td.textContent = val;
-    });
-  });
-  problemOutputsValid = true;
-}
 
 // ----- 사용자 정의 문제 저장/불러오기 -----
 function getProblemGridData() {
@@ -3110,9 +2669,6 @@ function saveProblem() {
     problemDescInput.focus();
     return false;
   }
-  if (!problemOutputsValid) {
-    alert(t('computeOutputsFirst'));
-    return false;
   }
   const data = collectProblemData();
   const key = db.ref('problems').push().key;
@@ -3196,9 +2752,6 @@ function loadProblem(key) {
       if (state.name) cell.dataset.name = state.name;
       if (state.value) cell.dataset.value = state.value;
       state.classes.forEach(c => cell.classList.add(c));
-      if (state.type === 'INPUT' || state.type === 'OUTPUT') {
-        attachInputClickHandlers(cell);
-      }
       if (state.type && state.type !== 'WIRE') {
         cell.classList.add('block');
         if (state.type === 'INPUT') cell.textContent = state.name;
@@ -3494,154 +3047,6 @@ function startCustomProblem(key, problem) {
   collapseMenuBarForMobile();
 }
 
-async function gradeProblemAnimated(key, problem) {
-  const inNames = Array.from({length:problem.inputCount},(_,i)=>'IN'+(i+1));
-  const outNames = Array.from({length:problem.outputCount},(_,i)=>'OUT'+(i+1));
-  const testCases = problem.table.map(row=>({
-    inputs: Object.fromEntries(inNames.map(n=>[n,row[n]])),
-    expected: Object.fromEntries(outNames.map(n=>[n,row[n]]))
-  }));
-
-  const allBlocks = Array.from(grid.querySelectorAll('.cell.block'));
-  let junctionError = false;
-  allBlocks.filter(b=>b.dataset.type==='JUNCTION').forEach(junction=>{
-    const inputs = getIncomingBlocks(junction);
-    if (inputs.length>1){ junction.classList.add('error'); junctionError=true; }
-    else junction.classList.remove('error');
-  });
-  if (junctionError){
-    alert('❌ JUNCTION 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
-    if(overlay) overlay.style.display='none';
-    isScoring=false; return; }
-  let outputError=false;
-  Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'))
-    .forEach(output=>{
-      const inputs=getIncomingBlocks(output);
-      if(inputs.length>1){output.classList.add('error');outputError=true;}else{output.classList.remove('error');}
-    });
-  if(outputError){
-    alert('❌ OUTPUT 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.');
-    if(overlay) overlay.style.display='none';
-    isScoring=false;return;
-  }
-
-  const requiredOutputs = outNames;
-  const actualOutputCells = Array.from(grid.querySelectorAll('.cell.block[data-type="OUTPUT"]'));
-  const actualOutputNames = actualOutputCells.map(c=>c.dataset.name);
-  const missingOutputs = requiredOutputs.filter(n=>!actualOutputNames.includes(n));
-  if(missingOutputs.length>0){
-    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    if(overlay) overlay.style.display='none';
-    isScoring=false;return;
-  }
-
-  let allCorrect=true;
-  const bp2 = document.getElementById('blockPanel');
-  if (bp2) bp2.style.display='none';
-  const rp2 = document.getElementById('rightPanel');
-  if (rp2) rp2.style.display='none';
-  const ga2 = document.getElementById('gradingArea');
-  if (ga2) ga2.style.display='block';
-  const gradingArea=document.getElementById('gradingArea');
-  gradingArea.innerHTML='<b>채점 결과:</b><br><br>';
-
-  const inputs=grid.querySelectorAll('.cell.block[data-type="INPUT"]');
-  const outputs=grid.querySelectorAll('.cell.block[data-type="OUTPUT"]');
-
-  for(const test of testCases){
-    inputs.forEach(input=>{
-      const name=input.dataset.name;
-      const value=test.inputs[name]??0;
-      input.dataset.value=String(value);
-      input.classList.toggle('active',value===1);
-    });
-    evaluateCircuit();
-    await new Promise(r=>setTimeout(r,100));
-
-    let correct=true;
-    const actualText=Array.from(outputs).map(out=>{
-      const name=out.dataset.name;
-      const actual=+JSON.parse(out.dataset.val);
-      const expected=test.expected[name];
-      if(actual!==expected) correct=false;
-      return `${name}=${actual}`;
-    }).join(', ');
-    const expectedText=Object.entries(test.expected).map(([k,v])=>`${k}=${v}`).join(', ');
-    const inputText=Object.entries(test.inputs).map(([k,v])=>`${k}=${v}`).join(', ');
-    if(!correct) allCorrect=false;
-    if(!document.getElementById('gradingTable')){
-      gradingArea.innerHTML+=`
-      <table id="gradingTable">
-        <thead>
-          <tr><th>${t('thInput')}</th><th>${t('thExpected')}</th><th>${t('thActual')}</th><th>${t('thResult')}</th></tr>
-        </thead>
-        <tbody></tbody>
-      </table>`;
-    }
-      const tbody=document.querySelector('#gradingTable tbody');
-      const tr=document.createElement('tr');
-      tr.className=correct?'correct':'wrong';
-
-      const tdInput=document.createElement('td');
-      tdInput.textContent=inputText;
-
-      const tdExpected=document.createElement('td');
-      tdExpected.textContent=expectedText;
-
-      const tdActual=document.createElement('td');
-      tdActual.textContent=actualText;
-
-      const tdResult=document.createElement('td');
-      tdResult.style.fontWeight='bold';
-      tdResult.style.color=correct?'green':'red';
-      tdResult.textContent=correct?'✅ 정답':'❌ 오답';
-
-      tr.append(tdInput,tdExpected,tdActual,tdResult);
-      tbody.appendChild(tr);
-  }
-
-  const summary=document.createElement('div');
-  summary.id='gradeResultSummary';
-  summary.textContent=allCorrect?'🎉 모든 테스트를 통과했습니다!':'😢 일부 테스트에 실패했습니다.';
-  gradingArea.appendChild(summary);
-
-  const returnBtn=document.createElement('button');
-  returnBtn.id='returnToEditBtn';
-  returnBtn.textContent=t('returnToEditBtn');
-  gradingArea.appendChild(returnBtn);
-  document.getElementById('returnToEditBtn').addEventListener('click',returnToEditScreen);
-
-  if(allCorrect && key){
-    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
-    let saveSuccess=false;
-    if (autoSave) {
-      try {
-        if (gifLoadingModal) {
-          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-          gifLoadingModal.style.display = 'flex';
-        }
-        await saveCircuit();
-        saveSuccess=true;
-      } catch (e) {
-        alert(t('saveFailed').replace('{error}', e));
-      } finally {
-        if (gifLoadingModal) {
-          gifLoadingModal.style.display = 'none';
-          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
-        }
-      }
-    }
-    if(saveSuccess) showCircuitSavedModal();
-
-    const blocks=Array.from(grid.querySelectorAll('.cell.block'));
-    const blockCounts=blocks.reduce((acc,c)=>{
-      const t=c.dataset.type; acc[t]=(acc[t]||0)+1; return acc;
-    },{});
-    const usedWires=grid.querySelectorAll('.cell.wire').length;
-    const hintsUsed=parseInt(localStorage.getItem(`hintsUsed_${key}`)||'0');
-    saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
-  }
-}
 
 function getCircuitStats(circuit) {
   const blockCounts = Object.values(circuit.blocks).reduce((acc, b) => {
