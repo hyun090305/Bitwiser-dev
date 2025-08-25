@@ -612,6 +612,7 @@ function returnToEditScreen() {
   // 채점 모드 해제
   isScoring = false;
   if (overlay) overlay.style.display = "none";
+  enableCanvasInteraction();
 
   // 원래 편집 UI 복원
   const blockPanel = document.getElementById("blockPanel");
@@ -1552,6 +1553,16 @@ if (savedNextBtn) {
 const overlay = document.getElementById("gridOverlay");
 let isScoring = false;
 
+function disableCanvasInteraction() {
+  window.playController?.setInteractionEnabled(false);
+  window.problemController?.setInteractionEnabled(false);
+}
+
+function enableCanvasInteraction() {
+  window.playController?.setInteractionEnabled(true);
+  window.problemController?.setInteractionEnabled(true);
+}
+
 document.getElementById("gradeButton").addEventListener("click", () => {
   if (circuitHasError) {
     alert("회로에 오류가 존재합니다");
@@ -1560,6 +1571,7 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   if (isScoring) return;
   if (currentCustomProblem == null && currentLevel == null) return;
   isScoring = true;
+  disableCanvasInteraction();
   if (overlay) overlay.style.display = "block";
   if (currentCustomProblem) {
     if (window.playCircuit) {
@@ -3658,7 +3670,12 @@ function getCircuitStats(circuit) {
 async function gradeLevelCanvas(level) {
   const testCases = levelAnswers[level];
   const circuit = window.playCircuit;
-  if (!testCases || !circuit) return;
+  if (!testCases || !circuit) {
+    enableCanvasInteraction();
+    isScoring = false;
+    if (overlay) overlay.style.display = 'none';
+    return;
+  }
   const { evaluateCircuit } = await import('./src/canvas/engine.js');
 
   const blocks = Object.values(circuit.blocks);
@@ -3668,6 +3685,7 @@ async function gradeLevelCanvas(level) {
       if (incoming.length > 1) {
         alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
         if (overlay) overlay.style.display = 'none';
+        enableCanvasInteraction();
         isScoring = false;
         return;
       }
@@ -3682,6 +3700,7 @@ async function gradeLevelCanvas(level) {
   if (missingOutputs.length > 0) {
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
     if (overlay) overlay.style.display = 'none';
+    enableCanvasInteraction();
     isScoring = false;
     return;
   }
@@ -3756,6 +3775,30 @@ async function gradeLevelCanvas(level) {
   gradingArea.appendChild(summary);
 
   if (allCorrect) {
+    const clearedCard = document.querySelector(`.stageCard[data-stage="${level}"]`);
+    if (clearedCard && !clearedCard.classList.contains('cleared')) {
+      clearedCard.classList.add('cleared');
+      markLevelCleared(level);
+    }
+    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
+    let saveSuccess = false;
+    if (autoSave) {
+      try {
+        if (gifLoadingModal) {
+          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+          gifLoadingModal.style.display = 'flex';
+        }
+        await saveCircuit();
+        saveSuccess = true;
+      } catch (e) {
+        alert(t('saveFailed').replace('{error}', e));
+      } finally {
+        if (gifLoadingModal) {
+          gifLoadingModal.style.display = 'none';
+          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
+      }
+    }
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
     const nickname = localStorage.getItem('username') || '익명';
@@ -3788,6 +3831,7 @@ async function gradeLevelCanvas(level) {
           pendingClearedLevel = level;
         }
       }
+      if (saveSuccess) showCircuitSavedModal();
     });
   }
 
@@ -3800,7 +3844,12 @@ async function gradeLevelCanvas(level) {
 
 async function gradeProblemCanvas(key, problem) {
   const circuit = window.playCircuit;
-  if (!circuit) return;
+  if (!circuit) {
+    enableCanvasInteraction();
+    isScoring = false;
+    if (overlay) overlay.style.display = 'none';
+    return;
+  }
   const inNames = Array.from({ length: problem.inputCount }, (_, i) => 'IN' + (i + 1));
   const outNames = Array.from({ length: problem.outputCount }, (_, i) => 'OUT' + (i + 1));
   const testCases = problem.table.map(row => ({
@@ -3816,6 +3865,7 @@ async function gradeProblemCanvas(key, problem) {
       if (incoming.length > 1) {
         alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
         if (overlay) overlay.style.display = 'none';
+        enableCanvasInteraction();
         isScoring = false;
         return;
       }
@@ -3828,6 +3878,7 @@ async function gradeProblemCanvas(key, problem) {
   if (missingOutputs.length > 0) {
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
     if (overlay) overlay.style.display = 'none';
+    enableCanvasInteraction();
     isScoring = false;
     return;
   }
