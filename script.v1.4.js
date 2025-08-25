@@ -1431,11 +1431,6 @@ document.addEventListener("keydown", e => {
   }
 });
 
-// ─────────── 삭제 모드 기능 추가 ───────────
-
-    deleteToggle.classList.remove('active');
-  }
-});
 
 document.addEventListener('keydown', e => {
   if (isTextInputFocused()) return;
