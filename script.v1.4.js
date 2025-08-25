@@ -3643,6 +3643,18 @@ async function gradeProblemAnimated(key, problem) {
   }
 }
 
+function getCircuitStats(circuit) {
+  const blockCounts = Object.values(circuit.blocks).reduce((acc, b) => {
+    acc[b.type] = (acc[b.type] || 0) + 1;
+    return acc;
+  }, {});
+  const wireCells = new Set();
+  Object.values(circuit.wires).forEach(w => {
+    w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
+  });
+  return { blockCounts, usedWires: wireCells.size };
+}
+
 async function gradeLevelCanvas(level) {
   const testCases = levelAnswers[level];
   const circuit = window.playCircuit;
@@ -3742,6 +3754,42 @@ async function gradeLevelCanvas(level) {
   summary.id = 'gradeResultSummary';
   summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
   gradingArea.appendChild(summary);
+
+  if (allCorrect) {
+    const { blockCounts, usedWires } = getCircuitStats(circuit);
+    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
+    const nickname = localStorage.getItem('username') || '익명';
+    const rankingsRef = db.ref(`rankings/${level}`);
+    pendingClearedLevel = null;
+    rankingsRef.orderByChild('nickname').equalTo(nickname).once('value', snapshot => {
+      if (!snapshot.exists()) {
+        saveRanking(level, blockCounts, usedWires, hintsUsed);
+        pendingClearedLevel = level;
+      } else {
+        let best = null;
+        snapshot.forEach(child => {
+          const e = child.val();
+          const oldBlocks = Object.values(e.blockCounts || {}).reduce((a, b) => a + b, 0);
+          const newBlocks = Object.values(blockCounts).reduce((a, b) => a + b, 0);
+          const oldWires = e.usedWires;
+          const newWires = usedWires;
+          if (newBlocks < oldBlocks || (newBlocks === oldBlocks && newWires < oldWires)) {
+            best = { key: child.key };
+            return false;
+          }
+        });
+        if (best) {
+          rankingsRef.child(best.key).update({
+            blockCounts,
+            usedWires,
+            hintsUsed,
+            timestamp: new Date().toISOString()
+          });
+          pendingClearedLevel = level;
+        }
+      }
+    });
+  }
 
   const returnBtn = document.createElement('button');
   returnBtn.id = 'returnToEditBtn';
@@ -3852,6 +3900,12 @@ async function gradeProblemCanvas(key, problem) {
   summary.id = 'gradeResultSummary';
   summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
   gradingArea.appendChild(summary);
+
+  if (allCorrect && key) {
+    const { blockCounts, usedWires } = getCircuitStats(circuit);
+    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${key}`) || '0');
+    saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
+  }
 
   const returnBtn = document.createElement('button');
   returnBtn.id = 'returnToEditBtn';
