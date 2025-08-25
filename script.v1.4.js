@@ -3039,24 +3039,7 @@ function showHint(index) {
 }
 
 function placeFixedIO(problem) {
-  if (!problem.fixIO || !problem.grid || !window.playController) return;
-  const circuit = window.playController.circuit;
-  problem.grid.forEach(state => {
-    if (state.type === 'INPUT' || state.type === 'OUTPUT') {
-      const r = Math.floor(state.index / GRID_COLS);
-      const c = state.index % GRID_COLS;
-      const id = 'fixed_' + state.name + '_' + state.index;
-      circuit.blocks[id] = {
-        id,
-        type: state.type,
-        name: state.name,
-        pos: { r, c },
-        value: state.type === 'INPUT' ? (state.value === '1') : false,
-        fixed: true
-      };
-    }
-  });
-  window.playController?.syncPaletteWithCircuit?.();
+  window.playController?.placeFixedIO?.(problem);
 }
 
 function startCustomProblem(key, problem) {

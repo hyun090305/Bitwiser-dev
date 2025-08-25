@@ -611,6 +611,27 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return true;
   }
 
+  function placeFixedIO(problem) {
+    if (!problem?.fixIO || !problem.grid) return;
+    problem.grid.forEach(state => {
+      if (state.type === 'INPUT' || state.type === 'OUTPUT') {
+        const r = Math.floor(state.index / circuit.cols);
+        const c = state.index % circuit.cols;
+        const id = 'fixed_' + state.name + '_' + state.index;
+        circuit.blocks[id] = newBlock({
+          id,
+          type: state.type,
+          name: state.name,
+          pos: { r, c },
+          value: state.type === 'INPUT' ? state.value === '1' : false,
+          fixed: true,
+        });
+      }
+    });
+    syncPaletteWithCircuit();
+    renderContent(contentCtx, circuit, 0, panelTotalWidth);
+  }
+
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO };
 }
