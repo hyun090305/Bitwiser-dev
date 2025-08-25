@@ -9,8 +9,8 @@ export function coord(r, c) {
   return { r, c };
 }
 
-export function newBlock({ id, type, name, pos }) {
-  return { id, type, name, pos, value: false };
+export function newBlock({ id, type, name, pos, value = false, fixed = false }) {
+  return { id, type, name, pos, value, fixed };
 }
 
 export function newWire({ id, path, startBlockId, endBlockId }) {
