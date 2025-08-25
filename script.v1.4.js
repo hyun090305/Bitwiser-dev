@@ -2191,9 +2191,9 @@ function clearWires() {
 
 
 function moveCircuit(dx, dy) {
-  const controller = currentCustomProblem ? window.problemController : window.playController;
+  const controller = window.problemController || window.playController;
   if (!controller) return;
-  if (currentCustomProblem && currentCustomProblem.fixIO) return;
+  if (controller === window.problemController && currentCustomProblem?.fixIO) return;
   const moved = controller.moveCircuit(dx, dy);
   if (moved) {
     markCircuitModified();
