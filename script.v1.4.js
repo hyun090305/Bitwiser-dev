@@ -3775,8 +3775,6 @@ async function gradeLevelCanvas(level) {
         }
       }
     }
-    if (saveSuccess) showCircuitSavedModal();
-
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
     const nickname = localStorage.getItem('username') || '익명';
@@ -3809,6 +3807,7 @@ async function gradeLevelCanvas(level) {
           pendingClearedLevel = level;
         }
       }
+      if (saveSuccess) showCircuitSavedModal();
     });
   }
 
