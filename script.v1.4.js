@@ -2669,7 +2669,6 @@ function saveProblem() {
     problemDescInput.focus();
     return false;
   }
-  }
   const data = collectProblemData();
   const key = db.ref('problems').push().key;
   db.ref('problems/' + key).set(data)
