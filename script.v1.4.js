@@ -776,7 +776,7 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
 }
 
 function resetCell(cell) {
-  if (currentCustomProblem && currentCustomProblem.fixIO && cell.dataset.fixed === '1') return;
+  if (cell.dataset.fixed === '1') return;
   cell.className = "cell";
   cell.textContent = "";
   delete cell.dataset.type;
