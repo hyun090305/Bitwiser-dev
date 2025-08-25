@@ -765,19 +765,6 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
   });
 }
 
-function resetCell(cell) {
-  if (cell.dataset.fixed === '1') return;
-  cell.className = "cell";
-  cell.textContent = "";
-  delete cell.dataset.type;
-  delete cell.dataset.name;
-  delete cell.dataset.value;
-  cell.removeAttribute("draggable");
-  // 클릭 이벤트 프로퍼티 초기화
-  cell.onclick = null;
-  markCircuitModified();
-}
-
 document.getElementById("showIntroBtn").addEventListener("click", () => {
   if (currentLevel != null) {
     showIntroModal(currentLevel);
@@ -2376,7 +2363,6 @@ const createProblemBtn         = document.getElementById('createProblemBtn');
 const problemScreen            = document.getElementById('problem-screen');
 const backToMainFromProblem    = document.getElementById('backToMainFromProblem');
 const saveProblemBtn           = document.getElementById('saveProblemBtn');
-const viewProblemListBtn       = document.getElementById('viewProblemListBtn');
 const closeProblemListModal    = document.getElementById('closeProblemListModal');
 const userProblemsScreen       = document.getElementById('user-problems-screen');
 const userProblemList          = document.getElementById('userProblemList');
@@ -2474,7 +2460,6 @@ if (cancelSaveProblemBtn) cancelSaveProblemBtn.addEventListener('click', () => {
 if (problemModalBackdrop) problemModalBackdrop.addEventListener('click', () => {
   problemSaveModal.style.display = 'none';
 });
-if (viewProblemListBtn) viewProblemListBtn.addEventListener('click', showProblemList);
   if (closeProblemListModal) closeProblemListModal.addEventListener('click', () => {
     document.getElementById('problemListModal').style.display = 'none';
   });
@@ -2671,40 +2656,6 @@ function saveProblem() {
     .then(() => alert(t('problemSaved')))
     .catch(err => alert(t('saveFailed').replace('{error}', err)));
   return true;
-}
-
-function showProblemList() {
-  const modal = document.getElementById('problemListModal');
-  const list = document.getElementById('problemList');
-  db.ref('problems').once('value').then(snapshot => {
-    list.innerHTML = '';
-    const table = document.createElement('table');
-    table.innerHTML = `<thead><tr><th>${t('thTitle')}</th><th>${t('thGrid')}</th><th>${t('thNotes')}</th></tr></thead><tbody></tbody>`;
-    const tbody = table.querySelector('tbody');
-    if (!snapshot.exists()) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="3">${t('noProblems')}</td>`;
-      tbody.appendChild(tr);
-    } else {
-      snapshot.forEach(child => {
-        const d = child.val();
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td>${d.title || child.key}</td>
-          <td>${(d.gridRows || 6)}×${(d.gridCols || 6)}</td>
-          <td><button class="loadProbBtn" data-key="${child.key}">${t('loadBtn')}</button></td>`;
-        tbody.appendChild(tr);
-      });
-      table.querySelectorAll('.loadProbBtn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          loadProblem(btn.dataset.key);
-          modal.style.display = 'none';
-        });
-      });
-    }
-    list.appendChild(table);
-    modal.style.display = 'flex';
-  });
 }
 
 function renderUserProblemList() {
