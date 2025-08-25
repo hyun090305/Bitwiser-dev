@@ -481,16 +481,6 @@ function markLevelCleared(level) {
   }
 }
 
-/**
-* row, col이 범위를 벗어나면 null을, 아니면 그 위치의 .cell 요소를 돌려줍니다.
-*/
-function getCell(row, col) {
-  if (row < 0 || row >= GRID_ROWS || col < 0 || col >= GRID_COLS) return null;
-  return grid.children[row * GRID_COLS + col];
-}
-
-
-
 // 피드백 전송
 // 1) 방명록 등록 함수
 function submitGuestEntry() {
@@ -2199,30 +2189,6 @@ function moveCircuit(dx, dy) {
     markCircuitModified();
   }
 }
-// 이전: placeBlockAt 미정의
-function placeBlockAt(x, y, type) {
-  const idx = y * GRID_COLS + x;
-  // 수정:
-  const cell = grid.querySelectorAll('.cell')[idx];
-  cell.classList.add('block');
-  cell.dataset.type = type;
-  if (type === 'INPUT' || type === 'OUTPUT') {
-    //cell.textContent = `${cell.dataset.name || type}(0)`;
-    cell.textContent = (cell.dataset.name || type);
-  } else {
-    cell.textContent = type;
-  }
-}
-
-// 이전: placeWireAt 미정의
-function placeWireAt(x, y, dir) {
-  const idx = y * GRID_COLS + x;
-  // 수정:
-  const cell = grid.querySelectorAll('.cell')[idx];
-  cell.classList.add('wire', `wire-${dir}`);
-  cell.dataset.type = 'WIRE';
-}
-
 
 function showOverallRanking() {
   const listEl = document.getElementById("overallRankingList");
@@ -2738,69 +2704,6 @@ function showProblemList() {
     }
     list.appendChild(table);
     modal.style.display = 'flex';
-  });
-}
-
-function loadProblem(key) {
-  db.ref('problems/' + key).once('value').then(snapshot => {
-    const data = snapshot.val();
-    if (!data) return alert(t('loadFailed'));
-
-    document.getElementById('inputCount').value = data.inputCount || 1;
-    document.getElementById('outputCount').value = data.outputCount || 1;
-    document.getElementById('gridRows').value = data.gridRows || 6;
-    document.getElementById('gridCols').value = data.gridCols || 6;
-    setupGrid('problemCanvasContainer', data.gridRows || 6, data.gridCols || 6, createPaletteForProblem());
-    setGridDimensions(data.gridRows || 6, data.gridCols || 6);
-    initTestcaseTable();
-
-    document.getElementById('problemTitleInput').value = data.title || '';
-    document.getElementById('problemDescInput').value = data.description || '';
-    if (fixIOCheck) fixIOCheck.checked = !!data.fixIO;
-
-    // truth table
-    const tbodyRows = document.querySelectorAll('#testcaseTable tbody tr');
-    data.table.forEach((row, rIdx) => {
-      const cells = Array.from(tbodyRows[rIdx].querySelectorAll('td'));
-      for (let i = 0; i < data.inputCount; i++) {
-        if (cells[i]) cells[i].textContent = row['IN' + (i + 1)];
-      }
-      for (let j = 0; j < data.outputCount; j++) {
-        if (cells[data.inputCount + j]) cells[data.inputCount + j].textContent = row['OUT' + (j + 1)];
-      }
-    });
-
-    clearGrid();
-    clearWires();
-
-    const cells = document.querySelectorAll('#problemGrid .cell');
-    data.grid.forEach(state => {
-      const cell = cells[state.index];
-      cell.className = 'cell';
-      if (state.type) cell.dataset.type = state.type;
-      if (state.name) cell.dataset.name = state.name;
-      if (state.value) cell.dataset.value = state.value;
-      state.classes.forEach(c => cell.classList.add(c));
-      if (state.type && state.type !== 'WIRE') {
-        cell.classList.add('block');
-        if (state.type === 'INPUT') cell.textContent = state.name;
-        else if (state.type === 'OUTPUT') cell.textContent = state.name;
-        else if (state.type === 'JUNCTION') cell.textContent = 'JUNC';
-        else cell.textContent = state.type;
-        cell.draggable = true;
-      }
-    });
-
-    data.wires && data.wires.forEach(w => placeWireAt(w.x, w.y, w.dir));
-
-    if (data.wiresObj) {
-      wires = data.wiresObj.map(obj => ({
-        start: cells[obj.startIdx],
-        end: cells[obj.endIdx],
-        path: obj.pathIdxs.map(i => cells[i])
-      }));
-    }
-    problemOutputsValid = true;
   });
 }
 
