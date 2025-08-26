@@ -2092,7 +2092,7 @@ async function listCircuitJsonFiles() {
 // 3) 리스트 그리기
 async function renderSavedList() {
   const savedList = document.getElementById('savedList');
-  savedList.innerHTML = '';
+  savedList.innerHTML = `<p>${t('loadingText')}</p>`;
   try {
     await ensureDriveAuth();
   } catch (e) {
@@ -2107,9 +2107,12 @@ async function renderSavedList() {
     savedList.innerHTML = `<p>${t('noCircuits')}</p>`;
     return;
   }
-  for (const file of files) {
+  const items = await Promise.all(files.map(async file => {
     const key = file.name.replace('.json', '');
-    const blob = await downloadFileFromAppData(file.name);
+    const [blob, gifBlob] = await Promise.all([
+      downloadFileFromAppData(file.name),
+      loadGifFromDB(key)
+    ]);
     const text = await blob.text();
     const data = JSON.parse(text);
     const item = document.createElement('div');
@@ -2118,7 +2121,6 @@ async function renderSavedList() {
       ? `Stage ${String(data.stageId).padStart(2, '0')}`
       : `Problem ${data.problemTitle || data.problemKey}`;
 
-    const gifBlob = await loadGifFromDB(key);
     const img = document.createElement('img');
     if (gifBlob) img.src = URL.createObjectURL(gifBlob);
     img.alt = label;
@@ -2146,15 +2148,17 @@ async function renderSavedList() {
     });
     item.appendChild(delBtn);
 
-    savedList.appendChild(item);
-  }
+    return item;
+  }));
+  savedList.innerHTML = '';
+  items.forEach(item => savedList.appendChild(item));
 }
 
 // 4) 모달 열기/닫기
 document.getElementById('viewSavedBtn')
-  .addEventListener('click', async () => {
-    await renderSavedList();
+  .addEventListener('click', () => {
     document.getElementById('savedModal').style.display = 'flex';
+    renderSavedList();
   });
 document.getElementById('closeSavedModal')
   .addEventListener('click', () => {
