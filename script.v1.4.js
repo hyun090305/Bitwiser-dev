@@ -33,13 +33,13 @@ async function ensureDriveAuth() {
   if (!gapiInited) throw new Error(t('loginRequired'));
   const auth = gapi.auth2.getAuthInstance();
   let user = auth.currentUser.get();
-  if (!auth.isSignedIn.get()) {
+  if (!auth.isSignedIn.get() || !user.hasGrantedScopes(DRIVE_SCOPE)) {
+    // Force the consent screen even for users who are already signed in so that
+    // newly required scopes (e.g. Drive read/write) can be granted without
+    // requiring a separate logout/login cycle.
     await auth.signIn({ scope: DRIVE_SCOPE, prompt: 'consent' });
     user = auth.currentUser.get();
-  } else if (!user.hasGrantedScopes(DRIVE_SCOPE)) {
-    await user.grant({ scope: DRIVE_SCOPE });
   }
-  user = auth.currentUser.get();
   if (!user.hasGrantedScopes(DRIVE_SCOPE)) throw new Error(t('loginRequired'));
   return user;
 }
