@@ -1132,22 +1132,7 @@ if (savedShareBtn) {
   savedShareBtn.addEventListener('click', async () => {
     if (!lastSavedKey) return;
     try {
-      await ensureDriveAuth();
-      const search = await gapi.client.drive.files.list({
-        spaces: 'appDataFolder',
-        q: `name='${lastSavedKey}'`,
-        fields: 'files(id)' 
-      });
-      const fileMeta = search.result.files[0];
-      if (!fileMeta) throw new Error('File not found');
-      const resp = await gapi.client.drive.files.get({ fileId: fileMeta.id, alt: 'media' });
-      const data = JSON.parse(resp.body);
-      const byteCharacters = atob(data.gif || '');
-      const byteNumbers = new Array(byteCharacters.length);
-      for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
-      }
-      const blob = new Blob([new Uint8Array(byteNumbers)], { type: 'image/gif' });
+      const blob = await loadGifFromDB(lastSavedKey);
       const file = new File([blob], 'circuit.gif', { type: 'image/gif' });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         await navigator.share({ files: [file] });
@@ -1941,36 +1926,56 @@ const savedList = document.getElementById('savedList');
 // Version tag for canvas-based circuit saves
 const CURRENT_CIRCUIT_VERSION = 2;
 
-// Google Drive API setup
-const GOOGLE_DRIVE_CLIENT_ID =
-  '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
-const DRIVE_SCOPES = 'https://www.googleapis.com/auth/drive.appdata';
-let gapiInitialized = false;
+// IndexedDB helpers for storing GIFs
+const GIF_DB_NAME = 'bitwiser-gifs';
+const GIF_STORE = 'gifs';
+let gifDbPromise = null;
 
-function initGapi() {
-  return new Promise(resolve => {
-    if (gapiInitialized) {
-      resolve();
-      return;
-    }
-    gapi.load('client:auth2', async () => {
-      await gapi.client.init({
-        clientId: GOOGLE_DRIVE_CLIENT_ID,
-        scope: DRIVE_SCOPES,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
-      });
-      gapiInitialized = true;
-      resolve();
+function openGifDB() {
+  if (!gifDbPromise) {
+    gifDbPromise = new Promise((resolve, reject) => {
+      const req = indexedDB.open(GIF_DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(GIF_STORE)) {
+          db.createObjectStore(GIF_STORE);
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
     });
+  }
+  return gifDbPromise;
+}
+
+async function saveGifToDB(key, blob) {
+  const db = await openGifDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(GIF_STORE, 'readwrite');
+    tx.objectStore(GIF_STORE).put(blob, key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
   });
 }
 
-async function ensureDriveAuth() {
-  await initGapi();
-  const auth = gapi.auth2.getAuthInstance();
-  if (!auth.isSignedIn.get()) {
-    await auth.signIn();
-  }
+async function loadGifFromDB(key) {
+  const db = await openGifDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(GIF_STORE, 'readonly');
+    const req = tx.objectStore(GIF_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function deleteGifFromDB(key) {
+  const db = await openGifDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(GIF_STORE, 'readwrite');
+    tx.objectStore(GIF_STORE).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+  });
 }
 
 saveCircuitBtn.addEventListener('click', async () => {
@@ -2003,41 +2008,42 @@ function getSavePrefix() {
   return 'bit_saved_';
 }
 
-async function listSavedFiles() {
-  await ensureDriveAuth();
+function getSavedKeys() {
   const prefix = getSavePrefix();
-  const res = await gapi.client.drive.files.list({
-    spaces: 'appDataFolder',
-    q: `name contains '${prefix}'`,
-    fields: 'files(id, name, modifiedTime)',
-    orderBy: 'modifiedTime desc'
-  });
-  return res.result.files || [];
+  return Object.keys(localStorage)
+    .filter(k => k.startsWith(prefix))
+    .sort((a, b) => {
+      const tA = parseInt(a.slice(prefix.length), 10);
+      const tB = parseInt(b.slice(prefix.length), 10);
+      return tB - tA;
+    });
 }
 
 // 3) 리스트 그리기
 async function renderSavedList() {
   const savedList = document.getElementById('savedList');
   savedList.innerHTML = '';
-  const files = await listSavedFiles();
-  if (!files.length) {
+  const keys = getSavedKeys().filter(key => {
+    const data = JSON.parse(localStorage.getItem(key));
+    if (currentLevel != null) return data.stageId === currentLevel;
+    if (currentCustomProblemKey) return data.problemKey === currentCustomProblemKey;
+    return false;
+  });
+  if (!keys.length) {
     savedList.innerHTML = `<p>${t('noCircuits')}</p>`;
     return;
   }
-  for (const f of files) {
-    const resp = await gapi.client.drive.files.get({ fileId: f.id, alt: 'media' });
-    const data = JSON.parse(resp.body);
-    if (currentLevel != null && data.stageId !== currentLevel) continue;
-    if (currentCustomProblemKey && data.problemKey !== currentCustomProblemKey) continue;
-
+  for (const key of keys) {
+    const data = JSON.parse(localStorage.getItem(key));
     const item = document.createElement('div');
     item.className = 'saved-item';
     const label = data.stageId != null
       ? `Stage ${String(data.stageId).padStart(2, '0')}`
       : `Problem ${data.problemTitle || data.problemKey}`;
 
+    const blob = await loadGifFromDB(key);
     const img = document.createElement('img');
-    if (data.gif) img.src = `data:image/gif;base64,${data.gif}`;
+    if (blob) img.src = URL.createObjectURL(blob);
     img.alt = label;
     item.appendChild(img);
 
@@ -2047,17 +2053,18 @@ async function renderSavedList() {
     item.appendChild(cap);
 
     item.addEventListener('click', () => {
-      loadCircuitData(data);
+      loadCircuit(key);
       document.getElementById('savedModal').style.display = 'none';
     });
 
     const delBtn = document.createElement('button');
     delBtn.textContent = t('deleteBtn');
     delBtn.className = 'deleteBtn';
-    delBtn.addEventListener('click', async e => {
+    delBtn.addEventListener('click', e => {
       e.stopPropagation();
       if (!confirm(t('confirmDelete'))) return;
-      await gapi.client.drive.files.delete({ fileId: f.id });
+      localStorage.removeItem(key);
+      deleteGifFromDB(key);
       renderSavedList();
     });
     item.appendChild(delBtn);
@@ -2078,7 +2085,8 @@ document.getElementById('closeSavedModal')
   });
 
 // 5) 회로 불러오는 함수
-function loadCircuitData(data) {
+function loadCircuit(key) {
+  const data = JSON.parse(localStorage.getItem(key));
   if (!data) return alert(t('loadFailedNoData'));
   if (data.version !== CURRENT_CIRCUIT_VERSION || !data.circuit) {
     alert(t('incompatibleCircuit'));
@@ -2099,12 +2107,6 @@ function loadCircuitData(data) {
 async function saveCircuit() {
   const circuit = window.playCircuit || window.problemCircuit;
   if (!circuit) throw new Error('No circuit to save');
-  if (!firebase.auth().currentUser) {
-    alert(t('loginRequired') || 'Google 로그인 후 저장할 수 있습니다.');
-    throw new Error('Not logged in');
-  }
-
-  await ensureDriveAuth();
 
   const wireCells = new Set();
   Object.values(circuit.wires).forEach(w => {
@@ -2122,33 +2124,21 @@ async function saveCircuit() {
     usedWires: wireCells.size
   };
 
-  // capture GIF and embed as base64
-  const blob = await new Promise(resolve => captureGIF(resolve));
-  const reader = new FileReader();
-  const gifBase64 = await new Promise(res => {
-    reader.onload = () => {
-      const result = reader.result;
-      res(result.split(',')[1]);
-    };
-    reader.readAsDataURL(blob);
-  });
-  data.gif = gifBase64;
-
   const timestampMs = Date.now();
-  const name = `${getSavePrefix()}${timestampMs}.json`;
-
+  const key = `${getSavePrefix()}${timestampMs}`;
   try {
-    await gapi.client.drive.files.create({
-      resource: { name, parents: ['appDataFolder'] },
-      media: { mimeType: 'application/json', body: JSON.stringify(data) },
-      fields: 'id'
-    });
-    console.log('Circuit saved to Drive:', name);
-    lastSavedKey = name;
-    return name;
+    localStorage.setItem(key, JSON.stringify(data));
+
+    // capture GIF and store in IndexedDB
+    const blob = await new Promise(resolve => captureGIF(resolve));
+    await saveGifToDB(key, blob);
+
+    console.log(`Circuit saved: ${key}`, data);
+    lastSavedKey = key;
+    return key;
   } catch (e) {
     console.error('Circuit save failed:', e);
-    alert(t('saveFailed').replace('{error}', e.message || e));
+    alert('회로 저장 중 오류가 발생했습니다.');
     throw e;
   }
 }
