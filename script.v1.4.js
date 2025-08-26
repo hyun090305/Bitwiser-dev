@@ -11,6 +11,31 @@ let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 let lastSavedKey = null;
 let pendingClearedLevel = null;
 
+// Google Drive API initialization
+const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
+const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+let gapiInited = false;
+
+window.addEventListener('load', () => {
+  if (window.gapi) {
+    gapi.load('client:auth2', async () => {
+      await gapi.client.init({
+        clientId: GOOGLE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+      });
+      gapiInited = true;
+    });
+  }
+});
+
+async function ensureDriveAuth() {
+  if (!gapiInited) throw new Error(t('loginRequired'));
+  const auth = gapi.auth2.getAuthInstance();
+  if (!auth.isSignedIn.get()) throw new Error(t('loginRequired'));
+  return auth.currentUser.get();
+}
+
 // Preload heavy canvas modules so they are ready when a stage begins.
 // This reduces the delay caused by dynamic imports later in the game.
 ['./src/canvas/model.js',
@@ -1921,64 +1946,75 @@ const viewSavedBtn = document.getElementById('viewSavedBtn');
 const saveCircuitBtn = document.getElementById('saveCircuitBtn');
 const savedModal = document.getElementById('savedModal');
 const closeSavedModal = document.getElementById('closeSavedModal');
-const savedList = document.getElementById('savedList');
 
 // Version tag for canvas-based circuit saves
 const CURRENT_CIRCUIT_VERSION = 2;
 
-// IndexedDB helpers for storing GIFs
-const GIF_DB_NAME = 'bitwiser-gifs';
-const GIF_STORE = 'gifs';
-let gifDbPromise = null;
+// Google Drive file helpers
+async function uploadFileToAppData(name, blob, mimeType) {
+  await ensureDriveAuth();
+  const token = gapi.client.getToken().access_token;
+  const metadata = {
+    name,
+    parents: ['appDataFolder'],
+    mimeType
+  };
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', blob);
+  await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+    method: 'POST',
+    headers: new Headers({ 'Authorization': 'Bearer ' + token }),
+    body: form
+  });
+}
 
-function openGifDB() {
-  if (!gifDbPromise) {
-    gifDbPromise = new Promise((resolve, reject) => {
-      const req = indexedDB.open(GIF_DB_NAME, 1);
-      req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains(GIF_STORE)) {
-          db.createObjectStore(GIF_STORE);
-        }
-      };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
-  }
-  return gifDbPromise;
+async function downloadFileFromAppData(name) {
+  await ensureDriveAuth();
+  const list = await gapi.client.drive.files.list({
+    spaces: 'appDataFolder',
+    fields: 'files(id, name)',
+    q: `name='${name}'`
+  });
+  const file = list.result.files[0];
+  if (!file) return null;
+  const token = gapi.client.getToken().access_token;
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+    headers: new Headers({ 'Authorization': 'Bearer ' + token })
+  });
+  return await res.blob();
+}
+
+async function deleteFileFromAppData(name) {
+  await ensureDriveAuth();
+  const list = await gapi.client.drive.files.list({
+    spaces: 'appDataFolder',
+    fields: 'files(id, name)',
+    q: `name='${name}'`
+  });
+  const file = list.result.files[0];
+  if (file) await gapi.client.drive.files.delete({ fileId: file.id });
 }
 
 async function saveGifToDB(key, blob) {
-  const db = await openGifDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(GIF_STORE, 'readwrite');
-    tx.objectStore(GIF_STORE).put(blob, key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  return uploadFileToAppData(`${key}.gif`, blob, 'image/gif');
 }
 
 async function loadGifFromDB(key) {
-  const db = await openGifDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(GIF_STORE, 'readonly');
-    const req = tx.objectStore(GIF_STORE).get(key);
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+  return downloadFileFromAppData(`${key}.gif`);
 }
 
 async function deleteGifFromDB(key) {
-  const db = await openGifDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(GIF_STORE, 'readwrite');
-    tx.objectStore(GIF_STORE).delete(key);
-    tx.oncomplete = () => resolve();
-    tx.onerror = () => reject(tx.error);
-  });
+  return deleteFileFromAppData(`${key}.gif`);
 }
 
 saveCircuitBtn.addEventListener('click', async () => {
+  try {
+    await ensureDriveAuth();
+  } catch (e) {
+    alert(e.message);
+    return;
+  }
   let saveSuccess = false;
   try {
     if (gifLoadingModal) {
@@ -1998,7 +2034,7 @@ saveCircuitBtn.addEventListener('click', async () => {
   if (saveSuccess) alert(t('circuitSaved'));
 });
 
-// 2) 저장된 회로 키들 읽어오기
+// 2) 저장된 회로 키 prefix 계산
 function getSavePrefix() {
   if (currentLevel != null) {
     return `bit_saved_stage_${String(currentLevel).padStart(2, '0')}_`;
@@ -2008,42 +2044,48 @@ function getSavePrefix() {
   return 'bit_saved_';
 }
 
-function getSavedKeys() {
-  const prefix = getSavePrefix();
-  return Object.keys(localStorage)
-    .filter(k => k.startsWith(prefix))
-    .sort((a, b) => {
-      const tA = parseInt(a.slice(prefix.length), 10);
-      const tB = parseInt(b.slice(prefix.length), 10);
-      return tB - tA;
-    });
+async function listCircuitJsonFiles() {
+  await ensureDriveAuth();
+  const res = await gapi.client.drive.files.list({
+    spaces: 'appDataFolder',
+    fields: 'files(id, name, createdTime)',
+    q: "name contains '.json'"
+  });
+  return res.result.files || [];
 }
 
 // 3) 리스트 그리기
 async function renderSavedList() {
   const savedList = document.getElementById('savedList');
   savedList.innerHTML = '';
-  const keys = getSavedKeys().filter(key => {
-    const data = JSON.parse(localStorage.getItem(key));
-    if (currentLevel != null) return data.stageId === currentLevel;
-    if (currentCustomProblemKey) return data.problemKey === currentCustomProblemKey;
-    return false;
-  });
-  if (!keys.length) {
+  try {
+    await ensureDriveAuth();
+  } catch (e) {
+    savedList.innerHTML = `<p>${t('loginRequired')}</p>`;
+    return;
+  }
+  const prefix = getSavePrefix();
+  const files = (await listCircuitJsonFiles())
+    .filter(f => f.name.startsWith(prefix))
+    .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
+  if (!files.length) {
     savedList.innerHTML = `<p>${t('noCircuits')}</p>`;
     return;
   }
-  for (const key of keys) {
-    const data = JSON.parse(localStorage.getItem(key));
+  for (const file of files) {
+    const key = file.name.replace('.json', '');
+    const blob = await downloadFileFromAppData(file.name);
+    const text = await blob.text();
+    const data = JSON.parse(text);
     const item = document.createElement('div');
     item.className = 'saved-item';
     const label = data.stageId != null
       ? `Stage ${String(data.stageId).padStart(2, '0')}`
       : `Problem ${data.problemTitle || data.problemKey}`;
 
-    const blob = await loadGifFromDB(key);
+    const gifBlob = await loadGifFromDB(key);
     const img = document.createElement('img');
-    if (blob) img.src = URL.createObjectURL(blob);
+    if (gifBlob) img.src = URL.createObjectURL(gifBlob);
     img.alt = label;
     item.appendChild(img);
 
@@ -2052,19 +2094,19 @@ async function renderSavedList() {
     cap.textContent = `${label} — ${new Date(data.timestamp).toLocaleString()}`;
     item.appendChild(cap);
 
-    item.addEventListener('click', () => {
-      loadCircuit(key);
+    item.addEventListener('click', async () => {
+      await loadCircuit(key);
       document.getElementById('savedModal').style.display = 'none';
     });
 
     const delBtn = document.createElement('button');
     delBtn.textContent = t('deleteBtn');
     delBtn.className = 'deleteBtn';
-    delBtn.addEventListener('click', e => {
+    delBtn.addEventListener('click', async e => {
       e.stopPropagation();
       if (!confirm(t('confirmDelete'))) return;
-      localStorage.removeItem(key);
-      deleteGifFromDB(key);
+      await deleteFileFromAppData(`${key}.json`);
+      await deleteGifFromDB(key);
       renderSavedList();
     });
     item.appendChild(delBtn);
@@ -2075,8 +2117,8 @@ async function renderSavedList() {
 
 // 4) 모달 열기/닫기
 document.getElementById('viewSavedBtn')
-  .addEventListener('click', () => {
-    renderSavedList();
+  .addEventListener('click', async () => {
+    await renderSavedList();
     document.getElementById('savedModal').style.display = 'flex';
   });
 document.getElementById('closeSavedModal')
@@ -2085,9 +2127,17 @@ document.getElementById('closeSavedModal')
   });
 
 // 5) 회로 불러오는 함수
-function loadCircuit(key) {
-  const data = JSON.parse(localStorage.getItem(key));
-  if (!data) return alert(t('loadFailedNoData'));
+async function loadCircuit(key) {
+  try {
+    await ensureDriveAuth();
+  } catch (e) {
+    alert(t('loginRequired'));
+    return;
+  }
+  const blob = await downloadFileFromAppData(`${key}.json`);
+  if (!blob) return alert(t('loadFailedNoData'));
+  const text = await blob.text();
+  const data = JSON.parse(text);
   if (data.version !== CURRENT_CIRCUIT_VERSION || !data.circuit) {
     alert(t('incompatibleCircuit'));
     return;
@@ -2108,6 +2158,8 @@ async function saveCircuit() {
   const circuit = window.playCircuit || window.problemCircuit;
   if (!circuit) throw new Error('No circuit to save');
 
+  await ensureDriveAuth();
+
   const wireCells = new Set();
   Object.values(circuit.wires).forEach(w => {
     w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
@@ -2127,9 +2179,10 @@ async function saveCircuit() {
   const timestampMs = Date.now();
   const key = `${getSavePrefix()}${timestampMs}`;
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    const jsonBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+    await uploadFileToAppData(`${key}.json`, jsonBlob, 'application/json');
 
-    // capture GIF and store in IndexedDB
+    // capture GIF and store in Drive
     const blob = await new Promise(resolve => captureGIF(resolve));
     await saveGifToDB(key, blob);
 
