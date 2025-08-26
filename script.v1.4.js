@@ -100,6 +100,14 @@ const copyGifBtn = document.getElementById('copyGifBtn');
 const shareGifBtn = document.getElementById('shareGifBtn');
 const gifLoadingModal = document.getElementById('gifLoadingModal');
 const gifLoadingText = document.getElementById('gifLoadingText');
+const saveProgressContainer = document.getElementById('saveProgressContainer');
+const saveProgressBar = document.getElementById('saveProgressBar');
+
+function updateSaveProgress(percent) {
+  if (saveProgressBar) {
+    saveProgressBar.style.width = `${percent}%`;
+  }
+}
 let currentGifBlob = null;
 let currentGifUrl = null;
 if (closeGifModalBtn) {
@@ -2060,7 +2068,11 @@ saveCircuitBtn.addEventListener('click', async () => {
       if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
       gifLoadingModal.style.display = 'flex';
     }
-    await saveCircuit();
+    if (saveProgressContainer) {
+      saveProgressContainer.style.display = 'block';
+      updateSaveProgress(0);
+    }
+    await saveCircuit(updateSaveProgress);
     saveSuccess = true;
   } catch (e) {
     alert(t('saveFailed').replace('{error}', e));
@@ -2068,6 +2080,10 @@ saveCircuitBtn.addEventListener('click', async () => {
     if (gifLoadingModal) {
       gifLoadingModal.style.display = 'none';
       if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+    }
+    if (saveProgressContainer) {
+      saveProgressContainer.style.display = 'none';
+      updateSaveProgress(0);
     }
   }
   if (saveSuccess) alert(t('circuitSaved'));
@@ -2202,7 +2218,7 @@ function applyCircuitData(data, key) {
 }
 
 
-async function saveCircuit() {
+async function saveCircuit(progressCallback) {
   const circuit = window.playCircuit || window.problemCircuit;
   if (!circuit) throw new Error('No circuit to save');
 
@@ -2227,12 +2243,16 @@ async function saveCircuit() {
   const timestampMs = Date.now();
   const key = `${getSavePrefix()}${timestampMs}`;
   try {
+    progressCallback && progressCallback(0);
     const jsonBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
     await uploadFileToAppData(`${key}.json`, jsonBlob, 'application/json');
+    progressCallback && progressCallback(33);
 
     // capture GIF and store in Drive
     const blob = await new Promise(resolve => captureGIF(resolve));
+    progressCallback && progressCallback(66);
     await saveGifToDB(key, blob);
+    progressCallback && progressCallback(100);
 
     console.log(`Circuit saved: ${key}`, data);
     lastSavedKey = key;
@@ -3151,7 +3171,11 @@ async function gradeLevelCanvas(level) {
           if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
           gifLoadingModal.style.display = 'flex';
         }
-        await saveCircuit();
+        if (saveProgressContainer) {
+          saveProgressContainer.style.display = 'block';
+          updateSaveProgress(0);
+        }
+        await saveCircuit(updateSaveProgress);
         saveSuccess = true;
       } catch (e) {
         alert(t('saveFailed').replace('{error}', e));
@@ -3159,6 +3183,10 @@ async function gradeLevelCanvas(level) {
         if (gifLoadingModal) {
           gifLoadingModal.style.display = 'none';
           if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+        }
+        if (saveProgressContainer) {
+          saveProgressContainer.style.display = 'none';
+          updateSaveProgress(0);
         }
       }
     }

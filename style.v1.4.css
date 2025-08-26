@@ -759,6 +759,22 @@ html, body {
   overflow-y: auto;
 }
 
+#saveProgressContainer {
+  width: 100%;
+  height: 8px;
+  background-color: #ccc;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 1rem;
+}
+
+#saveProgressBar {
+  width: 0%;
+  height: 100%;
+  background-color: #4caf50;
+  transition: width 0.2s ease;
+}
+
   /* ── ① 공통: 페이지 전체 배경 (비게임·게임 모두) ── */
   html, body {
     height: auto;
