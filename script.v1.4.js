@@ -32,8 +32,16 @@ window.addEventListener('load', () => {
 async function ensureDriveAuth() {
   if (!gapiInited) throw new Error(t('loginRequired'));
   const auth = gapi.auth2.getAuthInstance();
-  if (!auth.isSignedIn.get()) throw new Error(t('loginRequired'));
-  return auth.currentUser.get();
+  let user = auth.currentUser.get();
+  if (!auth.isSignedIn.get()) {
+    await auth.signIn({ scope: DRIVE_SCOPE, prompt: 'consent' });
+    user = auth.currentUser.get();
+  } else if (!user.hasGrantedScopes(DRIVE_SCOPE)) {
+    await user.grant({ scope: DRIVE_SCOPE });
+  }
+  user = auth.currentUser.get();
+  if (!user.hasGrantedScopes(DRIVE_SCOPE)) throw new Error(t('loginRequired'));
+  return user;
 }
 
 // Preload heavy canvas modules so they are ready when a stage begins.
