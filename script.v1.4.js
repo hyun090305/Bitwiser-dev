@@ -2135,8 +2135,8 @@ async function renderSavedList() {
     cap.textContent = `${label} — ${new Date(data.timestamp).toLocaleString()}`;
     item.appendChild(cap);
 
-    item.addEventListener('click', async () => {
-      await loadCircuit(key);
+    item.addEventListener('click', () => {
+      applyCircuitData(data, key);
       document.getElementById('savedModal').style.display = 'none';
     });
 
@@ -2181,6 +2181,10 @@ async function loadCircuit(key) {
   if (!blob) return alert(t('loadFailedNoData'));
   const text = await blob.text();
   const data = JSON.parse(text);
+  applyCircuitData(data, key);
+}
+
+function applyCircuitData(data, key) {
   if (data.version !== CURRENT_CIRCUIT_VERSION || !data.circuit) {
     alert(t('incompatibleCircuit'));
     return;
@@ -2194,6 +2198,7 @@ async function loadCircuit(key) {
   markCircuitModified();
   const controller = window.playController || window.problemController;
   controller?.syncPaletteWithCircuit?.();
+  if (key) lastSavedKey = key;
 }
 
 
