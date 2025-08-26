@@ -47,6 +47,10 @@ window.addEventListener('load', () => {
 });
 
 async function ensureDriveAuth() {
+  const user = firebase.auth().currentUser;
+  if (!user) {
+    throw new Error(t('googleLoginPrompt'));
+  }
   if (!gapiInited) {
     if (gapiInitPromise) {
       await gapiInitPromise;
@@ -55,7 +59,7 @@ async function ensureDriveAuth() {
     }
   }
   let token = gapi.client.getToken();
-  if (!token) {
+  if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
     if (!tokenClient) throw new Error(t('loginRequired'));
     token = await new Promise((resolve, reject) => {
       tokenClient.onResolve = (resp) => {
@@ -65,7 +69,7 @@ async function ensureDriveAuth() {
           resolve(resp);
         }
       };
-      tokenClient.requestAccessToken({ prompt: 'consent' });
+      tokenClient.requestAccessToken({ prompt: '' });
     });
   }
   return token;
