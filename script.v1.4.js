@@ -16,19 +16,32 @@ const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.goo
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let gapiInited = false;
 let gapiInitPromise = null;
+let tokenClient;
 
 window.addEventListener('load', () => {
   if (window.gapi) {
     gapiInitPromise = new Promise(resolve => {
-      gapi.load('client:auth2', async () => {
+      gapi.load('client', async () => {
         await gapi.client.init({
-          clientId: GOOGLE_CLIENT_ID,
-          scope: DRIVE_SCOPE,
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         });
         gapiInited = true;
         resolve();
       });
+    });
+  }
+  if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+    tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: (tokenResponse) => {
+        gapi.client.setToken(tokenResponse);
+        if (tokenClient.onResolve) {
+          const cb = tokenClient.onResolve;
+          tokenClient.onResolve = null;
+          cb(tokenResponse);
+        }
+      }
     });
   }
 });
@@ -41,18 +54,21 @@ async function ensureDriveAuth() {
       throw new Error(t('loginRequired'));
     }
   }
-  if (!gapiInited) throw new Error(t('loginRequired'));
-  const auth = gapi.auth2.getAuthInstance();
-  let user = auth.currentUser.get();
-  if (!auth.isSignedIn.get() || !user.hasGrantedScopes(DRIVE_SCOPE)) {
-    // Force the consent screen even for users who are already signed in so that
-    // newly required scopes (e.g. Drive read/write) can be granted without
-    // requiring a separate logout/login cycle.
-    await auth.signIn({ scope: DRIVE_SCOPE, prompt: 'consent' });
-    user = auth.currentUser.get();
+  let token = gapi.client.getToken();
+  if (!token) {
+    if (!tokenClient) throw new Error(t('loginRequired'));
+    token = await new Promise((resolve, reject) => {
+      tokenClient.onResolve = (resp) => {
+        if (resp.error) {
+          reject(new Error(resp.error));
+        } else {
+          resolve(resp);
+        }
+      };
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    });
   }
-  if (!user.hasGrantedScopes(DRIVE_SCOPE)) throw new Error(t('loginRequired'));
-  return user;
+  return token;
 }
 
 // Preload heavy canvas modules so they are ready when a stage begins.
