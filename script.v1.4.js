@@ -15,21 +15,32 @@ let pendingClearedLevel = null;
 const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let gapiInited = false;
+let gapiInitPromise = null;
 
 window.addEventListener('load', () => {
   if (window.gapi) {
-    gapi.load('client:auth2', async () => {
-      await gapi.client.init({
-        clientId: GOOGLE_CLIENT_ID,
-        scope: DRIVE_SCOPE,
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+    gapiInitPromise = new Promise(resolve => {
+      gapi.load('client:auth2', async () => {
+        await gapi.client.init({
+          clientId: GOOGLE_CLIENT_ID,
+          scope: DRIVE_SCOPE,
+          discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
+        });
+        gapiInited = true;
+        resolve();
       });
-      gapiInited = true;
     });
   }
 });
 
 async function ensureDriveAuth() {
+  if (!gapiInited) {
+    if (gapiInitPromise) {
+      await gapiInitPromise;
+    } else {
+      throw new Error(t('loginRequired'));
+    }
+  }
   if (!gapiInited) throw new Error(t('loginRequired'));
   const auth = gapi.auth2.getAuthInstance();
   let user = auth.currentUser.get();
