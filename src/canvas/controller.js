@@ -197,11 +197,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function moveSelection(dr, dc) {
     const sel = state.selection;
-    if (!sel || sel.cross) return;
+    if (!sel || sel.cross) return false;
 
     for (const id of sel.blocks) {
       const b = circuit.blocks[id];
-      if (!b || b.fixed) return;
+      if (!b || b.fixed) return false;
     }
 
     const occupiedBlocks = new Set();
@@ -219,8 +219,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const b = circuit.blocks[id];
       const nr = b.pos.r + dr;
       const nc = b.pos.c + dc;
-      if (nr < 0 || nr >= circuit.rows || nc < 0 || nc >= circuit.cols) return;
-      if (occupiedBlocks.has(`${nr},${nc}`) || occupiedWires.has(`${nr},${nc}`)) return;
+      if (nr < 0 || nr >= circuit.rows || nc < 0 || nc >= circuit.cols) return false;
+      if (occupiedBlocks.has(`${nr},${nc}`) || occupiedWires.has(`${nr},${nc}`)) return false;
     }
 
     for (const id of sel.wires) {
@@ -228,8 +228,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       for (const p of w.path) {
         const nr = p.r + dr;
         const nc = p.c + dc;
-        if (nr < 0 || nr >= circuit.rows || nc < 0 || nc >= circuit.cols) return;
-        if (occupiedBlocks.has(`${nr},${nc}`) || occupiedWires.has(`${nr},${nc}`)) return;
+        if (nr < 0 || nr >= circuit.rows || nc < 0 || nc >= circuit.cols) return false;
+        if (occupiedBlocks.has(`${nr},${nc}`) || occupiedWires.has(`${nr},${nc}`)) return false;
       }
     }
 
@@ -250,6 +250,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     renderContent(contentCtx, circuit, 0, panelTotalWidth);
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     drawSelection();
+    return true;
   }
 
   function isValidWireTrace(trace) {
@@ -332,15 +333,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       syncPaletteWithCircuit();
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
-    } else if (e.key.startsWith('Arrow') && state.mode === 'idle') {
-      e.preventDefault();
-      const dir = {
-        ArrowUp: [-1, 0],
-        ArrowDown: [1, 0],
-        ArrowLeft: [0, -1],
-        ArrowRight: [0, 1],
-      }[e.key];
-      moveSelection(dir[0], dir[1]);
     }
   };
   document.addEventListener('keydown', keydownHandler);
@@ -853,5 +845,5 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO, moveSelection };
 }
