@@ -314,10 +314,6 @@ const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
 const stageListEl = document.getElementById("stageList");
-const rankingPanel = document.getElementById("overallRankingArea");
-const guestbookPanel = document.getElementById("guestbookArea");
-const heroPanel = document.getElementById("mainScreen");
-const firstScreenEl = document.getElementById("firstScreen");
 
 // 모바일 내비게이션을 통한 firstScreen 전환
 const overallRankingAreaEl = document.getElementById("overallRankingArea");
@@ -372,29 +368,13 @@ document.getElementById("startBtn").onclick = () => {
   lockOrientationLandscape();
   renderChapterList();
   if (chapterData.length > 0) selectChapter(0);
-
-  rankingPanel.classList.add("panel-out-left");
-  guestbookPanel.classList.add("panel-out-right");
-  heroPanel.classList.add("hero-out");
-
-  setTimeout(() => {
-    firstScreenEl.style.display = "none";
-    chapterStageScreen.style.display = "block";
-    requestAnimationFrame(() => {
-      chapterStageScreen.classList.add("active");
-    });
-  }, 200);
+  document.getElementById("firstScreen").style.display = "none";
+  chapterStageScreen.style.display = "block";
 };
 
 document.getElementById("backToMainFromChapter").onclick = () => {
-  chapterStageScreen.classList.remove("active");
-  setTimeout(() => {
-    chapterStageScreen.style.display = "none";
-    firstScreenEl.style.display = "";
-    rankingPanel.classList.remove("panel-out-left");
-    guestbookPanel.classList.remove("panel-out-right");
-    heroPanel.classList.remove("hero-out");
-  }, 180);
+  chapterStageScreen.style.display = "none";
+  document.getElementById("firstScreen").style.display = "";
 };
 
 document.getElementById("toggleChapterList").onclick = () => {
@@ -740,9 +720,9 @@ function selectChapter(idx) {
 
 function renderStageList(stageList) {
   stageListEl.innerHTML = "";
-  stageList.forEach((level, idx) => {
+  stageList.forEach(level => {
     const card = document.createElement('div');
-    card.className = 'stageCard hidden';
+    card.className = 'stageCard';
     card.dataset.stage = level;
     const title = levelTitles[level] ?? `Stage ${level}`;
     let name = title;
@@ -769,10 +749,6 @@ function renderStageList(stageList) {
       };
     }
     stageListEl.appendChild(card);
-    setTimeout(() => {
-      card.classList.remove('hidden');
-      card.classList.add('appear');
-    }, idx * 40);
   });
 }
 
@@ -1063,7 +1039,7 @@ function showTutorial(idx) {
   tutPrev.disabled = (idx === 0);
   tutNext.style.display = (idx === tutorialSteps.length - 1) ? 'none' : 'inline-block';
   tutFinish.style.display = (idx === tutorialSteps.length - 1) ? 'inline-block' : 'none';
-  tutModal.classList.add("show");
+  tutModal.style.display = "flex";
 }
 
 // 4) 이벤트 연결
@@ -1072,7 +1048,7 @@ tutPrev.addEventListener("click", () => showTutorial(tutIndex - 1));
 tutNext.addEventListener("click", () => showTutorial(tutIndex + 1));
 tutFinish.addEventListener("click", finishTutorial);
 tutClose.addEventListener("click", () => {
-  tutModal.classList.remove("show");
+  tutModal.style.display = "none";
 });
 
 function getLowestUnclearedStage() {
@@ -1087,7 +1063,7 @@ function getLowestUnclearedStage() {
 
 function finishTutorial() {
   localStorage.setItem('tutorialCompleted', 'true');
-  tutModal.classList.remove('show');
+  tutModal.style.display = 'none';
   lockOrientationLandscape();
   stageDataPromise.then(() => {
     startLevel(getLowestUnclearedStage());
@@ -1137,8 +1113,8 @@ function showStageTutorial(level, done) {
 
 // 5) ESC 키로 닫기
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && tutModal.classList.contains("show")) {
-    tutModal.classList.remove("show");
+  if (e.key === "Escape" && tutModal.style.display === "flex") {
+    tutModal.style.display = "none";
   }
 });
 
