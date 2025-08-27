@@ -368,28 +368,8 @@ document.getElementById("startBtn").onclick = () => {
   lockOrientationLandscape();
   renderChapterList();
   if (chapterData.length > 0) selectChapter(0);
-
-  const leftPanel = document.getElementById('overallRankingArea');
-  const rightPanel = document.getElementById('guestbookArea');
-  const mainScreen = document.getElementById('mainScreen');
-  const firstScreen = document.getElementById('firstScreen');
-
-  leftPanel.classList.add('slide-out-left');
-  rightPanel.classList.add('slide-out-right');
-  mainScreen.classList.add('fade-scale-out');
-
-  setTimeout(() => {
-    firstScreen.style.display = 'none';
-    leftPanel.classList.remove('slide-out-left');
-    rightPanel.classList.remove('slide-out-right');
-    mainScreen.classList.remove('fade-scale-out');
-
-    chapterStageScreen.style.display = 'block';
-    chapterStageScreen.classList.add('stage-screen-enter');
-    chapterStageScreen.addEventListener('animationend', () => {
-      chapterStageScreen.classList.remove('stage-screen-enter');
-    }, { once: true });
-  }, 200);
+  document.getElementById("firstScreen").style.display = "none";
+  chapterStageScreen.style.display = "block";
 };
 
 document.getElementById("backToMainFromChapter").onclick = () => {
@@ -740,10 +720,9 @@ function selectChapter(idx) {
 
 function renderStageList(stageList) {
   stageListEl.innerHTML = "";
-  stageList.forEach((level, idx) => {
+  stageList.forEach(level => {
     const card = document.createElement('div');
-    card.className = 'stageCard card-enter';
-    card.style.animationDelay = `${idx * 40}ms`;
+    card.className = 'stageCard';
     card.dataset.stage = level;
     const title = levelTitles[level] ?? `Stage ${level}`;
     let name = title;
@@ -760,11 +739,6 @@ function renderStageList(stageList) {
     } else {
       if (clearedLevelsFromDb.includes(level)) {
         card.classList.add('cleared');
-        const check = document.createElement('svg');
-        check.classList.add('checkmark');
-        check.setAttribute('viewBox', '0 0 24 24');
-        check.innerHTML = '<path d="M4 12l5 5 11-11" fill="none" stroke="green" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
-        card.appendChild(check);
       }
       card.onclick = () => {
         returnToEditScreen();
@@ -1129,16 +1103,12 @@ function showStageTutorial(level, done) {
       idx++;
       render();
     } else {
-      modal.classList.remove('show');
-      setTimeout(() => {
-        modal.style.display = 'none';
-        done();
-      }, 180);
+      modal.style.display = 'none';
+      done();
     }
   };
   render();
   modal.style.display = 'flex';
-  requestAnimationFrame(() => modal.classList.add('show'));
 }
 
 // 5) ESC 키로 닫기
