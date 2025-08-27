@@ -61,16 +61,23 @@ async function ensureDriveAuth() {
   let token = gapi.client.getToken();
   if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
     if (!tokenClient) throw new Error(t('loginRequired'));
-    token = await new Promise((resolve, reject) => {
-      tokenClient.onResolve = (resp) => {
-        if (resp.error) {
-          reject(new Error(resp.error));
-        } else {
-          resolve(resp);
-        }
-      };
-      tokenClient.requestAccessToken({ prompt: '' });
-    });
+    try {
+      token = await new Promise((resolve, reject) => {
+        tokenClient.onResolve = (resp) => {
+          if (resp.error) {
+            reject(new Error(resp.error));
+          } else {
+            resolve(resp);
+          }
+        };
+        // Try to silently acquire an access token without prompting the user.
+        tokenClient.requestAccessToken({ prompt: '' });
+      });
+    } catch (e) {
+      // If silent auth fails, propagate a login required error without
+      // showing the Google account selection window.
+      throw new Error(t('loginRequired'));
+    }
   }
   return token;
 }
