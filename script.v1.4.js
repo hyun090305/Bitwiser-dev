@@ -393,8 +393,25 @@ document.getElementById("startBtn").onclick = () => {
 };
 
 document.getElementById("backToMainFromChapter").onclick = () => {
-  chapterStageScreen.style.display = "none";
-  document.getElementById("firstScreen").style.display = "";
+  const firstScreen = document.getElementById('firstScreen');
+  const leftPanel = document.getElementById('overallRankingArea');
+  const rightPanel = document.getElementById('guestbookArea');
+  const mainScreen = document.getElementById('mainScreen');
+
+  chapterStageScreen.classList.add('stage-screen-exit');
+  chapterStageScreen.addEventListener('animationend', () => {
+    chapterStageScreen.classList.remove('stage-screen-exit');
+    chapterStageScreen.style.display = 'none';
+
+    firstScreen.style.display = '';
+    leftPanel.classList.add('slide-in-left');
+    rightPanel.classList.add('slide-in-right');
+    mainScreen.classList.add('fade-scale-in');
+
+    leftPanel.addEventListener('animationend', () => leftPanel.classList.remove('slide-in-left'), { once: true });
+    rightPanel.addEventListener('animationend', () => rightPanel.classList.remove('slide-in-right'), { once: true });
+    mainScreen.addEventListener('animationend', () => mainScreen.classList.remove('fade-scale-in'), { once: true });
+  }, { once: true });
 };
 
 document.getElementById("toggleChapterList").onclick = () => {
@@ -546,8 +563,18 @@ function refreshClearedUI() {
   document.querySelectorAll('.stageCard').forEach(card => {
     const level = parseInt(card.dataset.stage, 10);
     card.classList.remove('cleared');
+    const check = card.querySelector('.checkmark');
     if (clearedLevelsFromDb.includes(level)) {
       card.classList.add('cleared');
+      if (!check) {
+        const svg = document.createElement('svg');
+        svg.classList.add('checkmark');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.innerHTML = '<path d="M4 12l5 5 11-11" fill="none" stroke="green" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+        card.appendChild(svg);
+      }
+    } else if (check) {
+      check.remove();
     }
   });
 }
