@@ -333,6 +333,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       syncPaletteWithCircuit();
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
+      clearSelection();
     }
   };
   document.addEventListener('keydown', keydownHandler);
@@ -446,6 +447,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           }
           renderContent(contentCtx, circuit, 0, panelTotalWidth);
           updateUsageCounts();
+          if (deleted) clearSelection();
           handled = deleted;
         } else {
           const bid = Object.keys(circuit.blocks).find(id => {
@@ -530,6 +532,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
+        clearSelection();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
@@ -591,6 +594,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
       }
+      if (placed || state.draggingBlock.id) clearSelection();
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       if (state.selection) drawSelection();
@@ -702,6 +706,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             delete circuit.blocks[state.dragCandidate.id];
             renderContent(contentCtx, circuit, 0, panelTotalWidth);
             updateUsageCounts();
+            clearSelection();
           }
           state.dragCandidate = null;
         }
@@ -845,5 +850,5 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO, moveSelection };
+  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO, moveSelection, clearSelection };
 }
