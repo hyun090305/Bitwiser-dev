@@ -3297,6 +3297,7 @@ async function gradeLevelCanvas(level) {
       if (!snapshot.exists()) {
         saveRanking(level, blockCounts, usedWires, hintsUsed);
         pendingClearedLevel = level;
+        markLevelCleared(level);
       } else {
         let best = null;
         snapshot.forEach(child => {
@@ -3318,6 +3319,7 @@ async function gradeLevelCanvas(level) {
             timestamp: new Date().toISOString()
           });
           pendingClearedLevel = level;
+          markLevelCleared(level);
         }
       }
       if (saveSuccess) showCircuitSavedModal();
