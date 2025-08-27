@@ -1645,8 +1645,6 @@ html, body {
   #firstScreen {
     display: block;
     padding-bottom: 60px;
-    position: relative;
-    overflow: hidden;
   }
 
   #firstScreen > #overallRankingArea,
@@ -1656,10 +1654,6 @@ html, body {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: calc(100% - 60px);
   }
 
   
@@ -1737,6 +1731,94 @@ html, body {
 }
 
 
+@media (max-width: 1024px) {
+  #firstScreen {
+    display: block;
+    padding-bottom: 60px;
+  }
+
+  #firstScreen > #overallRankingArea,
+  #firstScreen > #mainArea,
+  #firstScreen > #guestbookArea {
+    display: none;
+    width: 100%;
+    margin: 0;
+    box-sizing: border-box;
+  }
+
+  
+  #firstScreen > #mainArea {
+    display: flex;
+  }
+
+  #mainArea {
+    flex-direction: row;
+  }
+
+  #mainArea > #mainScreen,
+  #mainArea > #loginArea {
+    flex: 1;
+  }
+
+  #guestbookArea {
+    flex-direction: row;
+  }
+
+  #guestbookForm,
+  #guestbookListArea {
+    flex: 1 1 50%;
+    width: 50%;
+  }
+
+  #guestbookForm {
+    padding-right: 0.5rem;
+  }
+
+  #guestbookListArea {
+    border-left: 1px solid #ddd;
+    border-top: 0;
+    padding-left: 0.5rem;
+    padding-top: 0;
+  }
+
+  #mobileNav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #fff;
+  }
+
+  #mobileNav .nav-item {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  #mobileNav .nav-item .nav-text {
+    display: none;
+  }
+
+  #mobileNav .nav-item.active .nav-text {
+    display: inline;
+  }
+
+  #mobileNav .nav-item:hover {
+    background-color: #e0e0e0;
+  }
+
+  #mobileNav .nav-icon {
+    width: 24px;
+    height: 24px;
+  }
+}
 
 
 @media (max-width: 1024px) {
@@ -1894,23 +1976,6 @@ html, body {
   animation: stageScreenOut 180ms ease-out forwards;
 }
 
-/* First screen tab transitions */
-.tab-slide-in-left {
-  animation: tabSlideInLeft 200ms ease-out forwards;
-}
-
-.tab-slide-in-right {
-  animation: tabSlideInRight 200ms ease-out forwards;
-}
-
-.tab-slide-out-left {
-  animation: tabSlideOutLeft 200ms ease-out forwards;
-}
-
-.tab-slide-out-right {
-  animation: tabSlideOutRight 200ms ease-out forwards;
-}
-
 @keyframes stageScreenIn {
   from {
     opacity: 0;
@@ -1940,26 +2005,6 @@ html, body {
 @keyframes stageScreenOut {
   from { opacity: 1; transform: translateY(0); }
   to { opacity: 0; transform: translateY(10px); }
-}
-
-@keyframes tabSlideInLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes tabSlideInRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes tabSlideOutLeft {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-@keyframes tabSlideOutRight {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
 }
 
 /* Stage tutorial modal */
