@@ -322,56 +322,36 @@ const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
 
 if (mobileNav) {
-  const tabContainer = document.getElementById("tabContainer");
-  const sections = ["overallRankingArea", "mainArea", "guestbookArea"];
-  let currentIndex = 1;
-
-  function showFirstScreenSection(targetId) {
-    const targetIndex = sections.indexOf(targetId);
-    if (targetIndex === -1) return;
-    tabContainer.style.transform = `translateX(-${targetIndex * 100}%)`;
-    mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-    const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
-    if (activeNav) activeNav.classList.add("active");
-    currentIndex = targetIndex;
-    refreshUserData();
+    function showFirstScreenSection(targetId) {
+      overallRankingAreaEl.style.display = "none";
+      mainScreenSection.style.display = "none";
+      guestbookAreaEl.style.display = "none";
+      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+      const target = document.getElementById(targetId);
+      if (target) target.style.display = 'flex';
+      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (activeNav) activeNav.classList.add("active");
+      refreshUserData();
   }
 
-  mobileNav.querySelectorAll(".nav-item").forEach(item => {
-    item.addEventListener("click", () => {
-      const target = item.getAttribute("data-target");
-      showFirstScreenSection(target);
+    mobileNav.querySelectorAll(".nav-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+        showFirstScreenSection(target);
+      });
     });
-  });
 
-  let startX = 0;
-  tabContainer.addEventListener("touchstart", e => {
-    startX = e.touches[0].clientX;
-  });
-  tabContainer.addEventListener("touchend", e => {
-    const diffX = e.changedTouches[0].clientX - startX;
-    if (Math.abs(diffX) > 50) {
-      if (diffX < 0 && currentIndex < sections.length - 1) {
-        showFirstScreenSection(sections[currentIndex + 1]);
-      } else if (diffX > 0 && currentIndex > 0) {
-        showFirstScreenSection(sections[currentIndex - 1]);
+    function handleFirstScreenResize() {
+      if (window.innerWidth >= 1024) {
+        overallRankingAreaEl.style.display = "";
+        mainScreenSection.style.display = "";
+        guestbookAreaEl.style.display = "";
+      } else {
+        const activeNav = mobileNav.querySelector(".nav-item.active");
+        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
+        showFirstScreenSection(target);
       }
     }
-  });
-
-  function handleFirstScreenResize() {
-    if (window.innerWidth >= 1024) {
-      tabContainer.style.transform = "";
-      overallRankingAreaEl.style.display = "";
-      mainScreenSection.style.display = "";
-      guestbookAreaEl.style.display = "";
-    } else {
-      overallRankingAreaEl.style.display = "flex";
-      mainScreenSection.style.display = "flex";
-      guestbookAreaEl.style.display = "flex";
-      showFirstScreenSection(sections[currentIndex]);
-    }
-  }
 
   window.addEventListener("resize", handleFirstScreenResize);
   handleFirstScreenResize();
