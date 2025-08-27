@@ -309,30 +309,64 @@ function setupKeyToggles() {
 
 
 
-const mainScreen = document.getElementById("firstScreen");
+const firstScreenEl = document.getElementById("firstScreen");
 const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
 const stageListEl = document.getElementById("stageList");
 
 // 모바일 내비게이션을 통한 firstScreen 전환
-const overallRankingAreaEl = document.getElementById("overallRankingArea");
-const mainScreenSection = document.getElementById("mainArea");
-const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
 
-if (mobileNav) {
-    function showFirstScreenSection(targetId) {
-      overallRankingAreaEl.style.display = "none";
-      mainScreenSection.style.display = "none";
-      guestbookAreaEl.style.display = "none";
+if (mobileNav && firstScreenEl) {
+    const firstScreenSections = ["overallRankingArea", "mainArea", "guestbookArea"];
+    let currentFirstScreenIndex = 1; // 메인 화면이 기본
+    let isFirstScreenAnimating = false;
+
+    function updateFirstScreenNav(targetId) {
       mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-      const target = document.getElementById(targetId);
-      if (target) target.style.display = 'flex';
       const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
       if (activeNav) activeNav.classList.add("active");
+    }
+
+    function showFirstScreenSection(targetId, animate = true) {
+      const newIndex = firstScreenSections.indexOf(targetId);
+      if (newIndex === -1 || newIndex === currentFirstScreenIndex || isFirstScreenAnimating) return;
+
+      const currentId = firstScreenSections[currentFirstScreenIndex];
+      const currentEl = document.getElementById(currentId);
+      const nextEl = document.getElementById(targetId);
+      if (!currentEl || !nextEl) return;
+
+      const direction = newIndex > currentFirstScreenIndex ? 'left' : 'right';
+      const displayType = (targetId === 'mainArea' || targetId === 'guestbookArea') ? 'flex' : 'block';
+
+      if (!animate) {
+        currentEl.style.display = 'none';
+        nextEl.style.display = displayType;
+        currentFirstScreenIndex = newIndex;
+        updateFirstScreenNav(targetId);
+        refreshUserData();
+        return;
+      }
+
+      isFirstScreenAnimating = true;
+      nextEl.style.display = displayType;
+      nextEl.classList.add(direction === 'left' ? 'first-screen-slide-in-right' : 'first-screen-slide-in-left');
+      currentEl.classList.add(direction === 'left' ? 'first-screen-slide-out-left' : 'first-screen-slide-out-right');
+
+      nextEl.addEventListener('animationend', function handler() {
+        nextEl.removeEventListener('animationend', handler);
+        currentEl.style.display = 'none';
+        nextEl.classList.remove('first-screen-slide-in-right', 'first-screen-slide-in-left');
+        currentEl.classList.remove('first-screen-slide-out-left', 'first-screen-slide-out-right');
+        isFirstScreenAnimating = false;
+      });
+
+      currentFirstScreenIndex = newIndex;
+      updateFirstScreenNav(targetId);
       refreshUserData();
-  }
+    }
 
     mobileNav.querySelectorAll(".nav-item").forEach(item => {
       item.addEventListener("click", () => {
@@ -341,20 +375,45 @@ if (mobileNav) {
       });
     });
 
+    let touchStartX = 0;
+    firstScreenEl.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+
+    firstScreenEl.addEventListener('touchend', e => {
+      const diffX = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(diffX) > 50) {
+        if (diffX < 0 && currentFirstScreenIndex < firstScreenSections.length - 1) {
+          showFirstScreenSection(firstScreenSections[currentFirstScreenIndex + 1]);
+        } else if (diffX > 0 && currentFirstScreenIndex > 0) {
+          showFirstScreenSection(firstScreenSections[currentFirstScreenIndex - 1]);
+        }
+      }
+    });
+
     function handleFirstScreenResize() {
       if (window.innerWidth >= 1024) {
-        overallRankingAreaEl.style.display = "";
-        mainScreenSection.style.display = "";
-        guestbookAreaEl.style.display = "";
+        firstScreenSections.forEach(id => {
+          const el = document.getElementById(id);
+          el.style.display = "";
+        });
       } else {
-        const activeNav = mobileNav.querySelector(".nav-item.active");
-        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
-        showFirstScreenSection(target);
+        const activeId = firstScreenSections[currentFirstScreenIndex];
+        firstScreenSections.forEach((id, idx) => {
+          const el = document.getElementById(id);
+          if (idx === currentFirstScreenIndex) {
+            const displayType = (id === 'mainArea' || id === 'guestbookArea') ? 'flex' : 'block';
+            el.style.display = displayType;
+          } else {
+            el.style.display = 'none';
+          }
+        });
+        updateFirstScreenNav(activeId);
       }
     }
 
-  window.addEventListener("resize", handleFirstScreenResize);
-  handleFirstScreenResize();
+    window.addEventListener("resize", handleFirstScreenResize);
+    handleFirstScreenResize();
 }
 
 function lockOrientationLandscape() {
