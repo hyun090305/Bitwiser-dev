@@ -331,6 +331,7 @@ if (mobileNav) {
       if (target) target.style.display = 'flex';
       const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
       if (activeNav) activeNav.classList.add("active");
+      refreshUserData();
   }
 
     mobileNav.querySelectorAll(".nav-item").forEach(item => {
@@ -386,6 +387,7 @@ document.getElementById("startBtn").onclick = () => {
 
     chapterStageScreen.style.display = 'block';
     chapterStageScreen.classList.add('stage-screen-enter');
+    refreshUserData();
     chapterStageScreen.addEventListener('animationend', () => {
       chapterStageScreen.classList.remove('stage-screen-enter');
     }, { once: true });
@@ -411,6 +413,7 @@ document.getElementById("backToMainFromChapter").onclick = () => {
     leftPanel.addEventListener('animationend', () => leftPanel.classList.remove('slide-in-left'), { once: true });
     rightPanel.addEventListener('animationend', () => rightPanel.classList.remove('slide-in-right'), { once: true });
     mainScreen.addEventListener('animationend', () => mainScreen.classList.remove('fade-scale-in'), { once: true });
+    refreshUserData();
   }, { once: true });
 };
 
@@ -587,6 +590,22 @@ function loadClearedLevelsFromDb() {
   });
 }
 
+function refreshUserData() {
+  const nickname = localStorage.getItem('username') || '';
+  loadClearedLevelsFromDb();
+  if (nickname) {
+    fetchOverallStats(nickname).then(res => {
+      const overallRankEl = document.getElementById('overallRank');
+      const clearedCountEl = document.getElementById('clearedCount');
+      if (overallRankEl) overallRankEl.textContent = `#${res.rank}`;
+      if (clearedCountEl) clearedCountEl.textContent = res.cleared;
+    });
+  }
+  if (document.getElementById('overallRankingList')) {
+    showOverallRanking();
+  }
+}
+
 window.addEventListener("DOMContentLoaded", () => {
   stageDataPromise = loadStageData().then(() => {
     const prevMenuBtn = document.getElementById('prevStageBtnMenu');
@@ -605,6 +624,8 @@ window.addEventListener("DOMContentLoaded", () => {
   });
   initialTasks.push(stageDataPromise);
 });
+
+window.addEventListener('focus', refreshUserData);
 
 function markLevelCleared(level) {
   if (!clearedLevelsFromDb.includes(level)) {
@@ -2599,6 +2620,7 @@ backToMainFromProblem.addEventListener('click', () => {
   } else {
     chapterStageScreen.style.display = 'block';
   }
+  refreshUserData();
   problemScreenPrev = null;
 });
 
@@ -2606,6 +2628,7 @@ if (backToChapterFromUserProblems) {
   backToChapterFromUserProblems.addEventListener('click', () => {
     userProblemsScreen.style.display = 'none';
     chapterStageScreen.style.display = 'block';
+    refreshUserData();
   });
 }
 
