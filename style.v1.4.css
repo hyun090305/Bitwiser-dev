@@ -598,9 +598,20 @@ html, body {
     right: 8px;
     width: 24px;
     height: 24px;
+  }
+
+  .stageCard .checkmark path {
     stroke-dasharray: 30;
+    stroke-dashoffset: 0;
+  }
+
+  .stageCard .checkmark.animate {
+    animation: checkBounce 150ms 150ms both;
+  }
+
+  .stageCard .checkmark.animate path {
     stroke-dashoffset: 30;
-    animation: drawCheck 150ms forwards ease-out, checkBounce 150ms 150ms both;
+    animation: drawCheck 150ms forwards ease-out;
   }
 
   @keyframes drawCheck {

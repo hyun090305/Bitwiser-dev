@@ -562,6 +562,23 @@ function fetchOverallStats(nickname) {
   });
 }
 
+function createCheckmarkSvg(animate = false) {
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svg = document.createElementNS(svgNS, 'svg');
+  svg.classList.add('checkmark');
+  svg.setAttribute('viewBox', '0 0 24 24');
+  const path = document.createElementNS(svgNS, 'path');
+  path.setAttribute('d', 'M4 12l5 5 11-11');
+  path.setAttribute('fill', 'none');
+  path.setAttribute('stroke', 'green');
+  path.setAttribute('stroke-width', '3');
+  path.setAttribute('stroke-linecap', 'round');
+  path.setAttribute('stroke-linejoin', 'round');
+  svg.appendChild(path);
+  if (animate) svg.classList.add('animate');
+  return svg;
+}
+
 function refreshClearedUI() {
   document.querySelectorAll('.stageCard').forEach(card => {
     const level = parseInt(card.dataset.stage, 10);
@@ -570,10 +587,7 @@ function refreshClearedUI() {
     if (clearedLevelsFromDb.includes(level)) {
       card.classList.add('cleared');
       if (!check) {
-        const svg = document.createElement('svg');
-        svg.classList.add('checkmark');
-        svg.setAttribute('viewBox', '0 0 24 24');
-        svg.innerHTML = '<path d="M4 12l5 5 11-11" fill="none" stroke="green" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+        const svg = createCheckmarkSvg(true);
         card.appendChild(svg);
       }
     } else if (check) {
@@ -808,10 +822,7 @@ function renderStageList(stageList) {
     } else {
       if (clearedLevelsFromDb.includes(level)) {
         card.classList.add('cleared');
-        const check = document.createElement('svg');
-        check.classList.add('checkmark');
-        check.setAttribute('viewBox', '0 0 24 24');
-        check.innerHTML = '<path d="M4 12l5 5 11-11" fill="none" stroke="green" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+        const check = createCheckmarkSvg();
         card.appendChild(check);
       }
       card.onclick = () => {
