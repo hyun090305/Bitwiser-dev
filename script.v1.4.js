@@ -320,38 +320,84 @@ const overallRankingAreaEl = document.getElementById("overallRankingArea");
 const mainScreenSection = document.getElementById("mainArea");
 const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
+const firstScreenEl = document.getElementById("firstScreen");
 
 if (mobileNav) {
-    function showFirstScreenSection(targetId) {
-      overallRankingAreaEl.style.display = "none";
-      mainScreenSection.style.display = "none";
-      guestbookAreaEl.style.display = "none";
-      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-      const target = document.getElementById(targetId);
-      if (target) target.style.display = 'flex';
-      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
-      if (activeNav) activeNav.classList.add("active");
-      refreshUserData();
+  const sections = ["overallRankingArea", "mainArea", "guestbookArea"];
+  let currentSectionIndex = 1;
+
+  function showFirstScreenSection(targetId) {
+    const targetIndex = sections.indexOf(targetId);
+    if (targetIndex === -1 || targetIndex === currentSectionIndex) return;
+
+    const currentId = sections[currentSectionIndex];
+    const currentEl = document.getElementById(currentId);
+    const targetEl = document.getElementById(targetId);
+    const forward = targetIndex > currentSectionIndex;
+
+    targetEl.style.display = "flex";
+    currentEl.classList.add(forward ? "tab-slide-out-left" : "tab-slide-out-right");
+    targetEl.classList.add(forward ? "tab-slide-in-right" : "tab-slide-in-left");
+
+    currentEl.addEventListener("animationend", () => {
+      currentEl.style.display = "none";
+      currentEl.classList.remove("tab-slide-out-left", "tab-slide-out-right");
+    }, { once: true });
+
+    targetEl.addEventListener("animationend", () => {
+      targetEl.classList.remove("tab-slide-in-left", "tab-slide-in-right");
+    }, { once: true });
+
+    mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+    const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
+    if (activeNav) activeNav.classList.add("active");
+
+    currentSectionIndex = targetIndex;
+    refreshUserData();
   }
 
-    mobileNav.querySelectorAll(".nav-item").forEach(item => {
-      item.addEventListener("click", () => {
-        const target = item.getAttribute("data-target");
-        showFirstScreenSection(target);
-      });
+  mobileNav.querySelectorAll(".nav-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const target = item.getAttribute("data-target");
+      showFirstScreenSection(target);
     });
+  });
 
-    function handleFirstScreenResize() {
-      if (window.innerWidth >= 1024) {
-        overallRankingAreaEl.style.display = "";
-        mainScreenSection.style.display = "";
-        guestbookAreaEl.style.display = "";
-      } else {
-        const activeNav = mobileNav.querySelector(".nav-item.active");
-        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
-        showFirstScreenSection(target);
-      }
+  let touchStartX = 0;
+  firstScreenEl.addEventListener("touchstart", e => {
+    touchStartX = e.changedTouches[0].clientX;
+  });
+
+  firstScreenEl.addEventListener("touchend", e => {
+    const diff = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(diff) > 50) {
+      const nextIndex = diff < 0
+        ? Math.min(sections.length - 1, currentSectionIndex + 1)
+        : Math.max(0, currentSectionIndex - 1);
+      showFirstScreenSection(sections[nextIndex]);
     }
+  });
+
+  function handleFirstScreenResize() {
+    if (window.innerWidth >= 1024) {
+      sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.style.display = "";
+          el.classList.remove("tab-slide-in-left", "tab-slide-in-right", "tab-slide-out-left", "tab-slide-out-right");
+        }
+      });
+    } else {
+      sections.forEach((id, idx) => {
+        const el = document.getElementById(id);
+        if (el) el.style.display = idx === currentSectionIndex ? "flex" : "none";
+      });
+      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${sections[currentSectionIndex]}"]`);
+      if (activeNav) activeNav.classList.add("active");
+      refreshUserData();
+    }
+  }
 
   window.addEventListener("resize", handleFirstScreenResize);
   handleFirstScreenResize();
