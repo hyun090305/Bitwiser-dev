@@ -2221,6 +2221,7 @@ function applyCircuitData(data, key) {
   markCircuitModified();
   const controller = window.playController || window.problemController;
   controller?.syncPaletteWithCircuit?.();
+  controller?.clearSelection?.();
   if (key) lastSavedKey = key;
 }
 
@@ -2283,6 +2284,8 @@ function clearGrid() {
   }
   wires = [];
   markCircuitModified();
+  window.playController?.clearSelection?.();
+  window.problemController?.clearSelection?.();
 }
 
 function clearWires() {
@@ -2293,6 +2296,8 @@ function clearWires() {
     window.problemCircuit.wires = {};
   }
   markCircuitModified();
+  window.playController?.clearSelection?.();
+  window.problemController?.clearSelection?.();
 }
 
   function markCircuitModified() {
