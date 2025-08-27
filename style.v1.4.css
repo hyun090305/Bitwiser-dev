@@ -822,6 +822,12 @@ html, body {
     gap: 5rem;
   }
 
+  #tabContainer {
+    display: flex;
+    gap: 5rem;
+    width: 100%;
+  }
+
   #mainArea {
     display: flex;
     flex-direction: column;
@@ -1645,20 +1651,24 @@ html, body {
   #firstScreen {
     display: block;
     padding-bottom: 60px;
+    overflow: hidden;
+    position: relative;
   }
 
-  #firstScreen > #overallRankingArea,
-  #firstScreen > #mainArea,
-  #firstScreen > #guestbookArea {
-    display: none;
+  #tabContainer {
+    display: flex;
+    width: 300%;
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
+  }
+
+  #tabContainer > #overallRankingArea,
+  #tabContainer > #mainArea,
+  #tabContainer > #guestbookArea {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-  }
-
-  
-  #firstScreen > #mainArea {
-    display: flex;
+    flex-shrink: 0;
   }
 
   #mainArea {
@@ -1735,20 +1745,24 @@ html, body {
   #firstScreen {
     display: block;
     padding-bottom: 60px;
+    overflow: hidden;
+    position: relative;
   }
 
-  #firstScreen > #overallRankingArea,
-  #firstScreen > #mainArea,
-  #firstScreen > #guestbookArea {
-    display: none;
+  #tabContainer {
+    display: flex;
+    width: 300%;
+    transition: transform 0.3s ease;
+    transform: translateX(-100%);
+  }
+
+  #tabContainer > #overallRankingArea,
+  #tabContainer > #mainArea,
+  #tabContainer > #guestbookArea {
     width: 100%;
     margin: 0;
     box-sizing: border-box;
-  }
-
-  
-  #firstScreen > #mainArea {
-    display: flex;
+    flex-shrink: 0;
   }
 
   #mainArea {
