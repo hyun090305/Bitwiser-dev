@@ -23,42 +23,10 @@ html, body {
   /* allow horizontal scrolling when content exceeds viewport width */
   overflow-x: auto;
 }
-  #controls, #blockPanel {
+  #controls {
     margin: 15px;
   }
 
-
-  #blockPanel {
-    width: 100px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    flex-shrink: 0;
-    max-height: 80vh;
-    overflow: visible;
-  }
-
-  .blockRow {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem;
-    background-color: #fff;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    flex-direction: column;
-  }
-
-  .blockRowTitle {
-    font-weight: bold;
-  }
-
-  .blockRowContent {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
 
   #gameScreen {
     display: flex;
@@ -295,15 +263,6 @@ html, body {
   }
 
 
-  /* 이전: #grid div 기반 레이아웃 */
-  /* #grid {
-    display: grid;
-    gap: 2px;
-    border: 2px solid black;
-    grid-template-columns: repeat(var(--grid-cols, 6), 50px);
-    grid-template-rows: repeat(var(--grid-rows, 6), 50px);
-    touch-action: auto;
-  } */
   #gridContainer,
   #canvasContainer,
   #problemCanvasContainer {
@@ -648,17 +607,6 @@ html, body {
     display: none;
   }
 
-  .cell.block[data-type="JUNCTION"] {
-    background-color: #ddd;
-    font-weight: bold;
-    color: #333;
-  }
-
-  .cell[data-type="JUNCTION"].error {
-    border: 2px solid red;
-    box-shadow: 0 0 6px red;
-  }
-
   .modal {
     position: fixed;
     top: 0;
@@ -980,23 +928,6 @@ html, body {
     position: relative;
   }
 
-  /* hover 시에만 ::after 가 나타나서 내용 표시 */
-  #blockPanel .blockIcon:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #333;
-    color: #fff;
-    padding: 4px 8px;
-    z-index: 1001;
-    border-radius: 4px;
-    font-size: 12px;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-
   /* 랭킹 모달 전용 중앙정렬 오버라이드 */
   #rankingModal {
     position: fixed !important;
@@ -1177,10 +1108,6 @@ html, body {
     display: flex !important;
   }
 
-  .cell[data-type="OUTPUT"].error {
-    border: 2px solid red;
-    box-shadow: 0 0 6px red;
-  }
 
   #overallRankingArea {
     width: 350px;
@@ -1360,13 +1287,6 @@ html, body {
     /* 포커스 아웃라인 제거 */
   }
 
-  #problemGrid {
-  display: grid;
-  gap: 2px;
-  border: 2px solid black;
-  grid-template-columns: repeat(var(--grid-cols, 6), 50px);
-  grid-template-rows: repeat(var(--grid-rows, 6), 50px);
-  touch-action: auto;
 }
 
 /* block panels removed in canvas-based version */
@@ -1543,24 +1463,6 @@ html, body {
   background: #f1b0b7;
 }
 
-/* ------------------------------------------------------------------
-   🔧 GRID 시각 개선
------------------------------------------------------------------- */
-
-
-/* ------------------------------------------------------------------
-   📐 각 셀의 모서리를 둥글게 만들기
------------------------------------------------------------------- */
-
-/* ── 1) 기본 셀 ── */
-.cell {
-  width: 50px;
-  height: 50px;
-  background-color: #ffffff;
-  border-radius: 3px;             /* 🎯 핵심 – 4~6px 권장 */
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.4);
-  overflow: hidden;               /* 내부 요소가 모서리 밖으로 튀지 않도록 */
-}
 
 
 /* ── 3) 외곽 테두리도 통일 ── */
@@ -1577,38 +1479,6 @@ html, body {
   /* 테두리는 그대로 두고 그림자만 강화 */
   border: 2px solid #666;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.10);
-}
-
-/* ── 2) 기본 셀 ── */
-.cell.block {
-  border-radius: 3px;
-
-  /* 🔹 다중 그림자: 윗면 밝게 + 아랫면 어둡게 + 살짝 떠 있는 그림자 */
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.8),   /* 위·왼쪽 빛받은 면 */
-    inset 0 -1px 2px rgba(0, 0, 0, 0.06),       /* 아래·오른쪽 음영 */
-    0 1px 2px rgba(0, 0, 0, 0.07);              /* 바닥 그림자 */
-
-  transition: transform 120ms ease, box-shadow 120ms ease;
-}
-
-/* ── 3) 마우스오버 리프트 ── */
-.cell.block:hover {
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.85),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.07),
-    0 4px 8px rgba(0, 0, 0, 0.10);              /* 조금 더 길어진 바닥 그림자 */
-  cursor: pointer;
-}
-
-/* ── 4) 클릭(드래그) 중 압박감 ── */
-.cell:active {
-  transform: translateY(0);                     /* 내려앉음 */
-  box-shadow:
-    inset 0 1px 2px rgba(255, 255, 255, 0.7),
-    inset 0 -1px 2px rgba(0, 0, 0, 0.05),
-    0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 #userProblemTable {
