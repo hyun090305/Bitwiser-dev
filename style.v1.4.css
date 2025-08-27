@@ -2078,6 +2078,23 @@ html, body {
   animation: stageScreenIn 180ms ease-out forwards;
 }
 
+/* Stage → Main transition animations */
+.slide-in-left {
+  animation: slideInLeft 200ms ease-out forwards;
+}
+
+.slide-in-right {
+  animation: slideInRight 200ms ease-out forwards;
+}
+
+.fade-scale-in {
+  animation: fadeScaleIn 180ms ease-out forwards;
+}
+
+.stage-screen-exit {
+  animation: stageScreenOut 180ms ease-out forwards;
+}
+
 @keyframes stageScreenIn {
   from {
     opacity: 0;
@@ -2087,6 +2104,26 @@ html, body {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-25px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(25px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeScaleIn {
+  from { transform: scale(0.98); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@keyframes stageScreenOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(10px); }
 }
 
 /* Stage tutorial modal */
