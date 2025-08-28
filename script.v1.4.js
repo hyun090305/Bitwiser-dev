@@ -315,125 +315,43 @@ const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
 const stageListEl = document.getElementById("stageList");
 
-// 모바일 내비게이션 및 스와이프 전환
+// 모바일 내비게이션을 통한 firstScreen 전환
 const overallRankingAreaEl = document.getElementById("overallRankingArea");
 const mainScreenSection = document.getElementById("mainArea");
 const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
-const firstScreenEl = document.getElementById("firstScreen");
 
-const firstScreenTabs = [overallRankingAreaEl, mainScreenSection, guestbookAreaEl];
-let activeTabIndex = 1; // 메인 탭
-let isTransitioning = false;
-let startX = 0, startY = 0, deltaX = 0, deltaY = 0, isSwiping = false;
+if (mobileNav) {
+    function showFirstScreenSection(targetId) {
+      overallRankingAreaEl.style.display = "none";
+      mainScreenSection.style.display = "none";
+      guestbookAreaEl.style.display = "none";
+      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+      const target = document.getElementById(targetId);
+      if (target) target.style.display = 'flex';
+      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
+      if (activeNav) activeNav.classList.add("active");
+      refreshUserData();
+  }
 
-function updateNavActive() {
-  if (!mobileNav) return;
-  mobileNav.querySelectorAll(".nav-item").forEach((nav, idx) => {
-    nav.classList.toggle("active", idx === activeTabIndex);
-    nav.setAttribute("aria-selected", idx === activeTabIndex ? "true" : "false");
-  });
-}
-
-function focusFirstInActiveTab() {
-  const activeEl = firstScreenTabs[activeTabIndex];
-  if (!activeEl) return;
-  const focusable = activeEl.querySelector(
-    'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-  );
-  if (focusable) focusable.focus();
-}
-
-function goToFirstScreenTab(newIndex, direction) {
-  if (isTransitioning || newIndex === activeTabIndex) return;
-  const current = firstScreenTabs[activeTabIndex];
-  const next = firstScreenTabs[newIndex];
-  if (!current || !next) return;
-  isTransitioning = true;
-
-  next.style.display = "flex";
-  next.style.transform = `translateX(${direction * 100}%)`;
-  next.style.opacity = "0";
-
-  requestAnimationFrame(() => {
-    current.style.transform = `translateX(${direction * -100}%)`;
-    current.style.opacity = "0";
-    next.style.transform = "translateX(0)";
-    next.style.opacity = "1";
-  });
-
-  const onEnd = () => {
-    current.style.display = "none";
-    current.style.transform = "";
-    current.style.opacity = "";
-    next.style.transform = "";
-    next.style.opacity = "";
-    next.removeEventListener("transitionend", onEnd);
-    activeTabIndex = newIndex;
-    updateNavActive();
-    focusFirstInActiveTab();
-    refreshUserData();
-    isTransitioning = false;
-  };
-  next.addEventListener("transitionend", onEnd);
-}
-
-if (mobileNav && firstScreenEl) {
-  mobileNav.querySelectorAll(".nav-item").forEach((item, idx) => {
-    item.addEventListener("click", () => {
-      const direction = idx > activeTabIndex ? 1 : -1;
-      goToFirstScreenTab(idx, direction);
+    mobileNav.querySelectorAll(".nav-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const target = item.getAttribute("data-target");
+        showFirstScreenSection(target);
+      });
     });
-  });
 
-  firstScreenEl.addEventListener("touchstart", e => {
-    if (window.innerWidth >= 1024 || isTransitioning) return;
-    const t = e.touches[0];
-    startX = t.clientX;
-    startY = t.clientY;
-    deltaX = 0;
-    deltaY = 0;
-    isSwiping = true;
-  });
-
-  firstScreenEl.addEventListener("touchmove", e => {
-    if (!isSwiping) return;
-    const t = e.touches[0];
-    deltaX = t.clientX - startX;
-    deltaY = t.clientY - startY;
-    if (Math.abs(deltaY) > Math.abs(deltaX)) {
-      isSwiping = false; // 수직 이동이 더 크면 스와이프 취소
-    }
-  });
-
-  firstScreenEl.addEventListener("touchend", () => {
-    if (!isSwiping) return;
-    const threshold = window.innerWidth * 0.25;
-    if (Math.abs(deltaX) > threshold) {
-      if (deltaX < 0 && activeTabIndex < firstScreenTabs.length - 1) {
-        goToFirstScreenTab(activeTabIndex + 1, 1);
-      } else if (deltaX > 0 && activeTabIndex > 0) {
-        goToFirstScreenTab(activeTabIndex - 1, -1);
+    function handleFirstScreenResize() {
+      if (window.innerWidth >= 1024) {
+        overallRankingAreaEl.style.display = "";
+        mainScreenSection.style.display = "";
+        guestbookAreaEl.style.display = "";
+      } else {
+        const activeNav = mobileNav.querySelector(".nav-item.active");
+        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
+        showFirstScreenSection(target);
       }
     }
-    isSwiping = false;
-  });
-
-  function handleFirstScreenResize() {
-    if (window.innerWidth >= 1024) {
-      firstScreenTabs.forEach(tab => {
-        tab.style.display = "";
-        tab.style.transform = "";
-        tab.style.opacity = "";
-      });
-    } else {
-      firstScreenTabs.forEach((tab, idx) => {
-        tab.style.display = idx === activeTabIndex ? "flex" : "none";
-        tab.style.transform = "";
-        tab.style.opacity = "";
-      });
-    }
-  }
 
   window.addEventListener("resize", handleFirstScreenResize);
   handleFirstScreenResize();
