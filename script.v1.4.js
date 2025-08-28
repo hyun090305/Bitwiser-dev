@@ -16,7 +16,39 @@ const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.goo
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let gapiInited = false;
 let gapiInitPromise = null;
-let tokenClient;
+let codeClient;
+
+function saveTokenInfo(info) {
+  localStorage.setItem('googleTokenInfo', JSON.stringify(info));
+}
+
+function loadTokenInfo() {
+  try {
+    return JSON.parse(localStorage.getItem('googleTokenInfo')) || {};
+  } catch (e) {
+    return {};
+  }
+}
+
+async function exchangeCodeForTokens(code) {
+  const resp = await fetch('/oauth2/exchange', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code })
+  });
+  if (!resp.ok) throw new Error('Token exchange failed');
+  return resp.json();
+}
+
+async function refreshWithStoredToken(refreshToken) {
+  const resp = await fetch('/oauth2/refresh', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ refresh_token: refreshToken })
+  });
+  if (!resp.ok) throw new Error('Refresh failed');
+  return resp.json();
+}
 
 window.addEventListener('load', () => {
   if (window.gapi) {
@@ -31,15 +63,32 @@ window.addEventListener('load', () => {
     });
   }
   if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-    tokenClient = window.google.accounts.oauth2.initTokenClient({
+    codeClient = window.google.accounts.oauth2.initCodeClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: DRIVE_SCOPE,
-      callback: (tokenResponse) => {
-        gapi.client.setToken(tokenResponse);
-        if (tokenClient.onResolve) {
-          const cb = tokenClient.onResolve;
-          tokenClient.onResolve = null;
-          cb(tokenResponse);
+      access_type: 'offline',
+      prompt: 'consent',
+      callback: async (resp) => {
+        try {
+          const data = await exchangeCodeForTokens(resp.code);
+          const tokenInfo = {
+            access_token: data.access_token,
+            refresh_token: data.refresh_token,
+            expiry: Date.now() + (data.expires_in * 1000)
+          };
+          saveTokenInfo(tokenInfo);
+          gapi.client.setToken({ access_token: data.access_token });
+          if (codeClient.onResolve) {
+            const cb = codeClient.onResolve;
+            codeClient.onResolve = null;
+            cb(tokenInfo);
+          }
+        } catch (err) {
+          if (codeClient.onReject) {
+            const cb = codeClient.onReject;
+            codeClient.onReject = null;
+            cb(err);
+          }
         }
       }
     });
@@ -58,32 +107,38 @@ async function ensureDriveAuth() {
       throw new Error(t('loginRequired'));
     }
   }
-  let token = gapi.client.getToken();
-  if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
-    if (!tokenClient) throw new Error(t('loginRequired'));
-    const requestToken = (options) => new Promise((resolve, reject) => {
-      tokenClient.onResolve = (resp) => {
-        if (resp.error) {
-          reject(new Error(resp.error));
-        } else {
-          resolve(resp);
-        }
-      };
-      tokenClient.requestAccessToken(options);
-    });
+  let info = loadTokenInfo();
+  if (info.access_token && info.expiry && info.expiry > Date.now()) {
+    gapi.client.setToken({ access_token: info.access_token });
+    return info;
+  }
+  if (info.refresh_token) {
     try {
-      // Attempt silent access using prompt=none.
-      token = await requestToken({ prompt: 'none' });
+      const refreshed = await refreshWithStoredToken(info.refresh_token);
+      const newInfo = {
+        access_token: refreshed.access_token,
+        refresh_token: info.refresh_token,
+        expiry: Date.now() + (refreshed.expires_in * 1000)
+      };
+      saveTokenInfo(newInfo);
+      gapi.client.setToken({ access_token: refreshed.access_token });
+      return newInfo;
     } catch (e) {
-      try {
-        // Fallback to an interactive popup requesting consent.
-        token = await requestToken({ prompt: 'consent' });
-      } catch (e2) {
-        throw new Error(t('loginRequired'));
-      }
+      // Refresh failed; proceed to interactive code flow.
     }
   }
-  return token;
+  if (!codeClient) throw new Error(t('loginRequired'));
+  await new Promise((resolve, reject) => {
+    codeClient.onResolve = resolve;
+    codeClient.onReject = reject;
+    codeClient.requestCode();
+  });
+  info = loadTokenInfo();
+  if (info.access_token) {
+    gapi.client.setToken({ access_token: info.access_token });
+    return info;
+  }
+  throw new Error(t('loginRequired'));
 }
 
 // Preload heavy canvas modules so they are ready when a stage begins.
