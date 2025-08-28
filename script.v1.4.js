@@ -538,21 +538,25 @@ document.getElementById("backToMainFromChapter").onclick = () => {
     chapterStageScreen.style.display = 'none';
 
     firstScreen.style.display = '';
-    leftPanel.classList.add('slide-in-left');
-    rightPanel.classList.add('slide-in-right');
-    mainScreen.classList.add('fade-scale-in');
-    leftPanel.addEventListener('animationend', () => {
-      leftPanel.classList.remove('slide-in-left');
+    if (!isMobileDevice()) {
+      leftPanel.classList.add('slide-in-left');
+      rightPanel.classList.add('slide-in-right');
+      mainScreen.classList.add('fade-scale-in');
+      leftPanel.addEventListener('animationend', () => {
+        leftPanel.classList.remove('slide-in-left');
+        window.dispatchEvent(new Event('resize'));
+      }, { once: true });
+      rightPanel.addEventListener('animationend', () => {
+        rightPanel.classList.remove('slide-in-right');
+        window.dispatchEvent(new Event('resize'));
+      }, { once: true });
+      mainScreen.addEventListener('animationend', () => {
+        mainScreen.classList.remove('fade-scale-in');
+        window.dispatchEvent(new Event('resize'));
+      }, { once: true });
+    } else {
       window.dispatchEvent(new Event('resize'));
-    }, { once: true });
-    rightPanel.addEventListener('animationend', () => {
-      rightPanel.classList.remove('slide-in-right');
-      window.dispatchEvent(new Event('resize'));
-    }, { once: true });
-    mainScreen.addEventListener('animationend', () => {
-      mainScreen.classList.remove('fade-scale-in');
-      window.dispatchEvent(new Event('resize'));
-    }, { once: true });
+    }
     refreshUserData();
   }, { once: true });
 };
@@ -573,6 +577,7 @@ document.getElementById("backToLevelsBtn").onclick = () => {
     renderUserProblemList();
   } else {
     chapterStageScreen.style.display = "block";
+    loadClearedLevelsFromDb();
     renderChapterList();
     const chapter = chapterData[selectedChapterIndex];
     if (chapter && chapter.id !== 'user') {
