@@ -590,6 +590,7 @@ document.getElementById("backToLevelsBtn").onclick = () => {
 
 async function startLevel(level) {
   await stageDataPromise;
+  await loadClearedLevelsFromDb();
   const [rows, cols] = levelGridSizes[level] || [6, 6];
   GRID_ROWS = rows;
   GRID_COLS = cols;
@@ -902,7 +903,8 @@ function showLevelIntro(level, callback) {
 }
 
 
-function renderChapterList() {
+async function renderChapterList() {
+  await loadClearedLevelsFromDb();
   chapterListEl.innerHTML = "";
   const cleared = clearedLevelsFromDb;
 
@@ -948,7 +950,8 @@ function selectChapter(idx) {
   }
 }
 
-function renderStageList(stageList) {
+async function renderStageList(stageList) {
+  await loadClearedLevelsFromDb();
   stageListEl.innerHTML = "";
   stageList.forEach((level, idx) => {
     const card = document.createElement('div');
@@ -1433,6 +1436,7 @@ closeShareBtn.addEventListener('click', () => {
 
 // 회로 저장 완료 모달
 const circuitSavedModal = document.getElementById('circuitSavedModal');
+const circuitSavedText = document.getElementById('circuitSaved');
 const savedShareBtn = document.getElementById('savedShareBtn');
 const savedNextBtn = document.getElementById('savedNextBtn');
 
@@ -2636,7 +2640,8 @@ function showOverallRanking() {
   });
 }
 
-function showClearedModal(level) {
+async function showClearedModal(level) {
+  await loadClearedLevelsFromDb();
   const modal = document.getElementById('clearedModal');
   document.getElementById('clearedStageNumber').textContent = level;
   const container = document.getElementById('clearedRanking');
@@ -3425,28 +3430,35 @@ async function gradeLevelCanvas(level) {
   if (allCorrect) {
     const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
     let saveSuccess = false;
+    let loginNeeded = false;
     if (autoSave) {
-      try {
-        if (gifLoadingModal) {
-          if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-          gifLoadingModal.style.display = 'flex';
-        }
-        if (saveProgressContainer) {
-          saveProgressContainer.style.display = 'block';
-          updateSaveProgress(0);
-        }
-        await saveCircuit(updateSaveProgress);
-        saveSuccess = true;
-      } catch (e) {
-        alert(t('saveFailed').replace('{error}', e));
-      } finally {
-        if (gifLoadingModal) {
-          gifLoadingModal.style.display = 'none';
-          if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
-        }
-        if (saveProgressContainer) {
-          saveProgressContainer.style.display = 'none';
-          updateSaveProgress(0);
+      if (!firebase.auth().currentUser) {
+        loginNeeded = true;
+        if (circuitSavedText) circuitSavedText.textContent = t('loginToSaveCircuit');
+      } else {
+        try {
+          if (gifLoadingModal) {
+            if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
+            gifLoadingModal.style.display = 'flex';
+          }
+          if (saveProgressContainer) {
+            saveProgressContainer.style.display = 'block';
+            updateSaveProgress(0);
+          }
+          await saveCircuit(updateSaveProgress);
+          saveSuccess = true;
+          if (circuitSavedText) circuitSavedText.textContent = t('circuitSaved');
+        } catch (e) {
+          alert(t('saveFailed').replace('{error}', e));
+        } finally {
+          if (gifLoadingModal) {
+            gifLoadingModal.style.display = 'none';
+            if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
+          }
+          if (saveProgressContainer) {
+            saveProgressContainer.style.display = 'none';
+            updateSaveProgress(0);
+          }
         }
       }
     }
@@ -3484,7 +3496,7 @@ async function gradeLevelCanvas(level) {
           markLevelCleared(level);
         }
       }
-      if (saveSuccess) showCircuitSavedModal();
+      if (saveSuccess || loginNeeded) showCircuitSavedModal();
     });
   }
 
