@@ -96,6 +96,47 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     selectStart: null,
   };
 
+  const undoStack = [];
+  const redoStack = [];
+
+  function snapshot() {
+    undoStack.push(JSON.stringify(circuit));
+    if (undoStack.length > 100) undoStack.shift();
+    redoStack.length = 0;
+  }
+
+  function applyState(str) {
+    const data = JSON.parse(str);
+    circuit.rows = data.rows;
+    circuit.cols = data.cols;
+    circuit.blocks = data.blocks || {};
+    circuit.wires = data.wires || {};
+    state.mode = 'idle';
+    state.wireTrace = [];
+    state.draggingBlock = null;
+    state.selection = null;
+    overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    syncPaletteWithCircuit();
+    renderContent(contentCtx, circuit, 0, panelTotalWidth);
+    updateUsageCounts();
+    updateButtons();
+  }
+
+  function undo() {
+    if (undoStack.length <= 1) return;
+    const current = undoStack.pop();
+    redoStack.push(current);
+    const prev = undoStack[undoStack.length - 1];
+    applyState(prev);
+  }
+
+  function redo() {
+    if (!redoStack.length) return;
+    const next = redoStack.pop();
+    undoStack.push(next);
+    applyState(next);
+  }
+
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) =>
@@ -250,6 +291,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     renderContent(contentCtx, circuit, 0, panelTotalWidth);
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     drawSelection();
+    snapshot();
     return true;
   }
 
@@ -316,6 +358,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
   keydownHandler = e => {
+    const active = document.activeElement;
+    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+      return;
+    }
     if (e.key === 'Control') {
       state.mode = 'wireDrawing';
       updateButtons();
@@ -334,6 +384,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       renderContent(contentCtx, circuit, 0, panelTotalWidth);
       updateUsageCounts();
       clearSelection();
+      snapshot();
     }
   };
   document.addEventListener('keydown', keydownHandler);
@@ -447,7 +498,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           }
           renderContent(contentCtx, circuit, 0, panelTotalWidth);
           updateUsageCounts();
-          if (deleted) clearSelection();
+          if (deleted) {
+            clearSelection();
+            snapshot();
+          }
           handled = deleted;
         } else {
           const bid = Object.keys(circuit.blocks).find(id => {
@@ -533,6 +587,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
         clearSelection();
+        snapshot();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
@@ -593,6 +648,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       if (placed) {
         renderContent(contentCtx, circuit, 0, panelTotalWidth);
         updateUsageCounts();
+        snapshot();
       }
       if (placed || state.draggingBlock.id) clearSelection();
       state.draggingBlock = null;
@@ -825,6 +881,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId);
+    snapshot();
     return true;
   }
 
@@ -847,8 +904,23 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
     syncPaletteWithCircuit();
     renderContent(contentCtx, circuit, 0, panelTotalWidth);
+    undoStack.length = 0;
+    redoStack.length = 0;
+    snapshot();
   }
 
   updateUsageCounts();
-  return { state, circuit, startBlockDrag, syncPaletteWithCircuit, moveCircuit, placeFixedIO, moveSelection, clearSelection };
+  snapshot();
+  return {
+    state,
+    circuit,
+    startBlockDrag,
+    syncPaletteWithCircuit,
+    moveCircuit,
+    placeFixedIO,
+    moveSelection,
+    clearSelection,
+    undo,
+    redo,
+  };
 }
