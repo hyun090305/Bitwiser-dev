@@ -1645,15 +1645,20 @@ html, body {
   #firstScreen {
     display: block;
     padding-bottom: 60px;
+    position: relative;
+    overflow: hidden;
   }
 
-  #firstScreen > #overallRankingArea,
-  #firstScreen > #mainArea,
-  #firstScreen > #guestbookArea {
+  #firstScreen > .tab-section {
     display: none;
     width: 100%;
     margin: 0;
     box-sizing: border-box;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+    will-change: transform, opacity;
   }
 
   
