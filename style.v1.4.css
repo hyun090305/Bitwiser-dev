@@ -1936,61 +1936,6 @@ html, body {
   }
 }
 
-@media (max-width: 1024px) {
-  #firstScreen {
-    position: relative;
-    overflow: hidden;
-    min-height: calc(100vh - 60px);
-  }
-
-  #firstScreen > #overallRankingArea,
-  #firstScreen > #mainArea,
-  #firstScreen > #guestbookArea {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: calc(100% - 60px);
-  }
-}
-
-/* firstScreen slide animations */
-@keyframes firstScreenSlideInFromRight {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes firstScreenSlideOutToLeft {
-  from { transform: translateX(0); }
-  to { transform: translateX(-100%); }
-}
-
-@keyframes firstScreenSlideInFromLeft {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-
-@keyframes firstScreenSlideOutToRight {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
-}
-
-.first-screen-slide-in-right {
-  animation: firstScreenSlideInFromRight 0.3s ease-out forwards;
-}
-
-.first-screen-slide-out-left {
-  animation: firstScreenSlideOutToLeft 0.3s ease-out forwards;
-}
-
-.first-screen-slide-in-left {
-  animation: firstScreenSlideInFromLeft 0.3s ease-out forwards;
-}
-
-.first-screen-slide-out-right {
-  animation: firstScreenSlideOutToRight 0.3s ease-out forwards;
-}
-
 /* Main → Stage transition animations */
 .slide-out-left {
   transform: translateX(-25px);
