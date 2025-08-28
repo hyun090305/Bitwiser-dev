@@ -486,7 +486,7 @@ if (mobileNav && firstScreenEl) {
   }
 
   window.addEventListener("resize", handleResize);
-  handleResize();
+  document.addEventListener("DOMContentLoaded", handleResize);
 }
 
 function lockOrientationLandscape() {
