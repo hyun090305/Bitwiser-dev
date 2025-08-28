@@ -541,10 +541,18 @@ document.getElementById("backToMainFromChapter").onclick = () => {
     leftPanel.classList.add('slide-in-left');
     rightPanel.classList.add('slide-in-right');
     mainScreen.classList.add('fade-scale-in');
-
-    leftPanel.addEventListener('animationend', () => leftPanel.classList.remove('slide-in-left'), { once: true });
-    rightPanel.addEventListener('animationend', () => rightPanel.classList.remove('slide-in-right'), { once: true });
-    mainScreen.addEventListener('animationend', () => mainScreen.classList.remove('fade-scale-in'), { once: true });
+    leftPanel.addEventListener('animationend', () => {
+      leftPanel.classList.remove('slide-in-left');
+      window.dispatchEvent(new Event('resize'));
+    }, { once: true });
+    rightPanel.addEventListener('animationend', () => {
+      rightPanel.classList.remove('slide-in-right');
+      window.dispatchEvent(new Event('resize'));
+    }, { once: true });
+    mainScreen.addEventListener('animationend', () => {
+      mainScreen.classList.remove('fade-scale-in');
+      window.dispatchEvent(new Event('resize'));
+    }, { once: true });
     refreshUserData();
   }, { once: true });
 };
