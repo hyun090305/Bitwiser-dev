@@ -562,6 +562,9 @@ document.getElementById("toggleChapterList").onclick = () => {
 };
 
 document.getElementById("backToLevelsBtn").onclick = () => {
+  window.playController?.destroy?.();
+  window.playController = null;
+  window.playCircuit = null;
   document.body.classList.remove('game-active');
   gameScreen.style.display = "none";
   if (currentCustomProblem) {
@@ -2763,6 +2766,9 @@ if (createProblemBtn) {
 
 //— ⑤ 문제 출제 화면 → 메인
 backToMainFromProblem.addEventListener('click', () => {
+  window.problemController?.destroy?.();
+  window.problemController = null;
+  window.problemCircuit = null;
   problemScreen.style.display = 'none';
   if (problemScreenPrev === 'userProblems') {
     userProblemsScreen.style.display = 'block';
