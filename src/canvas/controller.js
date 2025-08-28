@@ -403,6 +403,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   };
   document.addEventListener('keyup', keyupHandler);
 
+  function destroy() {
+    if (keydownHandler) {
+      document.removeEventListener('keydown', keydownHandler);
+      keydownHandler = null;
+    }
+    if (keyupHandler) {
+      document.removeEventListener('keyup', keyupHandler);
+      keyupHandler = null;
+    }
+  }
+
   wireBtn?.addEventListener('click', () => {
     state.mode = state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing';
     updateButtons();
@@ -922,5 +933,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     clearSelection,
     undo,
     redo,
+    destroy,
   };
 }
