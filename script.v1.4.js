@@ -320,41 +320,173 @@ const overallRankingAreaEl = document.getElementById("overallRankingArea");
 const mainScreenSection = document.getElementById("mainArea");
 const guestbookAreaEl = document.getElementById("guestbookArea");
 const mobileNav = document.getElementById("mobileNav");
+const firstScreenEl = document.getElementById("firstScreen");
 
-if (mobileNav) {
-    function showFirstScreenSection(targetId) {
-      overallRankingAreaEl.style.display = "none";
-      mainScreenSection.style.display = "none";
-      guestbookAreaEl.style.display = "none";
-      mobileNav.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
-      const target = document.getElementById(targetId);
-      if (target) target.style.display = 'flex';
-      const activeNav = mobileNav.querySelector(`.nav-item[data-target="${targetId}"]`);
-      if (activeNav) activeNav.classList.add("active");
-      refreshUserData();
+if (mobileNav && firstScreenEl) {
+  const tabs = [overallRankingAreaEl, mainScreenSection, guestbookAreaEl];
+  const tabHashes = ["#ranking", "#home", "#guestbook"];
+  const hashToIndex = { "#ranking": 0, "#home": 1, "#guestbook": 2 };
+  let activeTabIndex = hashToIndex[location.hash] ?? 1;
+  let isTransitioning = false;
+  let startX = 0, startY = 0, isSwiping = false;
+  let swipeThreshold = window.innerWidth * 0.25;
+  let hashLock = false;
+
+  function updateNavActive() {
+    mobileNav.querySelectorAll(".nav-item").forEach((nav, i) => {
+      nav.classList.toggle("active", i === activeTabIndex);
+      nav.setAttribute("aria-selected", i === activeTabIndex ? "true" : "false");
+    });
   }
 
-    mobileNav.querySelectorAll(".nav-item").forEach(item => {
-      item.addEventListener("click", () => {
-        const target = item.getAttribute("data-target");
-        showFirstScreenSection(target);
-      });
+  function focusFirstInActiveTab() {
+    const focusable = tabs[activeTabIndex].querySelector(
+      'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
+    );
+    if (focusable) focusable.focus();
+  }
+
+  function syncHash(index) {
+    hashLock = true;
+    location.hash = tabHashes[index];
+    setTimeout(() => (hashLock = false), 0);
+  }
+
+  function initMobile() {
+    tabs.forEach((tab, i) => {
+      tab.style.display = "flex";
+      tab.style.transition = "";
+      tab.style.transform = `translateX(${(i - activeTabIndex) * 100}%)`;
+      tab.style.opacity = i === activeTabIndex ? "1" : "0";
+      tab.style.pointerEvents = i === activeTabIndex ? "auto" : "none";
+      tab.classList.toggle("active", i === activeTabIndex);
+    });
+    updateNavActive();
+    swipeThreshold = window.innerWidth * 0.25;
+    syncHash(activeTabIndex);
+    focusFirstInActiveTab();
+    refreshUserData();
+  }
+
+  function resetDesktop() {
+    tabs.forEach(tab => {
+      tab.style.transition = "";
+      tab.style.transform = "";
+      tab.style.opacity = "";
+      tab.style.pointerEvents = "";
+      tab.style.display = "";
+      tab.classList.remove("active");
+    });
+  }
+
+  function goToTab(index) {
+    if (isTransitioning || index === activeTabIndex || index < 0 || index >= tabs.length)
+      return;
+    const direction = index > activeTabIndex ? 1 : -1;
+    const current = tabs[activeTabIndex];
+    const next = tabs[index];
+    isTransitioning = true;
+
+    next.style.transition = "none";
+    next.style.transform = `translateX(${100 * direction}%)`;
+    next.style.opacity = "0";
+    next.style.pointerEvents = "none";
+    next.classList.add("active");
+
+    requestAnimationFrame(() => {
+      current.style.transition =
+        next.style.transition = "transform 0.3s ease, opacity 0.3s ease";
+      current.style.transform = `translateX(${-100 * direction}%)`;
+      current.style.opacity = "0";
+      next.style.transform = "translateX(0)";
+      next.style.opacity = "1";
+      next.style.pointerEvents = "auto";
     });
 
-    function handleFirstScreenResize() {
-      if (window.innerWidth >= 1024) {
-        overallRankingAreaEl.style.display = "";
-        mainScreenSection.style.display = "";
-        guestbookAreaEl.style.display = "";
-      } else {
-        const activeNav = mobileNav.querySelector(".nav-item.active");
-        const target = activeNav ? activeNav.getAttribute("data-target") : "mainArea";
-        showFirstScreenSection(target);
+    next.addEventListener(
+      "transitionend",
+      () => {
+        current.style.transition = "";
+        next.style.transition = "";
+        current.style.pointerEvents = "none";
+        current.classList.remove("active");
+        current.style.transform = `translateX(${ -100 * direction }%)`;
+        activeTabIndex = index;
+        updateNavActive();
+        focusFirstInActiveTab();
+        syncHash(activeTabIndex);
+        refreshUserData();
+        isTransitioning = false;
+      },
+      { once: true }
+    );
+  }
+
+  mobileNav.querySelectorAll(".nav-item").forEach((item, i) => {
+    item.addEventListener("click", () => goToTab(i));
+  });
+
+  function onTouchStart(e) {
+    if (isTransitioning || window.innerWidth >= 1024) return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    isSwiping = true;
+  }
+
+  function onTouchMove(e) {
+    if (!isSwiping) return;
+    const dx = e.touches[0].clientX - startX;
+    const dy = e.touches[0].clientY - startY;
+    if (Math.abs(dy) > Math.abs(dx)) {
+      isSwiping = false;
+      tabs[activeTabIndex].style.transform = "translateX(0)";
+      return;
+    }
+    tabs[activeTabIndex].style.transition = "none";
+    tabs[activeTabIndex].style.transform = `translateX(${dx}px)`;
+  }
+
+  function onTouchEnd(e) {
+    if (!isSwiping) return;
+    const dx = e.changedTouches[0].clientX - startX;
+    const dy = e.changedTouches[0].clientY - startY;
+    const absDx = Math.abs(dx);
+    const current = tabs[activeTabIndex];
+    current.style.transition = "transform 0.3s ease";
+    current.style.transform = "translateX(0)";
+    if (absDx > swipeThreshold && absDx > Math.abs(dy)) {
+      if (dx < 0 && activeTabIndex < tabs.length - 1) {
+        goToTab(activeTabIndex + 1);
+      } else if (dx > 0 && activeTabIndex > 0) {
+        goToTab(activeTabIndex - 1);
       }
     }
+    isSwiping = false;
+  }
 
-  window.addEventListener("resize", handleFirstScreenResize);
-  handleFirstScreenResize();
+  firstScreenEl.addEventListener("touchstart", onTouchStart, { passive: true });
+  firstScreenEl.addEventListener("touchmove", onTouchMove, { passive: true });
+  firstScreenEl.addEventListener("touchend", onTouchEnd);
+
+  window.addEventListener("hashchange", () => {
+    if (hashLock) return;
+    const idx = hashToIndex[location.hash];
+    if (idx !== undefined && idx !== activeTabIndex) {
+      goToTab(idx);
+    }
+  });
+
+  function handleResize() {
+    swipeThreshold = window.innerWidth * 0.25;
+    if (window.innerWidth >= 1024) {
+      resetDesktop();
+    } else {
+      initMobile();
+    }
+  }
+
+  window.addEventListener("resize", handleResize);
+  handleResize();
 }
 
 function lockOrientationLandscape() {
