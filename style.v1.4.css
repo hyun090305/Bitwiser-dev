@@ -551,30 +551,6 @@ html, body {
     to { opacity: 1; transform: scale(1); }
   }
 
-  /* --- Stage selection animations --- */
-  .stageCard {
-    transition: transform 200ms cubic-bezier(.2,.8,.2,1);
-    will-change: transform, opacity;
-  }
-
-  .stageCard.selected {
-    animation: cardSelect 200ms forwards;
-    z-index: 5;
-  }
-
-  @keyframes cardSelect {
-    0% { transform: scale(1); }
-    60% { transform: scale(1.04); }
-    100% { transform: scale(1); }
-  }
-
-  .stageCard.fade-out {
-    opacity: 0;
-    filter: blur(2px);
-    transition: opacity 200ms cubic-bezier(.2,.8,.2,1),
-                filter 200ms cubic-bezier(.2,.8,.2,1);
-  }
-
   .stageCard .checkmark {
     position: absolute;
     top: 8px;
@@ -2084,75 +2060,5 @@ html, body {
 
 #stageTutBtn:hover {
   transform: translateX(3px);
-}
-
-/* --- Level introduction modal animations --- */
-#levelIntroModal .modal-content {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: transform 200ms cubic-bezier(.2,.8,.2,1),
-              opacity 200ms cubic-bezier(.2,.8,.2,1);
-  will-change: transform, opacity;
-}
-
-#levelIntroModal.show .modal-content {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#levelIntroModal #introDesc {
-  opacity: 0;
-  transform: translateY(8px);
-  transition: transform 180ms cubic-bezier(.2,.8,.2,1) 120ms,
-              opacity 180ms cubic-bezier(.2,.8,.2,1) 120ms;
-  will-change: transform, opacity;
-}
-
-#levelIntroModal.show #introDesc {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-#levelIntroModal #truthTable tr {
-  opacity: 0;
-  transform: translateY(6px);
-  will-change: transform, opacity;
-}
-
-#levelIntroModal.show #truthTable tr {
-  animation: tableRowIn 180ms cubic-bezier(.2,.8,.2,1) forwards;
-}
-
-@keyframes tableRowIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-#levelIntroModal #startLevelBtn {
-  transform: scale(0.98);
-  will-change: transform;
-}
-
-#levelIntroModal.show #startLevelBtn {
-  animation: startBtnPop 120ms cubic-bezier(.2,.8,.2,1) 300ms forwards;
-}
-
-@keyframes startBtnPop {
-  to { transform: scale(1); }
-}
-
-/* --- Button press feedback --- */
-button:active {
-  transform: scale(0.98);
-  filter: brightness(0.9);
-  transition: transform 80ms cubic-bezier(.4,0,.2,1),
-              filter 80ms cubic-bezier(.4,0,.2,1);
-}
-
-/* --- Reduced motion preference --- */
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation: none !important;
-    transition: none !important;
-  }
 }
 

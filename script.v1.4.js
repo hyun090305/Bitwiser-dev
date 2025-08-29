@@ -923,19 +923,8 @@ function showLevelIntro(level, callback) {
   });
 
   modal.style.display = "flex";
-  modal.classList.remove('show');
-  requestAnimationFrame(() => {
-    modal.classList.add('show');
-    // truth table row stagger animations
-    const rows = table.querySelectorAll('tr');
-    rows.forEach((r, i) => {
-      r.style.animationDelay = `${i * 60}ms`;
-    });
-  });
   modal.style.backgroundColor = "white";
-  const startBtn = document.getElementById("startLevelBtn");
-  startBtn.onclick = () => {
-    modal.classList.remove('show');
+  document.getElementById("startLevelBtn").onclick = () => {
     modal.style.display = "none";
     showStageTutorial(level, callback);  // 레벨별 튜토리얼 표시 후 시작
   };
@@ -989,26 +978,6 @@ function selectChapter(idx) {
   }
 }
 
-function handleStageSelection(card, level) {
-  const cards = stageListEl.querySelectorAll('.stageCard');
-  cards.forEach(c => {
-    if (c === card) {
-      c.classList.add('selected');
-    } else {
-      c.classList.add('fade-out');
-    }
-  });
-
-  setTimeout(() => {
-    returnToEditScreen();
-    startLevel(level);
-    chapterStageScreen.style.display = 'none';
-    gameScreen.style.display = 'flex';
-    document.body.classList.add('game-active');
-    cards.forEach(c => c.classList.remove('selected', 'fade-out'));
-  }, 200);
-}
-
 async function renderStageList(stageList) {
   await loadClearedLevelsFromDb();
   stageListEl.innerHTML = "";
@@ -1035,7 +1004,13 @@ async function renderStageList(stageList) {
         const check = createCheckmarkSvg();
         card.appendChild(check);
       }
-      card.onclick = () => handleStageSelection(card, level);
+      card.onclick = () => {
+        returnToEditScreen();
+        startLevel(level);
+        chapterStageScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        document.body.classList.add('game-active');
+      };
     }
     stageListEl.appendChild(card);
   });
