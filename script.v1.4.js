@@ -16,8 +16,7 @@ const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.goo
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let gapiInited = false;
 let gapiInitPromise = null;
-let codeClient;
-let driveRefreshToken = localStorage.getItem('driveRefreshToken');
+let tokenClient;
 
 window.addEventListener('load', () => {
   if (window.gapi) {
@@ -32,77 +31,20 @@ window.addEventListener('load', () => {
     });
   }
   if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-    codeClient = window.google.accounts.oauth2.initCodeClient({
+    tokenClient = window.google.accounts.oauth2.initTokenClient({
       client_id: GOOGLE_CLIENT_ID,
       scope: DRIVE_SCOPE,
-      ux_mode: 'popup',
-      callback: async (resp) => {
-        try {
-          await exchangeCodeForTokens(resp.code);
-          if (codeClient.onResolve) codeClient.onResolve();
-        } catch (err) {
-          if (codeClient.onReject) codeClient.onReject(err);
+      callback: (tokenResponse) => {
+        gapi.client.setToken(tokenResponse);
+        if (tokenClient.onResolve) {
+          const cb = tokenClient.onResolve;
+          tokenClient.onResolve = null;
+          cb(tokenResponse);
         }
       }
     });
   }
 });
-
-async function exchangeCodeForTokens(code) {
-  // NOTE: For production use, perform this token exchange on a backend
-  // service where the client secret can be stored securely.
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    code,
-    grant_type: 'authorization_code',
-    redirect_uri: 'postmessage'
-  });
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await resp.json();
-  if (data.refresh_token) {
-    driveRefreshToken = data.refresh_token;
-    localStorage.setItem('driveRefreshToken', driveRefreshToken);
-  }
-  if (data.access_token) {
-    const tokenData = {
-      access_token: data.access_token,
-      expires_at: Date.now() + (data.expires_in || 0) * 1000
-    };
-    localStorage.setItem('driveAccessToken', JSON.stringify(tokenData));
-    gapi.client.setToken({ access_token: data.access_token });
-    return tokenData;
-  }
-  throw new Error('Token exchange failed');
-}
-
-async function refreshAccessToken() {
-  if (!driveRefreshToken) throw new Error('No refresh token');
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    refresh_token: driveRefreshToken,
-    grant_type: 'refresh_token'
-  });
-  const resp = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await resp.json();
-  if (data.access_token) {
-    const tokenData = {
-      access_token: data.access_token,
-      expires_at: Date.now() + (data.expires_in || 0) * 1000
-    };
-    localStorage.setItem('driveAccessToken', JSON.stringify(tokenData));
-    gapi.client.setToken({ access_token: data.access_token });
-    return tokenData;
-  }
-  throw new Error('Refresh token request failed');
-}
 
 async function ensureDriveAuth() {
   const user = firebase.auth().currentUser;
@@ -116,38 +58,32 @@ async function ensureDriveAuth() {
       throw new Error(t('loginRequired'));
     }
   }
-  let stored = null;
-  try {
-    stored = JSON.parse(localStorage.getItem('driveAccessToken'));
-  } catch (e) {
-    stored = null;
-  }
-  if (stored && stored.expires_at > Date.now()) {
-    gapi.client.setToken({ access_token: stored.access_token });
-    return stored;
-  }
-  if (driveRefreshToken) {
+  let token = gapi.client.getToken();
+  if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
+    if (!tokenClient) throw new Error(t('loginRequired'));
+    const requestToken = (options) => new Promise((resolve, reject) => {
+      tokenClient.onResolve = (resp) => {
+        if (resp.error) {
+          reject(new Error(resp.error));
+        } else {
+          resolve(resp);
+        }
+      };
+      tokenClient.requestAccessToken(options);
+    });
     try {
-      return await refreshAccessToken();
+      // Attempt silent access using prompt=none.
+      token = await requestToken({ prompt: 'none' });
     } catch (e) {
-      // ignore and fall back to interactive flow
+      try {
+        // Fallback to an interactive popup requesting consent.
+        token = await requestToken({ prompt: 'consent' });
+      } catch (e2) {
+        throw new Error(t('loginRequired'));
+      }
     }
   }
-  if (!codeClient) throw new Error(t('loginRequired'));
-  await new Promise((resolve, reject) => {
-    codeClient.onResolve = resolve;
-    codeClient.onReject = reject;
-    codeClient.requestCode({ prompt: 'consent', access_type: 'offline' });
-  });
-  try {
-    stored = JSON.parse(localStorage.getItem('driveAccessToken'));
-  } catch (e) {
-    stored = null;
-  }
-  if (stored && stored.access_token) {
-    return stored;
-  }
-  throw new Error(t('loginRequired'));
+  return token;
 }
 
 // Preload heavy canvas modules so they are ready when a stage begins.
