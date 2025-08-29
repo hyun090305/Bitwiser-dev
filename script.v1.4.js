@@ -645,6 +645,7 @@ async function startLevel(level) {
 function returnToEditScreen() {
   // 채점 모드 해제
   isScoring = false;
+  window.isScoring = false;
   if (overlay) overlay.style.display = "none";
 
   // 원래 편집 UI 복원
@@ -1506,6 +1507,7 @@ if (savedNextBtn) {
 // 채점 중 grid 조작 금지 기능
 const overlay = document.getElementById("gridOverlay");
 let isScoring = false;
+window.isScoring = false;
 
 document.getElementById("gradeButton").addEventListener("click", () => {
   if (circuitHasError) {
@@ -1515,13 +1517,14 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   if (isScoring) return;
   if (currentCustomProblem == null && currentLevel == null) return;
   isScoring = true;
+  window.isScoring = true;
   if (overlay) overlay.style.display = "block";
-    if (currentCustomProblem) {
-      gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
-    } else {
-      gradeLevelCanvas(currentLevel);
-    }
-  });
+  if (currentCustomProblem) {
+    gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
+  } else {
+    gradeLevelCanvas(currentLevel);
+  }
+});
 
 const modalGoogleLoginBtn = document.getElementById('modalGoogleLoginBtn');
 const usernameSubmitBtn = document.getElementById('usernameSubmit');
@@ -3368,6 +3371,7 @@ async function gradeLevelCanvas(level) {
         alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
         if (overlay) overlay.style.display = 'none';
         isScoring = false;
+        window.isScoring = false;
         return;
       }
     }
@@ -3382,6 +3386,7 @@ async function gradeLevelCanvas(level) {
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
     if (overlay) overlay.style.display = 'none';
     isScoring = false;
+    window.isScoring = false;
     return;
   }
 
@@ -3553,6 +3558,7 @@ async function gradeProblemCanvas(key, problem) {
         alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
         if (overlay) overlay.style.display = 'none';
         isScoring = false;
+        window.isScoring = false;
         return;
       }
     }
@@ -3565,6 +3571,7 @@ async function gradeProblemCanvas(key, problem) {
     alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
     if (overlay) overlay.style.display = 'none';
     isScoring = false;
+    window.isScoring = false;
     return;
   }
 
