@@ -2062,3 +2062,66 @@ html, body {
   transform: translateX(3px);
 }
 
+.stageCard.selected {
+  z-index: 1;
+  transform: scale(1.04);
+  transition: transform 120ms cubic-bezier(.2,.8,.2,1);
+}
+.stageCard.selected.stabilize {
+  transform: scale(1);
+  transition: transform 80ms cubic-bezier(.2,.8,.2,1);
+}
+.stageCard.fade-out,
+#chapterList.fade-out {
+  opacity: 0;
+  filter: blur(2px);
+  transition: opacity 200ms cubic-bezier(.2,.8,.2,1), filter 200ms cubic-bezier(.2,.8,.2,1);
+}
+
+.flying-title {
+  position: absolute;
+  pointer-events: none;
+  z-index: 1000;
+  transition: transform 280ms cubic-bezier(.2,.8,.2,1);
+}
+
+.intro-title {
+  animation: introTitleIn 200ms cubic-bezier(.2,.8,.2,1) forwards;
+}
+.intro-desc {
+  animation: introDescIn 180ms cubic-bezier(.2,.8,.2,1) 120ms forwards;
+}
+#truthTable tr.intro-row {
+  animation: introRowIn 180ms cubic-bezier(.2,.8,.2,1) forwards;
+  animation-delay: calc(var(--row) * 60ms);
+}
+#startLevelBtn.appear {
+  animation: startBtnIn 150ms cubic-bezier(.2,.8,.2,1) 300ms forwards;
+}
+#startLevelBtn:active {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+  transition: transform 80ms cubic-bezier(.4,0,.2,1), filter 80ms cubic-bezier(.4,0,.2,1);
+}
+
+@keyframes introTitleIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes introDescIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes introRowIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes startBtnIn {
+  from { transform: scale(0.98); }
+  to { transform: scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
