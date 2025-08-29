@@ -10,7 +10,6 @@ let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 
 let lastSavedKey = null;
 let pendingClearedLevel = null;
-let lastSelectedStageCard = null;
 
 // Google Drive API initialization
 const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
@@ -616,7 +615,7 @@ document.getElementById("backToLevelsBtn").onclick = () => {
 
 
 
-async function startLevel(level, card) {
+async function startLevel(level) {
   await stageDataPromise;
   await loadClearedLevelsFromDb();
   const [rows, cols] = levelGridSizes[level] || [6, 6];
@@ -636,7 +635,7 @@ async function startLevel(level, card) {
     nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
 
     collapseMenuBarForMobile();
-  }, card);
+  });
 }
 
 
@@ -884,7 +883,7 @@ firebase.database().ref("guestbook").on("value", (snapshot) => {
   }
 });
 */
-function showLevelIntro(level, callback, card) {
+function showLevelIntro(level, callback) {
   const modal = document.getElementById("levelIntroModal");
   const title = document.getElementById("introTitle");
   const desc = document.getElementById("introDesc");
@@ -923,50 +922,9 @@ function showLevelIntro(level, callback, card) {
     table.appendChild(tr);
   });
 
-  // reset animations
-  title.classList.remove('intro-title');
-  desc.classList.remove('intro-desc');
-  table.querySelectorAll('tr').forEach(tr => tr.classList.remove('intro-row'));
-
   modal.style.display = "flex";
   modal.style.backgroundColor = "white";
-
-  if (card) {
-    const h3 = card.querySelector('h3');
-    const clone = h3.cloneNode(true);
-    const rect = h3.getBoundingClientRect();
-    clone.classList.add('flying-title');
-    clone.style.left = `${rect.left}px`;
-    clone.style.top = `${rect.top}px`;
-    document.body.appendChild(clone);
-    const destRect = title.getBoundingClientRect();
-    const dx = destRect.left - rect.left;
-    const dy = destRect.top - rect.top;
-    title.style.visibility = 'hidden';
-    requestAnimationFrame(() => {
-      clone.style.transform = `translate(${dx}px, ${dy}px)`;
-    });
-    clone.addEventListener('transitionend', () => {
-      clone.remove();
-      title.style.visibility = '';
-      title.classList.add('intro-title');
-    }, { once: true });
-  } else {
-    title.classList.add('intro-title');
-  }
-
-  desc.classList.add('intro-desc');
-  const rows = table.querySelectorAll('tr');
-  rows.forEach((tr, idx) => {
-    tr.style.setProperty('--row', idx);
-    tr.classList.add('intro-row');
-  });
-
-  const startBtn = document.getElementById("startLevelBtn");
-  startBtn.classList.remove('appear');
-  void startBtn.offsetWidth; // reflow
-  startBtn.classList.add('appear');
-  startBtn.onclick = () => {
+  document.getElementById("startLevelBtn").onclick = () => {
     modal.style.display = "none";
     showStageTutorial(level, callback);  // 레벨별 튜토리얼 표시 후 시작
   };
@@ -1020,28 +978,6 @@ function selectChapter(idx) {
   }
 }
 
-function animateStageSelection(card) {
-  return new Promise(resolve => {
-    lastSelectedStageCard = card;
-    const cards = document.querySelectorAll('.stageCard');
-    cards.forEach(c => {
-      if (c === card) {
-        c.classList.add('selected');
-        setTimeout(() => c.classList.add('stabilize'), 120);
-      } else {
-        c.classList.add('fade-out');
-      }
-    });
-    const chapterList = document.getElementById('chapterList');
-    if (chapterList) chapterList.classList.add('fade-out');
-    setTimeout(() => {
-      cards.forEach(c => c.classList.remove('selected','stabilize','fade-out'));
-      if (chapterList) chapterList.classList.remove('fade-out');
-      resolve();
-    }, 200);
-  });
-}
-
 async function renderStageList(stageList) {
   await loadClearedLevelsFromDb();
   stageListEl.innerHTML = "";
@@ -1069,13 +1005,11 @@ async function renderStageList(stageList) {
         card.appendChild(check);
       }
       card.onclick = () => {
-        animateStageSelection(card).then(() => {
-          returnToEditScreen();
-          startLevel(level, card);
-          chapterStageScreen.style.display = 'none';
-          gameScreen.style.display = 'flex';
-          document.body.classList.add('game-active');
-        });
+        returnToEditScreen();
+        startLevel(level);
+        chapterStageScreen.style.display = 'none';
+        gameScreen.style.display = 'flex';
+        document.body.classList.add('game-active');
       };
     }
     stageListEl.appendChild(card);
