@@ -26,43 +26,9 @@ window.addEventListener('load', () => {
           discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest']
         });
         // Restore previously saved Drive token if still valid
-        try {
-          const saved = localStorage.getItem('gdriveToken');
-          if (saved) {
-            const data = JSON.parse(saved);
-            if (data.expiresAt > Date.now()) {
-              gapi.client.setToken(data.token);
-            } else {
-              localStorage.removeItem('gdriveToken');
-            }
-          }
-        } catch (e) {
-          localStorage.removeItem('gdriveToken');
-        }
         gapiInited = true;
         resolve();
       });
-    });
-  }
-  if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-    tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: DRIVE_SCOPE,
-      callback: (tokenResponse) => {
-        gapi.client.setToken(tokenResponse);
-        if (tokenResponse && tokenResponse.access_token) {
-          const expiresAt = Date.now() + (tokenResponse.expires_in - 60) * 1000;
-          localStorage.setItem('gdriveToken', JSON.stringify({
-            token: tokenResponse,
-            expiresAt
-          }));
-        }
-        if (tokenClient.onResolve) {
-          const cb = tokenClient.onResolve;
-          tokenClient.onResolve = null;
-          cb(tokenResponse);
-        }
-      }
     });
   }
 });
@@ -80,22 +46,6 @@ async function ensureDriveAuth() {
     }
   }
   let token = gapi.client.getToken();
-  if (!token) {
-    try {
-      const saved = localStorage.getItem('gdriveToken');
-      if (saved) {
-        const data = JSON.parse(saved);
-        if (data.expiresAt > Date.now()) {
-          token = data.token;
-          gapi.client.setToken(token);
-        } else {
-          localStorage.removeItem('gdriveToken');
-        }
-      }
-    } catch (e) {
-      localStorage.removeItem('gdriveToken');
-    }
-  }
   if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
     if (!tokenClient) throw new Error(t('loginRequired'));
     const requestToken = (options) => new Promise((resolve, reject) => {
@@ -117,7 +67,7 @@ async function ensureDriveAuth() {
       // Attempt silent access with a relaxed prompt. Fallback to 'none'
       // if the empty prompt is not supported in this environment.
       try {
-        token = await requestToken({ prompt: '', ...hintOptions });
+        token = await requestToken({ prompt: 'none', ...hintOptions });
       } catch (eEmpty) {
         if (eEmpty instanceof TypeError) {
           token = await requestToken({ prompt: 'none', ...hintOptions });
