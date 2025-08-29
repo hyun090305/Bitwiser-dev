@@ -358,6 +358,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
   keydownHandler = e => {
+    if (window.isScoring) {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') e.preventDefault();
+      else if (e.key.toLowerCase() === 'r') e.preventDefault();
+      return;
+    }
     const active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
