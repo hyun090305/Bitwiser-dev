@@ -17,39 +17,6 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 let gapiInited = false;
 let gapiInitPromise = null;
 let tokenClient;
-let silentCheckPromise = null;
-
-function canRequestTokenSilently() {
-  if (silentCheckPromise) {
-    return silentCheckPromise;
-  }
-  if (!(window.google && window.google.accounts && window.google.accounts.id)) {
-    silentCheckPromise = Promise.resolve(false);
-    return silentCheckPromise;
-  }
-  silentCheckPromise = new Promise(resolve => {
-    try {
-      google.accounts.id.initialize({
-        client_id: GOOGLE_CLIENT_ID,
-        auto_select: false,
-        callback: () => {}
-      });
-      google.accounts.id.prompt(n => {
-        const reason = n.getNotDisplayedReason && n.getNotDisplayedReason();
-        if (reason === 'third_party_cookies_blocked' ||
-            reason === 'browser_not_supported' ||
-            reason === 'unknown_reason') {
-          resolve(false);
-        } else {
-          resolve(true);
-        }
-      });
-    } catch (e) {
-      resolve(false);
-    }
-  });
-  return silentCheckPromise;
-}
 
 window.addEventListener('load', () => {
   if (window.gapi) {
@@ -110,12 +77,18 @@ async function ensureDriveAuth() {
       }
     });
     const hintOptions = user && user.email ? { hint: user.email } : {};
-    const allowSilent = await canRequestTokenSilently();
-    if (!allowSilent) {
-      throw new Error(t('googleLoginPrompt'));
-    }
     try {
-      token = await requestToken({ prompt: 'none', ...hintOptions });
+      // Attempt silent access with a relaxed prompt. Fallback to 'none'
+      // if the empty prompt is not supported in this environment.
+      try {
+        token = await requestToken({ prompt: 'none', ...hintOptions });
+      } catch (eEmpty) {
+        if (eEmpty instanceof TypeError) {
+          token = await requestToken({ prompt: 'none', ...hintOptions });
+        } else {
+          throw eEmpty;
+        }
+      }
     } catch (e) {
       const err = (e.message || '').toLowerCase();
       if (err.includes('login') || err.includes('idpiframe')) {
