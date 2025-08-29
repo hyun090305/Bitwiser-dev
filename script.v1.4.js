@@ -31,6 +31,20 @@ window.addEventListener('load', () => {
       });
     });
   }
+  if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+    tokenClient = window.google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: (tokenResponse) => {
+        gapi.client.setToken(tokenResponse);
+        if (tokenClient.onResolve) {
+          const cb = tokenClient.onResolve;
+          tokenClient.onResolve = null;
+          cb(tokenResponse);
+        }
+      }
+    });
+  }
 });
 
 async function ensureDriveAuth() {
