@@ -106,38 +106,16 @@ async function ensureDriveAuth() {
           resolve(resp);
         }
       };
-      try {
-        tokenClient.requestAccessToken(options);
-      } catch (err) {
-        reject(err);
-      }
+      tokenClient.requestAccessToken(options);
     });
-    const hintOptions = user && user.email ? { hint: user.email } : {};
     try {
-      // Attempt silent access with a relaxed prompt. Fallback to 'none'
-      // if the empty prompt is not supported in this environment.
-      try {
-        token = await requestToken({ prompt: '', ...hintOptions });
-      } catch (eEmpty) {
-        if (eEmpty instanceof TypeError) {
-          token = await requestToken({ prompt: 'none', ...hintOptions });
-        } else {
-          throw eEmpty;
-        }
-      }
+      // Attempt silent access using prompt=none.
+      token = await requestToken({ prompt: 'none' });
     } catch (e) {
-      const err = (e.message || '').toLowerCase();
-      if (err.includes('login') || err.includes('idpiframe')) {
-        // User not logged in; do not open a popup.
-        throw new Error(t('googleLoginPrompt'));
-      } else if (err.includes('consent') || err.includes('interaction')) {
-        try {
-          // Only request an interactive popup when consent is required.
-          token = await requestToken({ prompt: 'consent', ...hintOptions });
-        } catch (e2) {
-          throw new Error(t('loginRequired'));
-        }
-      } else {
+      try {
+        // Fallback to an interactive popup requesting consent.
+        token = await requestToken({ prompt: 'consent' });
+      } catch (e2) {
         throw new Error(t('loginRequired'));
       }
     }
