@@ -117,7 +117,7 @@ async function ensureDriveAuth() {
       // Attempt silent access with a relaxed prompt. Fallback to 'none'
       // if the empty prompt is not supported in this environment.
       try {
-        token = await requestToken({ prompt: 'none', ...hintOptions });
+        token = await requestToken({ prompt: '', ...hintOptions });
       } catch (eEmpty) {
         if (eEmpty instanceof TypeError) {
           token = await requestToken({ prompt: 'none', ...hintOptions });
