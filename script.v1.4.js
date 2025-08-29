@@ -31,19 +31,28 @@ window.addEventListener('load', () => {
       });
     });
   }
-  if (window.google && window.google.accounts && window.google.accounts.oauth2) {
-    tokenClient = window.google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: DRIVE_SCOPE,
-      callback: (tokenResponse) => {
-        gapi.client.setToken(tokenResponse);
-        if (tokenClient.onResolve) {
-          const cb = tokenClient.onResolve;
-          tokenClient.onResolve = null;
-          cb(tokenResponse);
+  if (window.google && window.google.accounts) {
+    if (window.google.accounts.id) {
+      window.google.accounts.id.initialize({
+        client_id: GOOGLE_CLIENT_ID,
+        auto_select: false,
+        callback: () => {}
+      });
+    }
+    if (window.google.accounts.oauth2) {
+      tokenClient = window.google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        callback: (tokenResponse) => {
+          gapi.client.setToken(tokenResponse);
+          if (tokenClient.onResolve) {
+            const cb = tokenClient.onResolve;
+            tokenClient.onResolve = null;
+            cb(tokenResponse);
+          }
         }
-      }
-    });
+      });
+    }
   }
 });
 
@@ -77,6 +86,24 @@ async function ensureDriveAuth() {
       }
     });
     const hintOptions = user && user.email ? { hint: user.email } : {};
+    const canSilent = await new Promise(resolve => {
+      if (!window.google || !google.accounts || !google.accounts.id) return resolve(true);
+      try {
+        google.accounts.id.prompt(n => {
+          const reason = n.getNotDisplayedReason();
+          if (reason && ['third_party_cookies_blocked', 'browser_not_supported', 'unknown_reason'].includes(reason)) {
+            resolve(false);
+          } else {
+            resolve(true);
+          }
+        });
+      } catch (err) {
+        resolve(true);
+      }
+    });
+    if (!canSilent) {
+      throw new Error(t('googleLoginRequired'));
+    }
     try {
       // Attempt silent access with a relaxed prompt. Fallback to 'none'
       // if the empty prompt is not supported in this environment.
