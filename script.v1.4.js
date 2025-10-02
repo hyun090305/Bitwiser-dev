@@ -14,9 +14,155 @@ let pendingClearedLevel = null;
 // Google Drive API initialization
 const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
+const REFRESH_TOKEN_COOKIE = 'drive_refresh_token';
+const REFRESH_TOKEN_MAX_AGE_SECONDS = 60 * 60 * 24 * 90; // 90 days
 let gapiInited = false;
 let gapiInitPromise = null;
 let tokenClient;
+let codeClient;
+
+function setSecureCookie(name, value, maxAgeSeconds) {
+  let cookie = `${name}=${encodeURIComponent(value)};path=/;SameSite=Strict`;
+  if (typeof maxAgeSeconds === 'number') {
+    cookie += `;max-age=${Math.max(0, Math.floor(maxAgeSeconds))}`;
+  }
+  // Browsers ignore the secure flag on non-HTTPS origins, but it doesn't hurt to set it.
+  cookie += ';secure';
+  document.cookie = cookie;
+}
+
+function getCookie(name) {
+  const cookies = document.cookie ? document.cookie.split(';') : [];
+  const prefix = `${name}=`;
+  for (const raw of cookies) {
+    const trimmed = raw.trim();
+    if (trimmed.startsWith(prefix)) {
+      return decodeURIComponent(trimmed.slice(prefix.length));
+    }
+  }
+  return null;
+}
+
+function getStoredRefreshToken() {
+  return getCookie(REFRESH_TOKEN_COOKIE);
+}
+
+function persistRefreshToken(tokenValue) {
+  if (!tokenValue) {
+    // Clear the cookie immediately when the token is not available or invalid.
+    setSecureCookie(REFRESH_TOKEN_COOKIE, '', 0);
+    return;
+  }
+  setSecureCookie(REFRESH_TOKEN_COOKIE, tokenValue, REFRESH_TOKEN_MAX_AGE_SECONDS);
+}
+
+function base64UrlEncode(buffer) {
+  return btoa(String.fromCharCode(...new Uint8Array(buffer)))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+async function createPkcePair() {
+  const array = new Uint8Array(32);
+  crypto.getRandomValues(array);
+  const verifier = base64UrlEncode(array);
+  const data = new TextEncoder().encode(verifier);
+  const digest = await crypto.subtle.digest('SHA-256', data);
+  const challenge = base64UrlEncode(digest);
+  return { verifier, challenge };
+}
+
+async function exchangeAuthorizationCode(code, codeVerifier) {
+  const body = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    code,
+    code_verifier: codeVerifier,
+    grant_type: 'authorization_code',
+    redirect_uri: 'postmessage'
+  });
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to exchange authorization code');
+  }
+  return response.json();
+}
+
+async function refreshAccessToken(refreshToken) {
+  const body = new URLSearchParams({
+    client_id: GOOGLE_CLIENT_ID,
+    grant_type: 'refresh_token',
+    refresh_token: refreshToken
+  });
+  const response = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: body.toString()
+  });
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || 'Failed to refresh access token');
+  }
+  return response.json();
+}
+
+async function requestRefreshTokenInteractive(hintOptions = {}) {
+  if (!codeClient) throw new Error(t('loginRequired'));
+  const pkce = await createPkcePair();
+  const requestCode = (options) => new Promise((resolve, reject) => {
+    const previousCallback = codeClient.callback;
+    codeClient.callback = async (resp) => {
+      codeClient.callback = previousCallback;
+      if (!resp || resp.error) {
+        reject(new Error(resp && resp.error ? resp.error : 'authorization_failed'));
+        return;
+      }
+      try {
+        const tokenData = await exchangeAuthorizationCode(resp.code, pkce.verifier);
+        if (tokenData.refresh_token) {
+          persistRefreshToken(tokenData.refresh_token);
+        }
+        if (tokenData.access_token) {
+          gapi.client.setToken({
+            access_token: tokenData.access_token,
+            expires_in: tokenData.expires_in,
+            scope: DRIVE_SCOPE,
+            token_type: tokenData.token_type
+          });
+        }
+        resolve(tokenData);
+      } catch (err) {
+        reject(err);
+      }
+    };
+    try {
+      codeClient.requestCode({
+        prompt: options.prompt,
+        hint: hintOptions.hint,
+        state: options.state,
+        code_challenge: pkce.challenge,
+        code_challenge_method: 'S256'
+      });
+    } catch (err) {
+      codeClient.callback = previousCallback;
+      reject(err);
+    }
+  });
+  try {
+    // First try to retrieve a refresh token silently if possible.
+    return await requestCode({ prompt: 'none' });
+  } catch (err) {
+    const message = (err.message || '').toLowerCase();
+    if (message.includes('interaction') || message.includes('consent') || message.includes('authorization_failed')) {
+      // Fallback to an interactive consent prompt as a last resort.
+      return requestCode({ prompt: 'consent' });
+    }
+    throw err;
+  }
+}
 
 window.addEventListener('load', () => {
   if (window.gapi) {
@@ -44,6 +190,14 @@ window.addEventListener('load', () => {
         }
       }
     });
+    if (window.google.accounts.oauth2.initCodeClient) {
+      codeClient = window.google.accounts.oauth2.initCodeClient({
+        client_id: GOOGLE_CLIENT_ID,
+        scope: DRIVE_SCOPE,
+        ux_mode: 'popup',
+        callback: () => {}
+      });
+    }
   }
 });
 
@@ -60,6 +214,28 @@ async function ensureDriveAuth() {
     }
   }
   let token = gapi.client.getToken();
+  if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
+    const storedRefresh = getStoredRefreshToken();
+    if (storedRefresh) {
+      try {
+        const refreshed = await refreshAccessToken(storedRefresh);
+        if (refreshed.access_token) {
+          gapi.client.setToken({
+            access_token: refreshed.access_token,
+            expires_in: refreshed.expires_in,
+            scope: DRIVE_SCOPE,
+            token_type: refreshed.token_type
+          });
+          token = gapi.client.getToken();
+        }
+      } catch (err) {
+        console.warn('Stored refresh token failed, clearing cookie.', err);
+        persistRefreshToken('');
+        token = gapi.client.getToken();
+      }
+    }
+  }
+
   if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
     if (!tokenClient) throw new Error(t('loginRequired'));
     const requestToken = (options) => new Promise((resolve, reject) => {
@@ -103,6 +279,13 @@ async function ensureDriveAuth() {
         }
       } else {
         throw new Error(t('loginRequired'));
+      }
+    }
+    if (!getStoredRefreshToken()) {
+      try {
+        await requestRefreshTokenInteractive(hintOptions);
+      } catch (refreshErr) {
+        console.warn('Unable to persist refresh token silently.', refreshErr);
       }
     }
   }
