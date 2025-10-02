@@ -14,265 +14,9 @@ let pendingClearedLevel = null;
 // Google Drive API initialization
 const GOOGLE_CLIENT_ID = '796428704868-sse38guap4kghi6ehbpv3tmh999hc9jm.apps.googleusercontent.com';
 const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
-const DRIVE_REFRESH_COOKIE = 'drive_refresh_token';
-const DRIVE_REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 60; // 60 days
-const DRIVE_REFRESH_SESSION_FALLBACK = 'drive_refresh_token_fallback';
-const OAUTH_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
-const OAUTH_REDIRECT_URI = typeof window !== 'undefined'
-  ? new URL('oauth-callback.html', window.location.href).toString()
-  : '';
 let gapiInited = false;
 let gapiInitPromise = null;
 let tokenClient;
-let driveTokenExpiry = 0;
-
-function getCookieValue(name) {
-  if (typeof document === 'undefined' || !document.cookie) return null;
-  const prefix = `${name}=`;
-  const parts = document.cookie.split(';');
-  for (const part of parts) {
-    const trimmed = part.trim();
-    if (trimmed.startsWith(prefix)) {
-      try {
-        return decodeURIComponent(trimmed.substring(prefix.length));
-      } catch (err) {
-        console.warn('Failed to decode cookie value', err);
-        return trimmed.substring(prefix.length);
-      }
-    }
-  }
-  if (window.location && window.location.protocol !== 'https:' && typeof sessionStorage !== 'undefined') {
-    return sessionStorage.getItem(`${DRIVE_REFRESH_SESSION_FALLBACK}_${name}`);
-  }
-  return null;
-}
-
-function setSecureCookie(name, value, maxAgeSeconds) {
-  if (typeof document === 'undefined') return;
-  let cookie = `${name}=${encodeURIComponent(value)}; Path=/; SameSite=Strict`;
-  if (typeof maxAgeSeconds === 'number') {
-    cookie += `; Max-Age=${Math.max(0, Math.floor(maxAgeSeconds))}`;
-  }
-  const isHttps = window.location && window.location.protocol === 'https:';
-  if (isHttps) {
-    cookie += '; Secure';
-  }
-  document.cookie = cookie;
-  if (!isHttps && typeof sessionStorage !== 'undefined') {
-    try {
-      sessionStorage.setItem(`${DRIVE_REFRESH_SESSION_FALLBACK}_${name}`, value);
-    } catch (err) {
-      console.warn('Failed to persist refresh token fallback in sessionStorage', err);
-    }
-  }
-}
-
-function deleteCookie(name) {
-  if (typeof document === 'undefined') return;
-  const base = `${name}=; Path=/; Max-Age=0; SameSite=Strict`;
-  document.cookie = `${base}; Secure`;
-  document.cookie = base;
-  if (typeof sessionStorage !== 'undefined') {
-    sessionStorage.removeItem(`${DRIVE_REFRESH_SESSION_FALLBACK}_${name}`);
-  }
-}
-
-function applyDriveAccessToken(tokenData) {
-  if (!tokenData || !tokenData.access_token) {
-    throw new Error('Invalid token data');
-  }
-  const token = {
-    access_token: tokenData.access_token,
-    token_type: tokenData.token_type || 'Bearer',
-    scope: tokenData.scope || DRIVE_SCOPE
-  };
-  if (tokenData.expires_in) {
-    token.expires_in = tokenData.expires_in;
-  }
-  if (tokenData.expires_in) {
-    driveTokenExpiry = Date.now() + Math.max(0, (tokenData.expires_in - 60)) * 1000;
-  } else {
-    driveTokenExpiry = Date.now() + 5 * 60 * 1000; // default to 5 minutes
-  }
-  gapi.client.setToken(token);
-}
-
-async function exchangeCodeForTokens(code, codeVerifier) {
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    code,
-    code_verifier: codeVerifier,
-    grant_type: 'authorization_code',
-    redirect_uri: OAUTH_REDIRECT_URI
-  });
-  const res = await fetch(OAUTH_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = data && (data.error_description || data.error) ? data : null;
-    const message = err ? `${err.error || 'token_error'}: ${err.error_description || ''}` : 'token_exchange_failed';
-    throw new Error(message);
-  }
-  return data;
-}
-
-async function refreshAccessToken(refreshToken) {
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken
-  });
-  const res = await fetch(OAUTH_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = data && (data.error_description || data.error) ? data : null;
-    const message = err ? `${err.error || 'token_error'}: ${err.error_description || ''}` : 'refresh_failed';
-    throw new Error(message);
-  }
-  if (data.refresh_token) {
-    setSecureCookie(DRIVE_REFRESH_COOKIE, data.refresh_token, DRIVE_REFRESH_COOKIE_MAX_AGE);
-  }
-  applyDriveAccessToken(data);
-  return data;
-}
-
-function createRandomString(length) {
-  const charset = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~';
-  const array = new Uint8Array(length);
-  if (window.crypto && window.crypto.getRandomValues) {
-    window.crypto.getRandomValues(array);
-  } else {
-    for (let i = 0; i < length; i++) {
-      array[i] = Math.floor(Math.random() * 256);
-    }
-  }
-  let result = '';
-  for (let i = 0; i < array.length; i++) {
-    result += charset.charAt(array[i] % charset.length);
-  }
-  return result;
-}
-
-async function pkceChallengeFromVerifier(verifier) {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(verifier);
-  const digest = await window.crypto.subtle.digest('SHA-256', data);
-  const base64 = btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_')
-    .replace(/=+$/, '');
-  return base64;
-}
-
-async function generatePkcePair() {
-  const codeVerifier = createRandomString(64);
-  const codeChallenge = await pkceChallengeFromVerifier(codeVerifier);
-  return { codeVerifier, codeChallenge };
-}
-
-function waitForOAuthCode(popup, state) {
-  return new Promise((resolve, reject) => {
-    let resolved = false;
-    const timeout = setTimeout(() => {
-      if (!resolved) {
-        cleanup();
-        reject(new Error('oauth_timeout'));
-      }
-    }, 120000);
-    const closeCheck = setInterval(() => {
-      if (!resolved && popup && popup.closed) {
-        cleanup();
-        reject(new Error('oauth_window_closed'));
-      }
-    }, 500);
-
-    function cleanup() {
-      resolved = true;
-      clearTimeout(timeout);
-      clearInterval(closeCheck);
-      window.removeEventListener('message', onMessage);
-      if (popup && !popup.closed) {
-        popup.close();
-      }
-    }
-
-    function onMessage(event) {
-      if (event.origin !== window.location.origin) return;
-      const data = event.data || {};
-      if (data.type !== 'drive_oauth_callback') return;
-      if (data.state !== state) return;
-      if (data.error) {
-        cleanup();
-        const errMsg = data.error_description || data.error;
-        reject(new Error(errMsg || 'oauth_error'));
-        return;
-      }
-      if (data.code) {
-        cleanup();
-        resolve(data.code);
-      }
-    }
-
-    window.addEventListener('message', onMessage);
-  });
-}
-
-async function obtainDriveTokensViaOAuth(hintOptions = {}) {
-  if (!window.crypto || !window.crypto.subtle) {
-    throw new Error('crypto_unsupported');
-  }
-  const { codeVerifier, codeChallenge } = await generatePkcePair();
-  const state = createRandomString(32);
-  sessionStorage.setItem(`drive_pkce_${state}`, codeVerifier);
-
-  const params = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    redirect_uri: OAUTH_REDIRECT_URI,
-    response_type: 'code',
-    scope: DRIVE_SCOPE,
-    access_type: 'offline',
-    include_granted_scopes: 'true',
-    prompt: 'consent',
-    state,
-    code_challenge: codeChallenge,
-    code_challenge_method: 'S256'
-  });
-  if (hintOptions && hintOptions.hint) {
-    params.set('login_hint', hintOptions.hint);
-  }
-
-  const popup = window.open(
-    `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`,
-    'drive_oauth',
-    'width=480,height=640'
-  );
-  if (!popup) {
-    sessionStorage.removeItem(`drive_pkce_${state}`);
-    throw new Error(t('loginRequired'));
-  }
-
-  try {
-    const code = await waitForOAuthCode(popup, state);
-    const storedVerifier = sessionStorage.getItem(`drive_pkce_${state}`) || codeVerifier;
-    sessionStorage.removeItem(`drive_pkce_${state}`);
-    const tokens = await exchangeCodeForTokens(code, storedVerifier);
-    if (tokens.refresh_token) {
-      setSecureCookie(DRIVE_REFRESH_COOKIE, tokens.refresh_token, DRIVE_REFRESH_COOKIE_MAX_AGE);
-    }
-    applyDriveAccessToken(tokens);
-    return tokens;
-  } catch (err) {
-    sessionStorage.removeItem(`drive_pkce_${state}`);
-    throw err;
-  }
-}
 
 window.addEventListener('load', () => {
   if (window.gapi) {
@@ -293,12 +37,6 @@ window.addEventListener('load', () => {
       scope: DRIVE_SCOPE,
       callback: (tokenResponse) => {
         gapi.client.setToken(tokenResponse);
-        if (tokenResponse && tokenResponse.expires_in) {
-          driveTokenExpiry = Date.now() + Math.max(0, (tokenResponse.expires_in - 60)) * 1000;
-        }
-        if (tokenResponse && tokenResponse.refresh_token) {
-          setSecureCookie(DRIVE_REFRESH_COOKIE, tokenResponse.refresh_token, DRIVE_REFRESH_COOKIE_MAX_AGE);
-        }
         if (tokenClient.onResolve) {
           const cb = tokenClient.onResolve;
           tokenClient.onResolve = null;
@@ -321,35 +59,9 @@ async function ensureDriveAuth() {
       throw new Error(t('loginRequired'));
     }
   }
-  const now = Date.now();
   let token = gapi.client.getToken();
-  if (token && token.access_token && driveTokenExpiry - now > 5000 && token.scope && token.scope.includes(DRIVE_SCOPE)) {
-    return token;
-  }
-
-  const storedRefreshToken = getCookieValue(DRIVE_REFRESH_COOKIE);
-  if (storedRefreshToken) {
-    try {
-      await refreshAccessToken(storedRefreshToken);
-      return gapi.client.getToken();
-    } catch (refreshError) {
-      console.warn('Failed to refresh Drive access token', refreshError);
-      deleteCookie(DRIVE_REFRESH_COOKIE);
-    }
-  }
-
-  try {
-    const hintOptions = user && user.email ? { hint: user.email } : {};
-    const tokens = await obtainDriveTokensViaOAuth(hintOptions);
-    if (tokens && tokens.refresh_token) {
-      setSecureCookie(DRIVE_REFRESH_COOKIE, tokens.refresh_token, DRIVE_REFRESH_COOKIE_MAX_AGE);
-    }
-    return gapi.client.getToken();
-  } catch (oauthError) {
-    console.error('Failed to obtain Drive refresh token via OAuth', oauthError);
-    if (!tokenClient) {
-      throw new Error(t('loginRequired'));
-    }
+  if (!token || !token.scope || !token.scope.includes(DRIVE_SCOPE)) {
+    if (!tokenClient) throw new Error(t('loginRequired'));
     const requestToken = (options) => new Promise((resolve, reject) => {
       tokenClient.onResolve = (resp) => {
         if (resp.error) {
@@ -366,6 +78,8 @@ async function ensureDriveAuth() {
     });
     const hintOptions = user && user.email ? { hint: user.email } : {};
     try {
+      // Attempt silent access with a relaxed prompt. Fallback to 'none'
+      // if the empty prompt is not supported in this environment.
       try {
         token = await requestToken({ prompt: 'none', ...hintOptions });
       } catch (eEmpty) {
@@ -378,9 +92,11 @@ async function ensureDriveAuth() {
     } catch (e) {
       const err = (e.message || '').toLowerCase();
       if (err.includes('login') || err.includes('idpiframe')) {
+        // User not logged in; do not open a popup.
         throw new Error(t('googleLoginPrompt'));
       } else if (err.includes('consent') || err.includes('interaction')) {
         try {
+          // Only request an interactive popup when consent is required.
           token = await requestToken({ prompt: 'consent', ...hintOptions });
         } catch (e2) {
           throw new Error(t('loginRequired'));
@@ -389,8 +105,8 @@ async function ensureDriveAuth() {
         throw new Error(t('loginRequired'));
       }
     }
-    return token;
   }
+  return token;
 }
 
 // Preload heavy canvas modules so they are ready when a stage begins.
