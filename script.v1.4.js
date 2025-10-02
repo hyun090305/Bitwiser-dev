@@ -17,7 +17,8 @@ const DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.appdata';
 const DRIVE_REFRESH_COOKIE = 'drive_refresh_token';
 const DRIVE_REFRESH_COOKIE_MAX_AGE = 60 * 60 * 24 * 60; // 60 days
 const DRIVE_REFRESH_SESSION_FALLBACK = 'drive_refresh_token_fallback';
-const OAUTH_TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
+const OAUTH_EXCHANGE_ENDPOINT = 'https://bitwiser-server-divine-tree-6c9b.hyun0903053.workers.dev/oauth/exchange';
+const OAUTH_REFRESH_ENDPOINT = 'https://bitwiser-server-divine-tree-6c9b.hyun0903053.workers.dev/oauth/refresh';
 const OAUTH_REVOKE_ENDPOINT = 'https://oauth2.googleapis.com/revoke';
 const OAUTH_REDIRECT_URI = typeof window !== 'undefined'
   ? new URL('oauth-callback.html', window.location.href).toString()
@@ -99,48 +100,62 @@ function applyDriveAccessToken(tokenData) {
 }
 
 async function exchangeCodeForTokens(code, codeVerifier) {
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    code,
-    code_verifier: codeVerifier,
-    grant_type: 'authorization_code',
-    redirect_uri: OAUTH_REDIRECT_URI
-  });
-  const res = await fetch(OAUTH_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await res.json().catch(() => ({}));
+  const res = await fetch(
+    OAUTH_EXCHANGE_ENDPOINT,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, code_verifier: codeVerifier }),
+      credentials: 'omit'
+    }
+  );
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    console.error('Failed to parse Drive OAuth exchange response', err);
+    data = {};
+  }
   if (!res.ok) {
-    const err = data && (data.error_description || data.error) ? data : null;
-    const message = err ? `${err.error || 'token_error'}: ${err.error_description || ''}` : 'token_exchange_failed';
+    const message = data.error_description || data.error || 'token_exchange_failed';
+    console.error('Drive OAuth code exchange failed', message);
     throw new Error(message);
   }
   return data;
 }
 
 async function refreshAccessToken(refreshToken) {
-  const body = new URLSearchParams({
-    client_id: GOOGLE_CLIENT_ID,
-    grant_type: 'refresh_token',
-    refresh_token: refreshToken
-  });
-  const res = await fetch(OAUTH_TOKEN_ENDPOINT, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: body.toString()
-  });
-  const data = await res.json().catch(() => ({}));
+  const res = await fetch(
+    OAUTH_REFRESH_ENDPOINT,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+      credentials: 'omit'
+    }
+  );
+
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    console.error('Failed to parse Drive OAuth refresh response', err);
+    data = {};
+  }
   if (!res.ok) {
-    const err = data && (data.error_description || data.error) ? data : null;
-    const message = err ? `${err.error || 'token_error'}: ${err.error_description || ''}` : 'refresh_failed';
+    const message = data.error_description || data.error || 'refresh_failed';
     throw new Error(message);
   }
+
   if (data.refresh_token) {
     setSecureCookie(DRIVE_REFRESH_COOKIE, data.refresh_token, DRIVE_REFRESH_COOKIE_MAX_AGE);
   } else {
-    console.warn('Drive refresh response did not include a refresh_token; future silent refreshes may fail.');
+    console.warn('Drive refresh response did not include a refresh_token; retaining existing cookie.');
+    const rt = getCookieValue(DRIVE_REFRESH_COOKIE);
+    if (rt) {
+      setSecureCookie(DRIVE_REFRESH_COOKIE, rt, DRIVE_REFRESH_COOKIE_MAX_AGE);
+    }
   }
   applyDriveAccessToken(data);
   return data;
@@ -358,7 +373,10 @@ async function ensureDriveAuth() {
       return gapi.client.getToken();
     } catch (refreshError) {
       console.warn('Failed to refresh Drive access token', refreshError);
-      deleteCookie(DRIVE_REFRESH_COOKIE);
+      const errMsg = (refreshError && refreshError.message) ? refreshError.message : '';
+      if (errMsg.toLowerCase().includes('invalid_grant')) {
+        deleteCookie(DRIVE_REFRESH_COOKIE);
+      }
     }
   }
 
