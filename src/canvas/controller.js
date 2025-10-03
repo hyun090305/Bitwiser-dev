@@ -19,6 +19,19 @@ export function pxToCell(x, y, circuit, offsetX = 0) {
 }
 
 export function createController(canvasSet, circuit, ui = {}, options = {}) {
+  const isApplePlatform =
+    typeof navigator !== 'undefined' &&
+    /Mac|iP(hone|ad|od)/i.test(
+      navigator.userAgentData?.platform ||
+        navigator.platform ||
+        navigator.userAgent ||
+        ''
+    );
+
+  function isControlLikeKey(event) {
+    if (event.key === 'Control') return true;
+    return isApplePlatform && event.key === 'Meta';
+  }
   const { palette = [], paletteGroups = [], panelWidth = 180 } = options;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
@@ -376,7 +389,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       redo();
       return;
     }
-    if (e.key === 'Control') {
+    if (isControlLikeKey(e)) {
       state.mode = 'wireDrawing';
       updateButtons();
     } else if (e.key === 'Shift') {
@@ -401,7 +414,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   if (keyupHandler) document.removeEventListener('keyup', keyupHandler);
   keyupHandler = e => {
-    if (e.key === 'Control' && state.mode === 'wireDrawing') {
+    if (isControlLikeKey(e) && state.mode === 'wireDrawing') {
       state.mode = 'idle';
       state.wireTrace = [];
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
