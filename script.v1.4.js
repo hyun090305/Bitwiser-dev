@@ -956,19 +956,27 @@ async function startLevel(level) {
   const [rows, cols] = levelGridSizes[level] || [6, 6];
   GRID_ROWS = rows;
   GRID_COLS = cols;
-  showLevelIntro(level, () => {
-    // 캔버스 기반 그리드 세팅
-    setupGrid("canvasContainer", rows, cols, createPaletteForLevel(level));
-    setGridDimensions(rows, cols);
-    currentLevel = parseInt(level);
-    const title = document.getElementById("gameTitle");
+
+  currentLevel = parseInt(level, 10);
+  const title = document.getElementById("gameTitle");
+  if (title) {
     title.textContent = levelTitles[level] ?? `Stage ${level}`;
-    const prevMenuBtn = document.getElementById('prevStageBtnMenu');
-    const nextMenuBtn = document.getElementById('nextStageBtnMenu');
+  }
 
+  const prevMenuBtn = document.getElementById('prevStageBtnMenu');
+  if (prevMenuBtn) {
     prevMenuBtn.disabled = !(levelTitles[level - 1] && isLevelUnlocked(level - 1));
+  }
+  const nextMenuBtn = document.getElementById('nextStageBtnMenu');
+  if (nextMenuBtn) {
     nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
+  }
 
+  // 캔버스를 스테이지 진입 전에 미리 초기화해 이전 스테이지가 보이지 않도록 한다.
+  await setupGrid("canvasContainer", rows, cols, createPaletteForLevel(level));
+  setGridDimensions(rows, cols);
+
+  showLevelIntro(level, () => {
     collapseMenuBarForMobile();
   });
 }
@@ -1339,9 +1347,9 @@ async function renderStageList(stageList) {
         const check = createCheckmarkSvg();
         card.appendChild(check);
       }
-      card.onclick = () => {
+      card.onclick = async () => {
         returnToEditScreen();
-        startLevel(level);
+        await startLevel(level);
         chapterStageScreen.style.display = 'none';
         gameScreen.style.display = 'flex';
         document.body.classList.add('game-active');
