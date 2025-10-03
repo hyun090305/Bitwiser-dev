@@ -927,7 +927,7 @@ document.getElementById("toggleChapterList").onclick = () => {
   chapterListEl.classList.toggle('hidden');
 };
 
-document.getElementById("backToLevelsBtn").onclick = async () => {
+document.getElementById("backToLevelsBtn").onclick = () => {
   window.playController?.destroy?.();
   window.playController = null;
   window.playCircuit = null;
@@ -939,10 +939,11 @@ document.getElementById("backToLevelsBtn").onclick = async () => {
     renderUserProblemList();
   } else {
     chapterStageScreen.style.display = "block";
-    await renderChapterList();
+    loadClearedLevelsFromDb();
+    renderChapterList();
     const chapter = chapterData[selectedChapterIndex];
     if (chapter && chapter.id !== 'user') {
-      await renderStageList(chapter.stages);
+      renderStageList(chapter.stages);
     }
   }
 };
