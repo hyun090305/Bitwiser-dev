@@ -1328,6 +1328,9 @@ async function renderStageList(stageList) {
     const card = document.createElement('div');
     card.className = 'stageCard card-enter';
     card.style.animationDelay = `${idx * 40}ms`;
+    card.addEventListener('animationend', () => {
+      card.classList.remove('card-enter');
+    }, { once: true });
     card.dataset.stage = level;
     const title = levelTitles[level] ?? `Stage ${level}`;
     let name = title;
