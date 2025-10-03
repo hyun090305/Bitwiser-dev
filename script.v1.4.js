@@ -606,6 +606,16 @@ function simulateKey(key, type = 'keydown') {
   document.dispatchEvent(ev);
 }
 
+const APPLE_PLATFORM_REGEX = /Mac|iP(hone|ad|od)/i;
+const platformSource =
+  typeof navigator !== 'undefined'
+    ? navigator.userAgentData?.platform ||
+      navigator.platform ||
+      navigator.userAgent ||
+      ''
+    : '';
+const isApplePlatform = APPLE_PLATFORM_REGEX.test(platformSource);
+
 function setupKeyToggles() {
   const bindings = [
     [statusToggle, 'Control'],
@@ -638,6 +648,17 @@ function setupKeyToggles() {
     }
   });
 
+  function isControlKeyEvent(e) {
+    if (e.key === 'Control') return true;
+    return isApplePlatform && e.key === 'Meta';
+  }
+
+  function matchesBinding(e, key) {
+    if (key === 'Control') return isControlKeyEvent(e);
+    if (key.toLowerCase() === 'r') return e.key.toLowerCase() === 'r';
+    return e.key === key;
+  }
+
   document.addEventListener('keydown', e => {
     if (isTextInputFocused() && e.key.toLowerCase() === 'r') {
       bindings.forEach(([btn, key]) => {
@@ -646,7 +667,7 @@ function setupKeyToggles() {
       return;
     }
     bindings.forEach(([btn, key]) => {
-      if (e.key === key) {
+      if (matchesBinding(e, key)) {
         btn.classList.add('active');
         if (key.toLowerCase() === 'r') {
           setTimeout(() => btn.classList.remove('active'), 150);
@@ -657,7 +678,7 @@ function setupKeyToggles() {
 
   document.addEventListener('keyup', e => {
     bindings.forEach(([btn, key]) => {
-      if (e.key === key && key.toLowerCase() !== 'r') {
+      if (matchesBinding(e, key) && key.toLowerCase() !== 'r') {
         btn.classList.remove('active');
       }
     });
@@ -1541,7 +1562,7 @@ const tutorialStepsData = {
     },
     {
       title: "전선 그리기",
-      desc: "[Ctrl] 키를 누른 상태로 블록 간을 드래그하면 전선 모드가 활성화됩니다.\n드래그를 놓으면 두 블록이 연결돼요.",
+      desc: "[Ctrl/Cmd] 키를 누른 상태로 블록 간을 드래그하면 전선 모드가 활성화됩니다.\n드래그를 놓으면 두 블록이 연결돼요.",
       img: "assets/tutorial-draw-wire.gif"
     },
     {
@@ -1568,7 +1589,7 @@ const tutorialStepsData = {
     },
     {
       title: "Drawing Wires",
-      desc: "Hold [Ctrl] and drag between blocks to enter wire mode.\nRelease to connect the blocks.",
+      desc: "Hold [Ctrl/Cmd] and drag between blocks to enter wire mode.\nRelease to connect the blocks.",
       img: "assets/tutorial-draw-wire.gif"
     },
     {
