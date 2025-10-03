@@ -29,7 +29,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     );
 
   function isControlLikeKey(event) {
-    if (event.key === 'Control') return true;
+    if (!isApplePlatform && event.key === 'Control') return true;
     return isApplePlatform && event.key === 'Meta';
   }
   const { palette = [], paletteGroups = [], panelWidth = 180 } = options;
