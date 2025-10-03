@@ -358,17 +358,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
   keydownHandler = e => {
+    const key = e.key.toLowerCase();
     if (window.isScoring) {
-      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') e.preventDefault();
-      else if (e.key.toLowerCase() === 'r') e.preventDefault();
+      if (key === 'z' || key === 'y') e.preventDefault();
+      else if (key === 'r') e.preventDefault();
       return;
     }
     const active = document.activeElement;
     if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
-    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+    if (key === 'z') {
       e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
+      undo();
+      return;
+    }
+    if (key === 'y') {
+      e.preventDefault();
+      redo();
       return;
     }
     if (e.key === 'Control') {
