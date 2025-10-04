@@ -1815,7 +1815,6 @@ function clearGrid() {
     window.problemCircuit.blocks = {};
     window.problemCircuit.wires = {};
   }
-  wires = [];
   markCircuitModified();
   window.playController?.clearSelection?.();
   window.problemController?.clearSelection?.();
@@ -2574,7 +2573,6 @@ function placeFixedIO(problem) {
 }
 
 async function startCustomProblem(key, problem) {
-  wires = [];
   currentCustomProblem = problem;
   currentCustomProblemKey = key;
   clearCurrentLevel();
