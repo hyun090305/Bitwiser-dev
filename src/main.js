@@ -73,7 +73,8 @@ import {
   showOverallRanking,
   saveRanking,
   saveProblemRanking,
-  showProblemRanking
+  showClearedModal,
+  initializeRankingUI
 } from './modules/rank.js';
 
 // Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
@@ -116,6 +117,22 @@ onCircuitModified(() => {
 
 let lastSavedKey = null;
 let pendingClearedLevel = null;
+
+const translate = typeof t === 'function' ? t : key => key;
+const clearedModalOptions = {
+  modalSelector: '#clearedModal',
+  stageNumberSelector: '#clearedStageNumber',
+  rankingSelector: '#clearedRanking',
+  prevButtonSelector: '#prevStageBtn',
+  nextButtonSelector: '#nextStageBtn',
+  closeButtonSelector: '.closeBtn',
+  translate,
+  loadClearedLevelsFromDb,
+  getLevelTitles,
+  isLevelUnlocked,
+  startLevel,
+  returnToEditScreen
+};
 
 // Preload heavy canvas modules so they are ready when a stage begins.
 // This reduces the delay caused by dynamic imports later in the game.
@@ -596,7 +613,7 @@ if (savedNextBtn) {
   savedNextBtn.addEventListener('click', () => {
     if (circuitSavedModal) circuitSavedModal.style.display = 'none';
     if (pendingClearedLevel !== null) {
-      showClearedModal(pendingClearedLevel);
+      showClearedModal(pendingClearedLevel, clearedModalOptions);
       pendingClearedLevel = null;
     }
   });
@@ -760,121 +777,16 @@ function onGoogleUsernameSubmit(oldName, uid) {
 }
 
 
-function showRanking(levelId) {
-  const listEl = document.getElementById("rankingList");
-  listEl.innerHTML = "로딩 중…";
-
-  // ① 이 스테이지에서 허용된 블록 타입 목록
-  const blockSet = getLevelBlockSet(levelId);
-  const allowedTypes = Array.from(new Set(blockSet.map(b => b.type)));
-
-  db.ref(`rankings/${levelId}`)
-    .orderByChild("timestamp")
-    .once("value", snap => {
-      const entries = [];
-      snap.forEach(ch => {
-        entries.push(ch.val());
-        // 반환(return) 문이 없으므로 undefined가 반환되고, forEach는 계속 진행됩니다.
-      });
-
-      if (entries.length === 0) {
-        listEl.innerHTML = `
-        <p>랭킹이 없습니다.</p>
-        <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
-        </div>
-      `;
-
-        document.getElementById("refreshRankingBtn")
-          .addEventListener("click", () => showRanking(levelId));
-        document.getElementById("closeRankingBtn")
-          .addEventListener("click", () =>
-            document.getElementById("rankingModal").classList.remove("active")
-          );
-        return;
-      }
-
-      // ③ 클라이언트에서 다중 기준 정렬
-      const sumBlocks = e => Object.values(e.blockCounts || {}).reduce((s, x) => s + x, 0);
-      entries.sort((a, b) => {
-        const aBlocks = sumBlocks(a), bBlocks = sumBlocks(b);
-        if (aBlocks !== bBlocks) return aBlocks - bBlocks;            // 블록 합계 오름차순
-        if (a.usedWires !== b.usedWires) return a.usedWires - b.usedWires; // 도선 오름차순
-        const aH = (a.hintsUsed ?? 0), bH = (b.hintsUsed ?? 0);
-        if (aH !== bH) return aH - bH;                                 // 힌트 사용 오름차순
-        return new Date(a.timestamp) - new Date(b.timestamp);         // 제출 시간 오름차순
-      });
-
-      // ② 테이블 헤더 구성
-      const headerCols = [
-        `<th>${t('thRank')}</th>`,
-        `<th>${t('thNickname')}</th>`,
-        ...allowedTypes.map(t => `<th>${t}</th>`),
-        `<th>${t('thWires')}</th>`,
-        `<th>${t('thHintUsed')}</th>`,
-        `<th>${t('thTime')}</th>`
-      ].join("");
-
-      // ③ 각 row 구성
-      const bodyRows = entries.map((e, i) => {
-        // blockCounts에서 타입별 개수 가져오기 (없으면 0)
-        const counts = allowedTypes
-          .map(t => e.blockCounts?.[t] ?? 0)
-          .map(c => `<td>${c}</td>`)
-          .join("");
-
-        const timeStr = new Date(e.timestamp).toLocaleString();
-        const nickname = e.nickname;
-        const displayNickname = nickname.length > 20 ? nickname.slice(0, 20) + '...' : nickname;
-        return `
-  <tr>
-    <td>${i + 1}</td>
-    <td>${displayNickname}</td>
-    ${counts}
-    <td>${e.usedWires}</td>
-    <td>${e.hintsUsed ?? 0}</td>
-    <td>${timeStr}</td>
-  </tr>`;
-      }).join("");
-
-      listEl.innerHTML = `
-        <div class="rankingTableWrapper">
-          <table>
-            <thead><tr>${headerCols}</tr></thead>
-            <tbody>${bodyRows}</tbody>
-          </table>
-        </div>
-        <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
-        </div>
-      `;
-      document.getElementById("refreshRankingBtn")
-        .addEventListener("click", () => showRanking(levelId));
-      document.getElementById("closeRankingBtn")
-        .addEventListener("click", () =>
-          document.getElementById("rankingModal").classList.remove("active")
-        );
-    });
-
-  document.getElementById("rankingModal").classList.add("active");
-}
-
-
-
-document.getElementById("viewRankingBtn")
-  .addEventListener("click", () => {
-    const level = getCurrentLevel();
-    const customProblemKey = getActiveCustomProblemKey();
-    if (level != null) {
-      showRanking(level);
-    } else if (customProblemKey) {
-      showProblemRanking(customProblemKey);
-    } else {
-      alert("먼저 레벨을 선택해주세요.");
-    }
-  });
+initializeRankingUI({
+  viewRankingButtonSelector: '#viewRankingBtn',
+  rankingListSelector: '#rankingList',
+  rankingModalSelector: '#rankingModal',
+  translate,
+  getCurrentLevel,
+  getActiveCustomProblemKey,
+  getLevelBlockSet,
+  alert
+});
 
 function setupGoogleAuth() {
   const buttons = ['googleLoginBtn', 'modalGoogleLoginBtn']
@@ -1199,90 +1111,6 @@ if (closeSavedModalBtn) {
 
 configureLevelModule({ showOverallRanking });
 
-async function showClearedModal(level) {
-  await loadClearedLevelsFromDb();
-  const modal = document.getElementById('clearedModal');
-  document.getElementById('clearedStageNumber').textContent = level;
-  const container = document.getElementById('clearedRanking');
-
-  // 1) 현재 플레이어 닉네임 가져오기 (닉네임 설정 모달에서 localStorage에 저장했다고 가정)
-  const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
-
-  const prevBtn = document.getElementById('prevStageBtn');
-  const nextBtn = document.getElementById('nextStageBtn');
-
-  const titles = getLevelTitles();
-  prevBtn.disabled = !(titles[level - 1] && isLevelUnlocked(level - 1));
-  nextBtn.disabled = !(titles[level + 1] && isLevelUnlocked(level + 1));
-
-  // 2) Firebase Realtime Database에서 랭킹 불러오기
-  firebase.database().ref(`rankings/${level}`)
-    .orderByChild('timestamp')
-    .once('value')
-    .then(snapshot => {
-      // 데이터가 없으면 안내 메시지
-      if (!snapshot.exists()) {
-        // … 생략 …
-      } else {
-        // 1) 결과 배열로 추출
-        const entries = [];
-        snapshot.forEach(child => {
-          entries.push(child.val());
-        });
-
-        // ──────────────────────────────────────────────────────────────
-        // 2) viewRanking과 동일한 다중 기준 정렬 추가
-        const sumBlocks = e => Object.values(e.blockCounts || {}).reduce((s, x) => s + x, 0);
-        entries.sort((a, b) => {
-          const aBlocks = sumBlocks(a), bBlocks = sumBlocks(b);
-          if (aBlocks !== bBlocks) return aBlocks - bBlocks;              // 블록 합계 오름차순
-          if (a.usedWires !== b.usedWires) return a.usedWires - b.usedWires; // 도선 수 오름차순
-          const aH = (a.hintsUsed ?? 0), bH = (b.hintsUsed ?? 0);
-          if (aH !== bH) return aH - bH;
-          return new Date(a.timestamp) - new Date(b.timestamp);           // 클리어 시각 오름차순
-        });
-        // ──────────────────────────────────────────────────────────────
-
-        // 3) 정렬된 entries로 테이블 생성
-        let html = `
-          <table class="rankingTable">
-            <tr><th>${t('thRank')}</th><th>${t('thNickname')}</th><th>${t('thHintUsed')}</th><th>${t('thTime')}</th></tr>
-        `;
-        entries.forEach((e, i) => {
-          const timeStr = new Date(e.timestamp).toLocaleString();
-          const cls = (e.nickname === currentNickname) ? 'highlight' : '';
-          html += `
-            <tr class="${cls}">
-              <td>${i + 1}</td>
-              <td>${e.nickname}</td>
-              <td>${e.hintsUsed ?? 0}</td>
-              <td>${timeStr}</td>
-            </tr>
-          `;
-        });
-        html += `</table>`;
-        container.innerHTML = html;
-      }
-
-      // 버튼 이벤트 바인딩
-      document.getElementById('prevStageBtn').onclick = () => {
-        modal.style.display = 'none';         // 모달 감추기
-        returnToEditScreen();
-        startLevel(level - 1);                   // 1보다 작아지지 않도록 클램핑
-      };
-      document.getElementById('nextStageBtn').onclick = () => {
-        modal.style.display = 'none';
-        returnToEditScreen();
-        startLevel(level + 1);
-      };
-      modal.querySelector('.closeBtn').onclick = () => {
-        modal.style.display = 'none';
-      };
-
-      // 모달 띄우기
-      modal.style.display = 'flex';
-    })
-    .catch(err => console.error('랭킹 로드 실패:', err));
 }
 
 
