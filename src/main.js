@@ -56,13 +56,16 @@ import {
   isMobileDevice
 } from './modules/navigation.js';
 import {
-  initializeProblemEditorUI,
+  initializeProblemCreationFlow,
   saveProblem,
   renderUserProblemList,
   showProblemIntro,
-  setCustomProblemStartHandler,
   invalidateProblemOutputs,
-  markProblemOutputsValid
+  createCustomProblemPalette,
+  setActiveCustomProblem,
+  clearActiveCustomProblem,
+  getActiveCustomProblem,
+  getActiveCustomProblemKey
 } from './modules/problemEditor.js';
 import {
   fetchProgressSummary,
@@ -105,9 +108,6 @@ const {
 
 initializeAuth();
 
-let currentCustomProblem = null;
-let currentCustomProblemKey = null;
-let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 
 onCircuitModified(() => {
@@ -159,8 +159,8 @@ initializeCircuitShare({
   translate: typeof t === 'function' ? t : key => key,
   alert,
   confirm,
-  getCurrentCustomProblem: () => currentCustomProblem,
-  getCurrentCustomProblemKey: () => currentCustomProblemKey,
+  getCurrentCustomProblem: getActiveCustomProblem,
+  getCurrentCustomProblemKey: getActiveCustomProblemKey,
   onLastSavedKeyChange: key => { lastSavedKey = key; }
 });
 
@@ -320,10 +320,8 @@ document.getElementById("toggleChapterList").onclick = () => {
 
 document.getElementById("backToLevelsBtn").onclick = async () => {
   await returnToLevels({
-    isCustomProblemActive: Boolean(currentCustomProblem),
-    onClearCustomProblem: () => {
-      currentCustomProblem = null;
-    }
+    isCustomProblemActive: Boolean(getActiveCustomProblem()),
+    onClearCustomProblem: clearActiveCustomProblem
   });
 };
 
@@ -412,26 +410,29 @@ firebase.database().ref("guestbook").on("value", (snapshot) => {
 */
 document.getElementById("showIntroBtn").addEventListener("click", () => {
   const level = getCurrentLevel();
+  const customProblem = getActiveCustomProblem();
   if (level != null) {
     showIntroModal(level);
-  } else if (currentCustomProblem) {
-    showProblemIntro(currentCustomProblem);
+  } else if (customProblem) {
+    showProblemIntro(customProblem);
   }
 });
 
 document.getElementById("gameTitle").addEventListener("click", () => {
   const level = getCurrentLevel();
+  const customProblem = getActiveCustomProblem();
   if (level != null) {
     showIntroModal(level);
-  } else if (currentCustomProblem) {
-    showProblemIntro(currentCustomProblem);
+  } else if (customProblem) {
+    showProblemIntro(customProblem);
   }
 });
 
 document.getElementById('hintBtn').addEventListener('click', () => {
   const level = getCurrentLevel();
+  const customProblem = getActiveCustomProblem();
   if (level == null) {
-    if (currentCustomProblem) {
+    if (customProblem) {
       alert(t('noHints'));
     } else {
       alert(t('startStageFirst'));
@@ -487,11 +488,11 @@ document.addEventListener('keydown', e => {
     default: return;
   }
   e.preventDefault();
-  moveCircuit(dx, dy, { isProblemFixed: currentCustomProblem?.fixIO });
+  moveCircuit(dx, dy, { isProblemFixed: getActiveCustomProblem()?.fixIO });
 });
 
 const moveWithConstraints = (dx, dy) =>
-  moveCircuit(dx, dy, { isProblemFixed: currentCustomProblem?.fixIO });
+  moveCircuit(dx, dy, { isProblemFixed: getActiveCustomProblem()?.fixIO });
 
 if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveWithConstraints(0, -1));
 if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveWithConstraints(0, 1));
@@ -619,12 +620,13 @@ document.getElementById("gradeButton").addEventListener("click", () => {
     return;
   }
   if (isScoring) return;
-  if (currentCustomProblem == null && getCurrentLevel() == null) return;
+  const customProblem = getActiveCustomProblem();
+  if (!customProblem && getCurrentLevel() == null) return;
   isScoring = true;
   window.isScoring = true;
   if (overlay) overlay.style.display = "block";
-  if (currentCustomProblem) {
-    gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
+  if (customProblem) {
+    gradeProblemCanvas(getActiveCustomProblemKey(), customProblem);
   } else {
     gradeLevelCanvas(getCurrentLevel());
   }
@@ -864,10 +866,11 @@ function showRanking(levelId) {
 document.getElementById("viewRankingBtn")
   .addEventListener("click", () => {
     const level = getCurrentLevel();
+    const customProblemKey = getActiveCustomProblemKey();
     if (level != null) {
       showRanking(level);
-    } else if (currentCustomProblemKey) {
-      showProblemRanking(currentCustomProblemKey);
+    } else if (customProblemKey) {
+      showProblemRanking(customProblemKey);
     } else {
       alert("먼저 레벨을 선택해주세요.");
     }
@@ -1290,100 +1293,7 @@ function getCurrentController() {
   }
   return getPlayController();
 }
-const createProblemBtn         = document.getElementById('createProblemBtn');
-const problemScreen            = document.getElementById('problem-screen');
-const backToMainFromProblem    = document.getElementById('backToMainFromProblem');
-const saveProblemBtn           = document.getElementById('saveProblemBtn');
-const closeProblemListModal    = document.getElementById('closeProblemListModal');
-const userProblemsScreen       = document.getElementById('user-problems-screen');
-const backToChapterFromUserProblems = document.getElementById('backToChapterFromUserProblems');
-const openProblemCreatorBtn    = document.getElementById('openProblemCreatorBtn');
-const problemSaveModal         = document.getElementById('problemSaveModal');
-const problemModalBackdrop     = document.querySelector('#problemSaveModal .modal-backdrop');
-const confirmSaveProblemBtn    = document.getElementById('confirmSaveProblemBtn');
-const cancelSaveProblemBtn     = document.getElementById('cancelSaveProblemBtn');
-const problemTitleInput        = document.getElementById('problemTitleInput');
-const problemDescInput         = document.getElementById('problemDescInput');
-const fixIOCheck               = document.getElementById('fixIOCheck');
-
-//— ④ 메인 → 문제 출제 화면
-if (createProblemBtn) {
-  createProblemBtn.addEventListener('click', () => {
-    firstScreen.style.display   = 'none';
-    problemScreen.style.display = 'block';
-    problemScreenPrev = 'main';
-    initializeProblemEditorUI(createPaletteForProblem);
-  });
-}
-
-//— ⑤ 문제 출제 화면 → 메인
-backToMainFromProblem.addEventListener('click', () => {
-  destroyProblemContext();
-  problemScreen.style.display = 'none';
-  if (problemScreenPrev === 'userProblems') {
-    userProblemsScreen.style.display = 'block';
-  } else if (problemScreenPrev === 'main') {
-    firstScreen.style.display = '';
-  } else {
-    chapterStageScreen.style.display = 'block';
-  }
-  refreshUserData();
-  problemScreenPrev = null;
-});
-
-if (backToChapterFromUserProblems) {
-  backToChapterFromUserProblems.addEventListener('click', () => {
-    userProblemsScreen.style.display = 'none';
-    chapterStageScreen.style.display = 'block';
-    refreshUserData();
-  });
-}
-
-if (openProblemCreatorBtn) {
-  openProblemCreatorBtn.addEventListener('click', () => {
-    userProblemsScreen.style.display = 'none';
-    problemScreen.style.display = 'flex';
-    problemScreenPrev = 'userProblems';
-    initializeProblemEditorUI(createPaletteForProblem);
-  });
-}
-
-document.getElementById('updateIOBtn').addEventListener('click', () => {
-  alert('입출력/그리드 설정을 변경하면 회로가 초기화됩니다.');
-  initializeProblemEditorUI(createPaletteForProblem);
-});
-// 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
-const addRowBtn = document.getElementById('addTestcaseRowBtn');
-if (addRowBtn) addRowBtn.style.display = 'none';
-const computeOutputsBtn = document.getElementById('computeOutputsBtn');
-if (computeOutputsBtn)
-  computeOutputsBtn.addEventListener('click', computeProblemOutputs);
-if (saveProblemBtn) saveProblemBtn.addEventListener('click', () => {
-  problemTitleInput.value = '';
-  problemDescInput.value = '';
-  if (fixIOCheck) fixIOCheck.checked = false;
-  problemSaveModal.style.display = 'flex';
-  problemTitleInput.focus();
-});
-if (confirmSaveProblemBtn) confirmSaveProblemBtn.addEventListener('click', () => {
-  // saveProblem이 true를 반환할 때만 모달을 닫습니다.
-  if (saveProblem()) {
-    problemSaveModal.style.display = 'none';
-  }
-});
-if (cancelSaveProblemBtn) cancelSaveProblemBtn.addEventListener('click', () => {
-  problemSaveModal.style.display = 'none';
-});
-if (problemModalBackdrop) {
-  problemModalBackdrop.addEventListener('click', () => {
-    problemSaveModal.style.display = 'none';
-  });
-}
-if (closeProblemListModal) {
-  closeProblemListModal.addEventListener('click', () => {
-    document.getElementById('problemListModal').style.display = 'none';
-  });
-}
+const userProblemsScreen = document.getElementById('user-problems-screen');
 
 configureLevelModule({ renderUserProblemList });
 
@@ -1394,12 +1304,11 @@ function placeFixedIO(problem) {
 }
 
 async function startCustomProblem(key, problem) {
-  currentCustomProblem = problem;
-  currentCustomProblemKey = key;
+  setActiveCustomProblem(problem, key);
   clearCurrentLevel();
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  await setupGrid('canvasContainer', rows, cols, createPaletteForCustom(problem));
+  await setupGrid('canvasContainer', rows, cols, createCustomProblemPalette(problem));
   clearGrid();
   placeFixedIO(problem);
   setGridDimensions(rows, cols);
@@ -1408,7 +1317,7 @@ async function startCustomProblem(key, problem) {
   prevMenuBtn.disabled = true;
   nextMenuBtn.disabled = true;
   document.getElementById('gameTitle').textContent = problem.title || '사용자 문제';
-  userProblemsScreen.style.display = 'none';
+  if (userProblemsScreen) userProblemsScreen.style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
   const rp = document.getElementById('rightPanel');
   if (rp) rp.style.display = 'block';
@@ -1416,7 +1325,35 @@ async function startCustomProblem(key, problem) {
   collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
 }
 
-setCustomProblemStartHandler(startCustomProblem);
+initializeProblemCreationFlow({
+  ids: {
+    createProblemBtnId: 'createProblemBtn',
+    backButtonId: 'backToMainFromProblem',
+    problemScreenId: 'problem-screen',
+    firstScreenId: 'firstScreen',
+    chapterStageScreenId: 'chapterStageScreen',
+    userProblemsScreenId: 'user-problems-screen',
+    openProblemCreatorBtnId: 'openProblemCreatorBtn',
+    updateIOBtnId: 'updateIOBtn',
+    addRowBtnId: 'addTestcaseRowBtn',
+    computeOutputsBtnId: 'computeOutputsBtn',
+    saveProblemBtnId: 'saveProblemBtn',
+    confirmSaveProblemBtnId: 'confirmSaveProblemBtn',
+    cancelSaveProblemBtnId: 'cancelSaveProblemBtn',
+    closeProblemListModalBtnId: 'closeProblemListModal',
+    problemSaveModalId: 'problemSaveModal',
+    problemModalBackdropSelector: '#problemSaveModal .modal-backdrop',
+    problemListModalId: 'problemListModal',
+    problemTitleInputId: 'problemTitleInput',
+    problemDescInputId: 'problemDescInput',
+    fixIOCheckId: 'fixIOCheck',
+    backToChapterFromUserProblemsBtnId: 'backToChapterFromUserProblems'
+  },
+  buildPaletteGroups,
+  onDestroyProblemContext: destroyProblemContext,
+  onRefreshUserData: refreshUserData,
+  onStartCustomProblem: startCustomProblem
+});
 
 
 function getCircuitStats(circuit) {
@@ -1778,59 +1715,5 @@ if (mqOrientation.addEventListener) {
 checkOrientation();
 adjustGridZoom();
 adjustGridZoom('problemCanvasContainer');
-
-function createPaletteForProblem() {
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const blocks = [];
-  for (let i = 1; i <= inputCnt; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
-  for (let j = 1; j <= outputCnt; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
-  ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
-  return buildPaletteGroups(blocks);
-}
-
-function createPaletteForCustom(problem) {
-  const blocks = [];
-  if (!problem.fixIO) {
-    for (let i = 1; i <= problem.inputCount; i++) blocks.push({ type: 'INPUT', name: 'IN' + i });
-    for (let j = 1; j <= problem.outputCount; j++) blocks.push({ type: 'OUTPUT', name: 'OUT' + j });
-  }
-  ['AND','OR','NOT','JUNCTION'].forEach(t => blocks.push({ type: t }));
-  return buildPaletteGroups(blocks);
-}
-
-async function computeProblemOutputs() {
-  const circuit = getProblemCircuit();
-  if (!circuit) return;
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const inNames = Array.from({ length: inputCnt }, (_, i) => 'IN' + (i + 1));
-  const outNames = Array.from({ length: outputCnt }, (_, i) => 'OUT' + (i + 1));
-
-  const blocks = Object.values(circuit.blocks);
-  const actualOutputs = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
-  const missing = outNames.filter(n => !actualOutputs.includes(n));
-  if (missing.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missing.join(', ')));
-    return;
-  }
-
-  const inputs = inNames.map(name => blocks.find(b => b.type === 'INPUT' && b.name === name));
-  const outputs = outNames.map(name => blocks.find(b => b.type === 'OUTPUT' && b.name === name));
-
-  const rows = document.querySelectorAll('#testcaseTable tbody tr');
-  const { evaluateCircuit } = await import('./canvas/engine.js');
-  rows.forEach(tr => {
-    const cells = tr.querySelectorAll('td');
-    inputs.forEach((inp, i) => {
-      if (inp) inp.value = cells[i].textContent.trim() === '1';
-    });
-    evaluateCircuit(circuit);
-    outputs.forEach((out, j) => {
-      if (out) cells[inputCnt + j].textContent = out.value ? 1 : 0;
-    });
-  });
-  markProblemOutputsValid();
-}
 
 window.submitGuestEntry = submitGuestEntry;
