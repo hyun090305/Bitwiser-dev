@@ -1,6 +1,21 @@
 // Entry point module coordinating Bitwiser features.
 // Placeholder imports ensure upcoming modules can hook into the bootstrap flow.
 import { initializeAuth, ensureDriveAuth } from './modules/auth.js';
+import {
+  getUsername,
+  setUsername,
+  getHintProgress,
+  setHintProgress,
+  getHintCooldown,
+  setHintCooldown,
+  getAutoSaveSetting,
+  setAutoSaveSetting,
+  getGoogleDisplayName,
+  setGoogleDisplayName,
+  setGoogleEmail,
+  getGoogleNickname,
+  setGoogleNickname
+} from './modules/storage.js';
 import * as guestbookModule from './modules/guestbook.js';
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
@@ -718,7 +733,7 @@ function refreshClearedUI() {
 }
 
 function loadClearedLevelsFromDb() {
-  const nickname = localStorage.getItem('username') || '익명';
+  const nickname = getUsername() || '익명';
   return fetchClearedLevels(nickname).then(levels => {
     clearedLevelsFromDb = levels;
     refreshClearedUI();
@@ -726,7 +741,7 @@ function loadClearedLevelsFromDb() {
 }
 
 function refreshUserData() {
-  const nickname = localStorage.getItem('username') || '';
+  const nickname = getUsername() || '';
   loadClearedLevelsFromDb();
   if (nickname) {
     fetchOverallStats(nickname).then(res => {
@@ -777,7 +792,7 @@ function submitGuestEntry() {
   // const name = document.getElementById("guestName").value.trim() || "익명";
 
   // 수정: 로그인(모달)된 username을 사용
-  const name = localStorage.getItem("username") || "익명";
+  const name = getUsername() || "익명";
 
   const msg = document.getElementById("guestMessage").value.trim();
   if (!msg) return alert("내용을 입력해주세요!");
@@ -1511,7 +1526,7 @@ function onInitialUsernameSubmit() {
     } else {
       const userId = db.ref("usernames").push().key;
       db.ref(`usernames/${userId}`).set(name);
-      localStorage.setItem("username", name);
+      setUsername(name);
       document.getElementById("usernameModal").style.display = "none";
       document.getElementById("guestUsername").textContent = name;
       loadClearedLevelsFromDb().then(maybeStartTutorial);
@@ -1528,7 +1543,7 @@ function assignGuestNickname() {
       } else {
         const id = db.ref('usernames').push().key;
         db.ref(`usernames/${id}`).set(name);
-        localStorage.setItem('username', name);
+        setUsername(name);
         document.getElementById('guestUsername').textContent = name;
         const loginUsernameEl = document.getElementById('loginUsername');
         if (loginUsernameEl) loginUsernameEl.textContent = name;
@@ -1542,7 +1557,7 @@ function assignGuestNickname() {
 function promptForGoogleNickname(oldName, uid) {
   const input = document.getElementById("usernameInput");
   const errorDiv = document.getElementById("usernameError");
-  const suggested = oldName || localStorage.getItem(`googleDisplayName_${uid}`) || "";
+  const suggested = oldName || getGoogleDisplayName(uid) || "";
   input.value = suggested;
   errorDiv.textContent = "";
   if (modalGoogleLoginBtn) modalGoogleLoginBtn.style.display = 'none';
@@ -1577,8 +1592,8 @@ function onGoogleUsernameSubmit(oldName, uid) {
           const id = db.ref('usernames').push().key;
           db.ref(`usernames/${id}`).set(name);
         }
-        localStorage.setItem('username', name);
-        localStorage.setItem(`googleNickname_${uid}`, name);
+        setUsername(name);
+        setGoogleNickname(uid, name);
         db.ref(`google/${uid}`).set({ uid, nickname: name });
         document.getElementById('usernameModal').style.display = 'none';
         restoreUsernameModalDefaults();
@@ -1599,7 +1614,7 @@ function onGoogleUsernameSubmit(oldName, uid) {
 
 
 function saveRanking(levelId, blockCounts, usedWires, hintsUsed /*, timeMs */) {
-  const nickname = localStorage.getItem("username") || "익명";
+  const nickname = getUsername() || "익명";
   const entry = {
     nickname,
     blockCounts,                        // { INPUT:2, AND:1, OR:1, … }
@@ -1611,7 +1626,7 @@ function saveRanking(levelId, blockCounts, usedWires, hintsUsed /*, timeMs */) {
 }
 
 function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = localStorage.getItem("username") || "익명";
+  const nickname = getUsername() || "익명";
   const entry = {
     nickname,
     blockCounts,
@@ -1899,7 +1914,7 @@ function setupGoogleAuth() {
     let done = false;
     firebase.auth().onAuthStateChanged(user => {
       buttons.forEach(btn => btn.textContent = user ? t('logoutBtn') : t('googleLoginBtn'));
-      const nickname = localStorage.getItem('username') || '';
+      const nickname = getUsername() || '';
       if (usernameEl) usernameEl.textContent = nickname;
       if (user) {
         handleGoogleLogin(user);
@@ -1914,7 +1929,7 @@ function setupGoogleAuth() {
         restoreUsernameModalDefaults();
         if (rankSection) rankSection.style.display = 'none';
         if (guestPromptEl) guestPromptEl.style.display = 'block';
-        if (!localStorage.getItem('username')) {
+        if (!getUsername()) {
           assignGuestNickname();
         }
       }
@@ -1980,10 +1995,10 @@ function setupSettings() {
   const checkbox = document.getElementById('autoSaveCheckbox');
   if (!btn || !modal || !closeBtn || !checkbox) return;
 
-  const enabled = localStorage.getItem('autoSaveCircuit') !== 'false';
+  const enabled = getAutoSaveSetting();
   checkbox.checked = enabled;
   checkbox.addEventListener('change', () => {
-    localStorage.setItem('autoSaveCircuit', checkbox.checked);
+    setAutoSaveSetting(checkbox.checked);
   });
 
   btn.addEventListener('click', () => {
@@ -2016,7 +2031,7 @@ function setupGameAreaPadding() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const uname = localStorage.getItem("username");
+  const uname = getUsername();
   if (uname) document.getElementById("guestUsername").textContent = uname;
 
   initialTasks.push(showOverallRanking());  // 전체 랭킹 표시
@@ -2035,18 +2050,18 @@ function handleGoogleLogin(user) {
   const uid = user.uid;
   // 구글 계정의 기본 정보를 로컬에 저장해 둔다
   if (user.displayName) {
-    localStorage.setItem(`googleDisplayName_${uid}`, user.displayName);
+    setGoogleDisplayName(uid, user.displayName);
   }
   if (user.email) {
-    localStorage.setItem(`googleEmail_${uid}`, user.email);
+    setGoogleEmail(uid, user.email);
   }
-  const oldName = localStorage.getItem('username');
+  const oldName = getUsername();
   db.ref(`google/${uid}`).once('value').then(snap => {
     const dbName = snap.exists() ? snap.val().nickname : null;
-    const localGoogleName = localStorage.getItem(`googleNickname_${uid}`);
+    const localGoogleName = getGoogleNickname(uid);
     if (dbName) {
       // 항상 DB의 최신 닉네임을 사용한다
-      localStorage.setItem(`googleNickname_${uid}`, dbName);
+      setGoogleNickname(uid, dbName);
       applyGoogleNickname(dbName, oldName);
     } else if (localGoogleName) {
       // DB에 없으면 로컬에 저장된 이름을 등록한다
@@ -2054,7 +2069,7 @@ function handleGoogleLogin(user) {
       applyGoogleNickname(localGoogleName, oldName);
     } else if (oldName && !loginFromMainScreen) {
       // 기존 게스트 닉네임을 구글 계정에 연결하고 병합 여부를 묻는다
-      localStorage.setItem(`googleNickname_${uid}`, oldName);
+      setGoogleNickname(uid, oldName);
       db.ref(`google/${uid}`).set({ uid, nickname: oldName });
       document.getElementById('guestUsername').textContent = oldName;
       loadClearedLevelsFromDb().then(() => {
@@ -2069,7 +2084,7 @@ function handleGoogleLogin(user) {
 
 function applyGoogleNickname(name, oldName) {
   if (oldName !== name) {
-    localStorage.setItem('username', name);
+    setUsername(name);
     document.getElementById('guestUsername').textContent = name;
     loadClearedLevelsFromDb().then(() => {
       if (oldName) {
@@ -2150,8 +2165,8 @@ function showAccountClaimModal(targetName, oldName, uid) {
     modal.style.display = 'flex';
     confirm.onclick = () => {
       modal.style.display = 'none';
-      localStorage.setItem('username', targetName);
-      localStorage.setItem(`googleNickname_${uid}`, targetName);
+      setUsername(targetName);
+      setGoogleNickname(uid, targetName);
       db.ref(`google/${uid}`).set({ uid, nickname: targetName });
       document.getElementById('guestUsername').textContent = targetName;
       const after = () => {
@@ -2621,7 +2636,7 @@ async function showClearedModal(level) {
   const container = document.getElementById('clearedRanking');
 
   // 1) 현재 플레이어 닉네임 가져오기 (닉네임 설정 모달에서 localStorage에 저장했다고 가정)
-  const currentNickname = localStorage.getItem('username') || localStorage.getItem('nickname') || '';
+  const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
 
   const prevBtn = document.getElementById('prevStageBtn');
   const nextBtn = document.getElementById('nextStageBtn');
@@ -2995,7 +3010,7 @@ function collectProblemData() {
     grid: getProblemGridData(),
     wires: getProblemWireData(),
     wiresObj,
-    creator: localStorage.getItem('username') || '익명',
+    creator: getUsername() || '익명',
     timestamp: new Date().toISOString()
   };
 }
@@ -3027,7 +3042,7 @@ function saveProblem() {
 
 function renderUserProblemList() {
   userProblemList.innerHTML = '';
-  const nickname = localStorage.getItem('username') || '익명';
+  const nickname = getUsername() || '익명';
   db.ref('problems').once('value').then(snapshot => {
     userProblemList.innerHTML = '';
     const table = document.createElement('table');
@@ -3083,7 +3098,7 @@ function renderUserProblemList() {
 }
 
 function toggleLikeProblem(key){
-  const nickname = localStorage.getItem('username') || '익명';
+  const nickname = getUsername() || '익명';
   const likeRef = db.ref(`problems/${key}/likes/${nickname}`);
   likeRef.once('value').then(snap => {
     if(snap.exists()) likeRef.remove();
@@ -3133,7 +3148,7 @@ let currentHintProgress = 0; // number of opened hints for current stage
 let hintTimerInterval = null; // interval id for hint cooldown timer
 
 function checkHintCooldown(cb) {
-  const localUntil = parseInt(localStorage.getItem('hintCooldownUntil') || '0');
+  const localUntil = getHintCooldown();
   const user = firebase.auth().currentUser;
   if (user) {
     db.ref(`hintLocks/${user.uid}`).once('value').then(snap => {
@@ -3145,14 +3160,13 @@ function checkHintCooldown(cb) {
 }
 
 function loadHintProgress(stage, cb) {
-  const key = `hintsUsed_${stage}`;
-  const local = parseInt(localStorage.getItem(key) || '0');
+  const local = getHintProgress(stage);
   const user = firebase.auth().currentUser;
   if (user) {
     db.ref(`hintProgress/${user.uid}/stage${stage}`).once('value').then(snap => {
       const remote = snap.val() || 0;
       const val = Math.max(local, remote);
-      if (val !== local) localStorage.setItem(key, val);
+      if (val !== local) setHintProgress(stage, val);
       cb(val);
     });
   } else {
@@ -3161,8 +3175,7 @@ function loadHintProgress(stage, cb) {
 }
 
 function saveHintProgress(stage, count) {
-  const key = `hintsUsed_${stage}`;
-  localStorage.setItem(key, count);
+  setHintProgress(stage, count);
   const user = firebase.auth().currentUser;
   if (user) {
     db.ref(`hintProgress/${user.uid}/stage${stage}`).set(count);
@@ -3249,7 +3262,7 @@ function showHint(index) {
     currentHintProgress = index + 1;
     saveHintProgress(currentHintStage, currentHintProgress);
     const until = Date.now() + 60*60*1000;
-    localStorage.setItem('hintCooldownUntil', until);
+    setHintCooldown(until);
     const user = firebase.auth().currentUser;
     if (user) db.ref(`hintLocks/${user.uid}`).set(until);
   }
@@ -3404,7 +3417,7 @@ async function gradeLevelCanvas(level) {
   gradingArea.appendChild(summary);
 
   if (allCorrect) {
-    const autoSave = localStorage.getItem('autoSaveCircuit') !== 'false';
+    const autoSave = getAutoSaveSetting();
     let saveSuccess = false;
     let loginNeeded = false;
     if (autoSave) {
@@ -3439,8 +3452,8 @@ async function gradeLevelCanvas(level) {
       }
     }
     const { blockCounts, usedWires } = getCircuitStats(circuit);
-    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${level}`) || '0');
-    const nickname = localStorage.getItem('username') || '익명';
+    const hintsUsed = getHintProgress(level);
+    const nickname = getUsername() || '익명';
     const rankingsRef = db.ref(`rankings/${level}`);
     pendingClearedLevel = null;
     rankingsRef.orderByChild('nickname').equalTo(nickname).once('value', snapshot => {
@@ -3590,7 +3603,7 @@ async function gradeProblemCanvas(key, problem) {
 
   if (allCorrect && key) {
     const { blockCounts, usedWires } = getCircuitStats(circuit);
-    const hintsUsed = parseInt(localStorage.getItem(`hintsUsed_${key}`) || '0');
+    const hintsUsed = getHintProgress(key);
     saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
   }
 
