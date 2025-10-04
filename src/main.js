@@ -21,9 +21,7 @@ import {
   adjustGridZoom,
   setupGrid,
   setGridDimensions,
-  getGridCols,
   clearGrid,
-  clearWires,
   markCircuitModified,
   moveCircuit,
   setupMenuToggle,
@@ -44,6 +42,15 @@ import {
   lockOrientationLandscape,
   isMobileDevice
 } from './modules/navigation.js';
+import {
+  initializeProblemEditorUI,
+  saveProblem,
+  renderUserProblemList,
+  showProblemIntro,
+  setCustomProblemStartHandler,
+  invalidateProblemOutputs,
+  markProblemOutputsValid
+} from './modules/problemEditor.js';
 
 // Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
 void guestbookModule;
@@ -81,12 +88,11 @@ initializeAuth();
 
 let currentCustomProblem = null;
 let currentCustomProblemKey = null;
-let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 
 onCircuitModified(() => {
-  problemOutputsValid = false;
+  invalidateProblemOutputs();
 });
 
 let lastSavedKey = null;
@@ -1975,7 +1981,6 @@ const backToMainFromProblem    = document.getElementById('backToMainFromProblem'
 const saveProblemBtn           = document.getElementById('saveProblemBtn');
 const closeProblemListModal    = document.getElementById('closeProblemListModal');
 const userProblemsScreen       = document.getElementById('user-problems-screen');
-const userProblemList          = document.getElementById('userProblemList');
 const backToChapterFromUserProblems = document.getElementById('backToChapterFromUserProblems');
 const openProblemCreatorBtn    = document.getElementById('openProblemCreatorBtn');
 const problemSaveModal         = document.getElementById('problemSaveModal');
@@ -1992,7 +1997,7 @@ if (createProblemBtn) {
     firstScreen.style.display   = 'none';
     problemScreen.style.display = 'block';
     problemScreenPrev = 'main';
-    initProblemEditor();
+    initializeProblemEditorUI(createPaletteForProblem);
   });
 }
 
@@ -2024,29 +2029,13 @@ if (openProblemCreatorBtn) {
     userProblemsScreen.style.display = 'none';
     problemScreen.style.display = 'flex';
     problemScreenPrev = 'userProblems';
-    initProblemEditor();
+    initializeProblemEditorUI(createPaletteForProblem);
   });
 }
 
 document.getElementById('updateIOBtn').addEventListener('click', () => {
   alert('입출력/그리드 설정을 변경하면 회로가 초기화됩니다.');
-  const inputEl = document.getElementById('inputCount');
-  const outputEl = document.getElementById('outputCount');
-  const inputs = Math.min(6, Math.max(1, parseInt(inputEl.value) || 1));
-  const outputs = Math.min(6, Math.max(1, parseInt(outputEl.value) || 1));
-  inputEl.value = inputs;
-  outputEl.value = outputs;
-  const rows = Math.min(15, Math.max(1, parseInt(document.getElementById('gridRows').value) || 6));
-  const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
-  document.getElementById('gridRows').value = rows;
-  document.getElementById('gridCols').value = cols;
-  setupGrid('problemCanvasContainer', rows, cols, createPaletteForProblem());
-  setGridDimensions(rows, cols);
-  clearGrid();
-  clearWires();
-  initTestcaseTable();
-  markCircuitModified();
-  adjustGridZoom('problemCanvasContainer');
+  initializeProblemEditorUI(createPaletteForProblem);
 });
 // 자동 생성 방식으로 테스트케이스를 채우므로 행 추가 버튼 비활성화
 const addRowBtn = document.getElementById('addTestcaseRowBtn');
@@ -2070,12 +2059,18 @@ if (confirmSaveProblemBtn) confirmSaveProblemBtn.addEventListener('click', () =>
 if (cancelSaveProblemBtn) cancelSaveProblemBtn.addEventListener('click', () => {
   problemSaveModal.style.display = 'none';
 });
-if (problemModalBackdrop) problemModalBackdrop.addEventListener('click', () => {
-  problemSaveModal.style.display = 'none';
-});
-  if (closeProblemListModal) closeProblemListModal.addEventListener('click', () => {
+if (problemModalBackdrop) {
+  problemModalBackdrop.addEventListener('click', () => {
+    problemSaveModal.style.display = 'none';
+  });
+}
+if (closeProblemListModal) {
+  closeProblemListModal.addEventListener('click', () => {
     document.getElementById('problemListModal').style.display = 'none';
   });
+}
+
+configureLevelModule({ renderUserProblemList });
 
   const closeHintBtn = document.getElementById('closeHintBtn');
   const closeHintMsgBtn = document.getElementById('closeHintMessageBtn');
@@ -2086,297 +2081,6 @@ if (problemModalBackdrop) problemModalBackdrop.addEventListener('click', () => {
   if (closeHintMsgBtn) closeHintMsgBtn.addEventListener('click', () => {
     document.getElementById('hintMessageModal').style.display = 'none';
   });
-
-// -------------------- 사용자 정의 문제 편집 --------------------
-function initProblemEditor() {
-  const inputEl = document.getElementById('inputCount');
-  const outputEl = document.getElementById('outputCount');
-  inputEl.value = Math.min(6, Math.max(1, parseInt(inputEl.value) || 1));
-  outputEl.value = Math.min(6, Math.max(1, parseInt(outputEl.value) || 1));
-
-  const rows = Math.min(15, Math.max(1, parseInt(document.getElementById('gridRows').value) || 6));
-  const cols = Math.min(15, Math.max(1, parseInt(document.getElementById('gridCols').value) || 6));
-  document.getElementById('gridRows').value = rows;
-  document.getElementById('gridCols').value = cols;
-  setupGrid('problemCanvasContainer', rows, cols, createPaletteForProblem());
-  clearGrid();
-  setGridDimensions(rows, cols);
-  initTestcaseTable();
-  markCircuitModified();
-  adjustGridZoom('problemCanvasContainer');
-}
-
-
-function initTestcaseTable() {
-  const table = document.getElementById('testcaseTable');
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const thead = table.querySelector('thead');
-  const tbody = table.querySelector('tbody');
-  thead.innerHTML = '';
-  const tr = document.createElement('tr');
-  for (let i = 1; i <= inputCnt; i++) {
-    const th = document.createElement('th');
-    th.textContent = 'IN' + i;
-    tr.appendChild(th);
-  }
-  for (let j = 1; j <= outputCnt; j++) {
-    const th = document.createElement('th');
-    th.textContent = 'OUT' + j;
-    tr.appendChild(th);
-  }
-  thead.appendChild(tr);
-  tbody.innerHTML = '';
-  const totalRows = 1 << inputCnt;
-  for (let r = 0; r < totalRows; r++) {
-    const row = document.createElement('tr');
-    for (let i = 0; i < inputCnt; i++) {
-      const td = document.createElement('td');
-      td.style.width = '30px';
-      td.textContent = (r >> (inputCnt - 1 - i)) & 1;
-      row.appendChild(td);
-    }
-    for (let j = 0; j < outputCnt; j++) {
-      const td = document.createElement('td');
-      td.style.width = '30px';
-      td.textContent = '';
-      row.appendChild(td);
-    }
-    tbody.appendChild(row);
-  }
-}
-
-function addTestcaseRow() {
-  const table = document.getElementById('testcaseTable');
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const tr = document.createElement('tr');
-  for (let i = 0; i < inputCnt; i++) {
-    const td = document.createElement('td');
-    td.style.width = '30px';
-    td.textContent = '0';
-    tr.appendChild(td);
-  }
-  for (let j = 0; j < outputCnt; j++) {
-    const td = document.createElement('td');
-    td.style.width = '30px';
-    td.textContent = '';
-    tr.appendChild(td);
-  }
-  table.querySelector('tbody').appendChild(tr);
-}
-
-
-// ----- 사용자 정의 문제 저장/불러오기 -----
-function getProblemGridData() {
-  const circuit = getProblemCircuit();
-  if (!circuit) return [];
-  const cols = getGridCols();
-  return Object.values(circuit.blocks).map(b => ({
-    index: b.pos.r * cols + b.pos.c,
-    type: b.type || null,
-    name: b.name || null,
-    value: b.type === 'INPUT' ? (b.value ? '1' : '0') : null,
-    classes: b.fixed ? ['fixed'] : []
-  }));
-}
-
-function getProblemWireData() {
-  const circuit = getProblemCircuit();
-  if (!circuit) return [];
-  const wires = [];
-  Object.values(circuit.wires).forEach(w => {
-    for (let i = 0; i < w.path.length - 1; i++) {
-      const a = w.path[i];
-      const b = w.path[i + 1];
-      let dir = '';
-      if (b.r > a.r) dir = 'down';
-      else if (b.r < a.r) dir = 'up';
-      else if (b.c > a.c) dir = 'right';
-      else if (b.c < a.c) dir = 'left';
-      wires.push({ x: a.c, y: a.r, dir });
-    }
-  });
-  return wires;
-}
-
-function getProblemTruthTable() {
-  const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
-  const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
-  return rows.map(tr => {
-    const row = {};
-    const cells = Array.from(tr.querySelectorAll('td'));
-    for (let i = 0; i < inputCnt; i++) {
-      row['IN' + (i + 1)] = cells[i].textContent.trim() === '1' ? 1 : 0;
-    }
-    for (let j = 0; j < outputCnt; j++) {
-      row['OUT' + (j + 1)] = cells[inputCnt + j].textContent.trim() === '1' ? 1 : 0;
-    }
-    return row;
-  });
-}
-
-function collectProblemData() {
-  const circuit = getProblemCircuit();
-  const cols = getGridCols();
-  const wiresObj = circuit
-    ? Object.values(circuit.wires).map(w => ({
-        startIdx:
-          circuit.blocks[w.startBlockId].pos.r * cols +
-          circuit.blocks[w.startBlockId].pos.c,
-        endIdx:
-          circuit.blocks[w.endBlockId].pos.r * cols +
-          circuit.blocks[w.endBlockId].pos.c,
-        pathIdxs: w.path.map(p => p.r * cols + p.c)
-      }))
-    : [];
-  return {
-    title: document.getElementById('problemTitleInput').value.trim(),
-    description: document.getElementById('problemDescInput').value.trim(),
-    inputCount: parseInt(document.getElementById('inputCount').value) || 1,
-    outputCount: parseInt(document.getElementById('outputCount').value) || 1,
-    gridRows: parseInt(document.getElementById('gridRows').value) || 6,
-    gridCols: parseInt(document.getElementById('gridCols').value) || 6,
-    fixIO: document.getElementById('fixIOCheck').checked,
-    table: getProblemTruthTable(),
-    grid: getProblemGridData(),
-    wires: getProblemWireData(),
-    wiresObj,
-    creator: getUsername() || '익명',
-    timestamp: new Date().toISOString()
-  };
-}
-
-function saveProblem() {
-  const title = problemTitleInput.value.trim();
-  const desc  = problemDescInput.value.trim();
-  if (!title) {
-    alert(t('problemTitleRequired'));
-    problemTitleInput.focus();
-    return false;
-  }
-  if (!desc) {
-    alert(t('problemDescRequired'));
-    problemDescInput.focus();
-    return false;
-  }
-  if (!problemOutputsValid) {
-    alert(t('computeOutputsFirst'));
-    return false;
-  }
-  const data = collectProblemData();
-  const key = db.ref('problems').push().key;
-  db.ref('problems/' + key).set(data)
-    .then(() => alert(t('problemSaved')))
-    .catch(err => alert(t('saveFailed').replace('{error}', err)));
-  return true;
-}
-
-function renderUserProblemList() {
-  userProblemList.innerHTML = '';
-  const nickname = getUsername() || '익명';
-  db.ref('problems').once('value').then(snapshot => {
-    userProblemList.innerHTML = '';
-    const table = document.createElement('table');
-    table.id = 'userProblemTable';
-    table.innerHTML = `<thead><tr><th>${t('thTitle')}</th><th>${t('thGrid')}</th><th>${t('thCreator')}</th><th>${t('thCreatedAt')}</th><th>${t('thSolved')}</th><th>${t('thLikes')}</th><th>${t('thNotes')}</th></tr></thead><tbody></tbody>`;
-    const tbody = table.querySelector('tbody');
-    if (!snapshot.exists()) {
-      const tr = document.createElement('tr');
-      tr.innerHTML = `<td colspan="7">${t('noUserProblems')}</td>`;
-      tbody.appendChild(tr);
-    } else {
-      snapshot.forEach(child => {
-        const data = child.val();
-        const solved = data.ranking
-          ? new Set(Object.values(data.ranking).map(r => r.nickname)).size
-          : 0;
-        const likes = data.likes ? Object.keys(data.likes).length : 0;
-        const isMine = data.creator === nickname;
-        const solvedByMe = data.ranking && Object.values(data.ranking)
-          .some(r => r.nickname === nickname);
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="probTitle">${data.title || child.key}</td>
-          <td>${(data.gridRows || 6)}×${(data.gridCols || 6)}</td>
-          <td>${data.creator || '익명'}${isMine ? ' (나)' : ''}</td>
-          <td>${new Date(data.timestamp).toLocaleDateString()}</td>
-          <td>${solved}</td>
-          <td><span class="likeCount">${likes}</span> <button class="likeBtn" data-key="${child.key}" aria-label="${t('thLikes')}">♥</button></td>
-          <td>${isMine ? `<button class="deleteProbBtn" data-key="${child.key}">${t('deleteBtn')}</button>` : ''}</td>`;
-        if (solvedByMe) tr.classList.add('solved');
-        tr.addEventListener('click', e => {
-          if(e.target.classList.contains('likeBtn') || e.target.classList.contains('deleteProbBtn')) return;
-          previewUserProblem(child.key);
-        });
-        tbody.appendChild(tr);
-      });
-    }
-    userProblemList.appendChild(table);
-    userProblemList.querySelectorAll('.likeBtn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        toggleLikeProblem(btn.dataset.key);
-      });
-    });
-    userProblemList.querySelectorAll('.deleteProbBtn').forEach(btn => {
-      btn.addEventListener('click', e => {
-        e.stopPropagation();
-        const confirmed = confirm(t('confirmDelete'));
-        if (confirmed) deleteUserProblem(btn.dataset.key);
-      });
-    });
-  });
-}
-
-configureLevelModule({ renderUserProblemList });
-
-function toggleLikeProblem(key){
-  const nickname = getUsername() || '익명';
-  const likeRef = db.ref(`problems/${key}/likes/${nickname}`);
-  likeRef.once('value').then(snap => {
-    if(snap.exists()) likeRef.remove();
-    else likeRef.set(true);
-  }).then(renderUserProblemList);
-}
-
-function deleteUserProblem(key){
-  db.ref('problems/' + key).remove()
-    .then(renderUserProblemList)
-    .catch(err => alert(t('deleteFailed').replace('{error}', err)));
-}
-
-function previewUserProblem(key) {
-  db.ref('problems/' + key).once('value').then(snap => {
-    const data = snap.val();
-    if (!data) return alert(t('loadFailed'));
-    showProblemIntro(data, () => startCustomProblem(key, data));
-  });
-}
-
-function showProblemIntro(problem, callback) {
-  const modal = document.getElementById('levelIntroModal');
-  const title = document.getElementById('introTitle');
-  const desc  = document.getElementById('introDesc');
-  const table = document.getElementById('truthTable');
-
-  title.textContent = problem.title || '';
-  desc.textContent  = problem.description || '';
-  const keys = Object.keys(problem.table[0] || {});
-  table.innerHTML = `
-    <tr>${keys.map(k=>`<th>${k}</th>`).join('')}</tr>
-    ${problem.table.map(row => `<tr>${keys.map(k=>`<td>${row[k]}</td>`).join('')}</tr>`).join('')}
-  `;
-  modal.style.display = 'flex';
-  modal.style.backgroundColor = 'white';
-  const btn = document.getElementById('startLevelBtn');
-  btn.textContent = callback ? '시작하기' : '닫기';
-  btn.onclick = () => {
-    modal.style.display = 'none';
-    if (callback) callback();
-  };
-}
 
 let currentHintStage = null;
 let currentHintProgress = 0; // number of opened hints for current stage
@@ -2534,6 +2238,8 @@ async function startCustomProblem(key, problem) {
   document.body.classList.add('game-active');
   collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
 }
+
+setCustomProblemStartHandler(startCustomProblem);
 
 
 function getCircuitStats(circuit) {
@@ -3020,7 +2726,7 @@ async function computeProblemOutputs() {
       if (out) cells[inputCnt + j].textContent = out.value ? 1 : 0;
     });
   });
-  problemOutputsValid = true;
+  markProblemOutputsValid();
 }
 
 window.submitGuestEntry = submitGuestEntry;
