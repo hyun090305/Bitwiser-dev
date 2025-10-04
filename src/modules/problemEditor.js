@@ -396,7 +396,7 @@ function computeProblemOutputs() {
   );
 
   const rows = document.querySelectorAll('#testcaseTable tbody tr');
-  import('./canvas/engine.js').then(({ evaluateCircuit }) => {
+  import('../canvas/engine.js').then(({ evaluateCircuit }) => {
     rows.forEach(tr => {
       const cells = tr.querySelectorAll('td');
       inputs.forEach((inp, i) => {
