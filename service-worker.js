@@ -3,7 +3,7 @@ const urlsToCache = [
   '/',
   '/index.html',
   '/style.v1.4.css',
-  '/script.v1.4.js',
+  '/src/main.js',
   '/background.js',
   '/levels.json',
   '/levels_en.json',
