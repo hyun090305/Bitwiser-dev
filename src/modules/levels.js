@@ -1,5 +1,6 @@
 import { setupGrid, setGridDimensions, destroyPlayContext } from './grid.js';
 import { getUsername } from './storage.js';
+import { fetchOverallStats } from './rank.js';
 
 const DEFAULT_GRID_SIZE = 6;
 
@@ -341,68 +342,6 @@ export function fetchClearedLevels(nickname) {
       if (hasRecord) cleared.push(levelId);
     });
     return cleared;
-  });
-}
-
-export function fetchProgressSummary(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
-    let cleared = 0;
-    let blocks = 0;
-    let wires = 0;
-    snap.forEach(levelSnap => {
-      levelSnap.forEach(recSnap => {
-        const v = recSnap.val();
-        if (v.nickname === nickname) {
-          cleared++;
-          blocks += Object.values(v.blockCounts || {}).reduce((s, x) => s + x, 0);
-          wires += v.usedWires || 0;
-          return true;
-        }
-      });
-    });
-    return { cleared, blocks, wires };
-  });
-}
-
-export function fetchOverallStats(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
-    const data = {};
-    snap.forEach(levelSnap => {
-      levelSnap.forEach(recSnap => {
-        const v = recSnap.val();
-        const name = v.nickname || '익명';
-        if (!data[name]) {
-          data[name] = {
-            stages: new Set(),
-            blocks: 0,
-            wires: 0,
-            lastTimestamp: v.timestamp
-          };
-        }
-        data[name].stages.add(levelSnap.key);
-        data[name].blocks += Object.values(v.blockCounts || {}).reduce((s, x) => s + x, 0);
-        data[name].wires += v.usedWires || 0;
-        if (new Date(v.timestamp) > new Date(data[name].lastTimestamp)) {
-          data[name].lastTimestamp = v.timestamp;
-        }
-      });
-    });
-    const entries = Object.entries(data).map(([nicknameKey, v]) => ({
-      nickname: nicknameKey,
-      cleared: v.stages.size,
-      blocks: v.blocks,
-      wires: v.wires,
-      timestamp: v.lastTimestamp
-    }));
-    entries.sort((a, b) => {
-      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
-      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
-      if (a.wires !== b.wires) return a.wires - b.wires;
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
-    const idx = entries.findIndex(e => e.nickname === nickname);
-    if (idx === -1) return { rank: '-', cleared: 0 };
-    return { rank: idx + 1, cleared: entries[idx].cleared };
   });
 }
 

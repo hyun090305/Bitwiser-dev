@@ -51,6 +51,14 @@ import {
   invalidateProblemOutputs,
   markProblemOutputsValid
 } from './modules/problemEditor.js';
+import {
+  fetchProgressSummary,
+  fetchOverallStats,
+  showOverallRanking,
+  saveRanking,
+  saveProblemRanking,
+  showProblemRanking
+} from './modules/rank.js';
 
 // Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
 void guestbookModule;
@@ -69,8 +77,6 @@ const {
   loadClearedLevelsFromDb,
   markLevelCleared,
   fetchClearedLevels,
-  fetchProgressSummary,
-  fetchOverallStats,
   isLevelUnlocked,
   showIntroModal,
   getLevelTitles,
@@ -935,176 +941,6 @@ function onGoogleUsernameSubmit(oldName, uid) {
 }
 
 
-function saveRanking(levelId, blockCounts, usedWires, hintsUsed /*, timeMs */) {
-  const nickname = getUsername() || "익명";
-  const entry = {
-    nickname,
-    blockCounts,                        // { INPUT:2, AND:1, OR:1, … }
-    usedWires,
-    hintsUsed,
-    timestamp: new Date().toISOString()
-  };
-  db.ref(`rankings/${levelId}`).push(entry);
-}
-
-function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || "익명";
-  const entry = {
-    nickname,
-    blockCounts,
-    usedWires,
-    hintsUsed,
-    timestamp: new Date().toISOString()
-  };
-  const rankingRef = db.ref(`problems/${problemKey}/ranking`);
-
-  const sumBlocks = e =>
-    Object.values(e.blockCounts || {}).reduce((s, x) => s + x, 0);
-
-  const isBetter = (a, b) => {
-    const aB = sumBlocks(a), bB = sumBlocks(b);
-    if (aB !== bB) return aB < bB;
-    if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
-    const aH = a.hintsUsed ?? 0, bH = b.hintsUsed ?? 0;
-    if (aH !== bH) return aH < bH;
-    return new Date(a.timestamp) < new Date(b.timestamp);
-  };
-
-  rankingRef.orderByChild("nickname").equalTo(nickname)
-    .once("value", snapshot => {
-      if (!snapshot.exists()) {
-        rankingRef.push(entry);
-        return;
-      }
-
-      let bestKey = null;
-      let bestVal = null;
-      const dupKeys = [];
-
-      snapshot.forEach(child => {
-        const val = child.val();
-        const key = child.key;
-        if (!bestVal || isBetter(val, bestVal)) {
-          if (bestKey) dupKeys.push(bestKey);
-          bestKey = key;
-          bestVal = val;
-        } else {
-          dupKeys.push(key);
-        }
-      });
-
-      if (isBetter(entry, bestVal)) {
-        rankingRef.child(bestKey).set(entry);
-      }
-      dupKeys.forEach(k => rankingRef.child(k).remove());
-    });
-}
-
-function showProblemRanking(problemKey) {
-  const listEl = document.getElementById('rankingList');
-  listEl.innerHTML = '로딩 중…';
-
-  const allowedTypes = ['INPUT','OUTPUT','AND','OR','NOT','JUNCTION'];
-
-  db.ref(`problems/${problemKey}/ranking`)
-    .orderByChild('timestamp')
-    .once('value', snap => {
-      const entries = [];
-      // snapshot.forEach의 콜백이 truthy 값을 반환하면 순회가 중단되므로
-      // return 값을 명시하지 않은 블록 형태로 작성하여 모든 랭킹을 수집합니다.
-      snap.forEach(ch => {
-        entries.push(ch.val());
-      });
-
-      if (entries.length === 0) {
-        listEl.innerHTML = `
-        <p>랭킹이 없습니다.</p>
-        <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
-        </div>`;
-        document.getElementById('refreshRankingBtn')
-          .addEventListener('click', () => showProblemRanking(problemKey));
-        document.getElementById('closeRankingBtn')
-          .addEventListener('click', () =>
-            document.getElementById('rankingModal').classList.remove('active')
-          );
-        return;
-      }
-
-      const sumBlocks = e => Object.values(e.blockCounts || {}).reduce((s,x)=>s+x,0);
-      const isBetter = (a,b)=>{
-        const aB=sumBlocks(a), bB=sumBlocks(b);
-        if(aB!==bB) return aB<bB;
-        if(a.usedWires!==b.usedWires) return a.usedWires<b.usedWires;
-        const aH=(a.hintsUsed??0), bH=(b.hintsUsed??0);
-        if(aH!==bH) return aH<bH;
-        return new Date(a.timestamp)<new Date(b.timestamp);
-      };
-
-      const bestByNickname = {};
-      entries.forEach(e => {
-        const cur = bestByNickname[e.nickname];
-        if (!cur || isBetter(e, cur)) bestByNickname[e.nickname] = e;
-      });
-      const uniqueEntries = Object.values(bestByNickname);
-
-      uniqueEntries.sort((a,b)=>{
-        const aB=sumBlocks(a), bB=sumBlocks(b);
-        if(aB!==bB) return aB-bB;
-        if(a.usedWires!==b.usedWires) return a.usedWires-b.usedWires;
-        const aH=(a.hintsUsed??0), bH=(b.hintsUsed??0);
-        if(aH!==bH) return aH-bH;
-        return new Date(a.timestamp)-new Date(b.timestamp);
-      });
-
-      const headerCols = [
-        `<th>${t('thRank')}</th>`,
-        `<th>${t('thNickname')}</th>`,
-        ...allowedTypes.map(t=>`<th>${t}</th>`),
-        `<th>${t('thWires')}</th>`,
-        `<th>${t('thHintUsed')}</th>`,
-        `<th>${t('thTime')}</th>`
-      ].join('');
-
-      const bodyRows = uniqueEntries.map((e,i)=>{
-        const counts = allowedTypes.map(t=>e.blockCounts?.[t]??0).map(c=>`<td>${c}</td>`).join('');
-        const timeStr = new Date(e.timestamp).toLocaleString();
-        const nickname = e.nickname;
-        const displayNickname = nickname.length>20 ? nickname.slice(0,20)+'...' : nickname;
-        return `
-  <tr>
-    <td>${i+1}</td>
-    <td>${displayNickname}</td>
-    ${counts}
-    <td>${e.usedWires}</td>
-    <td>${e.hintsUsed ?? 0}</td>
-    <td>${timeStr}</td>
-  </tr>`;
-      }).join('');
-
-      listEl.innerHTML = `
-        <div class="rankingTableWrapper">
-          <table>
-            <thead><tr>${headerCols}</tr></thead>
-            <tbody>${bodyRows}</tbody>
-          </table>
-        </div>
-        <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
-        </div>`;
-      document.getElementById('refreshRankingBtn')
-        .addEventListener('click', () => showProblemRanking(problemKey));
-      document.getElementById('closeRankingBtn')
-        .addEventListener('click', () =>
-          document.getElementById('rankingModal').classList.remove('active')
-        );
-    });
-
-  document.getElementById('rankingModal').classList.add('active');
-}
-
 function showRanking(levelId) {
   const listEl = document.getElementById("rankingList");
   listEl.innerHTML = "로딩 중…";
@@ -1801,82 +1637,6 @@ async function saveCircuit(progressCallback) {
     alert('회로 저장 중 오류가 발생했습니다.');
     throw e;
   }
-}
-
-function showOverallRanking() {
-  const listEl = document.getElementById("overallRankingList");
-  listEl.innerHTML = "로딩 중…";
-
-  // rankings 아래 모든 레벨의 데이터를 한 번에 읽어옵니다.
-  return db.ref("rankings").once("value").then(snap => {
-    const data = {};  // { nickname: { stages:Set, blocks:sum, wires:sum, lastTimestamp } }
-
-    snap.forEach(levelSnap => {
-      levelSnap.forEach(recSnap => {
-        const e = recSnap.val();
-        const name = e.nickname || "익명";
-
-        if (!data[name]) {
-          data[name] = {
-            stages: new Set(),
-            blocks: 0,
-            wires: 0,
-            lastTimestamp: e.timestamp
-          };
-        }
-
-        data[name].stages.add(levelSnap.key);
-
-        const sumBlocks = Object.values(e.blockCounts || {})
-          .reduce((s, x) => s + x, 0);
-        data[name].blocks += sumBlocks;
-        data[name].wires += e.usedWires || 0;
-
-        // 가장 늦은(=가장 큰) timestamp를 저장
-        if (new Date(e.timestamp) > new Date(data[name].lastTimestamp)) {
-          data[name].lastTimestamp = e.timestamp;
-        }
-      });
-    });
-
-    // 배열로 변환 후 다중 기준 정렬
-    const entries = Object.entries(data).map(([nickname, v]) => ({
-      nickname,
-      cleared: v.stages.size,
-      blocks: v.blocks,
-      wires: v.wires,
-      timestamp: v.lastTimestamp
-    }));
-    entries.sort((a, b) => {
-      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
-      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
-      if (a.wires !== b.wires) return a.wires - b.wires;
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
-
-    // HTML 테이블 생성
-    let html = `<table>
-  <thead><tr>
-    <th>${t('thRank')}</th><th>${t('thNickname')}</th><th>${t('thStage')}</th><th>${t('thBlocks')}</th><th>${t('thWires')}</th>
-  </tr></thead><tbody>`;
-
-    entries.forEach((e, i) => {
-      // 닉네임 잘라내기 로직은 그대로…
-      let displayName = e.nickname;
-      if (displayName.length > 20) displayName = displayName.slice(0, 20) + '...';
-
-      html += `<tr>
-    <td>${i + 1}</td>
-    <td>${displayName}</td>
-    <td>${e.cleared}</td>
-    <td>${e.blocks}</td>
-    <td>${e.wires}</td>
-  </tr>`;
-    });
-
-    html += `</tbody></table>`;
-    listEl.innerHTML = html;
-  });
 }
 
 configureLevelModule({ showOverallRanking });
