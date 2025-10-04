@@ -1,12 +1,17 @@
 // Entry point module coordinating Bitwiser features.
 // Placeholder imports ensure upcoming modules can hook into the bootstrap flow.
 import { initializeAuth } from './modules/auth.js';
-import { initializeAuthUI } from './modules/authUI.js';
 import {
   getUsername,
+  setUsername,
   getHintProgress,
   getAutoSaveSetting,
-  setAutoSaveSetting
+  setAutoSaveSetting,
+  getGoogleDisplayName,
+  setGoogleDisplayName,
+  setGoogleEmail,
+  getGoogleNickname,
+  setGoogleNickname
 } from './modules/storage.js';
 import * as guestbookModule from './modules/guestbook.js';
 import {
@@ -103,6 +108,8 @@ const {
 } = levelsModule;
 
 initializeAuth();
+
+let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
 
 onCircuitModified(() => {
   invalidateProblemOutputs();
@@ -642,6 +649,450 @@ document.getElementById("gradeButton").addEventListener("click", () => {
   }
 });
 
+const modalGoogleLoginBtn = document.getElementById('modalGoogleLoginBtn');
+const usernameSubmitBtn = document.getElementById('usernameSubmit');
+const usernameModalHeading = document.querySelector('#usernameModal h2');
+const loginInfo = document.getElementById('loginInfo');
+const defaultModalGoogleLoginDisplay = modalGoogleLoginBtn ? modalGoogleLoginBtn.style.display : '';
+const defaultUsernameSubmitText = usernameSubmitBtn ? usernameSubmitBtn.textContent : '';
+const defaultUsernameModalHeading = usernameModalHeading ? usernameModalHeading.textContent : '';
+const defaultLoginInfoHtml = loginInfo ? loginInfo.innerHTML : '';
+
+function restoreUsernameModalDefaults() {
+  if (modalGoogleLoginBtn) modalGoogleLoginBtn.style.display = defaultModalGoogleLoginDisplay;
+  if (usernameSubmitBtn) {
+    usernameSubmitBtn.textContent = defaultUsernameSubmitText;
+    usernameSubmitBtn.onclick = onInitialUsernameSubmit;
+  }
+  if (usernameModalHeading) usernameModalHeading.textContent = defaultUsernameModalHeading;
+  if (loginInfo) loginInfo.innerHTML = defaultLoginInfoHtml;
+}
+
+function promptForUsername() {
+  const input = document.getElementById("usernameInput");
+  const errorDiv = document.getElementById("usernameError");
+  input.value = "";
+  errorDiv.textContent = "";
+  document.getElementById("usernameSubmit").onclick = onInitialUsernameSubmit;
+  document.getElementById("usernameModal").style.display = "flex";
+}
+
+function onInitialUsernameSubmit() {
+  const name = document.getElementById("usernameInput").value.trim();
+  const errorDiv = document.getElementById("usernameError");
+  if (!name) {
+    errorDiv.textContent = "닉네임을 입력해주세요.";
+    return;
+  }
+  db.ref("usernames").orderByValue().equalTo(name).once("value", snapshot => {
+    if (snapshot.exists()) {
+      errorDiv.textContent = "이미 사용 중인 닉네임입니다.";
+    } else {
+      const userId = db.ref("usernames").push().key;
+      db.ref(`usernames/${userId}`).set(name);
+      setUsername(name);
+      document.getElementById("usernameModal").style.display = "none";
+      document.getElementById("guestUsername").textContent = name;
+      loadClearedLevelsFromDb().then(maybeStartTutorial);
+    }
+  });
+}
+
+function assignGuestNickname() {
+  const attempt = () => {
+    const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
+    db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
+      if (snap.exists()) {
+        attempt();
+      } else {
+        const id = db.ref('usernames').push().key;
+        db.ref(`usernames/${id}`).set(name);
+        setUsername(name);
+        document.getElementById('guestUsername').textContent = name;
+        const loginUsernameEl = document.getElementById('loginUsername');
+        if (loginUsernameEl) loginUsernameEl.textContent = name;
+        loadClearedLevelsFromDb().then(maybeStartTutorial);
+      }
+    });
+  };
+  attempt();
+}
+
+function promptForGoogleNickname(oldName, uid) {
+  const input = document.getElementById("usernameInput");
+  const errorDiv = document.getElementById("usernameError");
+  const suggested = oldName || getGoogleDisplayName(uid) || "";
+  input.value = suggested;
+  errorDiv.textContent = "";
+  if (modalGoogleLoginBtn) modalGoogleLoginBtn.style.display = 'none';
+  if (usernameSubmitBtn) usernameSubmitBtn.textContent = '닉네임 등록';
+  if (usernameModalHeading) usernameModalHeading.textContent = 'Google 닉네임 등록';
+  if (loginInfo) {
+    loginInfo.innerHTML = t('loginInfoGoogle');
+  }
+  usernameSubmitBtn.onclick = () => onGoogleUsernameSubmit(oldName, uid);
+  document.getElementById("usernameModal").style.display = "flex";
+}
+
+function onGoogleUsernameSubmit(oldName, uid) {
+  const name = document.getElementById("usernameInput").value.trim();
+  const errorDiv = document.getElementById("usernameError");
+  if (!name) {
+    errorDiv.textContent = "닉네임을 입력해주세요.";
+    return;
+  }
+  db.ref('google').orderByChild('nickname').equalTo(name).once('value', gSnap => {
+    if (gSnap.exists()) {
+      errorDiv.textContent = "이미 있는 닉네임입니다.";
+      return;
+    }
+    db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
+      if (snap.exists() && name !== oldName) {
+        document.getElementById('usernameModal').style.display = 'none';
+        restoreUsernameModalDefaults();
+        showAccountClaimModal(name, oldName, uid);
+      } else {
+        if (!snap.exists()) {
+          const id = db.ref('usernames').push().key;
+          db.ref(`usernames/${id}`).set(name);
+        }
+        setUsername(name);
+        setGoogleNickname(uid, name);
+        db.ref(`google/${uid}`).set({ uid, nickname: name });
+        document.getElementById('usernameModal').style.display = 'none';
+        restoreUsernameModalDefaults();
+        document.getElementById('guestUsername').textContent = name;
+        loadClearedLevelsFromDb().then(() => {
+          if (oldName && oldName !== name) {
+            showMergeModal(oldName, name);
+          } else {
+            registerUsernameIfNeeded(name);
+            showOverallRanking();
+          }
+          maybeStartTutorial();
+        });
+      }
+    });
+  });
+}
+
+
+initializeRankingUI({
+  viewRankingButtonSelector: '#viewRankingBtn',
+  rankingListSelector: '#rankingList',
+  rankingModalSelector: '#rankingModal',
+  translate,
+  getCurrentLevel,
+  getActiveCustomProblemKey,
+  getLevelBlockSet,
+  alert
+});
+
+function setupGoogleAuth() {
+  const buttons = ['googleLoginBtn', 'modalGoogleLoginBtn']
+    .map(id => document.getElementById(id))
+    .filter(Boolean);
+  const usernameEl = document.getElementById('loginUsername');
+  const rankSection = document.getElementById('rankSection');
+  const overallRankEl = document.getElementById('overallRank');
+  const clearedCountEl = document.getElementById('clearedCount');
+  const guestPromptEl = document.getElementById('loginGuestPrompt');
+
+  if (!buttons.length) return Promise.resolve();
+
+  return new Promise(resolve => {
+    let done = false;
+    firebase.auth().onAuthStateChanged(user => {
+      buttons.forEach(btn => btn.textContent = user ? t('logoutBtn') : t('googleLoginBtn'));
+      const nickname = getUsername() || '';
+      if (usernameEl) usernameEl.textContent = nickname;
+      if (user) {
+        handleGoogleLogin(user);
+        document.getElementById('usernameModal').style.display = 'none';
+        if (rankSection) rankSection.style.display = 'block';
+        if (guestPromptEl) guestPromptEl.style.display = 'none';
+        fetchOverallStats(nickname).then(res => {
+          if (overallRankEl) overallRankEl.textContent = `#${res.rank}`;
+          if (clearedCountEl) clearedCountEl.textContent = res.cleared;
+        });
+      } else {
+        restoreUsernameModalDefaults();
+        if (rankSection) rankSection.style.display = 'none';
+        if (guestPromptEl) guestPromptEl.style.display = 'block';
+        if (!getUsername()) {
+          assignGuestNickname();
+        }
+      }
+      if (!done) { done = true; resolve(); }
+    });
+
+    buttons.forEach(btn => btn.addEventListener('click', () => {
+      loginFromMainScreen = (btn.id === 'googleLoginBtn');
+      const user = firebase.auth().currentUser;
+      if (user) {
+        firebase.auth().signOut();
+      } else {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider).catch(err => {
+          alert(t('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
+          console.error(err);
+        });
+      }
+    }));
+  });
+}
+
+configureLevelModule({
+  onLevelIntroComplete: () =>
+    collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
+});
+function setupSettings() {
+  const btn = document.getElementById('settingsBtn');
+  const modal = document.getElementById('settingsModal');
+  const closeBtn = document.getElementById('settingsCloseBtn');
+  const checkbox = document.getElementById('autoSaveCheckbox');
+  if (!btn || !modal || !closeBtn || !checkbox) return;
+
+  const enabled = getAutoSaveSetting();
+  checkbox.checked = enabled;
+  checkbox.addEventListener('change', () => {
+    setAutoSaveSetting(checkbox.checked);
+  });
+
+  btn.addEventListener('click', () => {
+    modal.style.display = 'flex';
+  });
+  closeBtn.addEventListener('click', () => {
+    modal.style.display = 'none';
+  });
+  modal.addEventListener('click', e => {
+    if (e.target === modal) modal.style.display = 'none';
+  });
+}
+
+function updatePadding() {
+  const menuBar = document.getElementById('menuBar');
+  const gameArea = document.getElementById('gameArea');
+  if (!menuBar || !gameArea) return;
+
+  if (window.matchMedia('(max-width: 1024px)').matches) {
+    gameArea.style.paddingBottom = '';
+  } else {
+    gameArea.style.paddingBottom = menuBar.offsetHeight + 'px';
+  }
+}
+
+function setupGameAreaPadding() {
+  window.addEventListener('load', updatePadding);
+  updatePadding();
+  window.addEventListener('resize', updatePadding);
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const uname = getUsername();
+  if (uname) document.getElementById("guestUsername").textContent = uname;
+
+  initialTasks.push(showOverallRanking());  // 전체 랭킹 표시
+  initialTasks.push(setupGoogleAuth());
+
+  setupKeyToggles();
+  setupMenuToggle();
+  setupSettings();
+  setupGameAreaPadding();
+  Promise.all(initialTasks).then(() => {
+    setupNavigation({
+      refreshUserData,
+      renderChapterList,
+      selectChapter: index => {
+        const chapters = getChapterData();
+        if (chapters.length > index) {
+          selectChapter(index);
+        }
+      }
+    });
+    hideLoadingScreen();
+  });
+});
+
+function handleGoogleLogin(user) {
+  const uid = user.uid;
+  // 구글 계정의 기본 정보를 로컬에 저장해 둔다
+  if (user.displayName) {
+    setGoogleDisplayName(uid, user.displayName);
+  }
+  if (user.email) {
+    setGoogleEmail(uid, user.email);
+  }
+  const oldName = getUsername();
+  db.ref(`google/${uid}`).once('value').then(snap => {
+    const dbName = snap.exists() ? snap.val().nickname : null;
+    const localGoogleName = getGoogleNickname(uid);
+    if (dbName) {
+      // 항상 DB의 최신 닉네임을 사용한다
+      setGoogleNickname(uid, dbName);
+      applyGoogleNickname(dbName, oldName);
+    } else if (localGoogleName) {
+      // DB에 없으면 로컬에 저장된 이름을 등록한다
+      db.ref(`google/${uid}`).set({ uid, nickname: localGoogleName });
+      applyGoogleNickname(localGoogleName, oldName);
+    } else if (oldName && !loginFromMainScreen) {
+      // 기존 게스트 닉네임을 구글 계정에 연결하고 병합 여부를 묻는다
+      setGoogleNickname(uid, oldName);
+      db.ref(`google/${uid}`).set({ uid, nickname: oldName });
+      document.getElementById('guestUsername').textContent = oldName;
+      loadClearedLevelsFromDb().then(() => {
+        showMergeModal(oldName, oldName);
+        maybeStartTutorial();
+      });
+    } else {
+      promptForGoogleNickname(oldName, uid);
+    }
+  });
+}
+
+function applyGoogleNickname(name, oldName) {
+  if (oldName !== name) {
+    setUsername(name);
+    document.getElementById('guestUsername').textContent = name;
+    loadClearedLevelsFromDb().then(() => {
+      if (oldName) {
+        showMergeModal(oldName, name);
+      } else {
+        registerUsernameIfNeeded(name);
+      }
+      maybeStartTutorial();
+    });
+  } else {
+    registerUsernameIfNeeded(name);
+    loadClearedLevelsFromDb().then(maybeStartTutorial);
+  }
+}
+
+function registerUsernameIfNeeded(name) {
+  db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
+    if (!snap.exists()) {
+      const id = db.ref('usernames').push().key;
+      db.ref(`usernames/${id}`).set(name);
+    }
+  });
+}
+
+function removeUsername(name) {
+  db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
+    snap.forEach(ch => ch.ref.remove());
+  });
+}
+
+function showMergeModal(oldName, newName) {
+  const modal = document.getElementById('mergeModal');
+  const details = document.getElementById('mergeDetails');
+  const confirm = document.getElementById('mergeConfirmBtn');
+  const cancel = document.getElementById('mergeCancelBtn');
+  details.innerHTML = '<p>현재 로컬 진행 상황을 Google 계정과 병합하시겠습니까?</p>';
+  confirm.textContent = '네';
+  cancel.textContent = '제 계정이 아닙니다';
+  cancel.style.display = loginFromMainScreen ? 'none' : '';
+  modal.style.display = 'flex';
+  confirm.onclick = () => {
+    modal.style.display = 'none';
+    mergeProgress(oldName, newName).then(() => {
+      loadClearedLevelsFromDb();
+      showOverallRanking();
+    });
+  };
+  cancel.onclick = () => {
+    modal.style.display = 'none';
+    if (!loginFromMainScreen && firebase.auth().currentUser) {
+      promptForGoogleNickname(oldName, firebase.auth().currentUser.uid);
+    } else {
+      registerUsernameIfNeeded(newName);
+      loadClearedLevelsFromDb();
+      showOverallRanking();
+    }
+  };
+}
+
+function showAccountClaimModal(targetName, oldName, uid) {
+  fetchProgressSummary(targetName).then(prog => {
+    const modal = document.getElementById('mergeModal');
+    const details = document.getElementById('mergeDetails');
+    const confirm = document.getElementById('mergeConfirmBtn');
+    const cancel = document.getElementById('mergeCancelBtn');
+    details.innerHTML = `
+      <p><b>${targetName}</b> 닉네임의 진행 상황</p>
+      <ul>
+        <li>클리어 레벨 수: ${prog.cleared}</li>
+        <li>사용 블록 수: ${prog.blocks}</li>
+        <li>사용 도선 수: ${prog.wires}</li>
+      </ul>
+      <p>이 계정과 진행 상황을 합치겠습니까?</p>
+    `;
+    confirm.textContent = '네';
+    cancel.textContent = '제 계정이 아닙니다';
+    cancel.style.display = loginFromMainScreen ? 'none' : '';
+    modal.style.display = 'flex';
+    confirm.onclick = () => {
+      modal.style.display = 'none';
+      setUsername(targetName);
+      setGoogleNickname(uid, targetName);
+      db.ref(`google/${uid}`).set({ uid, nickname: targetName });
+      document.getElementById('guestUsername').textContent = targetName;
+      const after = () => {
+        loadClearedLevelsFromDb().then(() => {
+          showOverallRanking();
+          maybeStartTutorial();
+        });
+      };
+      if (oldName && oldName !== targetName) {
+        mergeProgress(oldName, targetName).then(after);
+      } else {
+        registerUsernameIfNeeded(targetName);
+        after();
+      }
+    };
+    cancel.onclick = () => {
+      modal.style.display = 'none';
+      if (!loginFromMainScreen) {
+        promptForGoogleNickname(oldName, uid);
+      }
+    };
+  });
+}
+
+function isRecordBetter(a, b) {
+  if (!b) return true;
+  const sumBlocks = e => Object.values(e.blockCounts || {}).reduce((s, x) => s + x, 0);
+  const aBlocks = sumBlocks(a), bBlocks = sumBlocks(b);
+  if (aBlocks !== bBlocks) return aBlocks < bBlocks;
+  if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
+  return new Date(a.timestamp) < new Date(b.timestamp);
+}
+
+function mergeProgress(oldName, newName) {
+  return db.ref('rankings').once('value').then(snap => {
+    const promises = [];
+    snap.forEach(levelSnap => {
+      let best = null;
+      const removeKeys = [];
+      levelSnap.forEach(recSnap => {
+        const v = recSnap.val();
+        if (v.nickname === oldName || v.nickname === newName) {
+          if (isRecordBetter(v, best)) best = { ...v };
+          removeKeys.push(recSnap.key);
+        }
+      });
+      removeKeys.forEach(k => promises.push(levelSnap.ref.child(k).remove()));
+      if (best) {
+        best.nickname = newName;
+        promises.push(levelSnap.ref.push(best));
+      }
+    });
+    removeUsername(oldName);
+    registerUsernameIfNeeded(newName);
+    return Promise.all(promises);
+  });
+}
+
 // 1) 모달과 버튼 요소 참조
 const viewSavedBtn = document.getElementById('viewSavedBtn');
 const saveCircuitBtn = document.getElementById('saveCircuitBtn');
@@ -1043,63 +1494,6 @@ async function gradeProblemCanvas(key, problem) {
   gradingArea.appendChild(returnBtn);
   document.getElementById('returnToEditBtn').addEventListener('click', returnToEditScreen);
 }
-
-document.addEventListener('DOMContentLoaded', () => {
-  const uname = getUsername();
-  if (uname) {
-    const guestUsernameEl = document.getElementById('guestUsername');
-    if (guestUsernameEl) guestUsernameEl.textContent = uname;
-  }
-
-  initialTasks.push(showOverallRanking());
-  initialTasks.push(initializeAuthUI({
-    ids: {
-      mainGoogleLoginBtnId: 'googleLoginBtn',
-      modalGoogleLoginBtnId: 'modalGoogleLoginBtn',
-      usernameSubmitBtnId: 'usernameSubmit',
-      usernameModalId: 'usernameModal',
-      usernameModalHeadingSelector: '#usernameModal h2',
-      usernameInputId: 'usernameInput',
-      usernameErrorId: 'usernameError',
-      loginInfoId: 'loginInfo',
-      loginUsernameId: 'loginUsername',
-      guestUsernameId: 'guestUsername',
-      rankSectionId: 'rankSection',
-      overallRankId: 'overallRank',
-      clearedCountId: 'clearedCount',
-      loginGuestPromptId: 'loginGuestPrompt',
-      mergeModalId: 'mergeModal',
-      mergeDetailsId: 'mergeDetails',
-      mergeConfirmBtnId: 'mergeConfirmBtn',
-      mergeCancelBtnId: 'mergeCancelBtn'
-    },
-    translate,
-    fetchOverallStats,
-    fetchProgressSummary,
-    loadClearedLevelsFromDb,
-    maybeStartTutorial,
-    showOverallRanking
-  }));
-
-  setupKeyToggles();
-  setupMenuToggle();
-  setupSettings();
-  setupGameAreaPadding();
-
-  Promise.all(initialTasks).then(() => {
-    setupNavigation({
-      refreshUserData,
-      renderChapterList,
-      selectChapter: index => {
-        const chapters = getChapterData();
-        if (chapters.length > index) {
-          selectChapter(index);
-        }
-      }
-    });
-    hideLoadingScreen();
-  });
-});
 
 const exportBtn = document.getElementById('exportGifBtn');
 if (exportBtn) {
