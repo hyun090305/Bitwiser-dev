@@ -1,3 +1,16 @@
+// Entry point module coordinating Bitwiser features.
+// Placeholder imports ensure upcoming modules can hook into the bootstrap flow.
+import * as authModule from './modules/auth.js';
+import * as guestbookModule from './modules/guestbook.js';
+import * as levelsModule from './modules/levels.js';
+import * as uiModule from './modules/ui.js';
+
+// Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
+void authModule;
+void guestbookModule;
+void levelsModule;
+void uiModule;
+
 
 let currentLevel = null;
 let currentCustomProblem = null;
@@ -446,10 +459,10 @@ async function ensureDriveAuth() {
 
 // Preload heavy canvas modules so they are ready when a stage begins.
 // This reduces the delay caused by dynamic imports later in the game.
-['./src/canvas/model.js',
- './src/canvas/controller.js',
- './src/canvas/engine.js',
- './src/canvas/renderer.js'].forEach(p => import(p));
+['./canvas/model.js',
+ './canvas/controller.js',
+ './canvas/engine.js',
+ './canvas/renderer.js'].forEach(p => import(p));
 
 const circuitErrorMsg = document.getElementById('circuitError');
 let circuitHasError = false;
@@ -1437,9 +1450,9 @@ function setupGrid(containerId, rows, cols, paletteGroups) {
   const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
   const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
 
-  return import('./src/canvas/model.js').then(m => {
+  return import('./canvas/model.js').then(m => {
     const { makeCircuit } = m;
-    return import('./src/canvas/controller.js').then(c => {
+    return import('./canvas/controller.js').then(c => {
       const { createController } = c;
       const circuit = makeCircuit(rows, cols);
       const controller = createController(
@@ -3724,7 +3737,7 @@ async function gradeLevelCanvas(level) {
   const testCases = levelAnswers[level];
   const circuit = window.playCircuit;
   if (!testCases || !circuit) return;
-  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+  const { evaluateCircuit } = await import('./canvas/engine.js');
 
   const blocks = Object.values(circuit.blocks);
   for (const b of blocks) {
@@ -3911,7 +3924,7 @@ async function gradeProblemCanvas(key, problem) {
     inputs: Object.fromEntries(inNames.map(n => [n, row[n]])),
     expected: Object.fromEntries(outNames.map(n => [n, row[n]]))
   }));
-  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+  const { evaluateCircuit } = await import('./canvas/engine.js');
 
   const blocks = Object.values(circuit.blocks);
   for (const b of blocks) {
@@ -4036,7 +4049,7 @@ async function captureGIF(onFinish) {
   let panelWidth = 0;
 
   try {
-    const { CELL, GAP } = await import('./src/canvas/model.js');
+    const { CELL, GAP } = await import('./canvas/model.js');
     const circuit = window.playController?.circuit || window.problemController?.circuit;
     if (circuit) {
       gridWidth = circuit.cols * (CELL + GAP) + GAP;
@@ -4203,7 +4216,7 @@ async function computeProblemOutputs() {
   const outputs = outNames.map(name => blocks.find(b => b.type === 'OUTPUT' && b.name === name));
 
   const rows = document.querySelectorAll('#testcaseTable tbody tr');
-  const { evaluateCircuit } = await import('./src/canvas/engine.js');
+  const { evaluateCircuit } = await import('./canvas/engine.js');
   rows.forEach(tr => {
     const cells = tr.querySelectorAll('td');
     inputs.forEach((inp, i) => {
@@ -4216,3 +4229,5 @@ async function computeProblemOutputs() {
   });
   problemOutputsValid = true;
 }
+
+window.submitGuestEntry = submitGuestEntry;
