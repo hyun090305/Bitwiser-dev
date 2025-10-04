@@ -8,7 +8,7 @@ import {
   getAutoSaveSetting,
   setAutoSaveSetting
 } from './modules/storage.js';
-import * as guestbookModule from './modules/guestbook.js';
+import { initializeGuestbook } from './modules/guestbook.js';
 import {
   adjustGridZoom,
   setupGrid,
@@ -72,8 +72,6 @@ import {
   initializeRankingUI
 } from './modules/rank.js';
 
-// Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
-void guestbookModule;
 void uiModule;
 
 const {
@@ -340,6 +338,13 @@ document.getElementById("backToLevelsBtn").onclick = async () => {
 
 
 window.addEventListener("DOMContentLoaded", () => {
+  initializeGuestbook({
+    getUsername,
+    messageInputId: 'guestMessage',
+    listElementId: 'guestbookList',
+    submitButtonId: 'guestSubmitBtn'
+  });
+
   const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
     const prevMenuBtn = document.getElementById('prevStageBtnMenu');
     const nextMenuBtn = document.getElementById('nextStageBtnMenu');
@@ -360,64 +365,6 @@ window.addEventListener("DOMContentLoaded", () => {
 
 window.addEventListener('focus', refreshUserData);
 
-
-// 피드백 전송
-// 1) 방명록 등록 함수
-function submitGuestEntry() {
-  // 이전: 입력창 value 또는 익명 사용
-  // const name = document.getElementById("guestName").value.trim() || "익명";
-
-  // 수정: 로그인(모달)된 username을 사용
-  const name = getUsername() || "익명";
-
-  const msg = document.getElementById("guestMessage").value.trim();
-  if (!msg) return alert("내용을 입력해주세요!");
-
-  const entry = { name, message: msg, time: Date.now() };
-  db.ref("guestbook").push(entry, err => {
-    if (err) alert("전송에 실패했습니다.");
-    else document.getElementById("guestMessage").value = "";
-  });
-}
-
-// 2) 실시간 방명록 목록 업데이트
-db.ref("guestbook").on("value", snapshot => {
-  const list = document.getElementById("guestbookList");
-  list.innerHTML = "";
-  const entries = [];
-  snapshot.forEach(child => {
-    entries.push(child.val());
-    return false;  // 반드시 false를 리턴해야 계속 순회합니다
-  });
-  entries.sort((a, b) => b.time - a.time);
-
-  for (const e of entries) {
-    const div = document.createElement("div");
-    div.style.margin = "10px 0";
-    const name = e.name;
-    const displayName = name.length > 20 ? name.slice(0, 20) + '...' : name;
-    div.innerHTML = `<b>${displayName}</b> (${new Date(e.time).toLocaleString()}):<br>${e.message}`;
-    list.appendChild(div);
-  }
-});
-
-/*
-// 실시간 반영
-firebase.database().ref("guestbook").on("value", (snapshot) => {
-  const list = document.getElementById("guestbookList");
-  list.innerHTML = "";
-  const entries = [];
-  snapshot.forEach(child => entries.push(child.val()));
-  entries.sort((a, b) => b.time - a.time); // 최신순
-
-  for (const e of entries) {
-    const div = document.createElement("div");
-    div.style.margin = "10px 0";
-    div.innerHTML = `<b>${e.name}</b> (${new Date(e.time).toLocaleString()}):<br>${e.message}`;
-    list.appendChild(div);
-  }
-});
-*/
 document.getElementById("showIntroBtn").addEventListener("click", () => {
   const level = getCurrentLevel();
   const customProblem = getActiveCustomProblem();
@@ -1205,5 +1152,3 @@ if (mqOrientation.addEventListener) {
 checkOrientation();
 adjustGridZoom();
 adjustGridZoom('problemCanvasContainer');
-
-window.submitGuestEntry = submitGuestEntry;
