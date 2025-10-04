@@ -17,6 +17,12 @@ import {
   setGoogleNickname
 } from './modules/storage.js';
 import * as guestbookModule from './modules/guestbook.js';
+import {
+  adjustGridZoom,
+  setupGrid,
+  setGridDimensions,
+  getGridCols
+} from './modules/grid.js';
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
 import {
@@ -27,17 +33,40 @@ import {
 
 // Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
 void guestbookModule;
-void levelsModule;
 void uiModule;
+
+const {
+  configureLevelModule,
+  loadStageData,
+  getStageDataPromise,
+  renderChapterList,
+  selectChapter,
+  startLevel,
+  returnToEditScreen,
+  returnToLevels,
+  refreshUserData,
+  loadClearedLevelsFromDb,
+  markLevelCleared,
+  fetchClearedLevels,
+  fetchProgressSummary,
+  fetchOverallStats,
+  isLevelUnlocked,
+  showIntroModal,
+  getLevelTitles,
+  getLevelBlockSet,
+  getLevelAnswer,
+  getLevelHints,
+  getChapterData,
+  getCurrentLevel,
+  clearCurrentLevel,
+  getClearedLevels,
+  buildPaletteGroups
+} = levelsModule;
 
 initializeAuth();
 
-
-let currentLevel = null;
 let currentCustomProblem = null;
 let currentCustomProblemKey = null;
-let GRID_ROWS = 6;
-let GRID_COLS = 6;
 let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
@@ -134,39 +163,10 @@ if (shareGifBtn) {
 
 // 초기 로딩 관련
 const initialTasks = [];
-let stageDataPromise = Promise.resolve();
 function hideLoadingScreen() {
   const el = document.getElementById('loadingScreen');
   if (el) el.style.display = 'none';
 }
-
-
-
-let levelTitles = {};
-let levelGridSizes = {};
-let levelBlockSets = {};
-let chapterData = [];
-let selectedChapterIndex = 0;
-let levelAnswers = {};
-let levelDescriptions = {};
-let levelHints = {};
-
-function loadStageData() {
-  const file = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'levels_en.json' : 'levels.json';
-  return fetch(file)
-    .then(res => res.json())
-    .then(data => {
-      levelTitles = data.levelTitles;
-      levelGridSizes = data.levelGridSizes;
-      levelBlockSets = data.levelBlockSets;
-      chapterData = data.chapterData;
-      levelAnswers = data.levelAnswers;
-      levelDescriptions = data.levelDescriptions;
-      levelHints = data.levelHints || {};
-    });
-}
-
-
 
 const validWireShapes = [
   ["wire-up", "wire-down"],
@@ -296,252 +296,45 @@ function setupKeyToggles() {
 const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
-const stageListEl = document.getElementById("stageList");
 
 document.getElementById("toggleChapterList").onclick = () => {
   chapterListEl.classList.toggle('hidden');
 };
 
 document.getElementById("backToLevelsBtn").onclick = async () => {
-  window.playController?.destroy?.();
-  window.playController = null;
-  window.playCircuit = null;
-  document.body.classList.remove('game-active');
-  gameScreen.style.display = "none";
-  if (currentCustomProblem) {
-    currentCustomProblem = null;
-    userProblemsScreen.style.display = 'block';
-    renderUserProblemList();
-  } else {
-    await renderChapterList();
-    const chapter = chapterData[selectedChapterIndex];
-    if (chapter && chapter.id !== 'user') {
-      await renderStageList(chapter.stages);
+  await returnToLevels({
+    isCustomProblemActive: Boolean(currentCustomProblem),
+    onClearCustomProblem: () => {
+      currentCustomProblem = null;
     }
-    chapterStageScreen.style.display = "block";
-  }
+  });
 };
 
 
 
-async function startLevel(level) {
-  await stageDataPromise;
-  await loadClearedLevelsFromDb();
-  const [rows, cols] = levelGridSizes[level] || [6, 6];
-  GRID_ROWS = rows;
-  GRID_COLS = cols;
 
-  currentLevel = parseInt(level, 10);
-  const title = document.getElementById("gameTitle");
-  if (title) {
-    title.textContent = levelTitles[level] ?? `Stage ${level}`;
-  }
-
-  const prevMenuBtn = document.getElementById('prevStageBtnMenu');
-  if (prevMenuBtn) {
-    prevMenuBtn.disabled = !(levelTitles[level - 1] && isLevelUnlocked(level - 1));
-  }
-  const nextMenuBtn = document.getElementById('nextStageBtnMenu');
-  if (nextMenuBtn) {
-    nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
-  }
-
-  // 캔버스를 스테이지 진입 전에 미리 초기화해 이전 스테이지가 보이지 않도록 한다.
-  await setupGrid("canvasContainer", rows, cols, createPaletteForLevel(level));
-  setGridDimensions(rows, cols);
-
-  showLevelIntro(level, () => {
-    collapseMenuBarForMobile();
-  });
-}
-
-
-
-
-
-function returnToEditScreen() {
-  // 채점 모드 해제
-  isScoring = false;
-  window.isScoring = false;
-  if (overlay) overlay.style.display = "none";
-
-  // 원래 편집 UI 복원
-  const blockPanel = document.getElementById("blockPanel");
-  const rightPanel = document.getElementById("rightPanel");
-  const gradingArea = document.getElementById("gradingArea");
-  if (blockPanel) blockPanel.style.display = "flex";
-  if (rightPanel) rightPanel.style.display = "block";
-  if (gradingArea) gradingArea.style.display = "none";
-}
-
-let clearedLevelsFromDb = [];
-
-function fetchClearedLevels(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
-    const cleared = [];
-    snap.forEach(levelSnap => {
-      const levelId = parseInt(levelSnap.key, 10);
-      let hasRecord = false;
-      levelSnap.forEach(recSnap => {
-        if (recSnap.val().nickname === nickname) {
-          hasRecord = true;
-          return true; // stop iterating this level
-        }
-      });
-      if (hasRecord) cleared.push(levelId);
-    });
-    return cleared;
-  });
-}
-
-function fetchProgressSummary(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
-    let cleared = 0;
-    let blocks = 0;
-    let wires = 0;
-    snap.forEach(levelSnap => {
-      levelSnap.forEach(recSnap => {
-        const v = recSnap.val();
-        if (v.nickname === nickname) {
-          cleared++;
-          blocks += Object.values(v.blockCounts || {}).reduce((s, x) => s + x, 0);
-          wires += v.usedWires || 0;
-          return true; // stop iterating this level
-        }
-      });
-    });
-    return { cleared, blocks, wires };
-  });
-}
-
-function fetchOverallStats(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
-    const data = {};
-    snap.forEach(levelSnap => {
-      levelSnap.forEach(recSnap => {
-        const v = recSnap.val();
-        const name = v.nickname || '익명';
-        if (!data[name]) {
-          data[name] = {
-            stages: new Set(),
-            blocks: 0,
-            wires: 0,
-            lastTimestamp: v.timestamp
-          };
-        }
-        data[name].stages.add(levelSnap.key);
-        data[name].blocks += Object.values(v.blockCounts || {}).reduce((s, x) => s + x, 0);
-        data[name].wires += v.usedWires || 0;
-        if (new Date(v.timestamp) > new Date(data[name].lastTimestamp)) {
-          data[name].lastTimestamp = v.timestamp;
-        }
-      });
-    });
-    const entries = Object.entries(data).map(([nickname, v]) => ({
-      nickname,
-      cleared: v.stages.size,
-      blocks: v.blocks,
-      wires: v.wires,
-      timestamp: v.lastTimestamp
-    }));
-    entries.sort((a, b) => {
-      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
-      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
-      if (a.wires !== b.wires) return a.wires - b.wires;
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
-    const idx = entries.findIndex(e => e.nickname === nickname);
-    if (idx === -1) return { rank: '-', cleared: 0 };
-    return { rank: idx + 1, cleared: entries[idx].cleared };
-  });
-}
-
-function createCheckmarkSvg(animate = false) {
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS, 'svg');
-  svg.classList.add('checkmark');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  const path = document.createElementNS(svgNS, 'path');
-  path.setAttribute('d', 'M4 12l5 5 11-11');
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', 'green');
-  path.setAttribute('stroke-width', '3');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(path);
-  if (animate) svg.classList.add('animate');
-  return svg;
-}
-
-function refreshClearedUI() {
-  document.querySelectorAll('.stageCard').forEach(card => {
-    const level = parseInt(card.dataset.stage, 10);
-    card.classList.remove('cleared');
-    const check = card.querySelector('.checkmark');
-    if (clearedLevelsFromDb.includes(level)) {
-      card.classList.add('cleared');
-      if (!check) {
-        const svg = createCheckmarkSvg(true);
-        card.appendChild(svg);
-      }
-    } else if (check) {
-      check.remove();
-    }
-  });
-}
-
-function loadClearedLevelsFromDb() {
-  const nickname = getUsername() || '익명';
-  return fetchClearedLevels(nickname).then(levels => {
-    clearedLevelsFromDb = levels;
-    refreshClearedUI();
-  });
-}
-
-function refreshUserData() {
-  const nickname = getUsername() || '';
-  loadClearedLevelsFromDb();
-  if (nickname) {
-    fetchOverallStats(nickname).then(res => {
-      const overallRankEl = document.getElementById('overallRank');
-      const clearedCountEl = document.getElementById('clearedCount');
-      if (overallRankEl) overallRankEl.textContent = `#${res.rank}`;
-      if (clearedCountEl) clearedCountEl.textContent = res.cleared;
-    });
-  }
-  if (document.getElementById('overallRankingList')) {
-    showOverallRanking();
-  }
-}
 
 window.addEventListener("DOMContentLoaded", () => {
-  stageDataPromise = loadStageData().then(() => {
+  const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
     const prevMenuBtn = document.getElementById('prevStageBtnMenu');
     const nextMenuBtn = document.getElementById('nextStageBtnMenu');
 
     prevMenuBtn.addEventListener('click', () => {
       returnToEditScreen();           // 채점 모드 닫기
-      startLevel(currentLevel - 1);   // 이전 스테이지 시작
+      startLevel(getCurrentLevel() - 1);
     });
 
     nextMenuBtn.addEventListener('click', () => {
       returnToEditScreen();
-      startLevel(currentLevel + 1);   // 다음 스테이지 시작
+      startLevel(getCurrentLevel() + 1);
     });
     return loadClearedLevelsFromDb();
   });
-  initialTasks.push(stageDataPromise);
+  initialTasks.push(stagePromise);
 });
 
 window.addEventListener('focus', refreshUserData);
 
-function markLevelCleared(level) {
-  if (!clearedLevelsFromDb.includes(level)) {
-    clearedLevelsFromDb.push(level);
-    refreshClearedUI();
-    renderChapterList();
-  }
-}
 
 // 피드백 전송
 // 1) 방명록 등록 함수
@@ -600,256 +393,27 @@ firebase.database().ref("guestbook").on("value", (snapshot) => {
   }
 });
 */
-function showLevelIntro(level, callback) {
-  const modal = document.getElementById("levelIntroModal");
-  const title = document.getElementById("introTitle");
-  const desc = document.getElementById("introDesc");
-  const table = document.getElementById("truthTable");
-
-  const data = levelDescriptions[level];
-  if (!data) {
-    callback();  // 데이터 없으면 바로 시작
-    return;
-  }
-
-  title.textContent = data.title;
-  desc.textContent = data.desc;
-
-  // 진리표 렌더링
-  const keys = Object.keys(data.table[0]);
-  table.innerHTML = "";
-
-  // 헤더 행 생성
-  const headerRow = document.createElement("tr");
-  keys.forEach(k => {
-    const th = document.createElement("th");
-    th.textContent = k; // 특수문자 안전 처리
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  // 데이터 행 생성
-  data.table.forEach(row => {
-    const tr = document.createElement("tr");
-    keys.forEach(k => {
-      const td = document.createElement("td");
-      td.textContent = row[k];
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-
-  modal.style.display = "flex";
-  modal.style.backgroundColor = "white";
-  document.getElementById("startLevelBtn").onclick = () => {
-    modal.style.display = "none";
-    showStageTutorial(level, callback);  // 레벨별 튜토리얼 표시 후 시작
-  };
-}
-
-
-async function renderChapterList() {
-  await loadClearedLevelsFromDb();
-  chapterListEl.innerHTML = "";
-  const cleared = clearedLevelsFromDb;
-
-  chapterData.forEach((chapter, idx) => {
-    const item = document.createElement("div");
-    item.className = "chapterItem";
-    let unlocked = true;
-    if (chapter.id === 'user') {
-      unlocked = [1,2,3,4,5,6].every(s => cleared.includes(s));
-    } else if (idx > 0) {
-      const prevStages = chapterData[idx - 1].stages;
-      unlocked = prevStages.every(s => cleared.includes(s));
-    }
-    if (!unlocked) {
-      item.classList.add('locked');
-      item.textContent = `${chapter.name} 🔒`;
-      item.onclick = () => {
-        alert(`챕터 ${idx}의 스테이지를 모두 완료해야 다음 챕터가 열립니다.`);
-      };
-    } else {
-      item.textContent = chapter.name;
-      item.onclick = () => {
-        if (chapter.id === 'user') {
-          renderUserProblemList();
-          chapterStageScreen.style.display = 'none';
-          userProblemsScreen.style.display = 'block';
-        } else {
-          selectChapter(idx);
-        }
-      };
-    }
-    if (idx === selectedChapterIndex) item.classList.add('selected');
-    chapterListEl.appendChild(item);
-  });
-}
-
-function selectChapter(idx) {
-  selectedChapterIndex = idx;
-  renderChapterList();
-  const chapter = chapterData[idx];
-  if (chapter.id !== 'user') {
-    renderStageList(chapter.stages);
-  }
-}
-
-async function renderStageList(stageList) {
-  await loadClearedLevelsFromDb();
-  stageListEl.innerHTML = "";
-  stageList.forEach((level, idx) => {
-    const card = document.createElement('div');
-    card.className = 'stageCard card-enter';
-    card.style.animationDelay = `${idx * 40}ms`;
-    card.dataset.stage = level;
-    const title = levelTitles[level] ?? `Stage ${level}`;
-    let name = title;
-    let desc = "";
-    const parts = title.split(':');
-    if (parts.length > 1) {
-      name = parts[0];
-      desc = parts.slice(1).join(':').trim();
-    }
-    card.innerHTML = `<h3>${name}</h3><p>${desc}</p>`;
-    const unlocked = isLevelUnlocked(level);
-    if (!unlocked) {
-      card.classList.add('locked');
-    } else {
-      if (clearedLevelsFromDb.includes(level)) {
-        card.classList.add('cleared');
-        const check = createCheckmarkSvg();
-        card.appendChild(check);
-      }
-      card.onclick = async () => {
-        returnToEditScreen();
-        await startLevel(level);
-        chapterStageScreen.style.display = 'none';
-        gameScreen.style.display = 'flex';
-        document.body.classList.add('game-active');
-      };
-    }
-    stageListEl.appendChild(card);
-  });
-}
-
-function setGridDimensions(rows, cols) {
-  GRID_ROWS = rows;
-  GRID_COLS = cols;
-}
-
-
-function adjustGridZoom(containerId = 'canvasContainer') {
-  const gridContainer = document.getElementById(containerId);
-  if (!gridContainer) return;
-
-  const margin = 20;
-  let availableWidth = window.innerWidth - margin * 2;
-  let availableHeight = window.innerHeight - margin * 2;
-
-  if (containerId === 'canvasContainer') {
-    const menuBar = document.getElementById('menuBar');
-    if (menuBar) {
-      const menuRect = menuBar.getBoundingClientRect();
-      const isVertical = menuRect.height > menuRect.width;
-      if (isVertical) {
-        availableWidth -= menuRect.width;
-      } else {
-        availableHeight -= menuRect.height;
-      }
-    }
-  }
-
-  const firstCanvas = gridContainer.querySelector('canvas');
-  if (!firstCanvas) return;
-  const dpr = window.devicePixelRatio || 1;
-  const baseWidth = firstCanvas.width / dpr;
-  const baseHeight = firstCanvas.height / dpr;
-
-  const scale = Math.min(
-    availableWidth / baseWidth,
-    availableHeight / baseHeight,
-    1
-  );
-
-  gridContainer.querySelectorAll('canvas').forEach(c => {
-    c.style.width = baseWidth * scale + 'px';
-    c.style.height = baseHeight * scale + 'px';
-    c.dataset.scale = scale;
-  });
-}
-
-
-// Canvas 기반 그리드 설정
-function setupGrid(containerId, rows, cols, paletteGroups) {
-  GRID_COLS = cols;
-  GRID_ROWS = rows;
-  const container = document.getElementById(containerId);
-  if (!container) return Promise.resolve();
-  const prefix = containerId === 'problemCanvasContainer' ? 'problem' : '';
-  const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
-  const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
-  const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
-
-  return import('./canvas/model.js').then(m => {
-    const { makeCircuit } = m;
-    return import('./canvas/controller.js').then(c => {
-      const { createController } = c;
-      const circuit = makeCircuit(rows, cols);
-      const controller = createController(
-        { bgCanvas, contentCanvas, overlayCanvas },
-        circuit,
-        {
-          wireStatusInfo: document.getElementById(
-            prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'
-          ),
-          wireDeleteInfo: document.getElementById(
-            prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo'
-          ),
-          usedBlocksEl: document.getElementById(
-            prefix ? `${prefix}UsedBlocks` : 'usedBlocks'
-          ),
-          usedWiresEl: document.getElementById(
-            prefix ? `${prefix}UsedWires` : 'usedWires'
-          )
-        },
-        {
-          paletteGroups,
-          panelWidth: 180
-        }
-      );
-      if (prefix) {
-        window.problemCircuit = circuit;
-        window.problemController = controller;
-      } else {
-        window.playCircuit = circuit;
-        window.playController = controller;
-      }
-      // 새 그리드 크기에 맞춰 화면을 조정
-      adjustGridZoom(containerId);
-      return controller;
-    });
-  });
-}
-
 document.getElementById("showIntroBtn").addEventListener("click", () => {
-  if (currentLevel != null) {
-    showIntroModal(currentLevel);
+  const level = getCurrentLevel();
+  if (level != null) {
+    showIntroModal(level);
   } else if (currentCustomProblem) {
     showProblemIntro(currentCustomProblem);
   }
 });
 
 document.getElementById("gameTitle").addEventListener("click", () => {
-  if (currentLevel != null) {
-    showIntroModal(currentLevel);
+  const level = getCurrentLevel();
+  if (level != null) {
+    showIntroModal(level);
   } else if (currentCustomProblem) {
     showProblemIntro(currentCustomProblem);
   }
 });
 
 document.getElementById('hintBtn').addEventListener('click', () => {
-  if (currentLevel == null) {
+  const level = getCurrentLevel();
+  if (level == null) {
     if (currentCustomProblem) {
       alert(t('noHints'));
     } else {
@@ -857,52 +421,10 @@ document.getElementById('hintBtn').addEventListener('click', () => {
     }
     return;
   }
-  openHintModal(currentLevel);
+  openHintModal(level);
 });
 
 
-
-function showIntroModal(level) {
-  const modal = document.getElementById("levelIntroModal");
-  const title = document.getElementById("introTitle");
-  const desc = document.getElementById("introDesc");
-  const table = document.getElementById("truthTable");
-
-  const data = levelDescriptions[level];
-  if (!data) return;
-
-  title.textContent = data.title;
-  desc.textContent = data.desc;
-
-  // 진리표 다시 렌더링
-  const keys = Object.keys(data.table[0]);
-  table.innerHTML = "";
-
-  const headerRow = document.createElement("tr");
-  keys.forEach(k => {
-    const th = document.createElement("th");
-    th.textContent = k;
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  data.table.forEach(row => {
-    const tr = document.createElement("tr");
-    keys.forEach(k => {
-      const td = document.createElement("td");
-      td.textContent = row[k];
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
-
-  modal.style.display = "flex";
-  modal.style.backgroundColor = "rgba(0, 0, 0, 0.4)";
-  document.getElementById("startLevelBtn").innerText = "닫기";
-  document.getElementById("startLevelBtn").onclick = () => {
-    modal.style.display = "none";
-  };
-}
 
 // script.v1.0.js 맨 아래, 기존 코드 뒤에 붙여 주세요.
 
@@ -1033,11 +555,12 @@ tutClose.addEventListener("click", () => {
 });
 
 function getLowestUnclearedStage() {
-  const stages = Object.keys(levelTitles)
+  const stages = Object.keys(getLevelTitles())
     .map(n => parseInt(n, 10))
     .sort((a, b) => a - b);
+  const cleared = new Set(getClearedLevels());
   for (const s of stages) {
-    if (!clearedLevelsFromDb.includes(s)) return s;
+    if (!cleared.has(s)) return s;
   }
   return stages[0] || 1;
 }
@@ -1046,7 +569,7 @@ function finishTutorial() {
   localStorage.setItem('tutorialCompleted', 'true');
   tutModal.style.display = 'none';
   lockOrientationLandscape();
-  stageDataPromise.then(() => {
+  getStageDataPromise().then(() => {
     startLevel(getLowestUnclearedStage());
   });
   document.body.classList.add('game-active');
@@ -1096,6 +619,8 @@ function showStageTutorial(level, done) {
   requestAnimationFrame(() => modal.classList.add('show'));
 }
 
+configureLevelModule({ showStageTutorial });
+
 // 5) ESC 키로 닫기
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && tutModal.style.display === "flex") {
@@ -1144,14 +669,15 @@ function buildShareString() {
   const lines = [];
   lines.push("I played " + location.origin + location.pathname);
   lines.push("");
-  const cleared = clearedLevelsFromDb;
-  const totalStages = Object.keys(levelTitles).length;  // 총 스테이지 수 (필요 시 갱신)
+  const cleared = new Set(getClearedLevels());
+  const titles = getLevelTitles();
+  const totalStages = Object.keys(titles).length;  // 총 스테이지 수 (필요 시 갱신)
 
 
 
   for (let i = 1; i <= totalStages; i++) {
-    const title = levelTitles[i] || '';
-    const mark = cleared.includes(i) ? "✅" : "❌";
+    const title = titles[i] || '';
+    const mark = cleared.has(i) ? "✅" : "❌";
     lines.push(`Stage ${i} (${title}): ${mark}`);
   }
 
@@ -1226,20 +752,27 @@ const overlay = document.getElementById("gridOverlay");
 let isScoring = false;
 window.isScoring = false;
 
+configureLevelModule({
+  setIsScoring: value => {
+    isScoring = value;
+    window.isScoring = value;
+  }
+});
+
 document.getElementById("gradeButton").addEventListener("click", () => {
   if (circuitHasError) {
     alert("회로에 오류가 존재합니다");
     return;
   }
   if (isScoring) return;
-  if (currentCustomProblem == null && currentLevel == null) return;
+  if (currentCustomProblem == null && getCurrentLevel() == null) return;
   isScoring = true;
   window.isScoring = true;
   if (overlay) overlay.style.display = "block";
   if (currentCustomProblem) {
     gradeProblemCanvas(currentCustomProblemKey, currentCustomProblem);
   } else {
-    gradeLevelCanvas(currentLevel);
+    gradeLevelCanvas(getCurrentLevel());
   }
 });
 
@@ -1546,9 +1079,8 @@ function showRanking(levelId) {
   listEl.innerHTML = "로딩 중…";
 
   // ① 이 스테이지에서 허용된 블록 타입 목록
-  const allowedTypes = Array.from(
-    new Set(levelBlockSets[levelId].map(b => b.type))
-  );
+  const blockSet = getLevelBlockSet(levelId);
+  const allowedTypes = Array.from(new Set(blockSet.map(b => b.type)));
 
   db.ref(`rankings/${levelId}`)
     .orderByChild("timestamp")
@@ -1647,8 +1179,9 @@ function showRanking(levelId) {
 
 document.getElementById("viewRankingBtn")
   .addEventListener("click", () => {
-    if (currentLevel != null) {
-      showRanking(currentLevel);
+    const level = getCurrentLevel();
+    if (level != null) {
+      showRanking(level);
     } else if (currentCustomProblemKey) {
       showProblemRanking(currentCustomProblemKey);
     } else {
@@ -1746,6 +1279,7 @@ function collapseMenuBarForMobile() {
   updatePadding();
 }
 
+configureLevelModule({ onLevelIntroComplete: collapseMenuBarForMobile });
 function setupSettings() {
   const btn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
@@ -1804,7 +1338,8 @@ document.addEventListener("DOMContentLoaded", () => {
       refreshUserData,
       renderChapterList,
       selectChapter: index => {
-        if (chapterData.length > index) {
+        const chapters = getChapterData();
+        if (chapters.length > index) {
           selectChapter(index);
         }
       }
@@ -2095,8 +1630,9 @@ saveCircuitBtn.addEventListener('click', async () => {
 
 // 2) 저장된 회로 키 prefix 계산
 function getSavePrefix() {
-  if (currentLevel != null) {
-    return `bit_saved_stage_${String(currentLevel).padStart(2, '0')}_`;
+  const level = getCurrentLevel();
+  if (level != null) {
+    return `bit_saved_stage_${String(level).padStart(2, '0')}_`;
   } else if (currentCustomProblemKey) {
     return `bit_saved_prob_${currentCustomProblemKey}_`;
   }
@@ -2236,7 +1772,7 @@ async function saveCircuit(progressCallback) {
 
   const data = {
     version: CURRENT_CIRCUIT_VERSION,
-    stageId: currentLevel,
+    stageId: getCurrentLevel(),
     problemKey: currentCustomProblemKey,
     problemTitle: currentCustomProblem ? currentCustomProblem.title : undefined,
     timestamp: new Date().toISOString(),
@@ -2396,6 +1932,8 @@ function showOverallRanking() {
   });
 }
 
+configureLevelModule({ showOverallRanking });
+
 async function showClearedModal(level) {
   await loadClearedLevelsFromDb();
   const modal = document.getElementById('clearedModal');
@@ -2408,8 +1946,9 @@ async function showClearedModal(level) {
   const prevBtn = document.getElementById('prevStageBtn');
   const nextBtn = document.getElementById('nextStageBtn');
 
-  prevBtn.disabled = !(levelTitles[level - 1] && isLevelUnlocked(level - 1));
-  nextBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
+  const titles = getLevelTitles();
+  prevBtn.disabled = !(titles[level - 1] && isLevelUnlocked(level - 1));
+  nextBtn.disabled = !(titles[level + 1] && isLevelUnlocked(level + 1));
 
   // 2) Firebase Realtime Database에서 랭킹 불러오기
   firebase.database().ref(`rankings/${level}`)
@@ -2481,20 +2020,6 @@ async function showClearedModal(level) {
     .catch(err => console.error('랭킹 로드 실패:', err));
 }
 
-
-function isLevelUnlocked(level) {
-  const cleared = clearedLevelsFromDb;
-  for (let idx = 0; idx < chapterData.length; idx++) {
-    const chap = chapterData[idx];
-    if (chap.stages.includes(level)) {
-      // 0번째 챕터는 항상 해금, 이후는 이전 챕터 모든 스테이지 클리어 시 해금
-      if (idx === 0) return true;
-      return chapterData[idx - 1].stages.every(s => cleared.includes(s));
-    }
-  }
-  // chapterData에 정의되지 않은 스테이지(사용자 정의 등)는 기본 허용
-  return true;
-}
 
 function getCurrentController() {
   const problemScreen = document.getElementById("problem-screen");
@@ -2707,8 +2232,9 @@ function addTestcaseRow() {
 function getProblemGridData() {
   const circuit = window.problemCircuit;
   if (!circuit) return [];
+  const cols = getGridCols();
   return Object.values(circuit.blocks).map(b => ({
-    index: b.pos.r * GRID_COLS + b.pos.c,
+    index: b.pos.r * cols + b.pos.c,
     type: b.type || null,
     name: b.name || null,
     value: b.type === 'INPUT' ? (b.value ? '1' : '0') : null,
@@ -2754,15 +2280,16 @@ function getProblemTruthTable() {
 
 function collectProblemData() {
   const circuit = window.problemCircuit;
+  const cols = getGridCols();
   const wiresObj = circuit
     ? Object.values(circuit.wires).map(w => ({
         startIdx:
-          circuit.blocks[w.startBlockId].pos.r * GRID_COLS +
+          circuit.blocks[w.startBlockId].pos.r * cols +
           circuit.blocks[w.startBlockId].pos.c,
         endIdx:
-          circuit.blocks[w.endBlockId].pos.r * GRID_COLS +
+          circuit.blocks[w.endBlockId].pos.r * cols +
           circuit.blocks[w.endBlockId].pos.c,
-        pathIdxs: w.path.map(p => p.r * GRID_COLS + p.c)
+        pathIdxs: w.path.map(p => p.r * cols + p.c)
       }))
     : [];
   return {
@@ -2863,6 +2390,8 @@ function renderUserProblemList() {
     });
   });
 }
+
+configureLevelModule({ renderUserProblemList });
 
 function toggleLikeProblem(key){
   const nickname = getUsername() || '익명';
@@ -3000,7 +2529,7 @@ function renderHintButtons(hints, progress, cooldownUntil) {
 }
 
 function openHintModal(stage) {
-  const hints = levelHints[`stage${stage}`]?.hints;
+  const hints = getLevelHints()[`stage${stage}`]?.hints;
   if (!hints) {
     alert(t('noHints'));
     return;
@@ -3019,7 +2548,7 @@ function openHintModal(stage) {
 }
 
 function showHint(index) {
-  const hints = levelHints[`stage${currentHintStage}`]?.hints || [];
+  const hints = getLevelHints()[`stage${currentHintStage}`]?.hints || [];
   if (!hints[index]) return;
   const hint = hints[index];
   document.getElementById('hintMessage').textContent = `[${hint.type}] ${hint.content}`;
@@ -3048,7 +2577,7 @@ async function startCustomProblem(key, problem) {
   wires = [];
   currentCustomProblem = problem;
   currentCustomProblemKey = key;
-  currentLevel = null;
+  clearCurrentLevel();
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
   await setupGrid('canvasContainer', rows, cols, createPaletteForCustom(problem));
@@ -3082,7 +2611,7 @@ function getCircuitStats(circuit) {
 }
 
 async function gradeLevelCanvas(level) {
-  const testCases = levelAnswers[level];
+  const testCases = getLevelAnswer(level);
   const circuit = window.playCircuit;
   if (!testCases || !circuit) return;
   const { evaluateCircuit } = await import('./canvas/engine.js');
@@ -3101,7 +2630,7 @@ async function gradeLevelCanvas(level) {
     }
   }
 
-  const requiredOutputs = (levelBlockSets[level] || [])
+  const requiredOutputs = (getLevelBlockSet(level) || [])
     .filter(b => b.type === 'OUTPUT')
     .map(b => b.name);
   const actualOutputNames = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
@@ -3500,25 +3029,6 @@ if (mqOrientation.addEventListener) {
 checkOrientation();
 adjustGridZoom();
 adjustGridZoom('problemCanvasContainer');
-
-function buildPaletteGroups(blocks) {
-  const inout = [];
-  const gate = [];
-  blocks.forEach(b => {
-    const item = { type: b.type, label: b.name || (b.type === 'JUNCTION' ? 'JUNC' : b.type) };
-    if (b.type === 'INPUT' || b.type === 'OUTPUT') inout.push(item);
-    else gate.push(item);
-  });
-  const groups = [];
-  if (inout.length) groups.push({ label: 'IN/OUT', items: inout });
-  if (gate.length) groups.push({ label: 'GATE', items: gate });
-  return groups;
-}
-
-function createPaletteForLevel(level) {
-  const blocks = levelBlockSets[level] || [];
-  return buildPaletteGroups(blocks);
-}
 
 function createPaletteForProblem() {
   const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;

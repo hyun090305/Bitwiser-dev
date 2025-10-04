@@ -1,0 +1,110 @@
+const DEFAULT_GRID_SIZE = 6;
+
+let gridRows = DEFAULT_GRID_SIZE;
+let gridCols = DEFAULT_GRID_SIZE;
+
+export function getGridRows() {
+  return gridRows;
+}
+
+export function getGridCols() {
+  return gridCols;
+}
+
+export function getGridDimensions() {
+  return [gridRows, gridCols];
+}
+
+export function setGridDimensions(rows, cols) {
+  gridRows = rows;
+  gridCols = cols;
+}
+
+export function adjustGridZoom(containerId = 'canvasContainer') {
+  const gridContainer = document.getElementById(containerId);
+  if (!gridContainer) return;
+
+  const margin = 20;
+  let availableWidth = window.innerWidth - margin * 2;
+  let availableHeight = window.innerHeight - margin * 2;
+
+  if (containerId === 'canvasContainer') {
+    const menuBar = document.getElementById('menuBar');
+    if (menuBar) {
+      const menuRect = menuBar.getBoundingClientRect();
+      const isVertical = menuRect.height > menuRect.width;
+      if (isVertical) {
+        availableWidth -= menuRect.width;
+      } else {
+        availableHeight -= menuRect.height;
+      }
+    }
+  }
+
+  const firstCanvas = gridContainer.querySelector('canvas');
+  if (!firstCanvas) return;
+  const dpr = window.devicePixelRatio || 1;
+  const baseWidth = firstCanvas.width / dpr;
+  const baseHeight = firstCanvas.height / dpr;
+
+  const scale = Math.min(
+    availableWidth / baseWidth,
+    availableHeight / baseHeight,
+    1
+  );
+
+  gridContainer.querySelectorAll('canvas').forEach(c => {
+    c.style.width = baseWidth * scale + 'px';
+    c.style.height = baseHeight * scale + 'px';
+    c.dataset.scale = scale;
+  });
+}
+
+export function setupGrid(containerId, rows, cols, paletteGroups) {
+  setGridDimensions(rows, cols);
+  const container = document.getElementById(containerId);
+  if (!container) return Promise.resolve();
+  const prefix = containerId === 'problemCanvasContainer' ? 'problem' : '';
+  const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
+  const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
+  const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
+
+  return import('../canvas/model.js').then(m => {
+    const { makeCircuit } = m;
+    return import('../canvas/controller.js').then(c => {
+      const { createController } = c;
+      const circuit = makeCircuit(rows, cols);
+      const controller = createController(
+        { bgCanvas, contentCanvas, overlayCanvas },
+        circuit,
+        {
+          wireStatusInfo: document.getElementById(
+            prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'
+          ),
+          wireDeleteInfo: document.getElementById(
+            prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo'
+          ),
+          usedBlocksEl: document.getElementById(
+            prefix ? `${prefix}UsedBlocks` : 'usedBlocks'
+          ),
+          usedWiresEl: document.getElementById(
+            prefix ? `${prefix}UsedWires` : 'usedWires'
+          )
+        },
+        {
+          paletteGroups,
+          panelWidth: 180
+        }
+      );
+      if (prefix) {
+        window.problemCircuit = circuit;
+        window.problemController = controller;
+      } else {
+        window.playCircuit = circuit;
+        window.playController = controller;
+      }
+      adjustGridZoom(containerId);
+      return controller;
+    });
+  });
+}
