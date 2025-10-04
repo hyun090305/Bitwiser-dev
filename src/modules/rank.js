@@ -1,5 +1,44 @@
 import { getUsername } from './storage.js';
 
+const fallbackTranslate = key => key;
+
+function resolveTranslator(translate) {
+  if (typeof translate === 'function') return translate;
+  if (typeof t === 'function') return t;
+  return fallbackTranslate;
+}
+
+const getBlockCountSum = entry =>
+  Object.values(entry.blockCounts || {}).reduce((total, count) => total + count, 0);
+
+function sortRankingEntries(entries, mode = 'stage') {
+  if (!Array.isArray(entries)) return [];
+  const cloned = [...entries];
+  if (mode === 'overall') {
+    cloned.sort((a, b) => {
+      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
+      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
+      if (a.wires !== b.wires) return a.wires - b.wires;
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    return cloned;
+  }
+
+  cloned.sort((a, b) => {
+    const aBlocks = getBlockCountSum(a);
+    const bBlocks = getBlockCountSum(b);
+    if (aBlocks !== bBlocks) return aBlocks - bBlocks;
+    if ((a.usedWires ?? 0) !== (b.usedWires ?? 0)) {
+      return (a.usedWires ?? 0) - (b.usedWires ?? 0);
+    }
+    const aHints = a.hintsUsed ?? 0;
+    const bHints = b.hintsUsed ?? 0;
+    if (aHints !== bHints) return aHints - bHints;
+    return new Date(a.timestamp) - new Date(b.timestamp);
+  });
+  return cloned;
+}
+
 export function fetchProgressSummary(nickname) {
   return db.ref('rankings').once('value').then(snap => {
     let cleared = 0;
@@ -51,22 +90,19 @@ export function fetchOverallStats(nickname) {
       wires: v.wires,
       timestamp: v.lastTimestamp
     }));
-    entries.sort((a, b) => {
-      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
-      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
-      if (a.wires !== b.wires) return a.wires - b.wires;
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
-    const idx = entries.findIndex(entry => entry.nickname === nickname);
+    const sortedEntries = sortRankingEntries(entries, 'overall');
+    const idx = sortedEntries.findIndex(entry => entry.nickname === nickname);
     if (idx === -1) return { rank: '-', cleared: 0 };
-    return { rank: idx + 1, cleared: entries[idx].cleared };
+    return { rank: idx + 1, cleared: sortedEntries[idx].cleared };
   });
 }
 
-export function showOverallRanking() {
-  const listEl = document.getElementById('overallRankingList');
+export function showOverallRanking(options = {}) {
+  const { listSelector = '#overallRankingList', translate } = options;
+  const listEl = document.querySelector(listSelector);
   if (!listEl) return Promise.resolve();
   listEl.innerHTML = '로딩 중…';
+  const tr = resolveTranslator(translate);
 
   return db.ref('rankings').once('value').then(snap => {
     const data = {};
@@ -100,19 +136,14 @@ export function showOverallRanking() {
       timestamp: value.lastTimestamp
     }));
 
-    entries.sort((a, b) => {
-      if (a.cleared !== b.cleared) return b.cleared - a.cleared;
-      if (a.blocks !== b.blocks) return a.blocks - b.blocks;
-      if (a.wires !== b.wires) return a.wires - b.wires;
-      return new Date(a.timestamp) - new Date(b.timestamp);
-    });
+    const sortedEntries = sortRankingEntries(entries, 'overall');
 
     let html = `<table>
   <thead><tr>
-    <th>${t('thRank')}</th><th>${t('thNickname')}</th><th>${t('thStage')}</th><th>${t('thBlocks')}</th><th>${t('thWires')}</th>
+    <th>${tr('thRank')}</th><th>${tr('thNickname')}</th><th>${tr('thStage')}</th><th>${tr('thBlocks')}</th><th>${tr('thWires')}</th>
   </tr></thead><tbody>`;
 
-    entries.forEach((entry, index) => {
+    sortedEntries.forEach((entry, index) => {
       let displayName = entry.nickname;
       if (displayName.length > 20) {
         displayName = `${displayName.slice(0, 20)}...`;
@@ -154,10 +185,9 @@ export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed
   };
   const rankingRef = db.ref(`problems/${problemKey}/ranking`);
 
-  const sumBlocks = record => Object.values(record.blockCounts || {}).reduce((sum, count) => sum + count, 0);
   const isBetter = (a, b) => {
-    const aBlocks = sumBlocks(a);
-    const bBlocks = sumBlocks(b);
+    const aBlocks = getBlockCountSum(a);
+    const bBlocks = getBlockCountSum(b);
     if (aBlocks !== bBlocks) return aBlocks < bBlocks;
     if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
     const aHints = a.hintsUsed ?? 0;
@@ -199,10 +229,127 @@ export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed
     });
 }
 
-export function showProblemRanking(problemKey) {
-  const listEl = document.getElementById('rankingList');
-  const modal = document.getElementById('rankingModal');
+export function showRanking(levelId, options = {}) {
+  const {
+    listSelector = '#rankingList',
+    modalSelector = '#rankingModal',
+    refreshButtonSelector = '#refreshRankingBtn',
+    closeButtonSelector = '#closeRankingBtn',
+    translate,
+    getLevelBlockSet
+  } = options;
+
+  const listEl = document.querySelector(listSelector);
+  const modal = document.querySelector(modalSelector);
   if (!listEl || !modal) return;
+
+  const tr = resolveTranslator(translate);
+
+  listEl.innerHTML = '로딩 중…';
+
+  const blockSet = typeof getLevelBlockSet === 'function' ? getLevelBlockSet(levelId) : [];
+  let allowedTypes = Array.from(new Set((blockSet || []).map(b => b.type))).filter(Boolean);
+
+  db.ref(`rankings/${levelId}`)
+    .orderByChild('timestamp')
+    .once('value', snap => {
+      const entries = [];
+      snap.forEach(ch => {
+        entries.push(ch.val());
+        return undefined;
+      });
+
+      if (entries.length === 0) {
+        listEl.innerHTML = `
+        <p>랭킹이 없습니다.</p>
+        <div class="modal-buttons">
+          <button id="refreshRankingBtn">🔄 새로고침</button>
+          <button id="closeRankingBtn">닫기</button>
+        </div>
+      `;
+
+        const refreshBtn = modal.querySelector(refreshButtonSelector);
+        refreshBtn?.addEventListener('click', () => showRanking(levelId, options));
+        const closeBtn = modal.querySelector(closeButtonSelector);
+        closeBtn?.addEventListener('click', () => modal.classList.remove('active'));
+        modal.classList.add('active');
+        return;
+      }
+
+      if (!allowedTypes.length) {
+        allowedTypes = Array.from(
+          new Set(
+            entries.flatMap(entry => Object.keys(entry.blockCounts || {}))
+          )
+        );
+      }
+
+      const sortedEntries = sortRankingEntries(entries, 'stage');
+
+      const headerCols = [
+        `<th>${tr('thRank')}</th>`,
+        `<th>${tr('thNickname')}</th>`,
+        ...allowedTypes.map(type => `<th>${type}</th>`),
+        `<th>${tr('thWires')}</th>`,
+        `<th>${tr('thHintUsed')}</th>`,
+        `<th>${tr('thTime')}</th>`
+      ].join('');
+
+      const bodyRows = sortedEntries
+        .map((entry, index) => {
+          const counts = allowedTypes
+            .map(type => entry.blockCounts?.[type] ?? 0)
+            .map(count => `<td>${count}</td>`)
+            .join('');
+          const timeStr = new Date(entry.timestamp).toLocaleString();
+          const nickname = entry.nickname;
+          const displayNickname = nickname.length > 20 ? `${nickname.slice(0, 20)}...` : nickname;
+          return `
+  <tr>
+    <td>${index + 1}</td>
+    <td>${displayNickname}</td>
+    ${counts}
+    <td>${entry.usedWires}</td>
+    <td>${entry.hintsUsed ?? 0}</td>
+    <td>${timeStr}</td>
+  </tr>`;
+        })
+        .join('');
+
+      listEl.innerHTML = `
+        <div class="rankingTableWrapper">
+          <table>
+            <thead><tr>${headerCols}</tr></thead>
+            <tbody>${bodyRows}</tbody>
+          </table>
+        </div>
+        <div class="modal-buttons">
+          <button id="refreshRankingBtn">🔄 새로고침</button>
+          <button id="closeRankingBtn">닫기</button>
+        </div>
+      `;
+
+      const refreshBtn = modal.querySelector(refreshButtonSelector);
+      refreshBtn?.addEventListener('click', () => showRanking(levelId, options));
+      const closeBtn = modal.querySelector(closeButtonSelector);
+      closeBtn?.addEventListener('click', () => modal.classList.remove('active'));
+    });
+
+  modal.classList.add('active');
+}
+
+export function showProblemRanking(problemKey, options = {}) {
+  const {
+    listSelector = '#rankingList',
+    modalSelector = '#rankingModal',
+    translate
+  } = options;
+
+  const listEl = document.querySelector(listSelector);
+  const modal = document.querySelector(modalSelector);
+  if (!listEl || !modal) return;
+
+  const tr = resolveTranslator(translate);
 
   listEl.innerHTML = '로딩 중…';
   const allowedTypes = ['INPUT', 'OUTPUT', 'AND', 'OR', 'NOT', 'JUNCTION'];
@@ -223,16 +370,15 @@ export function showProblemRanking(problemKey) {
           <button id="refreshRankingBtn">🔄 새로고침</button>
           <button id="closeRankingBtn">닫기</button>
         </div>`;
-        document.getElementById('refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey));
-        document.getElementById('closeRankingBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+        modal.querySelector('#refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey, options));
+        modal.querySelector('#closeRankingBtn')?.addEventListener('click', () => modal.classList.remove('active'));
         modal.classList.add('active');
         return;
       }
 
-      const sumBlocks = record => Object.values(record.blockCounts || {}).reduce((sum, count) => sum + count, 0);
       const isBetter = (a, b) => {
-        const aBlocks = sumBlocks(a);
-        const bBlocks = sumBlocks(b);
+        const aBlocks = getBlockCountSum(a);
+        const bBlocks = getBlockCountSum(b);
         if (aBlocks !== bBlocks) return aBlocks < bBlocks;
         if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
         const aHints = a.hintsUsed ?? 0;
@@ -251,8 +397,8 @@ export function showProblemRanking(problemKey) {
 
       const uniqueEntries = Object.values(bestByNickname);
       uniqueEntries.sort((a, b) => {
-        const aBlocks = sumBlocks(a);
-        const bBlocks = sumBlocks(b);
+        const aBlocks = getBlockCountSum(a);
+        const bBlocks = getBlockCountSum(b);
         if (aBlocks !== bBlocks) return aBlocks - bBlocks;
         if (a.usedWires !== b.usedWires) return a.usedWires - b.usedWires;
         const aHints = a.hintsUsed ?? 0;
@@ -262,12 +408,12 @@ export function showProblemRanking(problemKey) {
       });
 
       const headerCols = [
-        `<th>${t('thRank')}</th>`,
-        `<th>${t('thNickname')}</th>`,
+        `<th>${tr('thRank')}</th>`,
+        `<th>${tr('thNickname')}</th>`,
         ...allowedTypes.map(type => `<th>${type}</th>`),
-        `<th>${t('thWires')}</th>`,
-        `<th>${t('thHintUsed')}</th>`,
-        `<th>${t('thTime')}</th>`
+        `<th>${tr('thWires')}</th>`,
+        `<th>${tr('thHintUsed')}</th>`,
+        `<th>${tr('thTime')}</th>`
       ].join('');
 
       const bodyRows = uniqueEntries
@@ -303,8 +449,159 @@ export function showProblemRanking(problemKey) {
           <button id="closeRankingBtn">닫기</button>
         </div>`;
 
-      document.getElementById('refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey));
-      document.getElementById('closeRankingBtn')?.addEventListener('click', () => modal.classList.remove('active'));
+      modal.querySelector('#refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey, options));
+      modal.querySelector('#closeRankingBtn')?.addEventListener('click', () => modal.classList.remove('active'));
       modal.classList.add('active');
     });
+}
+
+export async function showClearedModal(level, options = {}) {
+  const {
+    modalSelector = '#clearedModal',
+    stageNumberSelector = '#clearedStageNumber',
+    rankingSelector = '#clearedRanking',
+    prevButtonSelector = '#prevStageBtn',
+    nextButtonSelector = '#nextStageBtn',
+    closeButtonSelector = '.closeBtn',
+    translate,
+    loadClearedLevelsFromDb,
+    getLevelTitles,
+    isLevelUnlocked,
+    startLevel,
+    returnToEditScreen
+  } = options;
+
+  if (typeof loadClearedLevelsFromDb === 'function') {
+    await loadClearedLevelsFromDb();
+  }
+
+  const modal = document.querySelector(modalSelector);
+  if (!modal) return;
+
+  const stageNumberEl = document.querySelector(stageNumberSelector);
+  const container = document.querySelector(rankingSelector);
+  if (stageNumberEl) stageNumberEl.textContent = level;
+  if (!container) return;
+
+  const tr = resolveTranslator(translate);
+
+  const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
+
+  const prevBtn = document.querySelector(prevButtonSelector);
+  const nextBtn = document.querySelector(nextButtonSelector);
+
+  if (typeof getLevelTitles === 'function' && typeof isLevelUnlocked === 'function') {
+    const titles = getLevelTitles();
+    if (prevBtn) prevBtn.disabled = !(titles[level - 1] && isLevelUnlocked(level - 1));
+    if (nextBtn) nextBtn.disabled = !(titles[level + 1] && isLevelUnlocked(level + 1));
+  }
+
+  db.ref(`rankings/${level}`)
+    .orderByChild('timestamp')
+    .once('value')
+    .then(snapshot => {
+      if (!snapshot.exists()) {
+        const noRankingText = tr('noRanking');
+        container.innerHTML = `
+          <p>${noRankingText && noRankingText !== 'noRanking' ? noRankingText : '랭킹이 없습니다.'}</p>
+        `;
+      } else {
+        const entries = [];
+        snapshot.forEach(child => {
+          entries.push(child.val());
+          return undefined;
+        });
+
+        const sortedEntries = sortRankingEntries(entries, 'stage');
+
+        let html = `
+          <table class="rankingTable">
+            <tr><th>${tr('thRank')}</th><th>${tr('thNickname')}</th><th>${tr('thHintUsed')}</th><th>${tr('thTime')}</th></tr>
+        `;
+        sortedEntries.forEach((entry, index) => {
+          const timeStr = new Date(entry.timestamp).toLocaleString();
+          const cls = entry.nickname === currentNickname ? 'highlight' : '';
+          html += `
+            <tr class="${cls}">
+              <td>${index + 1}</td>
+              <td>${entry.nickname}</td>
+              <td>${entry.hintsUsed ?? 0}</td>
+              <td>${timeStr}</td>
+            </tr>
+          `;
+        });
+        html += `</table>`;
+        container.innerHTML = html;
+      }
+
+      if (prevBtn) {
+        prevBtn.onclick = () => {
+          modal.style.display = 'none';
+          if (typeof returnToEditScreen === 'function') returnToEditScreen();
+          if (typeof startLevel === 'function') startLevel(level - 1);
+        };
+      }
+      if (nextBtn) {
+        nextBtn.onclick = () => {
+          modal.style.display = 'none';
+          if (typeof returnToEditScreen === 'function') returnToEditScreen();
+          if (typeof startLevel === 'function') startLevel(level + 1);
+        };
+      }
+      const closeBtn = modal.querySelector(closeButtonSelector);
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          modal.style.display = 'none';
+        };
+      }
+
+      modal.style.display = 'flex';
+    })
+    .catch(err => console.error('랭킹 로드 실패:', err));
+}
+
+export function initializeRankingUI(options = {}) {
+  const {
+    viewRankingButtonSelector = '#viewRankingBtn',
+    rankingListSelector = '#rankingList',
+    rankingModalSelector = '#rankingModal',
+    translate,
+    getCurrentLevel,
+    getActiveCustomProblemKey,
+    getLevelBlockSet,
+    alert: alertFn
+  } = options;
+
+  const button = document.querySelector(viewRankingButtonSelector);
+  if (!button) return;
+
+  const tr = resolveTranslator(translate);
+
+  button.addEventListener('click', () => {
+    const level = typeof getCurrentLevel === 'function' ? getCurrentLevel() : null;
+    const customProblemKey =
+      typeof getActiveCustomProblemKey === 'function' ? getActiveCustomProblemKey() : null;
+
+    if (level != null) {
+      showRanking(level, {
+        listSelector: rankingListSelector,
+        modalSelector: rankingModalSelector,
+        translate: tr,
+        getLevelBlockSet
+      });
+      return;
+    }
+
+    if (customProblemKey) {
+      showProblemRanking(customProblemKey, {
+        listSelector: rankingListSelector,
+        modalSelector: rankingModalSelector,
+        translate: tr
+      });
+      return;
+    }
+
+    const handler = alertFn ?? (typeof alert === 'function' ? alert : console.warn);
+    handler('먼저 레벨을 선택해주요.');
+  });
 }
