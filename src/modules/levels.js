@@ -1,4 +1,4 @@
-import { setupGrid, setGridDimensions } from './grid.js';
+import { setupGrid, setGridDimensions, destroyPlayContext } from './grid.js';
 import { getUsername } from './storage.js';
 
 const DEFAULT_GRID_SIZE = 6;
@@ -173,9 +173,7 @@ export async function returnToLevels({
   isCustomProblemActive = false,
   onClearCustomProblem
 } = {}) {
-  window.playController?.destroy?.();
-  window.playController = null;
-  window.playCircuit = null;
+  destroyPlayContext();
   document.body.classList.remove('game-active');
 
   const gameScreen = document.getElementById('gameScreen');
