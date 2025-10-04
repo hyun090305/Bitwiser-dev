@@ -19,6 +19,11 @@ import {
 import * as guestbookModule from './modules/guestbook.js';
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
+import {
+  setupNavigation,
+  lockOrientationLandscape,
+  isMobileDevice
+} from './modules/navigation.js';
 
 // Temporarily reference placeholder modules to avoid unused-import warnings during the migration.
 void guestbookModule;
@@ -288,257 +293,10 @@ function setupKeyToggles() {
 
 
 
-const mainScreen = document.getElementById("firstScreen");
 const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const chapterListEl = document.getElementById("chapterList");
 const stageListEl = document.getElementById("stageList");
-
-// 모바일 내비게이션을 통한 firstScreen 전환
-const overallRankingAreaEl = document.getElementById("overallRankingArea");
-const mainScreenSection = document.getElementById("mainArea");
-const guestbookAreaEl = document.getElementById("guestbookArea");
-const mobileNav = document.getElementById("mobileNav");
-const firstScreenEl = document.getElementById("firstScreen");
-
-if (mobileNav && firstScreenEl) {
-  const tabs = [overallRankingAreaEl, mainScreenSection, guestbookAreaEl];
-  const tabHashes = ["#ranking", "#home", "#guestbook"];
-  const hashToIndex = { "#ranking": 0, "#home": 1, "#guestbook": 2 };
-  let activeTabIndex = hashToIndex[location.hash] ?? 1;
-  let isTransitioning = false;
-  let startX = 0, startY = 0, isSwiping = false;
-  let swipeThreshold = window.innerWidth * 0.25;
-  let hashLock = false;
-
-  function updateNavActive() {
-    mobileNav.querySelectorAll(".nav-item").forEach((nav, i) => {
-      nav.classList.toggle("active", i === activeTabIndex);
-      nav.setAttribute("aria-selected", i === activeTabIndex ? "true" : "false");
-    });
-  }
-
-  function focusFirstInActiveTab() {
-    const focusable = tabs[activeTabIndex].querySelector(
-      'button, [href], input, textarea, select, [tabindex]:not([tabindex="-1"])'
-    );
-    if (focusable) focusable.focus();
-  }
-
-  function syncHash(index) {
-    hashLock = true;
-    location.hash = tabHashes[index];
-    setTimeout(() => (hashLock = false), 0);
-  }
-
-  function initMobile() {
-    tabs.forEach((tab, i) => {
-      tab.style.display = "flex";
-      tab.style.transition = "";
-      tab.style.transform = `translateX(${(i - activeTabIndex) * 100}%)`;
-      tab.style.opacity = i === activeTabIndex ? "1" : "0";
-      tab.style.pointerEvents = i === activeTabIndex ? "auto" : "none";
-      tab.classList.toggle("active", i === activeTabIndex);
-    });
-    updateNavActive();
-    swipeThreshold = window.innerWidth * 0.25;
-    syncHash(activeTabIndex);
-    focusFirstInActiveTab();
-    refreshUserData();
-  }
-
-  function resetDesktop() {
-    tabs.forEach(tab => {
-      tab.style.transition = "";
-      tab.style.transform = "";
-      tab.style.opacity = "";
-      tab.style.pointerEvents = "";
-      tab.style.display = "";
-      tab.classList.remove("active");
-    });
-  }
-
-  function goToTab(index) {
-    if (isTransitioning || index === activeTabIndex || index < 0 || index >= tabs.length)
-      return;
-    const direction = index > activeTabIndex ? 1 : -1;
-    const current = tabs[activeTabIndex];
-    const next = tabs[index];
-    isTransitioning = true;
-
-    next.style.transition = "none";
-    next.style.transform = `translateX(${100 * direction}%)`;
-    next.style.opacity = "0";
-    next.style.pointerEvents = "none";
-    next.classList.add("active");
-
-    requestAnimationFrame(() => {
-      current.style.transition =
-        next.style.transition = "transform 0.3s ease, opacity 0.3s ease";
-      current.style.transform = `translateX(${-100 * direction}%)`;
-      current.style.opacity = "0";
-      next.style.transform = "translateX(0)";
-      next.style.opacity = "1";
-      next.style.pointerEvents = "auto";
-    });
-
-    next.addEventListener(
-      "transitionend",
-      () => {
-        current.style.transition = "";
-        next.style.transition = "";
-        current.style.pointerEvents = "none";
-        current.classList.remove("active");
-        current.style.transform = `translateX(${ -100 * direction }%)`;
-        activeTabIndex = index;
-        updateNavActive();
-        focusFirstInActiveTab();
-        syncHash(activeTabIndex);
-        refreshUserData();
-        isTransitioning = false;
-      },
-      { once: true }
-    );
-  }
-
-  mobileNav.querySelectorAll(".nav-item").forEach((item, i) => {
-    item.addEventListener("click", () => goToTab(i));
-  });
-
-  function onTouchStart(e) {
-    if (isTransitioning || window.innerWidth >= 1024) return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    isSwiping = true;
-  }
-
-  function onTouchMove(e) {
-    if (!isSwiping) return;
-    const dx = e.touches[0].clientX - startX;
-    const dy = e.touches[0].clientY - startY;
-    if (Math.abs(dy) > Math.abs(dx)) {
-      isSwiping = false;
-      tabs[activeTabIndex].style.transform = "translateX(0)";
-      return;
-    }
-    tabs[activeTabIndex].style.transition = "none";
-    tabs[activeTabIndex].style.transform = `translateX(${dx}px)`;
-  }
-
-  function onTouchEnd(e) {
-    if (!isSwiping) return;
-    const dx = e.changedTouches[0].clientX - startX;
-    const dy = e.changedTouches[0].clientY - startY;
-    const absDx = Math.abs(dx);
-    const current = tabs[activeTabIndex];
-    current.style.transition = "transform 0.3s ease";
-    current.style.transform = "translateX(0)";
-    if (absDx > swipeThreshold && absDx > Math.abs(dy)) {
-      if (dx < 0 && activeTabIndex < tabs.length - 1) {
-        goToTab(activeTabIndex + 1);
-      } else if (dx > 0 && activeTabIndex > 0) {
-        goToTab(activeTabIndex - 1);
-      }
-    }
-    isSwiping = false;
-  }
-
-  firstScreenEl.addEventListener("touchstart", onTouchStart, { passive: true });
-  firstScreenEl.addEventListener("touchmove", onTouchMove, { passive: true });
-  firstScreenEl.addEventListener("touchend", onTouchEnd);
-
-  window.addEventListener("hashchange", () => {
-    if (hashLock) return;
-    const idx = hashToIndex[location.hash];
-    if (idx !== undefined && idx !== activeTabIndex) {
-      goToTab(idx);
-    }
-  });
-
-  function handleResize() {
-    swipeThreshold = window.innerWidth * 0.25;
-    if (window.innerWidth >= 1024) {
-      resetDesktop();
-    } else {
-      initMobile();
-    }
-  }
-
-  window.addEventListener("resize", handleResize);
-  document.addEventListener("DOMContentLoaded", handleResize);
-}
-
-function lockOrientationLandscape() {
-  if (screen.orientation && screen.orientation.lock) {
-    screen.orientation.lock('landscape').catch(err => {
-      console.warn('Orientation lock failed:', err);
-    });
-  }
-}
-
-document.getElementById("startBtn").onclick = () => {
-  lockOrientationLandscape();
-  renderChapterList();
-  if (chapterData.length > 0) selectChapter(0);
-
-  const leftPanel = document.getElementById('overallRankingArea');
-  const rightPanel = document.getElementById('guestbookArea');
-  const mainScreen = document.getElementById('mainScreen');
-  const firstScreen = document.getElementById('firstScreen');
-
-  leftPanel.classList.add('slide-out-left');
-  rightPanel.classList.add('slide-out-right');
-  mainScreen.classList.add('fade-scale-out');
-
-  setTimeout(() => {
-    firstScreen.style.display = 'none';
-    leftPanel.classList.remove('slide-out-left');
-    rightPanel.classList.remove('slide-out-right');
-    mainScreen.classList.remove('fade-scale-out');
-
-    chapterStageScreen.style.display = 'block';
-    chapterStageScreen.classList.add('stage-screen-enter');
-    refreshUserData();
-    chapterStageScreen.addEventListener('animationend', () => {
-      chapterStageScreen.classList.remove('stage-screen-enter');
-    }, { once: true });
-  }, 200);
-};
-
-document.getElementById("backToMainFromChapter").onclick = () => {
-  const firstScreen = document.getElementById('firstScreen');
-  const leftPanel = document.getElementById('overallRankingArea');
-  const rightPanel = document.getElementById('guestbookArea');
-  const mainScreen = document.getElementById('mainScreen');
-
-  chapterStageScreen.classList.add('stage-screen-exit');
-  chapterStageScreen.addEventListener('animationend', () => {
-    chapterStageScreen.classList.remove('stage-screen-exit');
-    chapterStageScreen.style.display = 'none';
-
-    firstScreen.style.display = '';
-    if (!isMobileDevice()) {
-      leftPanel.classList.add('slide-in-left');
-      rightPanel.classList.add('slide-in-right');
-      mainScreen.classList.add('fade-scale-in');
-      leftPanel.addEventListener('animationend', () => {
-        leftPanel.classList.remove('slide-in-left');
-        window.dispatchEvent(new Event('resize'));
-      }, { once: true });
-      rightPanel.addEventListener('animationend', () => {
-        rightPanel.classList.remove('slide-in-right');
-        window.dispatchEvent(new Event('resize'));
-      }, { once: true });
-      mainScreen.addEventListener('animationend', () => {
-        mainScreen.classList.remove('fade-scale-in');
-        window.dispatchEvent(new Event('resize'));
-      }, { once: true });
-    } else {
-      window.dispatchEvent(new Event('resize'));
-    }
-    refreshUserData();
-  }, { once: true });
-};
 
 document.getElementById("toggleChapterList").onclick = () => {
   chapterListEl.classList.toggle('hidden');
@@ -2042,6 +1800,15 @@ document.addEventListener("DOMContentLoaded", () => {
   setupSettings();
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
+    setupNavigation({
+      refreshUserData,
+      renderChapterList,
+      selectChapter: index => {
+        if (chapterData.length > index) {
+          selectChapter(index);
+        }
+      }
+    });
     hideLoadingScreen();
   });
 });
@@ -3695,10 +3462,6 @@ if (exportBtn) {
 const orientationModal = document.getElementById('orientationModal');
 const rotateLandscapeBtn = document.getElementById('rotateLandscapeBtn');
 const closeOrientationBtn = document.getElementById('closeOrientationBtn');
-
-function isMobileDevice() {
-  return /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-}
 
 function checkOrientation() {
   if (!orientationModal) return;
