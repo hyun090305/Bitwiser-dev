@@ -21,7 +21,21 @@ import {
   adjustGridZoom,
   setupGrid,
   setGridDimensions,
-  getGridCols
+  getGridCols,
+  clearGrid,
+  clearWires,
+  markCircuitModified,
+  moveCircuit,
+  setupMenuToggle,
+  collapseMenuBarForMobile,
+  onCircuitModified,
+  getActiveCircuit,
+  getActiveController,
+  getPlayCircuit,
+  getPlayController,
+  getProblemCircuit,
+  getProblemController,
+  destroyProblemContext
 } from './modules/grid.js';
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
@@ -70,6 +84,10 @@ let currentCustomProblemKey = null;
 let problemOutputsValid = false;
 let problemScreenPrev = null;  // 문제 출제 화면 진입 이전 화면 기록
 let loginFromMainScreen = false;  // 메인 화면에서 로그인 여부 추적
+
+onCircuitModified(() => {
+  problemOutputsValid = false;
+});
 
 let lastSavedKey = null;
 let pendingClearedLevel = null;
@@ -640,17 +658,24 @@ document.addEventListener('keydown', e => {
     default: return;
   }
   e.preventDefault();
-  moveCircuit(dx, dy);
+  moveCircuit(dx, dy, { isProblemFixed: currentCustomProblem?.fixIO });
 });
 
-if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveCircuit(0, -1));
-if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveCircuit(0, 1));
-if (moveLeftBtn)  moveLeftBtn.addEventListener('click', () => moveCircuit(-1, 0));
-if (moveRightBtn) moveRightBtn.addEventListener('click', () => moveCircuit(1, 0));
-if (problemMoveUpBtn)    problemMoveUpBtn.addEventListener('click', () => moveCircuit(0, -1));
-if (problemMoveDownBtn)  problemMoveDownBtn.addEventListener('click', () => moveCircuit(0, 1));
-if (problemMoveLeftBtn)  problemMoveLeftBtn.addEventListener('click', () => moveCircuit(-1, 0));
-if (problemMoveRightBtn) problemMoveRightBtn.addEventListener('click', () => moveCircuit(1, 0));
+const moveWithConstraints = (dx, dy) =>
+  moveCircuit(dx, dy, { isProblemFixed: currentCustomProblem?.fixIO });
+
+if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveWithConstraints(0, -1));
+if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveWithConstraints(0, 1));
+if (moveLeftBtn)  moveLeftBtn.addEventListener('click', () => moveWithConstraints(-1, 0));
+if (moveRightBtn) moveRightBtn.addEventListener('click', () => moveWithConstraints(1, 0));
+if (problemMoveUpBtn)
+  problemMoveUpBtn.addEventListener('click', () => moveWithConstraints(0, -1));
+if (problemMoveDownBtn)
+  problemMoveDownBtn.addEventListener('click', () => moveWithConstraints(0, 1));
+if (problemMoveLeftBtn)
+  problemMoveLeftBtn.addEventListener('click', () => moveWithConstraints(-1, 0));
+if (problemMoveRightBtn)
+  problemMoveRightBtn.addEventListener('click', () => moveWithConstraints(1, 0));
 
 
 
@@ -1243,43 +1268,10 @@ function setupGoogleAuth() {
   });
 }
 
-function setupMenuToggle() {
-  const menuBar = document.getElementById('menuBar');
-  const gameArea = document.getElementById('gameArea');
-  const toggleBtn = document.getElementById('menuToggleBtn');
-  if (!menuBar || !gameArea || !toggleBtn) return;
-
-  menuBar.addEventListener('transitionend', e => {
-    if (e.propertyName === 'width') {
-      adjustGridZoom();
-    }
-  });
-
-  toggleBtn.addEventListener('click', () => {
-    menuBar.classList.toggle('collapsed');
-    gameArea.classList.toggle('menu-collapsed');
-    adjustGridZoom();
-  });
-}
-
-function collapseMenuBarForMobile() {
-  const menuBar = document.getElementById('menuBar');
-  const gameArea = document.getElementById('gameArea');
-  if (!menuBar || !gameArea) return;
-
-  if (window.matchMedia('(max-width: 1024px)').matches) {
-    menuBar.classList.add('collapsed');
-    gameArea.classList.add('menu-collapsed');
-  } else {
-    menuBar.classList.remove('collapsed');
-    gameArea.classList.remove('menu-collapsed');
-  }
-
-  adjustGridZoom();
-  updatePadding();
-}
-
-configureLevelModule({ onLevelIntroComplete: collapseMenuBarForMobile });
+configureLevelModule({
+  onLevelIntroComplete: () =>
+    collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
+});
 function setupSettings() {
   const btn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
@@ -1745,14 +1737,14 @@ function applyCircuitData(data, key) {
     alert(t('incompatibleCircuit'));
     return;
   }
-  const circuit = window.playCircuit || window.problemCircuit;
+  const circuit = getActiveCircuit();
   if (!circuit) return;
   circuit.rows = data.circuit.rows;
   circuit.cols = data.circuit.cols;
   circuit.blocks = data.circuit.blocks || {};
   circuit.wires = data.circuit.wires || {};
   markCircuitModified();
-  const controller = window.playController || window.problemController;
+  const controller = getActiveController();
   controller?.syncPaletteWithCircuit?.();
   controller?.clearSelection?.();
   if (key) lastSavedKey = key;
@@ -1760,7 +1752,7 @@ function applyCircuitData(data, key) {
 
 
 async function saveCircuit(progressCallback) {
-  const circuit = window.playCircuit || window.problemCircuit;
+  const circuit = getActiveCircuit();
   if (!circuit) throw new Error('No circuit to save');
 
   await ensureDriveAuth();
@@ -1802,56 +1794,6 @@ async function saveCircuit(progressCallback) {
     console.error('Circuit save failed:', e);
     alert('회로 저장 중 오류가 발생했습니다.');
     throw e;
-  }
-}
-// 이전: clearGrid 미정의
-function clearGrid() {
-  // Canvas 기반 회로 초기화
-  if (window.playCircuit) {
-    window.playCircuit.blocks = {};
-    window.playCircuit.wires = {};
-  }
-  if (window.problemCircuit) {
-    window.problemCircuit.blocks = {};
-    window.problemCircuit.wires = {};
-  }
-  markCircuitModified();
-  window.playController?.clearSelection?.();
-  window.problemController?.clearSelection?.();
-}
-
-function clearWires() {
-  if (window.playCircuit) {
-    window.playCircuit.wires = {};
-  }
-  if (window.problemCircuit) {
-    window.problemCircuit.wires = {};
-  }
-  markCircuitModified();
-  window.playController?.clearSelection?.();
-  window.problemController?.clearSelection?.();
-}
-
-  function markCircuitModified() {
-    problemOutputsValid = false;
-    window.playController?.syncPaletteWithCircuit?.();
-    window.problemController?.syncPaletteWithCircuit?.();
-  }
-
-
-function moveCircuit(dx, dy) {
-  const controller = window.problemController || window.playController;
-  if (!controller) return;
-  const hasSelection = controller.state?.selection;
-  let moved = false;
-  if (hasSelection) {
-    moved = controller.moveSelection?.(dy, dx);
-  } else {
-    if (controller === window.problemController && currentCustomProblem?.fixIO) return;
-    moved = controller.moveCircuit(dx, dy);
-  }
-  if (moved) {
-    markCircuitModified();
   }
 }
 
@@ -2023,9 +1965,9 @@ async function showClearedModal(level) {
 function getCurrentController() {
   const problemScreen = document.getElementById("problem-screen");
   if (problemScreen && problemScreen.style.display !== "none") {
-    return window.problemController;
+    return getProblemController();
   }
-  return window.playController;
+  return getPlayController();
 }
 const createProblemBtn         = document.getElementById('createProblemBtn');
 const problemScreen            = document.getElementById('problem-screen');
@@ -2056,9 +1998,7 @@ if (createProblemBtn) {
 
 //— ⑤ 문제 출제 화면 → 메인
 backToMainFromProblem.addEventListener('click', () => {
-  window.problemController?.destroy?.();
-  window.problemController = null;
-  window.problemCircuit = null;
+  destroyProblemContext();
   problemScreen.style.display = 'none';
   if (problemScreenPrev === 'userProblems') {
     userProblemsScreen.style.display = 'block';
@@ -2229,7 +2169,7 @@ function addTestcaseRow() {
 
 // ----- 사용자 정의 문제 저장/불러오기 -----
 function getProblemGridData() {
-  const circuit = window.problemCircuit;
+  const circuit = getProblemCircuit();
   if (!circuit) return [];
   const cols = getGridCols();
   return Object.values(circuit.blocks).map(b => ({
@@ -2242,7 +2182,7 @@ function getProblemGridData() {
 }
 
 function getProblemWireData() {
-  const circuit = window.problemCircuit;
+  const circuit = getProblemCircuit();
   if (!circuit) return [];
   const wires = [];
   Object.values(circuit.wires).forEach(w => {
@@ -2278,7 +2218,7 @@ function getProblemTruthTable() {
 }
 
 function collectProblemData() {
-  const circuit = window.problemCircuit;
+  const circuit = getProblemCircuit();
   const cols = getGridCols();
   const wiresObj = circuit
     ? Object.values(circuit.wires).map(w => ({
@@ -2569,7 +2509,7 @@ function showHint(index) {
 }
 
 function placeFixedIO(problem) {
-  window.playController?.placeFixedIO?.(problem);
+  getPlayController()?.placeFixedIO?.(problem);
 }
 
 async function startCustomProblem(key, problem) {
@@ -2592,7 +2532,7 @@ async function startCustomProblem(key, problem) {
   const rp = document.getElementById('rightPanel');
   if (rp) rp.style.display = 'block';
   document.body.classList.add('game-active');
-  collapseMenuBarForMobile();
+  collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
 }
 
 
@@ -2610,7 +2550,7 @@ function getCircuitStats(circuit) {
 
 async function gradeLevelCanvas(level) {
   const testCases = getLevelAnswer(level);
-  const circuit = window.playCircuit;
+  const circuit = getPlayCircuit();
   if (!testCases || !circuit) return;
   const { evaluateCircuit } = await import('./canvas/engine.js');
 
@@ -2791,7 +2731,7 @@ async function gradeLevelCanvas(level) {
 }
 
 async function gradeProblemCanvas(key, problem) {
-  const circuit = window.playCircuit;
+  const circuit = getPlayCircuit();
   if (!circuit) return;
   const inNames = Array.from({ length: problem.inputCount }, (_, i) => 'IN' + (i + 1));
   const outNames = Array.from({ length: problem.outputCount }, (_, i) => 'OUT' + (i + 1));
@@ -2925,7 +2865,8 @@ async function captureGIF(onFinish) {
 
   try {
     const { CELL, GAP } = await import('./canvas/model.js');
-    const circuit = window.playController?.circuit || window.problemController?.circuit;
+    const controller = getActiveController();
+    const circuit = controller?.circuit || getActiveCircuit();
     if (circuit) {
       gridWidth = circuit.cols * (CELL + GAP) + GAP;
       gridHeight = circuit.rows * (CELL + GAP) + GAP;
@@ -3049,7 +2990,7 @@ function createPaletteForCustom(problem) {
 }
 
 async function computeProblemOutputs() {
-  const circuit = window.problemCircuit;
+  const circuit = getProblemCircuit();
   if (!circuit) return;
   const inputCnt = parseInt(document.getElementById('inputCount').value) || 1;
   const outputCnt = parseInt(document.getElementById('outputCount').value) || 1;
