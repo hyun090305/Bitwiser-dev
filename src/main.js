@@ -473,7 +473,7 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
       chapterStageScreen
     }
   }
-}) ?? {};
+}) ?? {});
 
 
 document.addEventListener('keydown', e => {
