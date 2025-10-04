@@ -10,8 +10,13 @@ import {
 } from './grid.js';
 import { getUsername } from './storage.js';
 
+let creationFlowConfig = null;
 let startCustomProblemHandler = null;
+let paletteGroupsBuilder = blocks => blocks;
+let previousScreen = null;
 let problemOutputsValid = false;
+let activeCustomProblem = null;
+let activeCustomProblemKey = null;
 
 function clamp(value, min, max, fallback) {
   const num = Number.parseInt(value, 10);
@@ -19,19 +24,70 @@ function clamp(value, min, max, fallback) {
   return Math.min(max, Math.max(min, num));
 }
 
-export function setCustomProblemStartHandler(handler) {
-  startCustomProblemHandler = typeof handler === 'function' ? handler : null;
-}
-
 export function invalidateProblemOutputs() {
   problemOutputsValid = false;
 }
 
-export function markProblemOutputsValid() {
+function markProblemOutputsValid() {
   problemOutputsValid = true;
 }
 
-export function initializeProblemEditorUI(createPaletteForProblem) {
+function getElement(id) {
+  if (!id) return null;
+  return document.getElementById(id);
+}
+
+function showElement(id, display = '') {
+  const el = getElement(id);
+  if (el) el.style.display = display;
+}
+
+function hideElement(id) {
+  const el = getElement(id);
+  if (el) el.style.display = 'none';
+}
+
+function createPaletteForProblem() {
+  const builder = typeof paletteGroupsBuilder === 'function'
+    ? paletteGroupsBuilder
+    : blocks => blocks;
+  const inputEl = document.getElementById('inputCount');
+  const outputEl = document.getElementById('outputCount');
+  const inputCnt = Number.parseInt(inputEl?.value, 10) || 1;
+  const outputCnt = Number.parseInt(outputEl?.value, 10) || 1;
+  const blocks = [];
+  for (let i = 1; i <= inputCnt; i += 1) {
+    blocks.push({ type: 'INPUT', name: `IN${i}` });
+  }
+  for (let j = 1; j <= outputCnt; j += 1) {
+    blocks.push({ type: 'OUTPUT', name: `OUT${j}` });
+  }
+  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(type => {
+    blocks.push({ type });
+  });
+  return builder(blocks);
+}
+
+function createPaletteForCustom(problem) {
+  const builder = typeof paletteGroupsBuilder === 'function'
+    ? paletteGroupsBuilder
+    : blocks => blocks;
+  const blocks = [];
+  if (!problem?.fixIO) {
+    for (let i = 1; i <= (problem?.inputCount || 0); i += 1) {
+      blocks.push({ type: 'INPUT', name: `IN${i}` });
+    }
+    for (let j = 1; j <= (problem?.outputCount || 0); j += 1) {
+      blocks.push({ type: 'OUTPUT', name: `OUT${j}` });
+    }
+  }
+  ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(type => {
+    blocks.push({ type });
+  });
+  return builder(blocks);
+}
+
+export function initializeProblemEditorUI() {
   const inputEl = document.getElementById('inputCount');
   const outputEl = document.getElementById('outputCount');
   if (!inputEl || !outputEl) return;
@@ -46,9 +102,7 @@ export function initializeProblemEditorUI(createPaletteForProblem) {
   if (rowsEl) rowsEl.value = rows;
   if (colsEl) colsEl.value = cols;
 
-  const palette = typeof createPaletteForProblem === 'function'
-    ? createPaletteForProblem()
-    : undefined;
+  const palette = createPaletteForProblem();
   setupGrid('problemCanvasContainer', rows, cols, palette);
   clearGrid();
   clearWires();
@@ -286,6 +340,195 @@ export function saveProblem() {
   return true;
 }
 
+function enterProblemScreen(from) {
+  if (!creationFlowConfig) return;
+  const { ids } = creationFlowConfig;
+  previousScreen = from;
+  if (from === 'main') {
+    hideElement(ids.firstScreenId);
+  } else if (from === 'userProblems') {
+    hideElement(ids.userProblemsScreenId);
+  } else {
+    hideElement(ids.chapterStageScreenId);
+  }
+  const displayMode = from === 'main' ? 'block' : 'flex';
+  showElement(ids.problemScreenId, displayMode);
+  initializeProblemEditorUI();
+}
+
+function leaveProblemScreen() {
+  if (!creationFlowConfig) return;
+  const { ids, onDestroyProblemContext, onRefreshUserData } = creationFlowConfig;
+  onDestroyProblemContext?.();
+  hideElement(ids.problemScreenId);
+  if (previousScreen === 'userProblems') {
+    showElement(ids.userProblemsScreenId, 'block');
+  } else if (previousScreen === 'main') {
+    showElement(ids.firstScreenId);
+  } else {
+    showElement(ids.chapterStageScreenId, 'block');
+  }
+  onRefreshUserData?.();
+  previousScreen = null;
+}
+
+function computeProblemOutputs() {
+  const circuit = getProblemCircuit();
+  if (!circuit) return;
+  const inputCnt = parseInt(document.getElementById('inputCount')?.value, 10) || 1;
+  const outputCnt = parseInt(document.getElementById('outputCount')?.value, 10) || 1;
+  const inNames = Array.from({ length: inputCnt }, (_, i) => `IN${i + 1}`);
+  const outNames = Array.from({ length: outputCnt }, (_, i) => `OUT${i + 1}`);
+
+  const blocks = Object.values(circuit.blocks);
+  const actualOutputs = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
+  const missing = outNames.filter(n => !actualOutputs.includes(n));
+  if (missing.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missing.join(', ')));
+    return;
+  }
+
+  const inputs = inNames.map(name =>
+    blocks.find(b => b.type === 'INPUT' && b.name === name)
+  );
+  const outputs = outNames.map(name =>
+    blocks.find(b => b.type === 'OUTPUT' && b.name === name)
+  );
+
+  const rows = document.querySelectorAll('#testcaseTable tbody tr');
+  import('./canvas/engine.js').then(({ evaluateCircuit }) => {
+    rows.forEach(tr => {
+      const cells = tr.querySelectorAll('td');
+      inputs.forEach((inp, i) => {
+        if (inp) inp.value = cells[i].textContent.trim() === '1';
+      });
+      evaluateCircuit(circuit);
+      outputs.forEach((out, j) => {
+        if (out) cells[inputCnt + j].textContent = out.value ? 1 : 0;
+      });
+    });
+    markProblemOutputsValid();
+  });
+}
+
+function getModalBackdrop(selector) {
+  if (!selector) return null;
+  return document.querySelector(selector);
+}
+
+function showProblemSaveModal(modal, titleInput, descInput, fixIOCheck) {
+  if (titleInput) titleInput.value = '';
+  if (descInput) descInput.value = '';
+  if (fixIOCheck) fixIOCheck.checked = false;
+  if (modal) {
+    modal.style.display = 'flex';
+    titleInput?.focus();
+  }
+}
+
+export function initializeProblemCreationFlow({
+  ids = {},
+  buildPaletteGroups,
+  onDestroyProblemContext,
+  onRefreshUserData,
+  onStartCustomProblem
+} = {}) {
+  paletteGroupsBuilder = typeof buildPaletteGroups === 'function'
+    ? buildPaletteGroups
+    : paletteGroupsBuilder;
+  creationFlowConfig = {
+    ids,
+    onDestroyProblemContext,
+    onRefreshUserData
+  };
+  startCustomProblemHandler = typeof onStartCustomProblem === 'function'
+    ? onStartCustomProblem
+    : null;
+
+  const createProblemBtn = getElement(ids.createProblemBtnId);
+  if (createProblemBtn) {
+    createProblemBtn.addEventListener('click', () => enterProblemScreen('main'));
+  }
+
+  const backButton = getElement(ids.backButtonId);
+  if (backButton) {
+    backButton.addEventListener('click', leaveProblemScreen);
+  }
+
+  const openProblemCreatorBtn = getElement(ids.openProblemCreatorBtnId);
+  if (openProblemCreatorBtn) {
+    openProblemCreatorBtn.addEventListener('click', () => enterProblemScreen('userProblems'));
+  }
+
+  const updateIOBtn = getElement(ids.updateIOBtnId);
+  if (updateIOBtn) {
+    updateIOBtn.addEventListener('click', () => {
+      alert('입출력/그리드 설정을 변경하면 회로가 초기화됩니다.');
+      initializeProblemEditorUI();
+    });
+  }
+
+  const addRowBtn = getElement(ids.addRowBtnId);
+  if (addRowBtn) addRowBtn.style.display = 'none';
+
+  const computeOutputsBtn = getElement(ids.computeOutputsBtnId);
+  if (computeOutputsBtn) {
+    computeOutputsBtn.addEventListener('click', computeProblemOutputs);
+  }
+
+  const problemSaveModal = getElement(ids.problemSaveModalId);
+  const problemTitleInput = getElement(ids.problemTitleInputId);
+  const problemDescInput = getElement(ids.problemDescInputId);
+  const fixIOCheck = getElement(ids.fixIOCheckId);
+
+  const saveProblemBtn = getElement(ids.saveProblemBtnId);
+  if (saveProblemBtn) {
+    saveProblemBtn.addEventListener('click', () =>
+      showProblemSaveModal(problemSaveModal, problemTitleInput, problemDescInput, fixIOCheck)
+    );
+  }
+
+  const confirmSaveProblemBtn = getElement(ids.confirmSaveProblemBtnId);
+  if (confirmSaveProblemBtn) {
+    confirmSaveProblemBtn.addEventListener('click', () => {
+      if (saveProblem()) {
+        if (problemSaveModal) problemSaveModal.style.display = 'none';
+      }
+    });
+  }
+
+  const cancelSaveProblemBtn = getElement(ids.cancelSaveProblemBtnId);
+  if (cancelSaveProblemBtn) {
+    cancelSaveProblemBtn.addEventListener('click', () => {
+      if (problemSaveModal) problemSaveModal.style.display = 'none';
+    });
+  }
+
+  const backdrop = getModalBackdrop(ids.problemModalBackdropSelector);
+  if (backdrop && problemSaveModal) {
+    backdrop.addEventListener('click', () => {
+      problemSaveModal.style.display = 'none';
+    });
+  }
+
+  const closeProblemListModalBtn = getElement(ids.closeProblemListModalBtnId);
+  if (closeProblemListModalBtn) {
+    closeProblemListModalBtn.addEventListener('click', () => {
+      const modal = getElement(ids.problemListModalId);
+      if (modal) modal.style.display = 'none';
+    });
+  }
+
+  const backToChapterBtn = getElement(ids.backToChapterFromUserProblemsBtnId);
+  if (backToChapterBtn) {
+    backToChapterBtn.addEventListener('click', () => {
+      hideElement(ids.userProblemsScreenId);
+      showElement(ids.chapterStageScreenId, 'block');
+      creationFlowConfig.onRefreshUserData?.();
+    });
+  }
+}
+
 function toggleLikeProblem(key) {
   const nickname = getUsername() || '익명';
   const likeRef = db.ref(`problems/${key}/likes/${nickname}`);
@@ -416,5 +659,27 @@ export function showProblemIntro(problem, callback) {
     modal.style.display = 'none';
     if (callback) callback();
   };
+}
+
+export function createCustomProblemPalette(problem) {
+  return createPaletteForCustom(problem);
+}
+
+export function setActiveCustomProblem(problem, key) {
+  activeCustomProblem = problem || null;
+  activeCustomProblemKey = key || null;
+}
+
+export function clearActiveCustomProblem() {
+  activeCustomProblem = null;
+  activeCustomProblemKey = null;
+}
+
+export function getActiveCustomProblem() {
+  return activeCustomProblem;
+}
+
+export function getActiveCustomProblemKey() {
+  return activeCustomProblemKey;
 }
 
