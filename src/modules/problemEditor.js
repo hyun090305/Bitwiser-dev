@@ -15,6 +15,8 @@ let startCustomProblemHandler = null;
 let paletteGroupsBuilder = blocks => blocks;
 let previousScreen = null;
 let problemOutputsValid = false;
+let saveProblemButton = null;
+let confirmSaveProblemButton = null;
 let activeCustomProblem = null;
 let activeCustomProblemKey = null;
 
@@ -24,12 +26,58 @@ function clamp(value, min, max, fallback) {
   return Math.min(max, Math.max(min, num));
 }
 
+function translate(key, fallback = '') {
+  if (typeof t === 'function') {
+    return t(key);
+  }
+  return fallback;
+}
+
+function getSaveProblemButton() {
+  if (saveProblemButton) return saveProblemButton;
+  const id = creationFlowConfig?.ids?.saveProblemBtnId;
+  if (!id) return null;
+  saveProblemButton = getElement(id);
+  return saveProblemButton;
+}
+
+function getConfirmSaveProblemButton() {
+  if (confirmSaveProblemButton) return confirmSaveProblemButton;
+  const id = creationFlowConfig?.ids?.confirmSaveProblemBtnId;
+  if (!id) return null;
+  confirmSaveProblemButton = getElement(id);
+  return confirmSaveProblemButton;
+}
+
+function updateProblemCreationAvailability() {
+  const disabled = !problemOutputsValid;
+  const saveBtn = getSaveProblemButton();
+  const confirmBtn = getConfirmSaveProblemButton();
+  const message = disabled
+    ? translate('computeOutputsFirst', '출력 계산을 먼저 실행하세요.')
+    : '';
+
+  if (saveBtn) {
+    saveBtn.disabled = disabled;
+    if (message) saveBtn.title = message;
+    else saveBtn.removeAttribute('title');
+  }
+
+  if (confirmBtn) {
+    confirmBtn.disabled = disabled;
+    if (message) confirmBtn.title = message;
+    else confirmBtn.removeAttribute('title');
+  }
+}
+
 export function invalidateProblemOutputs() {
   problemOutputsValid = false;
+  updateProblemCreationAvailability();
 }
 
 function markProblemOutputsValid() {
   problemOutputsValid = true;
+  updateProblemCreationAvailability();
 }
 
 function getElement(id) {
@@ -516,6 +564,7 @@ export function initializeProblemCreationFlow({
 
   const saveProblemBtn = getElement(ids.saveProblemBtnId);
   if (saveProblemBtn) {
+    saveProblemButton = saveProblemBtn;
     saveProblemBtn.addEventListener('click', () =>
       showProblemSaveModal(problemSaveModal, problemTitleInput, problemDescInput, fixIOCheck)
     );
@@ -523,12 +572,15 @@ export function initializeProblemCreationFlow({
 
   const confirmSaveProblemBtn = getElement(ids.confirmSaveProblemBtnId);
   if (confirmSaveProblemBtn) {
+    confirmSaveProblemButton = confirmSaveProblemBtn;
     confirmSaveProblemBtn.addEventListener('click', () => {
       if (saveProblem()) {
         if (problemSaveModal) problemSaveModal.style.display = 'none';
       }
     });
   }
+
+  updateProblemCreationAvailability();
 
   const cancelSaveProblemBtn = getElement(ids.cancelSaveProblemBtnId);
   if (cancelSaveProblemBtn) {
