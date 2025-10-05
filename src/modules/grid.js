@@ -123,7 +123,13 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   });
 }
 
-export function setupGrid(containerId, rows, cols, paletteGroups) {
+export function setupGrid(
+  containerId,
+  rows,
+  cols,
+  paletteGroups,
+  options = {}
+) {
   setGridDimensions(rows, cols);
   const container = document.getElementById(containerId);
   if (!container) return Promise.resolve();
@@ -156,7 +162,8 @@ export function setupGrid(containerId, rows, cols, paletteGroups) {
         },
         {
           paletteGroups,
-          panelWidth: 180
+          panelWidth: 180,
+          ...options,
         }
       );
       if (prefix) {
