@@ -233,6 +233,28 @@ function getProblemWireData() {
   return wires;
 }
 
+function getProblemCircuitStats() {
+  const circuit = getProblemCircuit();
+  if (!circuit) {
+    return { blockCounts: {}, usedWires: 0 };
+  }
+
+  const blockCounts = Object.values(circuit.blocks || {}).reduce((acc, block) => {
+    const type = block.type || 'UNKNOWN';
+    acc[type] = (acc[type] || 0) + 1;
+    return acc;
+  }, {});
+
+  const wireCells = new Set();
+  Object.values(circuit.wires || {}).forEach(wire => {
+    (wire.path || []).slice(1, -1).forEach(point => {
+      wireCells.add(`${point.r},${point.c}`);
+    });
+  });
+
+  return { blockCounts, usedWires: wireCells.size };
+}
+
 function getProblemTruthTable() {
   const inputCnt = clamp(
     document.getElementById('inputCount')?.value,
@@ -335,6 +357,17 @@ export function saveProblem() {
   const data = collectProblemData();
   const key = db.ref('problems').push().key;
   db.ref(`problems/${key}`).set(data)
+    .then(() => {
+      const { blockCounts, usedWires } = getProblemCircuitStats();
+      const rankingEntry = {
+        nickname: data.creator,
+        blockCounts,
+        usedWires,
+        hintsUsed: 0,
+        timestamp: data.timestamp
+      };
+      return db.ref(`problems/${key}/ranking`).push(rankingEntry);
+    })
     .then(() => alert(t('problemSaved')))
     .catch(err => alert(t('saveFailed').replace('{error}', err)));
   return true;
