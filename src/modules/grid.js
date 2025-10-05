@@ -138,6 +138,13 @@ export function setupGrid(
   const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
   const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
 
+  if (prefix) {
+    // Clean up the existing problem controller before creating a new one.
+    destroyProblemContext({ destroyController: true });
+  } else {
+    destroyPlayContext();
+  }
+
   return import('../canvas/model.js').then(m => {
     const { makeCircuit } = m;
     return import('../canvas/controller.js').then(c => {
@@ -167,11 +174,9 @@ export function setupGrid(
         }
       );
       if (prefix) {
-        destroyProblemContext({ destroyController: true });
         problemCircuit = circuit;
         problemController = controller;
       } else {
-        destroyPlayContext();
         playCircuit = circuit;
         playController = controller;
       }
