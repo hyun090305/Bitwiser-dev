@@ -34,6 +34,7 @@ import { initializeTutorials } from './modules/tutorials.js';
 import { createGradingController } from './modules/grading.js';
 import {
   initializeCircuitShare,
+  initializeStatusShare,
   updateSaveProgress,
   handleGifModalClose,
   handleGifSaveClick,
@@ -43,8 +44,7 @@ import {
   handleSaveCircuitClick,
   saveCircuit,
   openSavedModal,
-  closeSavedModal,
-  loadGifFromDB
+  closeSavedModal
 } from './modules/circuitShare.js';
 import {
   setupNavigation,
@@ -107,7 +107,6 @@ onCircuitModified(() => {
   invalidateProblemOutputs();
 });
 
-let lastSavedKey = null;
 const translate = typeof t === 'function' ? t : key => key;
 const clearedModalOptions = {
   modalSelector: '#clearedModal',
@@ -167,8 +166,7 @@ initializeCircuitShare({
   alert,
   confirm,
   getCurrentCustomProblem: getActiveCustomProblem,
-  getCurrentCustomProblemKey: getActiveCustomProblemKey,
-  onLastSavedKeyChange: key => { lastSavedKey = key; }
+  getCurrentCustomProblemKey: getActiveCustomProblemKey
 });
 
 if (closeGifModalBtn) {
@@ -467,59 +465,9 @@ if (problemMoveRightBtn)
 
 
 
-// 1) 필요한 엘리먼트 가져오기
-const shareModal = document.getElementById('shareModal');
-const shareTextEl = document.getElementById('shareText');
-const copyShareBtn = document.getElementById('copyShareBtn');
-const closeShareBtn = document.getElementById('closeShareBtn');
-const copyStatusBtn = document.getElementById('copyStatusBtn');
-
-// 2) 공유할 “텍스트” 생성 함수 (예: 현재 그리드 상태 직렬화)
-function buildShareString() {
-  // 예시: JSON.stringify(gridData) 같은 실제 공유 데이터로 바꿔주세요
-  const lines = [];
-  lines.push("I played " + location.origin + location.pathname);
-  lines.push("");
-  const cleared = new Set(getClearedLevels());
-  const titles = getLevelTitles();
-  const totalStages = Object.keys(titles).length;  // 총 스테이지 수 (필요 시 갱신)
-
-
-
-  for (let i = 1; i <= totalStages; i++) {
-    const title = titles[i] || '';
-    const mark = cleared.has(i) ? "✅" : "❌";
-    lines.push(`Stage ${i} (${title}): ${mark}`);
-  }
-
-
-  const text = lines.join("\n");
-  return text;
-}
-
-// 3) 공유하기 버튼 클릭 → 모달 열기
-copyStatusBtn.addEventListener('click', () => {
-  shareTextEl.value = buildShareString();
-  shareModal.style.display = 'flex';
-  shareTextEl.select();
-});
-
-// 4) 복사 버튼
-copyShareBtn.addEventListener('click', () => {
-  navigator.clipboard.writeText(shareTextEl.value)
-    .then(() => alert('클립보드에 복사되었습니다!'))
-    .catch(err => alert('복사에 실패했습니다: ' + err));
-});
-
-// 5) 닫기 버튼
-closeShareBtn.addEventListener('click', () => {
-  shareModal.style.display = 'none';
-});
-
 // 회로 저장 완료 모달
 const circuitSavedModal = document.getElementById('circuitSavedModal');
 const circuitSavedText = document.getElementById('circuitSaved');
-const savedShareBtn = document.getElementById('savedShareBtn');
 const savedNextBtn = document.getElementById('savedNextBtn');
 
 function showCircuitSavedModal() {
@@ -571,6 +519,22 @@ const gradingController = createGradingController({
   }
 });
 
+initializeStatusShare({
+  getClearedLevels,
+  getLevelTitles,
+  translate,
+  alert,
+  elements: {
+    shareModal: document.getElementById('shareModal'),
+    shareText: document.getElementById('shareText'),
+    copyShareBtn: document.getElementById('copyShareBtn'),
+    closeShareBtn: document.getElementById('closeShareBtn'),
+    copyStatusBtn: document.getElementById('copyStatusBtn'),
+    savedShareBtn: document.getElementById('savedShareBtn'),
+    savedModal: circuitSavedModal
+  }
+});
+
 configureLevelModule({
   setIsScoring: gradingController.setIsScoring
 });
@@ -583,24 +547,6 @@ if (gradeButton) {
       return;
     }
     gradingController.gradeCurrentSelection();
-  });
-}
-
-if (savedShareBtn) {
-  savedShareBtn.addEventListener('click', async () => {
-    if (!lastSavedKey) return;
-    try {
-      const blob = await loadGifFromDB(lastSavedKey);
-      const file = new File([blob], 'circuit.gif', { type: 'image/gif' });
-      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file] });
-      } else {
-        alert('공유를 지원하지 않는 브라우저입니다.');
-      }
-    } catch (e) {
-      alert('공유에 실패했습니다: ' + e);
-    }
-    if (circuitSavedModal) circuitSavedModal.style.display = 'none';
   });
 }
 

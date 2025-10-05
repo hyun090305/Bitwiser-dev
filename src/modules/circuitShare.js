@@ -14,7 +14,32 @@ let confirmFn = typeof window !== 'undefined' && typeof window.confirm === 'func
   : () => true;
 let getCustomProblem = () => null;
 let getCustomProblemKey = () => null;
-let onLastSavedKeyChange = () => {};
+let externalLastSavedKeyChange = () => {};
+let lastSavedKey = null;
+
+const statusShareHandlers = {
+  copyStatus: null,
+  copyShare: null,
+  closeShare: null,
+  savedShare: null
+};
+
+let statusShareElements = {
+  shareModal: null,
+  shareText: null,
+  copyShareBtn: null,
+  closeShareBtn: null,
+  copyStatusBtn: null,
+  savedShareBtn: null,
+  savedModal: null
+};
+
+let statusShareConfig = {
+  getClearedLevels: () => [],
+  getLevelTitles: () => ({}),
+  translate: key => key,
+  alert: message => console.log('Alert:', message)
+};
 
 let currentGifBlob = null;
 let currentGifUrl = null;
@@ -33,6 +58,15 @@ function translateText(key, fallback) {
   return value ?? fallback;
 }
 
+function notifyLastSavedKeyChange(key) {
+  lastSavedKey = key;
+  try {
+    externalLastSavedKeyChange(key);
+  } catch (err) {
+    console.error('onLastSavedKeyChange callback failed:', err);
+  }
+}
+
 export function initializeCircuitShare({
   elements: providedElements = {},
   translate: translateFn,
@@ -48,7 +82,172 @@ export function initializeCircuitShare({
   if (typeof providedConfirm === 'function') confirmFn = providedConfirm;
   if (typeof getCurrentCustomProblem === 'function') getCustomProblem = getCurrentCustomProblem;
   if (typeof getCurrentCustomProblemKey === 'function') getCustomProblemKey = getCurrentCustomProblemKey;
-  if (typeof handleLastSavedKey === 'function') onLastSavedKeyChange = handleLastSavedKey;
+  externalLastSavedKeyChange = typeof handleLastSavedKey === 'function' ? handleLastSavedKey : () => {};
+}
+
+function translateShare(key, fallback) {
+  const translator = statusShareConfig.translate;
+  if (typeof translator === 'function') {
+    const result = translator(key);
+    if (typeof result === 'string' && result !== key) {
+      return result;
+    }
+  }
+  return fallback;
+}
+
+function showStatusShareAlert(messageKey, fallback) {
+  const message = translateShare(messageKey, fallback);
+  const alertImpl = statusShareConfig.alert;
+  if (typeof alertImpl === 'function') {
+    alertImpl(message);
+  } else {
+    console.log('Alert:', message);
+  }
+}
+
+function buildStatusShareString() {
+  const lines = [];
+  const locationInfo = typeof window !== 'undefined' && window.location
+    ? `${window.location.origin}${window.location.pathname}`
+    : 'Bitwiser';
+  lines.push(translateShare('statusShareIntro', `I played ${locationInfo}`));
+  lines.push('');
+
+  const clearedList = statusShareConfig.getClearedLevels?.() ?? [];
+  const clearedLevels = new Set(Array.isArray(clearedList) ? clearedList : []);
+  const titlesRaw = statusShareConfig.getLevelTitles?.() ?? {};
+  const stageNumbers = Object.keys(titlesRaw)
+    .map(n => Number(n))
+    .filter(n => Number.isFinite(n))
+    .sort((a, b) => a - b);
+  const maxStageNumber = stageNumbers.length
+    ? stageNumbers[stageNumbers.length - 1]
+    : 0;
+
+  for (let stage = 1; stage <= maxStageNumber; stage += 1) {
+    const title = titlesRaw[stage] || '';
+    const mark = clearedLevels.has(stage) ? '✅' : '❌';
+    lines.push(`Stage ${stage} (${title}): ${mark}`);
+  }
+
+  return lines.join('\n');
+}
+
+function handleCopyStatusClick() {
+  const { shareModal, shareText } = statusShareElements;
+  if (!shareText) return;
+  shareText.value = buildStatusShareString();
+  if (shareModal) {
+    shareModal.style.display = 'flex';
+  }
+  shareText.select?.();
+}
+
+async function handleCopyShareClick() {
+  const { shareText } = statusShareElements;
+  if (!shareText) return;
+  try {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.clipboard &&
+      typeof navigator.clipboard.writeText === 'function'
+    ) {
+      await navigator.clipboard.writeText(shareText.value);
+      showStatusShareAlert('statusShareCopySuccess', '클립보드에 복사되었습니다!');
+    } else {
+      throw new Error('Clipboard API not supported');
+    }
+  } catch (err) {
+    console.error(err);
+    showStatusShareAlert('statusShareCopyFailed', `복사에 실패했습니다: ${err}`);
+  }
+}
+
+function handleCloseShareClick() {
+  const { shareModal } = statusShareElements;
+  if (shareModal) {
+    shareModal.style.display = 'none';
+  }
+}
+
+async function handleSavedShareClick() {
+  const key = lastSavedKey;
+  if (!key) {
+    showStatusShareAlert('statusShareNoSavedCircuit', '최근 저장된 회로가 없습니다.');
+    return;
+  }
+  try {
+    const blob = await loadGifFromDB(key);
+    if (!blob) {
+      showStatusShareAlert('statusShareNoGif', '공유할 GIF가 없습니다.');
+      return;
+    }
+    const file = new File([blob], 'circuit.gif', { type: 'image/gif' });
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.share &&
+      navigator.canShare &&
+      navigator.canShare({ files: [file] })
+    ) {
+      await navigator.share({ files: [file] });
+    } else {
+      showStatusShareAlert('statusShareNotSupported', '공유를 지원하지 않는 브라우저입니다.');
+    }
+  } catch (err) {
+    console.error(err);
+    showStatusShareAlert('statusShareFailed', `공유에 실패했습니다: ${err}`);
+  }
+  if (statusShareElements.savedModal) {
+    statusShareElements.savedModal.style.display = 'none';
+  }
+}
+
+function bindStatusShareElement(name, element, handler, event = 'click') {
+  const previousElement = statusShareElements[name];
+  if (previousElement && handler) {
+    previousElement.removeEventListener(event, handler);
+  }
+  statusShareElements[name] = element ?? null;
+  if (statusShareElements[name] && handler) {
+    statusShareElements[name].addEventListener(event, handler);
+  }
+}
+
+export function initializeStatusShare({
+  getClearedLevels,
+  getLevelTitles,
+  translate: translateFn,
+  alert: alertFn,
+  elements: {
+    shareModal,
+    shareText,
+    copyShareBtn,
+    closeShareBtn,
+    copyStatusBtn,
+    savedShareBtn,
+    savedModal
+  } = {}
+} = {}) {
+  statusShareConfig = {
+    getClearedLevels: typeof getClearedLevels === 'function' ? getClearedLevels : () => [],
+    getLevelTitles: typeof getLevelTitles === 'function' ? getLevelTitles : () => ({}),
+    translate: typeof translateFn === 'function' ? translateFn : key => key,
+    alert: typeof alertFn === 'function' ? alertFn : message => console.log('Alert:', message)
+  };
+
+  statusShareHandlers.copyStatus = handleCopyStatusClick;
+  statusShareHandlers.copyShare = handleCopyShareClick;
+  statusShareHandlers.closeShare = handleCloseShareClick;
+  statusShareHandlers.savedShare = handleSavedShareClick;
+
+  bindStatusShareElement('shareModal', shareModal);
+  bindStatusShareElement('shareText', shareText);
+  bindStatusShareElement('copyShareBtn', copyShareBtn, statusShareHandlers.copyShare);
+  bindStatusShareElement('closeShareBtn', closeShareBtn, statusShareHandlers.closeShare);
+  bindStatusShareElement('copyStatusBtn', copyStatusBtn, statusShareHandlers.copyStatus);
+  bindStatusShareElement('savedShareBtn', savedShareBtn, statusShareHandlers.savedShare);
+  bindStatusShareElement('savedModal', savedModal);
 }
 
 export function updateSaveProgress(percent) {
@@ -229,7 +428,7 @@ function applyCircuitData(data, key) {
   const controller = getActiveController();
   controller?.syncPaletteWithCircuit?.();
   controller?.clearSelection?.();
-  if (key) onLastSavedKeyChange(key);
+  if (key) notifyLastSavedKeyChange(key);
 }
 
 export async function saveCircuit(progressCallback) {
@@ -269,7 +468,7 @@ export async function saveCircuit(progressCallback) {
     progressCallback && progressCallback(100);
 
     console.log(`Circuit saved: ${key}`, data);
-    onLastSavedKeyChange(key);
+    notifyLastSavedKeyChange(key);
     return key;
   } catch (e) {
     console.error('Circuit save failed:', e);
