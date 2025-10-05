@@ -716,7 +716,13 @@ async function startCustomProblem(key, problem) {
   clearCurrentLevel();
   const rows = problem.gridRows || 6;
   const cols = problem.gridCols || 6;
-  await setupGrid('canvasContainer', rows, cols, createCustomProblemPalette(problem));
+  await setupGrid(
+    'canvasContainer',
+    rows,
+    cols,
+    createCustomProblemPalette(problem),
+    { forceHideInOut: Boolean(problem?.fixIO) }
+  );
   clearGrid();
   placeFixedIO(problem);
   setGridDimensions(rows, cols);

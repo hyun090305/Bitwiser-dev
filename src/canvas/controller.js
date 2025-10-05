@@ -32,7 +32,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (!isApplePlatform && event.key === 'Control') return true;
     return isApplePlatform && event.key === 'Meta';
   }
-  const { palette = [], paletteGroups = [], panelWidth = 180 } = options;
+  const {
+    palette = [],
+    paletteGroups = [],
+    panelWidth = 180,
+    forceHideInOut = false,
+  } = options;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
@@ -63,7 +68,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           y: currentY,
           w: colWidth - 2 * padding,
           h: PALETTE_ITEM_H - 20,
-          hidden: false,
+          hidden:
+            forceHideInOut && (it.type === 'INPUT' || it.type === 'OUTPUT'),
         });
         currentY += PALETTE_ITEM_H;
       });
@@ -84,7 +90,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       y: 10 + i * PALETTE_ITEM_H,
       w: panelWidth - 2 * gap,
       h: PALETTE_ITEM_H - 20,
-      hidden: false,
+      hidden: forceHideInOut && (type === 'INPUT' || type === 'OUTPUT'),
     }));
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 20);
   }
@@ -171,6 +177,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function showPaletteItem(type, label) {
     const item = paletteItems.find(it => it.type === type && it.label === label);
     if (item) {
+      if (forceHideInOut && (type === 'INPUT' || type === 'OUTPUT')) return;
       item.hidden = false;
       redrawPanel();
     }
@@ -194,10 +201,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function syncPaletteWithCircuit() {
     paletteItems.forEach(it => {
       if (it.type === 'INPUT' || it.type === 'OUTPUT') {
-        const exists = Object.values(circuit.blocks).some(
-          b => b.type === it.type && b.name === it.label
-        );
-        it.hidden = exists;
+        if (forceHideInOut) {
+          it.hidden = true;
+        } else {
+          const exists = Object.values(circuit.blocks).some(
+            b => b.type === it.type && b.name === it.label
+          );
+          it.hidden = exists;
+        }
       }
     });
     redrawPanel();
