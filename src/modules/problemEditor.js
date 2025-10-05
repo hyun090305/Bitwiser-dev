@@ -156,7 +156,7 @@ export function initializeProblemEditorUI() {
   clearWires();
   setGridDimensions(rows, cols);
   initTestcaseTable();
-  markCircuitModified();
+  markCircuitModified('problem');
   adjustGridZoom('problemCanvasContainer');
   invalidateProblemOutputs();
 }

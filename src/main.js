@@ -14,7 +14,6 @@ import {
   setupGrid,
   setGridDimensions,
   clearGrid,
-  markCircuitModified,
   moveCircuit,
   setupMenuToggle,
   collapseMenuBarForMobile,
@@ -103,8 +102,10 @@ const {
 
 initializeAuth();
 
-onCircuitModified(() => {
-  invalidateProblemOutputs();
+onCircuitModified(context => {
+  if (context === 'problem' || context === 'unknown') {
+    invalidateProblemOutputs();
+  }
 });
 
 const translate = typeof t === 'function' ? t : key => key;
