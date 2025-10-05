@@ -8,6 +8,12 @@ let playController = null;
 let problemCircuit = null;
 let problemController = null;
 
+const CIRCUIT_CONTEXT = {
+  PLAY: 'play',
+  PROBLEM: 'problem',
+  UNKNOWN: 'unknown'
+};
+
 const circuitModifiedListeners = new Set();
 
 export function getGridRows() {
@@ -73,10 +79,45 @@ export function onCircuitModified(listener) {
   };
 }
 
-function notifyCircuitModified() {
+function resolveCircuitContext(context) {
+  if (context === CIRCUIT_CONTEXT.PLAY || context === CIRCUIT_CONTEXT.PROBLEM) {
+    return context;
+  }
+  if (context === CIRCUIT_CONTEXT.UNKNOWN) {
+    return CIRCUIT_CONTEXT.UNKNOWN;
+  }
+  if (context && typeof context === 'object') {
+    if (context === problemCircuit || context === problemController) {
+      return CIRCUIT_CONTEXT.PROBLEM;
+    }
+    if (context === playCircuit || context === playController) {
+      return CIRCUIT_CONTEXT.PLAY;
+    }
+  }
+
+  if (problemController && !playController) {
+    return CIRCUIT_CONTEXT.PROBLEM;
+  }
+  if (!problemController && playController) {
+    return CIRCUIT_CONTEXT.PLAY;
+  }
+
+  const activeController = getActiveController();
+  if (activeController === problemController) {
+    return CIRCUIT_CONTEXT.PROBLEM;
+  }
+  if (activeController === playController) {
+    return CIRCUIT_CONTEXT.PLAY;
+  }
+
+  return CIRCUIT_CONTEXT.UNKNOWN;
+}
+
+function notifyCircuitModified(context = CIRCUIT_CONTEXT.UNKNOWN) {
+  const resolvedContext = resolveCircuitContext(context);
   circuitModifiedListeners.forEach(listener => {
     try {
-      listener();
+      listener(resolvedContext);
     } catch (err) {
       console.error('Error in circuit modified listener', err);
     }
@@ -165,8 +206,9 @@ export function setupGrid(
     return import('../canvas/controller.js').then(c => {
       const { createController } = c;
       const { onCircuitModified: customCircuitModified, ...restOptions } = options;
+      const gridContext = prefix ? CIRCUIT_CONTEXT.PROBLEM : CIRCUIT_CONTEXT.PLAY;
       const handleCircuitModified = () => {
-        markCircuitModified();
+        markCircuitModified(gridContext);
         if (typeof customCircuitModified === 'function') {
           try {
             customCircuitModified();
@@ -217,12 +259,13 @@ export function clearGrid() {
   if (playCircuit) {
     playCircuit.blocks = {};
     playCircuit.wires = {};
+    markCircuitModified(CIRCUIT_CONTEXT.PLAY);
   }
   if (problemCircuit) {
     problemCircuit.blocks = {};
     problemCircuit.wires = {};
+    markCircuitModified(CIRCUIT_CONTEXT.PROBLEM);
   }
-  markCircuitModified();
   playController?.clearSelection?.();
   problemController?.clearSelection?.();
 }
@@ -230,17 +273,19 @@ export function clearGrid() {
 export function clearWires() {
   if (playCircuit) {
     playCircuit.wires = {};
+    markCircuitModified(CIRCUIT_CONTEXT.PLAY);
   }
   if (problemCircuit) {
     problemCircuit.wires = {};
+    markCircuitModified(CIRCUIT_CONTEXT.PROBLEM);
   }
-  markCircuitModified();
   playController?.clearSelection?.();
   problemController?.clearSelection?.();
 }
 
-export function markCircuitModified() {
-  notifyCircuitModified();
+export function markCircuitModified(context) {
+  const resolvedContext = resolveCircuitContext(context);
+  notifyCircuitModified(resolvedContext);
   playController?.syncPaletteWithCircuit?.();
   problemController?.syncPaletteWithCircuit?.();
 }
@@ -257,7 +302,10 @@ export function moveCircuit(dx, dy, { isProblemFixed = false } = {}) {
     moved = controller.moveCircuit(dx, dy);
   }
   if (moved) {
-    markCircuitModified();
+    const context = controller === problemController
+      ? CIRCUIT_CONTEXT.PROBLEM
+      : CIRCUIT_CONTEXT.PLAY;
+    markCircuitModified(context);
   }
 }
 

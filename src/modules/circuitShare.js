@@ -424,7 +424,7 @@ function applyCircuitData(data, key) {
   circuit.cols = data.circuit.cols;
   circuit.blocks = data.circuit.blocks || {};
   circuit.wires = data.circuit.wires || {};
-  markCircuitModified();
+  markCircuitModified(circuit);
   const controller = getActiveController();
   controller?.syncPaletteWithCircuit?.();
   controller?.clearSelection?.();
