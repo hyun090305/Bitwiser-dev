@@ -225,7 +225,25 @@ const problemMoveRightBtn = document.getElementById('problemMoveRightBtn');
 let grid;
 
 function simulateKey(key, type = 'keydown') {
-  const ev = new KeyboardEvent(type, { key, bubbles: true });
+  const actualKey =
+    key === 'Control' && isApplePlatform
+      ? 'Meta'
+      : key;
+  const eventInit = {
+    key: actualKey,
+    bubbles: true,
+    cancelable: true
+  };
+
+  if (actualKey === 'Meta') {
+    eventInit.metaKey = true;
+  } else if (actualKey === 'Control') {
+    eventInit.ctrlKey = true;
+  } else if (actualKey === 'Shift') {
+    eventInit.shiftKey = true;
+  }
+
+  const ev = new KeyboardEvent(type, eventInit);
   document.dispatchEvent(ev);
 }
 
