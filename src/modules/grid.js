@@ -164,6 +164,17 @@ export function setupGrid(
     const { makeCircuit } = m;
     return import('../canvas/controller.js').then(c => {
       const { createController } = c;
+      const { onCircuitModified: customCircuitModified, ...restOptions } = options;
+      const handleCircuitModified = () => {
+        markCircuitModified();
+        if (typeof customCircuitModified === 'function') {
+          try {
+            customCircuitModified();
+          } catch (err) {
+            console.error('Error in custom onCircuitModified callback', err);
+          }
+        }
+      };
       const circuit = makeCircuit(rows, cols);
       const controller = createController(
         { bgCanvas, contentCanvas, overlayCanvas },
@@ -185,7 +196,8 @@ export function setupGrid(
         {
           paletteGroups,
           panelWidth: 180,
-          ...options,
+          ...restOptions,
+          onCircuitModified: handleCircuitModified,
         }
       );
       if (prefix) {

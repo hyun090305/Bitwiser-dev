@@ -37,6 +37,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     paletteGroups = [],
     panelWidth = 180,
     forceHideInOut = false,
+    onCircuitModified,
   } = options;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
@@ -117,11 +118,27 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   const undoStack = [];
   const redoStack = [];
+  let hasInitialSnapshot = false;
+
+  function notifyCircuitModified() {
+    if (typeof onCircuitModified === 'function') {
+      try {
+        onCircuitModified();
+      } catch (err) {
+        console.error('Error in onCircuitModified callback', err);
+      }
+    }
+  }
 
   function snapshot() {
     undoStack.push(JSON.stringify(circuit));
     if (undoStack.length > 100) undoStack.shift();
     redoStack.length = 0;
+    if (hasInitialSnapshot) {
+      notifyCircuitModified();
+    } else {
+      hasInitialSnapshot = true;
+    }
   }
 
   function applyState(str) {
@@ -139,6 +156,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     renderContent(contentCtx, circuit, 0, panelTotalWidth);
     updateUsageCounts();
     updateButtons();
+    notifyCircuitModified();
   }
 
   function undo() {
