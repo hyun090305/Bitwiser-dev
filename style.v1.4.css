@@ -1318,6 +1318,11 @@ html, body {
   cursor: pointer;
 }
 
+.btn-back:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
   /* 사용자 문제 목록 */
   .problem-list {
   list-style: none;
