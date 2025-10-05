@@ -31,6 +31,7 @@ import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
 import { openHintModal, initializeHintUI } from './modules/hints.js';
 import { initializeTutorials } from './modules/tutorials.js';
+import { createGradingController } from './modules/grading.js';
 import {
   initializeCircuitShare,
   updateSaveProgress,
@@ -107,8 +108,6 @@ onCircuitModified(() => {
 });
 
 let lastSavedKey = null;
-let pendingClearedLevel = null;
-
 const translate = typeof t === 'function' ? t : key => key;
 const clearedModalOptions = {
   modalSelector: '#clearedModal',
@@ -531,6 +530,62 @@ function showCircuitSavedModal() {
   }
 }
 
+const overlay = document.getElementById('gridOverlay');
+const blockPanel = document.getElementById('blockPanel');
+const rightPanel = document.getElementById('rightPanel');
+const gradingArea = document.getElementById('gradingArea');
+
+const gradingController = createGradingController({
+  getPlayCircuit,
+  getLevelAnswer,
+  getLevelBlockSet,
+  getCurrentLevel,
+  getActiveCustomProblem,
+  getActiveCustomProblemKey,
+  getHintProgress,
+  getAutoSaveSetting,
+  getCurrentUser: () =>
+    typeof firebase !== 'undefined' && typeof firebase.auth === 'function'
+      ? firebase.auth().currentUser
+      : null,
+  saveCircuit,
+  updateSaveProgress,
+  showCircuitSavedModal,
+  markLevelCleared,
+  saveRanking,
+  saveProblemRanking,
+  getUsername,
+  db: typeof db !== 'undefined' ? db : null,
+  t: translate,
+  alert,
+  returnToEditScreen,
+  elements: {
+    overlay,
+    blockPanel,
+    rightPanel,
+    gradingArea,
+    circuitSavedText,
+    gifLoadingModal,
+    gifLoadingText,
+    saveProgressContainer
+  }
+});
+
+configureLevelModule({
+  setIsScoring: gradingController.setIsScoring
+});
+
+const gradeButton = document.getElementById('gradeButton');
+if (gradeButton) {
+  gradeButton.addEventListener('click', () => {
+    if (circuitHasError) {
+      alert('회로에 오류가 존재합니다');
+      return;
+    }
+    gradingController.gradeCurrentSelection();
+  });
+}
+
 if (savedShareBtn) {
   savedShareBtn.addEventListener('click', async () => {
     if (!lastSavedKey) return;
@@ -552,42 +607,12 @@ if (savedShareBtn) {
 if (savedNextBtn) {
   savedNextBtn.addEventListener('click', () => {
     if (circuitSavedModal) circuitSavedModal.style.display = 'none';
-    if (pendingClearedLevel !== null) {
-      showClearedModal(pendingClearedLevel, clearedModalOptions);
-      pendingClearedLevel = null;
+    const clearedLevel = gradingController.consumePendingClearedLevel();
+    if (clearedLevel !== null && clearedLevel !== undefined) {
+      showClearedModal(clearedLevel, clearedModalOptions);
     }
   });
 }
-
-// 채점 중 grid 조작 금지 기능
-const overlay = document.getElementById("gridOverlay");
-let isScoring = false;
-window.isScoring = false;
-
-configureLevelModule({
-  setIsScoring: value => {
-    isScoring = value;
-    window.isScoring = value;
-  }
-});
-
-document.getElementById("gradeButton").addEventListener("click", () => {
-  if (circuitHasError) {
-    alert("회로에 오류가 존재합니다");
-    return;
-  }
-  if (isScoring) return;
-  const customProblem = getActiveCustomProblem();
-  if (!customProblem && getCurrentLevel() == null) return;
-  isScoring = true;
-  window.isScoring = true;
-  if (overlay) overlay.style.display = "block";
-  if (customProblem) {
-    gradeProblemCanvas(getActiveCustomProblemKey(), customProblem);
-  } else {
-    gradeLevelCanvas(getCurrentLevel());
-  }
-});
 
 initializeRankingUI({
   viewRankingButtonSelector: '#viewRankingBtn',
@@ -793,317 +818,6 @@ initializeProblemCreationFlow({
 });
 
 
-function getCircuitStats(circuit) {
-  const blockCounts = Object.values(circuit.blocks).reduce((acc, b) => {
-    acc[b.type] = (acc[b.type] || 0) + 1;
-    return acc;
-  }, {});
-  const wireCells = new Set();
-  Object.values(circuit.wires).forEach(w => {
-    w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
-  });
-  return { blockCounts, usedWires: wireCells.size };
-}
-
-async function gradeLevelCanvas(level) {
-  const testCases = getLevelAnswer(level);
-  const circuit = getPlayCircuit();
-  if (!testCases || !circuit) return;
-  const { evaluateCircuit } = await import('./canvas/engine.js');
-
-  const blocks = Object.values(circuit.blocks);
-  for (const b of blocks) {
-    if (b.type === 'JUNCTION' || b.type === 'OUTPUT') {
-      const incoming = Object.values(circuit.wires).filter(w => w.endBlockId === b.id);
-      if (incoming.length > 1) {
-        alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
-        if (overlay) overlay.style.display = 'none';
-        isScoring = false;
-        window.isScoring = false;
-        return;
-      }
-    }
-  }
-
-  const requiredOutputs = (getLevelBlockSet(level) || [])
-    .filter(b => b.type === 'OUTPUT')
-    .map(b => b.name);
-  const actualOutputNames = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
-  const missingOutputs = requiredOutputs.filter(n => !actualOutputNames.includes(n));
-  if (missingOutputs.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    if (overlay) overlay.style.display = 'none';
-    isScoring = false;
-    window.isScoring = false;
-    return;
-  }
-
-  let allCorrect = true;
-  const bp = document.getElementById('blockPanel');
-  if (bp) bp.style.display = 'none';
-  const rp = document.getElementById('rightPanel');
-  if (rp) rp.style.display = 'none';
-  const gradingArea = document.getElementById('gradingArea');
-  if (gradingArea) {
-    gradingArea.style.display = 'block';
-    gradingArea.innerHTML = '<b>채점 결과:</b><br><br>';
-  }
-
-  const inputs = blocks.filter(b => b.type === 'INPUT');
-  const outputs = blocks.filter(b => b.type === 'OUTPUT');
-
-  for (const test of testCases) {
-    inputs.forEach(inp => { inp.value = test.inputs[inp.name] ?? 0; });
-    evaluateCircuit(circuit);
-    await new Promise(r => setTimeout(r, 100));
-
-    let correct = true;
-    const actualText = outputs.map(out => {
-      const actual = out.value ? 1 : 0;
-      const expected = test.expected[out.name];
-      if (actual !== expected) correct = false;
-      return `${out.name}=${actual}`;
-    }).join(', ');
-
-    const expectedText = Object.entries(test.expected).map(([k, v]) => `${k}=${v}`).join(', ');
-    const inputText = Object.entries(test.inputs).map(([k, v]) => `${k}=${v}`).join(', ');
-
-    if (!document.getElementById('gradingTable')) {
-      gradingArea.innerHTML += `
-      <table id="gradingTable">
-        <thead>
-          <tr>
-            <th>${t('thInput')}</th>
-            <th>${t('thExpected')}</th>
-            <th>${t('thActual')}</th>
-            <th>${t('thResult')}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>`;
-    }
-    const tbody = document.querySelector('#gradingTable tbody');
-    const tr = document.createElement('tr');
-    tr.className = correct ? 'correct' : 'wrong';
-
-    const tdInput = document.createElement('td');
-    tdInput.textContent = inputText;
-    const tdExpected = document.createElement('td');
-    tdExpected.textContent = expectedText;
-    const tdActual = document.createElement('td');
-    tdActual.textContent = actualText;
-    const tdResult = document.createElement('td');
-    tdResult.style.fontWeight = 'bold';
-    tdResult.style.color = correct ? 'green' : 'red';
-    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
-
-    tr.append(tdInput, tdExpected, tdActual, tdResult);
-    tbody.appendChild(tr);
-    if (!correct) allCorrect = false;
-  }
-
-  const summary = document.createElement('div');
-  summary.id = 'gradeResultSummary';
-  summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
-  gradingArea.appendChild(summary);
-
-  if (allCorrect) {
-    const autoSave = getAutoSaveSetting();
-    let saveSuccess = false;
-    let loginNeeded = false;
-    if (autoSave) {
-      if (!firebase.auth().currentUser) {
-        loginNeeded = true;
-        if (circuitSavedText) circuitSavedText.textContent = t('loginToSaveCircuit');
-      } else {
-        try {
-          if (gifLoadingModal) {
-            if (gifLoadingText) gifLoadingText.textContent = t('savingCircuit');
-            gifLoadingModal.style.display = 'flex';
-          }
-          if (saveProgressContainer) {
-            saveProgressContainer.style.display = 'block';
-            updateSaveProgress(0);
-          }
-          await saveCircuit(updateSaveProgress);
-          saveSuccess = true;
-          if (circuitSavedText) circuitSavedText.textContent = t('circuitSaved');
-        } catch (e) {
-          alert(t('saveFailed').replace('{error}', e));
-        } finally {
-          if (gifLoadingModal) {
-            gifLoadingModal.style.display = 'none';
-            if (gifLoadingText) gifLoadingText.textContent = t('gifLoadingText');
-          }
-          if (saveProgressContainer) {
-            saveProgressContainer.style.display = 'none';
-            updateSaveProgress(0);
-          }
-        }
-      }
-    }
-    const { blockCounts, usedWires } = getCircuitStats(circuit);
-    const hintsUsed = getHintProgress(level);
-    const nickname = getUsername() || '익명';
-    const rankingsRef = db.ref(`rankings/${level}`);
-    pendingClearedLevel = null;
-    rankingsRef.orderByChild('nickname').equalTo(nickname).once('value', snapshot => {
-      if (!snapshot.exists()) {
-        saveRanking(level, blockCounts, usedWires, hintsUsed);
-        pendingClearedLevel = level;
-        markLevelCleared(level);
-      } else {
-        let best = null;
-        snapshot.forEach(child => {
-          const e = child.val();
-          const oldBlocks = Object.values(e.blockCounts || {}).reduce((a, b) => a + b, 0);
-          const newBlocks = Object.values(blockCounts).reduce((a, b) => a + b, 0);
-          const oldWires = e.usedWires;
-          const newWires = usedWires;
-          if (newBlocks < oldBlocks || (newBlocks === oldBlocks && newWires < oldWires)) {
-            best = { key: child.key };
-            return false;
-          }
-        });
-        if (best) {
-          rankingsRef.child(best.key).update({
-            blockCounts,
-            usedWires,
-            hintsUsed,
-            timestamp: new Date().toISOString()
-          });
-          pendingClearedLevel = level;
-          markLevelCleared(level);
-        }
-      }
-      if (saveSuccess || loginNeeded) showCircuitSavedModal();
-    });
-  }
-
-  const returnBtn = document.createElement('button');
-  returnBtn.id = 'returnToEditBtn';
-  returnBtn.textContent = t('returnToEditBtn');
-  gradingArea.appendChild(returnBtn);
-  document.getElementById('returnToEditBtn').addEventListener('click', returnToEditScreen);
-}
-
-async function gradeProblemCanvas(key, problem) {
-  const circuit = getPlayCircuit();
-  if (!circuit) return;
-  const inNames = Array.from({ length: problem.inputCount }, (_, i) => 'IN' + (i + 1));
-  const outNames = Array.from({ length: problem.outputCount }, (_, i) => 'OUT' + (i + 1));
-  const testCases = problem.table.map(row => ({
-    inputs: Object.fromEntries(inNames.map(n => [n, row[n]])),
-    expected: Object.fromEntries(outNames.map(n => [n, row[n]]))
-  }));
-  const { evaluateCircuit } = await import('./canvas/engine.js');
-
-  const blocks = Object.values(circuit.blocks);
-  for (const b of blocks) {
-    if (b.type === 'JUNCTION' || b.type === 'OUTPUT') {
-      const incoming = Object.values(circuit.wires).filter(w => w.endBlockId === b.id);
-      if (incoming.length > 1) {
-        alert(`❌ ${b.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
-        if (overlay) overlay.style.display = 'none';
-        isScoring = false;
-        window.isScoring = false;
-        return;
-      }
-    }
-  }
-
-  const requiredOutputs = outNames;
-  const actualOutputNames = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
-  const missingOutputs = requiredOutputs.filter(n => !actualOutputNames.includes(n));
-  if (missingOutputs.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    if (overlay) overlay.style.display = 'none';
-    isScoring = false;
-    window.isScoring = false;
-    return;
-  }
-
-  let allCorrect = true;
-  const bp = document.getElementById('blockPanel');
-  if (bp) bp.style.display = 'none';
-  const rp = document.getElementById('rightPanel');
-  if (rp) rp.style.display = 'none';
-  const gradingArea = document.getElementById('gradingArea');
-  if (gradingArea) {
-    gradingArea.style.display = 'block';
-    gradingArea.innerHTML = '<b>채점 결과:</b><br><br>';
-  }
-
-  const inputs = blocks.filter(b => b.type === 'INPUT');
-  const outputs = blocks.filter(b => b.type === 'OUTPUT');
-
-  for (const test of testCases) {
-    inputs.forEach(inp => { inp.value = test.inputs[inp.name] ?? 0; });
-    evaluateCircuit(circuit);
-    await new Promise(r => setTimeout(r, 100));
-
-    let correct = true;
-    const actualText = outputs.map(out => {
-      const actual = out.value ? 1 : 0;
-      const expected = test.expected[out.name];
-      if (actual !== expected) correct = false;
-      return `${out.name}=${actual}`;
-    }).join(', ');
-
-    const expectedText = Object.entries(test.expected).map(([k, v]) => `${k}=${v}`).join(', ');
-    const inputText = Object.entries(test.inputs).map(([k, v]) => `${k}=${v}`).join(', ');
-
-    if (!document.getElementById('gradingTable')) {
-      gradingArea.innerHTML += `
-      <table id="gradingTable">
-        <thead>
-          <tr>
-            <th>${t('thInput')}</th>
-            <th>${t('thExpected')}</th>
-            <th>${t('thActual')}</th>
-            <th>${t('thResult')}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>`;
-    }
-    const tbody = document.querySelector('#gradingTable tbody');
-    const tr = document.createElement('tr');
-    tr.className = correct ? 'correct' : 'wrong';
-
-    const tdInput = document.createElement('td');
-    tdInput.textContent = inputText;
-    const tdExpected = document.createElement('td');
-    tdExpected.textContent = expectedText;
-    const tdActual = document.createElement('td');
-    tdActual.textContent = actualText;
-    const tdResult = document.createElement('td');
-    tdResult.style.fontWeight = 'bold';
-    tdResult.style.color = correct ? 'green' : 'red';
-    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
-
-    tr.append(tdInput, tdExpected, tdActual, tdResult);
-    tbody.appendChild(tr);
-    if (!correct) allCorrect = false;
-  }
-
-  const summary = document.createElement('div');
-  summary.id = 'gradeResultSummary';
-  summary.textContent = allCorrect ? '🎉 모든 테스트를 통과했습니다!' : '😢 일부 테스트에 실패했습니다.';
-  gradingArea.appendChild(summary);
-
-  if (allCorrect && key) {
-    const { blockCounts, usedWires } = getCircuitStats(circuit);
-    const hintsUsed = getHintProgress(key);
-    saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
-  }
-
-  const returnBtn = document.createElement('button');
-  returnBtn.id = 'returnToEditBtn';
-  returnBtn.textContent = t('returnToEditBtn');
-  gradingArea.appendChild(returnBtn);
-  document.getElementById('returnToEditBtn').addEventListener('click', returnToEditScreen);
-}
 
 const exportBtn = document.getElementById('exportGifBtn');
 if (exportBtn) {
