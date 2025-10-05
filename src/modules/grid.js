@@ -106,9 +106,24 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
   const firstCanvas = gridContainer.querySelector('canvas');
   if (!firstCanvas) return;
-  const dpr = window.devicePixelRatio || 1;
-  const baseWidth = firstCanvas.width / dpr;
-  const baseHeight = firstCanvas.height / dpr;
+
+  const datasetWidth = parseFloat(firstCanvas.dataset?.baseWidth);
+  const datasetHeight = parseFloat(firstCanvas.dataset?.baseHeight);
+  const datasetDpr = parseFloat(firstCanvas.dataset?.dpr);
+  let baseWidth;
+  let baseHeight;
+
+  if (Number.isFinite(datasetWidth) && Number.isFinite(datasetHeight)) {
+    baseWidth = datasetWidth;
+    baseHeight = datasetHeight;
+  } else if (Number.isFinite(datasetDpr) && datasetDpr > 0) {
+    baseWidth = firstCanvas.width / datasetDpr;
+    baseHeight = firstCanvas.height / datasetDpr;
+  } else {
+    const dpr = window.devicePixelRatio || 1;
+    baseWidth = firstCanvas.width / dpr;
+    baseHeight = firstCanvas.height / dpr;
+  }
 
   const scale = Math.min(
     availableWidth / baseWidth,
