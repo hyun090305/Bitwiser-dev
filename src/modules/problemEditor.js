@@ -18,6 +18,52 @@ let problemOutputsValid = false;
 let activeCustomProblem = null;
 let activeCustomProblemKey = null;
 
+function translateOrDefault(key, fallback = '') {
+  if (typeof t === 'function') {
+    try {
+      const translated = t(key);
+      if (translated) return translated;
+    } catch (err) {
+      // ignore translation errors and fall back to provided text
+    }
+  }
+  return fallback || key;
+}
+
+function getProblemSaveButtons() {
+  const ids = creationFlowConfig?.ids || {};
+  const saveBtnId = ids.saveProblemBtnId || 'saveProblemBtn';
+  const confirmBtnId = ids.confirmSaveProblemBtnId || 'confirmSaveProblemBtn';
+  const buttons = [];
+
+  [saveBtnId, confirmBtnId].forEach(id => {
+    if (!id) return;
+    const btn = getElement(id);
+    if (btn && !buttons.includes(btn)) buttons.push(btn);
+  });
+
+  return buttons;
+}
+
+function updateProblemSaveState() {
+  const buttons = getProblemSaveButtons();
+  if (!buttons.length) return;
+
+  const isValid = problemOutputsValid;
+  const message = isValid
+    ? ''
+    : translateOrDefault('computeOutputsFirst', '출력 계산을 먼저 실행하세요.');
+
+  buttons.forEach(btn => {
+    if (!btn) return;
+    btn.disabled = !isValid;
+    if (isValid) btn.removeAttribute('aria-disabled');
+    else btn.setAttribute('aria-disabled', 'true');
+    if (message) btn.title = message;
+    else btn.removeAttribute('title');
+  });
+}
+
 function clamp(value, min, max, fallback) {
   const num = Number.parseInt(value, 10);
   if (Number.isNaN(num)) return fallback;
@@ -26,10 +72,12 @@ function clamp(value, min, max, fallback) {
 
 export function invalidateProblemOutputs() {
   problemOutputsValid = false;
+  updateProblemSaveState();
 }
 
 function markProblemOutputsValid() {
   problemOutputsValid = true;
+  updateProblemSaveState();
 }
 
 function getElement(id) {
@@ -450,6 +498,10 @@ function getModalBackdrop(selector) {
 }
 
 function showProblemSaveModal(modal, titleInput, descInput, fixIOCheck) {
+  if (!problemOutputsValid) {
+    alert(translateOrDefault('computeOutputsFirst', '출력 계산을 먼저 실행하세요.'));
+    return;
+  }
   if (titleInput) titleInput.value = '';
   if (descInput) descInput.value = '';
   if (fixIOCheck) fixIOCheck.checked = false;
@@ -560,6 +612,8 @@ export function initializeProblemCreationFlow({
       creationFlowConfig.onRefreshUserData?.();
     });
   }
+
+  updateProblemSaveState();
 }
 
 function toggleLikeProblem(key) {
