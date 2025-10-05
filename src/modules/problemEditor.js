@@ -15,7 +15,6 @@ let startCustomProblemHandler = null;
 let paletteGroupsBuilder = blocks => blocks;
 let previousScreen = null;
 let problemOutputsValid = false;
-let saveProblemButton = null;
 let activeCustomProblem = null;
 let activeCustomProblemKey = null;
 
@@ -25,20 +24,12 @@ function clamp(value, min, max, fallback) {
   return Math.min(max, Math.max(min, num));
 }
 
-function updateProblemSaveState() {
-  if (saveProblemButton) {
-    saveProblemButton.disabled = !problemOutputsValid;
-  }
-}
-
 export function invalidateProblemOutputs() {
   problemOutputsValid = false;
-  updateProblemSaveState();
 }
 
 function markProblemOutputsValid() {
   problemOutputsValid = true;
-  updateProblemSaveState();
 }
 
 function getElement(id) {
@@ -525,8 +516,6 @@ export function initializeProblemCreationFlow({
 
   const saveProblemBtn = getElement(ids.saveProblemBtnId);
   if (saveProblemBtn) {
-    saveProblemButton = saveProblemBtn;
-    updateProblemSaveState();
     saveProblemBtn.addEventListener('click', () =>
       showProblemSaveModal(problemSaveModal, problemTitleInput, problemDescInput, fixIOCheck)
     );
