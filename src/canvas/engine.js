@@ -90,13 +90,20 @@ export function setWireFlows(circuit) {
 // Animation loop helper
 export function startEngine(ctx, circuit, renderer) {
   let phase = 0;
-  function tick() {
+  let lastTime = null;
+  const FLOW_SPEED = 60; // dash units per second (roughly 60fps equivalent)
+  function tick(time) {
     // Recompute circuit values every frame based solely on the
     // in-memory circuit model so block states stay in sync with
     // current connections and input values.
     evaluateCircuit(circuit);
-    // Slow wire flow animation by updating phase more gradually
-    phase = (phase + 1) % 40;
+    if (lastTime === null) {
+      lastTime = time;
+    }
+    const delta = time - lastTime;
+    lastTime = time;
+    // Advance the animation at a constant rate regardless of display refresh.
+    phase = (phase + (delta / 1000) * FLOW_SPEED) % 40;
     renderer(ctx, circuit, phase);
     requestAnimationFrame(tick);
   }
