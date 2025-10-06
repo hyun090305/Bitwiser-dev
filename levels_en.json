@@ -239,12 +239,6 @@
       "name": "Arithmetic Operation Circuits",
       "desc": "Implement arithmetic circuits like adders and more.",
       "stages": [13, 14, 15, 16, 17, 18]
-    },
-    {
-      "id": "user",
-      "name": "User-Defined Circuits",
-      "desc": "Share and challenge circuits you create!",
-      "stages": []
     }
   ],
   "levelAnswers": {
