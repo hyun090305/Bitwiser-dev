@@ -159,8 +159,8 @@
       </div>
     </div>
 
-    <div id="problem-screen" class="screen" style="display:none; padding:0;">
-      <div style="display:flex; gap:1rem; align-items:flex-start; justify-content:flex-start; width:fit-content;margin:auto;">
+    <div id="problem-screen" class="screen" style="display:none;">
+      <div class="panel-overlay problem-screen-panel">
         <div id="problemCanvasContainer" style="position:relative;margin:auto;">
           <canvas id="problemBgCanvas" style="position:relative;"></canvas>
           <canvas id="problemContentCanvas"></canvas>
@@ -258,10 +258,12 @@
       <button id="toggleChapterList" class="btn-toggle" style='display: none'>☰</button>
     </div>
     <div id="user-problems-screen" class="screen" style="display:none;">
-      <button id="backToChapterFromUserProblems" class="btn-back">← 챕터로</button>
-      <h1 id="userProblemsTitle">📝 사용자 문제</h1>
-      <ul id="userProblemList" class="problem-list" style="margin:0 auto;"></ul>
-      <button id="openProblemCreatorBtn" class="btn-primary">문제 만들기</button>
+      <div class="panel-overlay user-problems-panel">
+        <button id="backToChapterFromUserProblems" class="btn-back">← 챕터로</button>
+        <h1 id="userProblemsTitle">📝 사용자 문제</h1>
+        <ul id="userProblemList" class="problem-list" style="margin:0 auto;"></ul>
+        <button id="openProblemCreatorBtn" class="btn-primary">문제 만들기</button>
+      </div>
     </div>
     <div id="rankingModal" class="modal" style="display:none;">
       <div class="modal-content">
