@@ -801,6 +801,46 @@ html, body {
     box-sizing: border-box;
   }
 
+  #problem-screen,
+  #user-problems-screen {
+    background: transparent;
+    padding: 2rem;
+  }
+
+  .panel-overlay {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.15);
+    padding: 2rem 2.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    width: min(100%, 1200px);
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+
+  .problem-screen-panel {
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 2rem;
+    flex-wrap: wrap;
+  }
+
+  .problem-screen-panel #problemCanvasContainer {
+    margin: 0 auto;
+  }
+
+  .user-problems-panel {
+    align-items: center;
+  }
+
+  .user-problems-panel .btn-back {
+    align-self: flex-start;
+  }
+
 #mainScreen,
 #loginArea{
   width: 320px;
