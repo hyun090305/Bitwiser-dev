@@ -18,10 +18,11 @@
     align-items: flex-start;
   }
 
-html, body {
-  overflow-y: auto;
-  /* allow horizontal scrolling when content exceeds viewport width */
-  overflow-x: auto;
+html,
+body {
+  width: 100%;
+  min-height: 100%;
+  overflow: auto;
 }
   #controls {
     margin: 15px;
@@ -34,7 +35,6 @@ html, body {
     min-height: 100vh;
     margin: 0;
     /* 혹시 기본 마진 있으면 제거 */
-    overflow-x: auto;
     width: 100%;
   }
 
@@ -841,7 +841,7 @@ html, body {
     }
 
     #problem-screen {
-      overflow-x: auto;
+      width: 100%;
     }
   }
 
