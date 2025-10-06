@@ -100,6 +100,103 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   const contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   const overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
+  const canvasElements = [bgCanvas, contentCanvas, overlayCanvas];
+  const canvasContainer = overlayCanvas?.parentElement || null;
+
+  function getMinCanvasScale() {
+    const raw = parseFloat(
+      overlayCanvas.dataset.baseScale || overlayCanvas.dataset.scale || '1'
+    );
+    return Number.isFinite(raw) && raw > 0 ? raw : 1;
+  }
+
+  function setCanvasScale(scale) {
+    const minScale = getMinCanvasScale();
+    const finalScale = Math.max(minScale, scale);
+    const normalizedBase = minScale > 0 ? minScale : finalScale;
+    if (canvasContainer?.dataset) {
+      if (!canvasContainer.dataset.baseScale) {
+        canvasContainer.dataset.baseScale = String(minScale);
+      }
+      canvasContainer.dataset.userScale = String(
+        Math.max(1, finalScale / normalizedBase)
+      );
+    }
+    canvasElements.forEach(canvas => {
+      const baseWidth = parseFloat(canvas.dataset.baseWidth || '0');
+      const baseHeight = parseFloat(canvas.dataset.baseHeight || '0');
+      if (!baseWidth || !baseHeight) return;
+      canvas.style.width = baseWidth * finalScale + 'px';
+      canvas.style.height = baseHeight * finalScale + 'px';
+      canvas.dataset.scale = String(finalScale);
+      if (canvas.dataset) {
+        canvas.dataset.baseScale = String(minScale);
+      }
+    });
+    return finalScale;
+  }
+
+  function startPinch(e) {
+    if (!e.touches || e.touches.length !== 2 || state.pinch) return false;
+    const rect = overlayCanvas.getBoundingClientRect();
+    const currentScale = parseFloat(overlayCanvas.dataset.scale || '1');
+    const points = Array.from(e.touches).map(touch => ({
+      x: (touch.clientX - rect.left) / currentScale,
+      y: (touch.clientY - rect.top) / currentScale,
+    }));
+    if (
+      points.some(
+        p =>
+          p.x < panelTotalWidth || p.x > canvasWidth || p.y < 0 || p.y > gridHeight
+      )
+    ) {
+      return false;
+    }
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const startDistance = Math.hypot(dx, dy);
+    if (!startDistance) return false;
+    const wasSelecting = state.selecting;
+    const hadWireTrace = state.wireTrace.length > 0;
+    const hadDraggingBlock = Boolean(state.draggingBlock);
+    state.pinch = {
+      startDistance,
+      startScale: currentScale,
+      minScale: getMinCanvasScale(),
+    };
+    state.pointerDown = null;
+    state.pointerMoved = false;
+    state.dragCandidate = null;
+    state.selecting = false;
+    state.selectStart = null;
+    state.wireTrace = [];
+    state.draggingBlock = null;
+    if (wasSelecting || hadWireTrace || hadDraggingBlock) {
+      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      if (state.selection) drawSelection();
+    }
+    return true;
+  }
+
+  function updatePinch(e) {
+    if (!state.pinch || !e.touches || e.touches.length < 2) return;
+    const dx = e.touches[0].clientX - e.touches[1].clientX;
+    const dy = e.touches[0].clientY - e.touches[1].clientY;
+    const distance = Math.hypot(dx, dy);
+    if (!distance) return;
+    const ratio = distance / state.pinch.startDistance;
+    const targetScale = Math.max(
+      state.pinch.minScale,
+      state.pinch.startScale * ratio
+    );
+    const applied = setCanvasScale(targetScale);
+    state.pinch.currentScale = applied;
+  }
+
+  function endPinch() {
+    if (!state.pinch) return;
+    state.pinch = null;
+  }
 
   const state = {
     mode: 'idle',
@@ -114,6 +211,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     selection: null,
     selecting: false,
     selectStart: null,
+    pinch: null,
   };
 
   const undoStack = [];
@@ -477,6 +575,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function handlePointerDown(e) {
+    if (state.pinch) return false;
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
@@ -585,13 +684,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
-  overlayCanvas.addEventListener('touchstart', e => {
-    const handled = handlePointerDown(e);
-    if (handled) e.preventDefault();
-  }, { passive: false });
+  overlayCanvas.addEventListener(
+    'touchstart',
+    e => {
+      if (startPinch(e)) {
+        e.preventDefault();
+        return;
+      }
+      const handled = handlePointerDown(e);
+      if (handled) e.preventDefault();
+    },
+    { passive: false }
+  );
   overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
   function handlePointerUp(e) {
+    if (state.pinch) return;
     const { x, y } = getPointerPos(e);
     if (state.selecting && e.button === 2) {
       state.selecting = false;
@@ -729,10 +837,34 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-    overlayCanvas.addEventListener('mouseup', handlePointerUp);
-    overlayCanvas.addEventListener('touchend', handlePointerUp);
+  overlayCanvas.addEventListener('mouseup', handlePointerUp);
+  overlayCanvas.addEventListener(
+    'touchend',
+    e => {
+      if (state.pinch) {
+        if (!e.touches || e.touches.length < 2) endPinch();
+        e.preventDefault();
+        return;
+      }
+      handlePointerUp(e);
+    },
+    { passive: false }
+  );
+  overlayCanvas.addEventListener(
+    'touchcancel',
+    e => {
+      if (state.pinch) {
+        endPinch();
+        e.preventDefault();
+        return;
+      }
+      handlePointerUp(e);
+    },
+    { passive: false }
+  );
 
-    function handlePointerMove(e) {
+  function handlePointerMove(e) {
+    if (state.pinch) return;
     const { x, y } = getPointerPos(e);
     if (state.pointerDown) {
       const dx = x - state.pointerDown.x;
@@ -854,14 +986,24 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
-  overlayCanvas.addEventListener('touchmove', e => {
-    handlePointerMove(e);
-    if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
-      e.preventDefault();
-    }
-  }, { passive: false });
+  overlayCanvas.addEventListener(
+    'touchmove',
+    e => {
+      if (state.pinch) {
+        updatePinch(e);
+        e.preventDefault();
+        return;
+      }
+      handlePointerMove(e);
+      if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
+        e.preventDefault();
+      }
+    },
+    { passive: false }
+  );
 
   function handleDocMove(e) {
+    if (state.pinch) return;
     if (!state.draggingBlock) return;
     const rect = overlayCanvas.getBoundingClientRect();
     const point = e.touches?.[0] || e;
@@ -872,6 +1014,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
+    if (state.pinch) {
+      if (!e.touches || e.touches.length < 2) endPinch();
+      return;
+    }
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
       const scale = parseFloat(overlayCanvas.dataset.scale || '1');
@@ -910,9 +1056,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   document.addEventListener('mousemove', handleDocMove);
-  document.addEventListener('touchmove', handleDocMove, { passive: false });
+  document.addEventListener(
+    'touchmove',
+    e => {
+      if (state.pinch) {
+        updatePinch(e);
+        e.preventDefault();
+        return;
+      }
+      handleDocMove(e);
+    },
+    { passive: false }
+  );
   document.addEventListener('mouseup', handleDocUp);
-  document.addEventListener('touchend', handleDocUp);
+  document.addEventListener('touchend', e => {
+    if (state.pinch) {
+      if (!e.touches || e.touches.length < 2) endPinch();
+      e.preventDefault?.();
+      return;
+    }
+    handleDocUp(e);
+  });
+  document.addEventListener('touchcancel', e => {
+    if (state.pinch) {
+      endPinch();
+      e.preventDefault?.();
+      return;
+    }
+    handleDocUp(e);
+  });
 
   function startBlockDrag(type, name) {
     state.draggingBlock = { type, name };
