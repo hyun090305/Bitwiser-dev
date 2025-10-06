@@ -25,6 +25,9 @@ export function setupCanvas(canvas, width, height) {
     canvas.dataset.baseWidth = String(width);
     canvas.dataset.baseHeight = String(height);
     canvas.dataset.dpr = String(dpr);
+    if (!canvas.dataset.baseScale) {
+      canvas.dataset.baseScale = '1';
+    }
   }
   const ctx = canvas.getContext('2d');
   ctx.scale(dpr, dpr);
