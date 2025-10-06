@@ -198,7 +198,7 @@ export async function returnToLevels({
 
   await renderChapterList();
   const chapter = chapterData[selectedChapterIndex];
-  if (chapter && chapter.id !== 'user') {
+  if (chapter) {
     await renderStageList(chapter.stages);
   }
   const chapterStageScreen = document.getElementById('chapterStageScreen');
@@ -217,13 +217,9 @@ export async function renderChapterList() {
   chapterData.forEach((chapter, idx) => {
     const item = document.createElement('div');
     item.className = 'chapterItem';
-    let unlocked = true;
-    if (chapter.id === 'user') {
-      unlocked = [1, 2, 3, 4, 5, 6].every(s => cleared.includes(s));
-    } else if (idx > 0) {
-      const prevStages = chapterData[idx - 1].stages;
-      unlocked = prevStages.every(s => cleared.includes(s));
-    }
+    const unlocked = idx === 0
+      ? true
+      : chapterData[idx - 1].stages.every(s => cleared.includes(s));
     if (!unlocked) {
       item.classList.add('locked');
       item.textContent = `${chapter.name} 🔒`;
@@ -233,17 +229,7 @@ export async function renderChapterList() {
     } else {
       item.textContent = chapter.name;
       item.onclick = () => {
-        if (chapter.id === 'user') {
-          const chapterStageScreen = document.getElementById('chapterStageScreen');
-          const userProblemsScreen = document.getElementById('user-problems-screen');
-          if (chapterStageScreen) chapterStageScreen.style.display = 'none';
-          if (userProblemsScreen) userProblemsScreen.style.display = 'block';
-          if (typeof dependencies.renderUserProblemList === 'function') {
-            dependencies.renderUserProblemList();
-          }
-        } else {
-          selectChapter(idx);
-        }
+        selectChapter(idx);
       };
     }
     if (idx === selectedChapterIndex) item.classList.add('selected');
@@ -255,7 +241,7 @@ export function selectChapter(idx) {
   selectedChapterIndex = idx;
   renderChapterList();
   const chapter = chapterData[idx];
-  if (chapter && chapter.id !== 'user') {
+  if (chapter) {
     renderStageList(chapter.stages);
   }
 }

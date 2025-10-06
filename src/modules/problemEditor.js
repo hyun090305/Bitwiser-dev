@@ -604,14 +604,6 @@ export function initializeProblemCreationFlow({
     });
   }
 
-  const backToChapterBtn = getElement(ids.backToChapterFromUserProblemsBtnId);
-  if (backToChapterBtn) {
-    backToChapterBtn.addEventListener('click', () => {
-      hideElement(ids.userProblemsScreenId);
-      showElement(ids.chapterStageScreenId, 'block');
-      creationFlowConfig.onRefreshUserData?.();
-    });
-  }
 }
 
 function toggleLikeProblem(key) {
