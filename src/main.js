@@ -681,6 +681,8 @@ document.addEventListener("DOMContentLoaded", () => {
     setupNavigation({
       refreshUserData,
       renderChapterList,
+      getClearedLevels,
+      renderUserProblemList,
       selectChapter: index => {
         const chapters = getChapterData();
         if (chapters.length > index) {
