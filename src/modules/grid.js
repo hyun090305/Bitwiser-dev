@@ -172,26 +172,10 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     1
   );
 
-  const storedUserScale = parseFloat(gridContainer.dataset?.userScale || '1');
-  const userScale = Number.isFinite(storedUserScale) && storedUserScale >= 1
-    ? storedUserScale
-    : 1;
-  const appliedScale = scale * userScale;
-
-  if (gridContainer.dataset) {
-    gridContainer.dataset.baseScale = String(scale);
-    gridContainer.dataset.userScale = String(userScale);
-  }
-
   gridContainer.querySelectorAll('canvas').forEach(c => {
-    const canvasBaseWidth = parseFloat(c.dataset?.baseWidth || '') || baseWidth;
-    const canvasBaseHeight = parseFloat(c.dataset?.baseHeight || '') || baseHeight;
-    c.style.width = canvasBaseWidth * appliedScale + 'px';
-    c.style.height = canvasBaseHeight * appliedScale + 'px';
-    if (c.dataset) {
-      c.dataset.scale = String(appliedScale);
-      c.dataset.baseScale = String(scale);
-    }
+    c.style.width = baseWidth * scale + 'px';
+    c.style.height = baseHeight * scale + 'px';
+    c.dataset.scale = scale;
   });
 }
 
