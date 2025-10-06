@@ -829,6 +829,22 @@ html, body {
     flex-wrap: wrap;
   }
 
+  @media (max-width: 1200px) {
+    .problem-screen-panel {
+      flex-wrap: nowrap;
+      justify-content: flex-start;
+      align-items: stretch;
+      width: max-content;
+      max-width: none;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    #problem-screen {
+      overflow-x: auto;
+    }
+  }
+
   .problem-screen-panel #problemCanvasContainer {
     margin: 0 auto;
   }
