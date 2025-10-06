@@ -156,60 +156,46 @@ async function attemptAutoSave({
   const autoSaveEnabled = typeof getAutoSaveSetting === 'function' && getAutoSaveSetting();
   let saveSuccess = false;
   let loginNeeded = false;
+  let statusMessage = '';
+  const toast = elements?.toast ?? {};
 
   if (!autoSaveEnabled) {
-    return { saveSuccess, loginNeeded };
+    return { saveSuccess, loginNeeded, statusMessage };
   }
 
   const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
   if (!currentUser) {
     loginNeeded = true;
-    if (elements.circuitSavedText) {
-      elements.circuitSavedText.textContent = t('loginToSaveCircuit');
-    }
-    return { saveSuccess, loginNeeded };
+    statusMessage = t('loginToSaveCircuit');
+    return { saveSuccess, loginNeeded, statusMessage };
   }
 
   try {
-    if (elements.gifLoadingModal) {
-      if (elements.gifLoadingText) {
-        elements.gifLoadingText.textContent = t('savingCircuit');
-      }
-      elements.gifLoadingModal.style.display = 'flex';
+    if (toast.showCircuitSaving) {
+      toast.showCircuitSaving(t('savingCircuit'));
     }
-    if (elements.saveProgressContainer) {
-      elements.saveProgressContainer.style.display = 'block';
-      if (typeof updateSaveProgress === 'function') {
-        updateSaveProgress(0);
-      }
+    if (typeof updateSaveProgress === 'function') {
+      updateSaveProgress(0);
     }
     if (typeof saveCircuit === 'function') {
       await saveCircuit(updateSaveProgress);
       saveSuccess = true;
     }
-    if (elements.circuitSavedText) {
-      elements.circuitSavedText.textContent = t('circuitSaved');
-    }
+    statusMessage = t('circuitSaved');
   } catch (error) {
     if (typeof alertFn === 'function') {
       alertFn(t('saveFailed').replace('{error}', error));
     }
   } finally {
-    if (elements.gifLoadingModal) {
-      elements.gifLoadingModal.style.display = 'none';
-      if (elements.gifLoadingText) {
-        elements.gifLoadingText.textContent = t('gifLoadingText');
-      }
+    if (toast.hideCircuitSaving) {
+      toast.hideCircuitSaving();
     }
-    if (elements.saveProgressContainer) {
-      elements.saveProgressContainer.style.display = 'none';
-      if (typeof updateSaveProgress === 'function') {
-        updateSaveProgress(0);
-      }
+    if (typeof updateSaveProgress === 'function') {
+      updateSaveProgress(0);
     }
   }
 
-  return { saveSuccess, loginNeeded };
+  return { saveSuccess, loginNeeded, statusMessage };
 }
 
 async function runTestCases({
@@ -373,7 +359,7 @@ export function createGradingController(config = {}) {
       return;
     }
 
-    const { saveSuccess, loginNeeded } = await attemptAutoSave({
+    const { saveSuccess, loginNeeded, statusMessage } = await attemptAutoSave({
       getAutoSaveSetting,
       getCurrentUser,
       saveCircuit,
@@ -395,7 +381,11 @@ export function createGradingController(config = {}) {
         markLevelCleared(level);
       }
       if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
-        showCircuitSavedModal();
+        showCircuitSavedModal({
+          message: statusMessage,
+          canShare: saveSuccess,
+          loginRequired: loginNeeded
+        });
       }
       return;
     }
@@ -440,7 +430,11 @@ export function createGradingController(config = {}) {
           }
         }
         if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
-          showCircuitSavedModal();
+          showCircuitSavedModal({
+            message: statusMessage,
+            canShare: saveSuccess,
+            loginRequired: loginNeeded
+          });
         }
       });
   }

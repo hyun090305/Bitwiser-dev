@@ -9,6 +9,7 @@ import {
   setAutoSaveSetting
 } from './modules/storage.js';
 import { initializeGuestbook } from './modules/guestbook.js';
+import { createToastManager } from './modules/toast.js';
 import {
   adjustGridZoom,
   setupGrid,
@@ -43,7 +44,8 @@ import {
   handleSaveCircuitClick,
   saveCircuit,
   openSavedModal,
-  closeSavedModal
+  closeSavedModal,
+  showCircuitSavedToast
 } from './modules/circuitShare.js';
 import {
   setupNavigation,
@@ -109,6 +111,121 @@ onCircuitModified(context => {
 });
 
 const translate = typeof t === 'function' ? t : key => key;
+
+const toastContainer = document.getElementById('toastContainer') ?? (() => {
+  const el = document.createElement('div');
+  el.id = 'toastContainer';
+  el.className = 'toast-container';
+  el.setAttribute('aria-live', 'polite');
+  el.setAttribute('aria-atomic', 'true');
+  document.body.appendChild(el);
+  return el;
+})();
+
+const toastManager = createToastManager(toastContainer);
+const TOAST_IDS = {
+  gif: 'toast-gif-loading',
+  saving: 'toast-circuit-saving'
+};
+let activeSavedToastId = null;
+
+function showGifLoadingToast(message) {
+  if (!message) return;
+  toastManager.show({
+    id: TOAST_IDS.gif,
+    message,
+    spinner: true,
+    autoHide: false,
+    dismissible: false
+  });
+}
+
+function hideGifLoadingToast() {
+  toastManager.remove(TOAST_IDS.gif, { silent: true });
+}
+
+function showCircuitSavingToast(message) {
+  toastManager.show({
+    id: TOAST_IDS.saving,
+    message,
+    spinner: true,
+    progress: 0,
+    autoHide: false,
+    dismissible: false
+  });
+}
+
+function updateCircuitSavingToast(progress) {
+  toastManager.update(TOAST_IDS.saving, {
+    progress: typeof progress === 'number' ? progress : 0,
+    spinner: true
+  });
+}
+
+function hideCircuitSavingToast() {
+  toastManager.remove(TOAST_IDS.saving, { silent: true });
+}
+
+function renderCircuitSavedToast({ message, canShare, onShare, onContinue, loginRequired }) {
+  const resolvedMessage = typeof message === 'string' && message.trim().length
+    ? message
+    : translate(loginRequired ? 'loginToSaveCircuit' : 'circuitSaved');
+
+  if (activeSavedToastId) {
+    toastManager.remove(activeSavedToastId, { silent: true });
+    activeSavedToastId = null;
+  }
+
+  let toastId = null;
+  const actions = [];
+  const shareHandler = canShare && typeof onShare === 'function' ? onShare : null;
+  if (shareHandler) {
+    actions.push({
+      label: translate('savedShareBtn'),
+      onClick: () => shareHandler(),
+      closeOnClick: false
+    });
+  }
+
+  const closeLabelKey = typeof onContinue === 'function' ? 'savedNextBtn' : 'closeShareBtn';
+  actions.push({
+    label: translate(closeLabelKey),
+    onClick: () => {
+      if (toastId) {
+        toastManager.remove(toastId);
+      }
+    },
+    closeOnClick: false
+  });
+
+  toastId = toastManager.show({
+    id: `toast-saved-${Date.now()}`,
+    message: resolvedMessage,
+    actions,
+    autoHide: false,
+    dismissible: true,
+    onClose: () => {
+      if (activeSavedToastId === toastId) {
+        activeSavedToastId = null;
+      }
+      if (typeof onContinue === 'function') {
+        onContinue();
+      }
+    }
+  });
+
+  activeSavedToastId = toastId;
+  return toastId;
+}
+
+const toastApi = {
+  showGifLoading: showGifLoadingToast,
+  hideGifLoading: hideGifLoadingToast,
+  showCircuitSaving: showCircuitSavingToast,
+  updateCircuitSaving: updateCircuitSavingToast,
+  hideCircuitSaving: hideCircuitSavingToast,
+  showCircuitSaved: renderCircuitSavedToast
+};
 const clearedModalOptions = {
   modalSelector: '#clearedModal',
   stageNumberSelector: '#clearedStageNumber',
@@ -147,19 +264,11 @@ const gifPreview = document.getElementById('gifPreview');
 const saveGifBtn = document.getElementById('saveGifBtn');
 const copyGifBtn = document.getElementById('copyGifBtn');
 const shareGifBtn = document.getElementById('shareGifBtn');
-const gifLoadingModal = document.getElementById('gifLoadingModal');
-const gifLoadingText = document.getElementById('gifLoadingText');
-const saveProgressContainer = document.getElementById('saveProgressContainer');
-const saveProgressBar = document.getElementById('saveProgressBar');
 
 initializeCircuitShare({
   elements: {
     gifModal,
     gifPreview,
-    gifLoadingModal,
-    gifLoadingText,
-    saveProgressContainer,
-    saveProgressBar,
     savedModal: document.getElementById('savedModal'),
     savedList: document.getElementById('savedList')
   },
@@ -167,7 +276,8 @@ initializeCircuitShare({
   alert,
   confirm,
   getCurrentCustomProblem: getActiveCustomProblem,
-  getCurrentCustomProblemKey: getActiveCustomProblemKey
+  getCurrentCustomProblemKey: getActiveCustomProblemKey,
+  ui: toastApi
 });
 
 if (closeGifModalBtn) {
@@ -485,16 +595,18 @@ if (problemMoveRightBtn)
 
 
 // 회로 저장 완료 모달
-const circuitSavedModal = document.getElementById('circuitSavedModal');
-const circuitSavedText = document.getElementById('circuitSaved');
-const savedNextBtn = document.getElementById('savedNextBtn');
-
-function showCircuitSavedModal() {
-  if (circuitSavedModal) {
-    circuitSavedModal.style.display = 'flex';
-  } else {
-    alert(t('circuitSaved'));
-  }
+function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
+  showCircuitSavedToast({
+    message,
+    canShare,
+    loginRequired,
+    onContinue: () => {
+      const clearedLevel = gradingController.consumePendingClearedLevel();
+      if (clearedLevel !== null && clearedLevel !== undefined) {
+        showClearedModal(clearedLevel, clearedModalOptions);
+      }
+    }
+  });
 }
 
 const overlay = document.getElementById('gridOverlay');
@@ -531,10 +643,7 @@ const gradingController = createGradingController({
     blockPanel,
     rightPanel,
     gradingArea,
-    circuitSavedText,
-    gifLoadingModal,
-    gifLoadingText,
-    saveProgressContainer
+    toast: toastApi
   }
 });
 
@@ -548,9 +657,7 @@ initializeStatusShare({
     shareText: document.getElementById('shareText'),
     copyShareBtn: document.getElementById('copyShareBtn'),
     closeShareBtn: document.getElementById('closeShareBtn'),
-    copyStatusBtn: document.getElementById('copyStatusBtn'),
-    savedShareBtn: document.getElementById('savedShareBtn'),
-    savedModal: circuitSavedModal
+    copyStatusBtn: document.getElementById('copyStatusBtn')
   }
 });
 
@@ -566,16 +673,6 @@ if (gradeButton) {
       return;
     }
     gradingController.gradeCurrentSelection();
-  });
-}
-
-if (savedNextBtn) {
-  savedNextBtn.addEventListener('click', () => {
-    if (circuitSavedModal) circuitSavedModal.style.display = 'none';
-    const clearedLevel = gradingController.consumePendingClearedLevel();
-    if (clearedLevel !== null && clearedLevel !== undefined) {
-      showClearedModal(clearedLevel, clearedModalOptions);
-    }
   });
 }
 
