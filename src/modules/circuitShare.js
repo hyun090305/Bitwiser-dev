@@ -5,6 +5,14 @@ import { getCurrentLevel } from './levels.js';
 const CURRENT_CIRCUIT_VERSION = 2;
 
 let elements = {};
+let toastUI = {
+  showGifLoading: null,
+  hideGifLoading: null,
+  showCircuitSaving: null,
+  updateCircuitSaving: null,
+  hideCircuitSaving: null,
+  showCircuitSaved: null
+};
 let translate = key => key;
 let alertFn = typeof window !== 'undefined' && typeof window.alert === 'function'
   ? window.alert.bind(window)
@@ -74,7 +82,8 @@ export function initializeCircuitShare({
   confirm: providedConfirm,
   getCurrentCustomProblem,
   getCurrentCustomProblemKey,
-  onLastSavedKeyChange: handleLastSavedKey
+  onLastSavedKeyChange: handleLastSavedKey,
+  ui: toastHooks = {}
 } = {}) {
   elements = { ...providedElements };
   if (typeof translateFn === 'function') translate = translateFn;
@@ -83,6 +92,14 @@ export function initializeCircuitShare({
   if (typeof getCurrentCustomProblem === 'function') getCustomProblem = getCurrentCustomProblem;
   if (typeof getCurrentCustomProblemKey === 'function') getCustomProblemKey = getCurrentCustomProblemKey;
   externalLastSavedKeyChange = typeof handleLastSavedKey === 'function' ? handleLastSavedKey : () => {};
+  toastUI = {
+    showGifLoading: typeof toastHooks.showGifLoading === 'function' ? toastHooks.showGifLoading : null,
+    hideGifLoading: typeof toastHooks.hideGifLoading === 'function' ? toastHooks.hideGifLoading : null,
+    showCircuitSaving: typeof toastHooks.showCircuitSaving === 'function' ? toastHooks.showCircuitSaving : null,
+    updateCircuitSaving: typeof toastHooks.updateCircuitSaving === 'function' ? toastHooks.updateCircuitSaving : null,
+    hideCircuitSaving: typeof toastHooks.hideCircuitSaving === 'function' ? toastHooks.hideCircuitSaving : null,
+    showCircuitSaved: typeof toastHooks.showCircuitSaved === 'function' ? toastHooks.showCircuitSaved : null
+  };
 }
 
 function translateShare(key, fallback) {
@@ -251,8 +268,8 @@ export function initializeStatusShare({
 }
 
 export function updateSaveProgress(percent) {
-  if (elements.saveProgressBar) {
-    elements.saveProgressBar.style.width = `${percent}%`;
+  if (toastUI.updateCircuitSaving) {
+    toastUI.updateCircuitSaving(percent);
   }
 }
 
@@ -312,15 +329,13 @@ export async function handleGifShareClick() {
 }
 
 export function handleGIFExport() {
-  if (elements.gifLoadingText) {
-    elements.gifLoadingText.textContent = translate('gifLoadingText');
-  }
-  if (elements.gifLoadingModal) {
-    elements.gifLoadingModal.style.display = 'flex';
+  const loadingMessage = translate('gifLoadingText');
+  if (toastUI.showGifLoading) {
+    toastUI.showGifLoading(loadingMessage);
   }
   captureGIF(blob => {
-    if (elements.gifLoadingModal) {
-      elements.gifLoadingModal.style.display = 'none';
+    if (toastUI.hideGifLoading) {
+      toastUI.hideGifLoading();
     }
     currentGifBlob = blob;
     revokeGifUrl();
@@ -582,37 +597,47 @@ export async function handleSaveCircuitClick() {
   }
   let saveSuccess = false;
   try {
-    if (elements.gifLoadingModal) {
-      if (elements.gifLoadingText) {
-        elements.gifLoadingText.textContent = translate('savingCircuit');
-      }
-      elements.gifLoadingModal.style.display = 'flex';
+    if (toastUI.showCircuitSaving) {
+      toastUI.showCircuitSaving(translate('savingCircuit'));
     }
-    if (elements.saveProgressContainer) {
-      elements.saveProgressContainer.style.display = 'block';
-      updateSaveProgress(0);
-    }
+    updateSaveProgress(0);
     await saveCircuit(updateSaveProgress);
     saveSuccess = true;
   } catch (e) {
     const message = getTranslation('saveFailed');
     alertFn(message ? message.replace('{error}', e) : `저장에 실패했습니다: ${e}`);
   } finally {
-    if (elements.gifLoadingModal) {
-      elements.gifLoadingModal.style.display = 'none';
-      if (elements.gifLoadingText) {
-        elements.gifLoadingText.textContent = translate('gifLoadingText');
-      }
+    if (toastUI.hideCircuitSaving) {
+      toastUI.hideCircuitSaving();
     }
-    if (elements.saveProgressContainer) {
-      elements.saveProgressContainer.style.display = 'none';
-      updateSaveProgress(0);
-    }
+    updateSaveProgress(0);
   }
   if (saveSuccess) {
     const successMessage = translate('circuitSaved');
-    alertFn(successMessage && successMessage !== 'circuitSaved' ? successMessage : '회로가 저장되었습니다.');
+    showCircuitSavedToast({
+      message: successMessage && successMessage !== 'circuitSaved' ? successMessage : '회로가 저장되었습니다.',
+      canShare: true
+    });
   }
+}
+
+export function showCircuitSavedToast({ message, canShare = true, onContinue, loginRequired = false } = {}) {
+  const resolvedMessage = typeof message === 'string' && message.trim().length
+    ? message
+    : translate(loginRequired ? 'loginToSaveCircuit' : 'circuitSaved');
+
+  if (toastUI.showCircuitSaved) {
+    toastUI.showCircuitSaved({
+      message: resolvedMessage,
+      canShare,
+      onShare: canShare ? statusShareHandlers.savedShare : null,
+      onContinue,
+      loginRequired
+    });
+    return;
+  }
+
+  alertFn(resolvedMessage);
 }
 
 export async function captureGIF(onFinish) {
