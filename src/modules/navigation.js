@@ -39,68 +39,19 @@ export function isMobileDevice() {
 export function setupNavigation({
   refreshUserData,
   renderChapterList,
-  selectChapter,
-  getClearedLevels,
-  renderUserProblemList
+  selectChapter
 } = {}) {
   const chapterStageScreen = document.getElementById('chapterStageScreen');
-  const chapterNavBtn = document.getElementById('chapterNavBtn');
-  const userProblemsBtn = document.getElementById('userProblemsBtn');
+  const startBtn = document.getElementById('startBtn');
   const backBtn = document.getElementById('backToMainFromChapter');
   const overallRankingAreaEl = document.getElementById('overallRankingArea');
   const mainScreenSection = document.getElementById('mainArea');
   const guestbookAreaEl = document.getElementById('guestbookArea');
   const firstScreenEl = document.getElementById('firstScreen');
   const mobileNav = document.getElementById('mobileNav');
-  const userProblemsScreen = document.getElementById('user-problems-screen');
 
-  const getClearedLevelsFn = typeof getClearedLevels === 'function'
-    ? getClearedLevels
-    : () => [];
-
-  const translate = typeof window !== 'undefined' && typeof window.t === 'function'
-    ? window.t
-    : key => key;
-
-  function animateFirstScreenExit() {
-    const mainScreen = document.getElementById('mainScreen');
-
-    if (overallRankingAreaEl) {
-      overallRankingAreaEl.classList.add('slide-out-left');
-    }
-    if (guestbookAreaEl) {
-      guestbookAreaEl.classList.add('slide-out-right');
-    }
-    if (mainScreen) {
-      mainScreen.classList.add('fade-scale-out');
-    }
-
-    return new Promise(resolve => {
-      setTimeout(() => {
-        if (firstScreenEl) {
-          firstScreenEl.style.display = 'none';
-        }
-        if (overallRankingAreaEl) {
-          overallRankingAreaEl.classList.remove('slide-out-left');
-        }
-        if (guestbookAreaEl) {
-          guestbookAreaEl.classList.remove('slide-out-right');
-        }
-        if (mainScreen) {
-          mainScreen.classList.remove('fade-scale-out');
-        }
-        resolve();
-      }, 200);
-    });
-  }
-
-  function areUserProblemsUnlocked() {
-    const cleared = getClearedLevelsFn();
-    return [1, 2, 3, 4, 5, 6].every(stage => cleared.includes(stage));
-  }
-
-  if (chapterNavBtn && chapterStageScreen) {
-    chapterNavBtn.addEventListener('click', () => {
+  if (startBtn && chapterStageScreen) {
+    startBtn.addEventListener('click', () => {
       lockOrientationLandscape();
       const updateChapters = renderChapterList
         ? Promise.resolve(renderChapterList())
@@ -114,7 +65,32 @@ export function setupNavigation({
         })
         .catch(err => console.error(err));
 
-      animateFirstScreenExit().then(() => {
+      const mainScreen = document.getElementById('mainScreen');
+
+      if (overallRankingAreaEl) {
+        overallRankingAreaEl.classList.add('slide-out-left');
+      }
+      if (guestbookAreaEl) {
+        guestbookAreaEl.classList.add('slide-out-right');
+      }
+      if (mainScreen) {
+        mainScreen.classList.add('fade-scale-out');
+      }
+
+      setTimeout(() => {
+        if (firstScreenEl) {
+          firstScreenEl.style.display = 'none';
+        }
+        if (overallRankingAreaEl) {
+          overallRankingAreaEl.classList.remove('slide-out-left');
+        }
+        if (guestbookAreaEl) {
+          guestbookAreaEl.classList.remove('slide-out-right');
+        }
+        if (mainScreen) {
+          mainScreen.classList.remove('fade-scale-out');
+        }
+
         chapterStageScreen.style.display = 'block';
         chapterStageScreen.classList.add('stage-screen-enter');
         if (typeof refreshUserData === 'function') {
@@ -127,43 +103,7 @@ export function setupNavigation({
           },
           { once: true }
         );
-      });
-    });
-  }
-
-  if (userProblemsBtn && userProblemsScreen) {
-    userProblemsBtn.addEventListener('click', () => {
-      lockOrientationLandscape();
-      const updateChapters = renderChapterList
-        ? Promise.resolve(renderChapterList())
-        : Promise.resolve();
-
-      updateChapters
-        .then(() => {
-          if (!areUserProblemsUnlocked()) {
-            alert(translate('userProblemsLocked'));
-            throw new Error('USER_PROBLEMS_LOCKED');
-          }
-        })
-        .then(() => animateFirstScreenExit())
-        .then(() => {
-          if (chapterStageScreen) {
-            chapterStageScreen.style.display = 'none';
-          }
-          userProblemsScreen.style.display = 'block';
-          if (typeof renderUserProblemList === 'function') {
-            renderUserProblemList();
-          }
-          if (typeof refreshUserData === 'function') {
-            refreshUserData();
-          }
-        })
-        .catch(err => {
-          if (err && err.message === 'USER_PROBLEMS_LOCKED') {
-            return;
-          }
-          console.error(err);
-        });
+      }, 200);
     });
   }
 

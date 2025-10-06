@@ -181,14 +181,6 @@ html, body {
       width: 120px;
     }
 
-  #mainScreen .icon-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.6rem;
-    width: 120px;
-  }
-
   #mainScreen #tutorialBtn,
   #mainScreen #copyStatusBtn {
     border: none;
@@ -201,17 +193,18 @@ html, body {
     background-color: #bbb;
   }
 
-  #mainScreen #chapterNavBtn {
+  #mainScreen #startBtn {
     background-color: #1d4ed8;
     color: #fff;
+    width: 240px;
   }
 
-  #mainScreen #chapterNavBtn:hover {
+  #mainScreen #startBtn:hover {
     background-color: #1e3a8a;
     transform: scale(1.05);
   }
 
-    .main-button:hover {
+    .main-button:not(#startBtn):hover {
       background-color: #eff6ff;
       transform: scale(1.02);
     }

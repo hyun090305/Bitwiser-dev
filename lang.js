@@ -13,10 +13,6 @@ const translations = {
     mergeCancelBtn: {text: "제 계정이 아닙니다"},
     overallRankingTitle: {text: "🏆 전체 랭킹"},
     overallRankingList: {text: "로딩 중…"},
-    labBtn: {title: "실험실", ariaLabel: "실험실"},
-    chapterNavBtn: {title: "스테이지 선택", ariaLabel: "스테이지 선택"},
-    userProblemsBtn: {title: "사용자 문제", ariaLabel: "사용자 문제"},
-    userProblemsLocked: {text: "사용자 문제는 챕터 1~6을 모두 클리어하면 열립니다."},
       startBtn: {text: "시작하기"},
       tutorialBtn: {text: "튜토리얼"},
       copyStatusBtn: {text: "공유하기"},
@@ -166,10 +162,6 @@ const translations = {
     mergeCancelBtn: {text: "Not my account"},
     overallRankingTitle: {text: "🏆 Global Ranking"},
     overallRankingList: {text: "Loading..."},
-    labBtn: {title: "Lab", ariaLabel: "Lab"},
-    chapterNavBtn: {title: "Select Stages", ariaLabel: "Select Stages"},
-    userProblemsBtn: {title: "User Problems", ariaLabel: "User Problems"},
-    userProblemsLocked: {text: "User problems unlock after clearing stages 1-6."},
     startBtn: {text: "Start"},
     tutorialBtn: {text: "Tutorial"},
     copyStatusBtn: {text: "Share"},
@@ -314,12 +306,11 @@ function applyTranslations() {
   Object.keys(langMap).forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
-    const {text, html, placeholder, title, ariaLabel} = langMap[id];
+    const {text, html, placeholder, title} = langMap[id];
     if (text !== undefined) el.textContent = text;
     if (html !== undefined) el.innerHTML = html;
     if (placeholder !== undefined) el.setAttribute('placeholder', placeholder);
     if (title !== undefined) el.setAttribute('title', title);
-    if (ariaLabel !== undefined) el.setAttribute('aria-label', ariaLabel);
   });
 }
 
