@@ -234,10 +234,6 @@ export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = nu
   resetTransformAndClear(ctx);
   ctx.save();
   if (camera) {
-    const { panelWidth, originX, originY, scale } = camera.getState();
-    ctx.translate(panelWidth, 0);
-    ctx.scale(scale, scale);
-    ctx.translate(-originX, -originY);
     offsetX = 0;
   }
   Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX, camera));
