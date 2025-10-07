@@ -79,6 +79,7 @@ let labInitialized = false;
 let labController = null;
 let labCircuit = null;
 let labCamera = null;
+let labResizeHandler = null;
 let rightPanelPlaceholder = null;
 let originalGradeDisplay = '';
 let originalGameTitleText = '';
@@ -111,15 +112,46 @@ function restoreRightPanel() {
   }
 }
 
-function createLabController() {
+function removeLabResizeHandler() {
+  if (labResizeHandler) {
+    window.removeEventListener('resize', labResizeHandler);
+    labResizeHandler = null;
+  }
+}
+
+function createLabController({ preserveCircuit = false } = {}) {
   const bgCanvas = document.getElementById('labBgCanvas');
   const contentCanvas = document.getElementById('labContentCanvas');
   const overlayCanvas = document.getElementById('labOverlayCanvas');
   if (!bgCanvas || !contentCanvas || !overlayCanvas) return;
 
-  labCircuit = makeCircuit(24, 24);
+  const reuseExistingCircuit = preserveCircuit && labCircuit && labController;
+  const { innerWidth, innerHeight } = window;
+
+  if (reuseExistingCircuit) {
+    removeLabResizeHandler();
+    labResizeHandler = () => {
+      if (!labController?.resizeCanvas) return;
+      labController.resizeCanvas(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener('resize', labResizeHandler);
+
+    const { inputs, outputs } = getAvailableIONames(labCircuit, 5);
+    labController.setIOPaletteNames?.(inputs, outputs);
+    labController.resizeCanvas?.(innerWidth, innerHeight);
+    labController.attachKeyboardHandlers?.();
+    return;
+  }
+
+  if (!labCircuit) {
+    labCircuit = makeCircuit(24, 24);
+  }
+
+  if (!labCamera) {
+    labCamera = createCamera({ panelWidth: 220 });
+  }
+
   const paletteGroups = collectPaletteGroups(labCircuit);
-  labCamera = createCamera({ panelWidth: 220 });
 
   const applyDynamicIOPalette = () => {
     if (!labController) return;
@@ -127,7 +159,6 @@ function createLabController() {
     labController.setIOPaletteNames?.(inputs, outputs);
   };
 
-  const { innerWidth, innerHeight } = window;
   labController = createController(
     { bgCanvas, contentCanvas, overlayCanvas },
     labCircuit,
@@ -165,11 +196,14 @@ function createLabController() {
 
   applyDynamicIOPalette();
 
-  const resizeObserver = () => {
+  removeLabResizeHandler();
+  labResizeHandler = () => {
     if (!labController?.resizeCanvas) return;
     labController.resizeCanvas(window.innerWidth, window.innerHeight);
   };
-  window.addEventListener('resize', resizeObserver);
+  window.addEventListener('resize', labResizeHandler);
+
+  labController.attachKeyboardHandlers?.();
 }
 
 function showLabScreen() {
@@ -187,12 +221,8 @@ function showLabScreen() {
     }
     titleEl.textContent = '🔬 Lab Mode';
   }
-  if (!labInitialized) {
-    createLabController();
-    labInitialized = true;
-  } else {
-    labController?.resizeCanvas?.(window.innerWidth, window.innerHeight);
-  }
+  createLabController({ preserveCircuit: labInitialized });
+  labInitialized = true;
 }
 
 function hideLabScreen() {
@@ -203,6 +233,7 @@ function hideLabScreen() {
   const firstScreen = document.getElementById('firstScreen');
   if (firstScreen) firstScreen.style.display = '';
   document.body.classList.remove('lab-mode-active');
+  removeLabResizeHandler();
   const titleEl = document.getElementById('gameTitle');
   if (titleEl) {
     const fallbackTitle = originalGameTitleText || '🧠 Bitwiser';
