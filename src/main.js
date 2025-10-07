@@ -503,6 +503,9 @@ document.getElementById("showIntroBtn").addEventListener("click", () => {
 });
 
 document.getElementById("gameTitle").addEventListener("click", () => {
+  if (document.body.classList.contains('lab-mode-active')) {
+    return;
+  }
   const level = getCurrentLevel();
   const customProblem = getActiveCustomProblem();
   if (level != null) {

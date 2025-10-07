@@ -546,72 +546,84 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
-  if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
-  keydownHandler = e => {
-    const key = e.key.toLowerCase();
-    if (window.isScoring) {
-      if (key === 'z' || key === 'y') e.preventDefault();
-      else if (key === 'r') e.preventDefault();
-      return;
-    }
-    const active = document.activeElement;
-    if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
-    if (key === 'z') {
-      e.preventDefault();
-      undo();
-      return;
-    }
-    if (key === 'y') {
-      e.preventDefault();
-      redo();
-      return;
-    }
-    if (isControlLikeKey(e)) {
-      state.mode = 'wireDrawing';
-      updateButtons();
-    } else if (e.key === 'Shift') {
-      state.mode = 'deleting';
-      updateButtons();
-    } else if (e.key === ' ') {
-      e.preventDefault();
-      state.spaceHeld = true;
-    } else if (e.key.toLowerCase() === 'r') {
-      if (!confirm(window.t('confirmDeleteAll'))) return;
-      const fixed = {};
-      Object.entries(circuit.blocks).forEach(([id, b]) => {
-        if (b.fixed) fixed[id] = b;
-      });
-      circuit.blocks = fixed;
-      circuit.wires = {};
-      syncPaletteWithCircuit();
-      refreshBackground();
-      renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
-      updateUsageCounts();
-      clearSelection();
-      snapshot();
-    }
-  };
-  document.addEventListener('keydown', keydownHandler);
-
-  if (keyupHandler) document.removeEventListener('keyup', keyupHandler);
-  keyupHandler = e => {
-    if (isControlLikeKey(e) && state.mode === 'wireDrawing') {
-      state.mode = 'idle';
-      state.wireTrace = [];
-      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      updateButtons();
-    } else if (e.key === 'Shift' && state.mode === 'deleting') {
-      state.mode = 'idle';
-      updateButtons();
-    } else if (e.key === ' ') {
-      state.spaceHeld = false;
-      if (state.panning) {
-        state.panning = false;
-        state.panLast = null;
+  function createKeydownHandler() {
+    return e => {
+      const key = e.key.toLowerCase();
+      if (window.isScoring) {
+        if (key === 'z' || key === 'y') e.preventDefault();
+        else if (key === 'r') e.preventDefault();
+        return;
       }
-    }
-  };
-  document.addEventListener('keyup', keyupHandler);
+      const active = document.activeElement;
+      if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+      if (key === 'z') {
+        e.preventDefault();
+        undo();
+        return;
+      }
+      if (key === 'y') {
+        e.preventDefault();
+        redo();
+        return;
+      }
+      if (isControlLikeKey(e)) {
+        state.mode = 'wireDrawing';
+        updateButtons();
+      } else if (e.key === 'Shift') {
+        state.mode = 'deleting';
+        updateButtons();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        state.spaceHeld = true;
+      } else if (e.key.toLowerCase() === 'r') {
+        if (!confirm(window.t('confirmDeleteAll'))) return;
+        const fixed = {};
+        Object.entries(circuit.blocks).forEach(([id, b]) => {
+          if (b.fixed) fixed[id] = b;
+        });
+        circuit.blocks = fixed;
+        circuit.wires = {};
+        syncPaletteWithCircuit();
+        refreshBackground();
+        renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        updateUsageCounts();
+        clearSelection();
+        snapshot();
+      }
+    };
+  }
+
+  function createKeyupHandler() {
+    return e => {
+      if (isControlLikeKey(e) && state.mode === 'wireDrawing') {
+        state.mode = 'idle';
+        state.wireTrace = [];
+        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        updateButtons();
+      } else if (e.key === 'Shift' && state.mode === 'deleting') {
+        state.mode = 'idle';
+        updateButtons();
+      } else if (e.key === ' ') {
+        state.spaceHeld = false;
+        if (state.panning) {
+          state.panning = false;
+          state.panLast = null;
+        }
+      }
+    };
+  }
+
+  function attachKeyboardHandlers() {
+    if (keydownHandler) document.removeEventListener('keydown', keydownHandler);
+    keydownHandler = createKeydownHandler();
+    document.addEventListener('keydown', keydownHandler);
+
+    if (keyupHandler) document.removeEventListener('keyup', keyupHandler);
+    keyupHandler = createKeyupHandler();
+    document.addEventListener('keyup', keyupHandler);
+  }
+
+  attachKeyboardHandlers();
 
   function destroy() {
     if (keydownHandler) {
@@ -1164,6 +1176,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     undo,
     redo,
     destroy,
+    attachKeyboardHandlers,
     resizeCanvas,
   };
 }
