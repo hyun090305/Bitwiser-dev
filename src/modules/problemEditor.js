@@ -783,25 +783,10 @@ function normalizeText(text) {
 
 function matchesDifficultyFilter(value, filter) {
   if (filter === 'all') return true;
-
-  const numericFilter = Number.parseInt(filter, 10);
-  if (Number.isNaN(numericFilter)) return true;
-
-  const numericValue = Number.parseInt(value, 10);
-  if (Number.isNaN(numericValue)) return true;
-
-  return numericValue === numericFilter;
-}
-
-function updateDifficultyToggleUI() {
-  document
-    .querySelectorAll('.user-problem-difficulty-toggle')
-    .forEach(button => {
-      const buttonValue = button.dataset.userProblemDifficulty || 'all';
-      const isActive = userProblemFilterState.difficulty === buttonValue;
-      button.classList.toggle('active', isActive);
-      button.setAttribute('aria-pressed', isActive ? 'true' : 'false');
-    });
+  if (filter === 'easy') return value <= 2;
+  if (filter === 'normal') return value === 3;
+  if (filter === 'hard') return value >= 4;
+  return true;
 }
 
 function updateFilterToggleUI() {
@@ -836,6 +821,11 @@ function updateFilterControlValues() {
     gridSelect.value = userProblemFilterState.gridSize;
   }
 
+  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
+  if (difficultySelect && difficultySelect.value !== userProblemFilterState.difficulty) {
+    difficultySelect.value = userProblemFilterState.difficulty;
+  }
+
   const minLikesInput = document.getElementById('userProblemMinLikes');
   if (minLikesInput) {
     minLikesInput.value = userProblemFilterState.minLikes
@@ -847,15 +837,12 @@ function updateFilterControlValues() {
   if (creatorInput && creatorInput.value !== userProblemFilterState.creatorFilter) {
     creatorInput.value = userProblemFilterState.creatorFilter;
   }
-
-  updateDifficultyToggleUI();
 }
 
 function resetUserProblemFilters() {
   userProblemFilterState = { ...DEFAULT_USER_PROBLEM_FILTERS };
   updateFilterControlValues();
   updateFilterToggleUI();
-  updateDifficultyToggleUI();
   if (!userProblemListLoading) {
     updateUserProblemListUI();
   }
@@ -896,25 +883,6 @@ function ensureUserProblemControls() {
       button.addEventListener('click', () => {
         userProblemFilterState[key] = !userProblemFilterState[key];
         updateFilterToggleUI();
-        updateDifficultyToggleUI();
-        if (!userProblemListLoading) {
-          updateUserProblemListUI();
-        }
-      });
-    });
-
-  document
-    .querySelectorAll('.user-problem-difficulty-toggle')
-    .forEach(button => {
-      const difficultyValue = button.dataset.userProblemDifficulty;
-      if (!difficultyValue) return;
-
-      button.addEventListener('click', () => {
-        const previous = userProblemFilterState.difficulty;
-        userProblemFilterState.difficulty =
-          difficultyValue === previous ? 'all' : difficultyValue;
-
-        updateDifficultyToggleUI();
         if (!userProblemListLoading) {
           updateUserProblemListUI();
         }
@@ -925,6 +893,16 @@ function ensureUserProblemControls() {
   if (gridSelect) {
     gridSelect.addEventListener('change', () => {
       userProblemFilterState.gridSize = gridSelect.value;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
+  if (difficultySelect) {
+    difficultySelect.addEventListener('change', () => {
+      userProblemFilterState.difficulty = difficultySelect.value;
       if (!userProblemListLoading) {
         updateUserProblemListUI();
       }
