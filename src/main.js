@@ -871,6 +871,9 @@ initializeProblemCreationFlow({
     problemListModalId: 'problemListModal',
     problemTitleInputId: 'problemTitleInput',
     problemDescInputId: 'problemDescInput',
+    problemDifficultyContainerId: 'problemDifficultyStars',
+    problemDifficultyValueInputId: 'problemDifficultyValue',
+    problemDifficultyValueLabelId: 'problemDifficultyValueLabel',
     fixIOCheckId: 'fixIOCheck',
     backToChapterFromUserProblemsBtnId: 'backToChapterFromUserProblems'
   },
