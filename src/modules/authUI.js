@@ -1,7 +1,6 @@
 import {
   getUsername,
   setUsername,
-  getGoogleDisplayName,
   setGoogleDisplayName,
   setGoogleEmail,
   getGoogleNickname,
@@ -26,13 +25,6 @@ const state = {
 
 const elements = {
   googleLoginBtn: null,
-  modalGoogleLoginBtn: null,
-  usernameModal: null,
-  usernameInput: null,
-  usernameError: null,
-  usernameSubmitBtn: null,
-  usernameModalHeading: null,
-  loginInfo: null,
   guestUsername: null,
   loginUsername: null,
   rankSection: null,
@@ -43,13 +35,6 @@ const elements = {
   mergeDetails: null,
   mergeConfirmBtn: null,
   mergeCancelBtn: null
-};
-
-const defaults = {
-  modalGoogleLoginDisplay: '',
-  usernameSubmitText: '',
-  usernameModalHeading: '',
-  loginInfoHtml: ''
 };
 
 function getElement(id) {
@@ -80,12 +65,6 @@ function setConfigFunctions(options = {}) {
 
 function captureElements(ids = {}) {
   elements.googleLoginBtn = getElement(ids.googleLoginBtnId);
-  elements.modalGoogleLoginBtn = getElement(ids.modalGoogleLoginBtnId);
-  elements.usernameModal = getElement(ids.usernameModalId);
-  elements.usernameInput = getElement(ids.usernameInputId);
-  elements.usernameError = getElement(ids.usernameErrorId);
-  elements.usernameSubmitBtn = getElement(ids.usernameSubmitId);
-  elements.loginInfo = getElement(ids.loginInfoId);
   elements.guestUsername = getElement(ids.guestUsernameId);
   elements.loginUsername = getElement(ids.loginUsernameId);
   elements.rankSection = getElement(ids.rankSectionId);
@@ -96,20 +75,6 @@ function captureElements(ids = {}) {
   elements.mergeDetails = getElement(ids.mergeDetailsId);
   elements.mergeConfirmBtn = getElement(ids.mergeConfirmBtnId);
   elements.mergeCancelBtn = getElement(ids.mergeCancelBtnId);
-  if (ids.usernameModalHeadingSelector && typeof document !== 'undefined') {
-    elements.usernameModalHeading = document.querySelector(ids.usernameModalHeadingSelector);
-  } else {
-    elements.usernameModalHeading = null;
-  }
-
-  defaults.modalGoogleLoginDisplay = elements.modalGoogleLoginBtn ? elements.modalGoogleLoginBtn.style.display : '';
-  defaults.usernameSubmitText = elements.usernameSubmitBtn ? elements.usernameSubmitBtn.textContent : '';
-  defaults.usernameModalHeading = elements.usernameModalHeading ? elements.usernameModalHeading.textContent : '';
-  defaults.loginInfoHtml = elements.loginInfo ? elements.loginInfo.innerHTML : '';
-
-  if (elements.usernameSubmitBtn) {
-    elements.usernameSubmitBtn.onclick = onInitialUsernameSubmit;
-  }
 }
 
 function updateLoginButtonLabels(buttons, user) {
@@ -117,18 +82,6 @@ function updateLoginButtonLabels(buttons, user) {
   buttons.forEach(btn => {
     if (btn) btn.textContent = label;
   });
-}
-
-function showUsernameModal() {
-  if (elements.usernameModal) {
-    elements.usernameModal.style.display = 'flex';
-  }
-}
-
-function hideUsernameModal() {
-  if (elements.usernameModal) {
-    elements.usernameModal.style.display = 'none';
-  }
 }
 
 function setGuestUsernameText(value) {
@@ -167,125 +120,25 @@ function hideGuestPrompt() {
   }
 }
 
-export function restoreUsernameModalDefaults() {
-  if (elements.modalGoogleLoginBtn) {
-    elements.modalGoogleLoginBtn.style.display = defaults.modalGoogleLoginDisplay;
-  }
-  if (elements.usernameSubmitBtn) {
-    elements.usernameSubmitBtn.textContent = defaults.usernameSubmitText;
-    elements.usernameSubmitBtn.onclick = onInitialUsernameSubmit;
-  }
-  if (elements.usernameModalHeading) {
-    elements.usernameModalHeading.textContent = defaults.usernameModalHeading;
-  }
-  if (elements.loginInfo) {
-    elements.loginInfo.innerHTML = defaults.loginInfoHtml;
-  }
-}
-
-function onInitialUsernameSubmit() {
-  const name = elements.usernameInput ? elements.usernameInput.value.trim() : '';
-  if (!elements.usernameError) return;
-  if (!name) {
-    elements.usernameError.textContent = '닉네임을 입력해주세요.';
-    return;
-  }
-  db.ref('usernames').orderByValue().equalTo(name).once('value', snapshot => {
-    if (snapshot.exists()) {
-      elements.usernameError.textContent = '이미 사용 중인 닉네임입니다.';
-    } else {
-      const userId = db.ref('usernames').push().key;
-      db.ref(`usernames/${userId}`).set(name);
-      setUsername(name);
-      hideUsernameModal();
-      setGuestUsernameText(name);
-      loadClearedLevelsFromDb().then(maybeStartTutorial);
-    }
-  });
-}
-
 function assignGuestNickname() {
-  const attempt = () => {
-    const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
-    db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-      if (snap.exists()) {
-        attempt();
-      } else {
-        const id = db.ref('usernames').push().key;
-        db.ref(`usernames/${id}`).set(name);
-        setUsername(name);
-        setGuestUsernameText(name);
-        setLoginUsernameText(name);
-        loadClearedLevelsFromDb().then(maybeStartTutorial);
-      }
-    });
-  };
-  attempt();
-}
-
-function promptForGoogleNickname(oldName, uid) {
-  if (elements.usernameInput) {
-    const suggested = oldName || getGoogleDisplayName(uid) || '';
-    elements.usernameInput.value = suggested;
-  }
-  if (elements.usernameError) {
-    elements.usernameError.textContent = '';
-  }
-  if (elements.modalGoogleLoginBtn) {
-    elements.modalGoogleLoginBtn.style.display = 'none';
-  }
-  if (elements.usernameSubmitBtn) {
-    elements.usernameSubmitBtn.textContent = '닉네임 등록';
-    elements.usernameSubmitBtn.onclick = () => onGoogleUsernameSubmit(oldName, uid);
-  }
-  if (elements.usernameModalHeading) {
-    elements.usernameModalHeading.textContent = 'Google 닉네임 등록';
-  }
-  if (elements.loginInfo) {
-    elements.loginInfo.innerHTML = translate('loginInfoGoogle');
-  }
-  showUsernameModal();
-}
-
-function onGoogleUsernameSubmit(oldName, uid) {
-  const name = elements.usernameInput ? elements.usernameInput.value.trim() : '';
-  if (!elements.usernameError) return;
-  if (!name) {
-    elements.usernameError.textContent = '닉네임을 입력해주세요.';
-    return;
-  }
-  db.ref('google').orderByChild('nickname').equalTo(name).once('value', gSnap => {
-    if (gSnap.exists()) {
-      elements.usernameError.textContent = '이미 있는 닉네임입니다.';
-      return;
-    }
-    db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-      if (snap.exists() && name !== oldName) {
-        hideUsernameModal();
-        restoreUsernameModalDefaults();
-        showAccountClaimModal(name, oldName, uid);
-      } else {
-        if (!snap.exists()) {
+  return new Promise(resolve => {
+    const attempt = () => {
+      const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
+      db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
+        if (snap.exists()) {
+          attempt();
+        } else {
           const id = db.ref('usernames').push().key;
           db.ref(`usernames/${id}`).set(name);
+          setUsername(name);
+          setGuestUsernameText(name);
+          setLoginUsernameText(name);
+          loadClearedLevelsFromDb().then(maybeStartTutorial);
+          resolve(name);
         }
-        setUsername(name);
-        setGoogleNickname(uid, name);
-        db.ref(`google/${uid}`).set({ uid, nickname: name });
-        hideUsernameModal();
-        restoreUsernameModalDefaults();
-        setGuestUsernameText(name);
-        loadClearedLevelsFromDb().then(() => {
-          if (oldName && oldName !== name) {
-            showMergeModal(oldName, name);
-          } else {
-            registerUsernameIfNeeded(name);
-            showOverallRanking();
-          }
-          maybeStartTutorial();
-        });
-      }
-    });
+      });
+    };
+    attempt();
   });
 }
 
@@ -322,13 +175,9 @@ function showMergeModal(oldName, newName) {
   };
   elements.mergeCancelBtn.onclick = () => {
     elements.mergeModal.style.display = 'none';
-    if (!state.loginFromMainScreen && firebase.auth().currentUser) {
-      promptForGoogleNickname(oldName, firebase.auth().currentUser.uid);
-    } else {
-      registerUsernameIfNeeded(newName);
-      loadClearedLevelsFromDb();
-      showOverallRanking();
-    }
+    registerUsernameIfNeeded(newName);
+    loadClearedLevelsFromDb();
+    showOverallRanking();
   };
 }
 
@@ -372,7 +221,10 @@ function showAccountClaimModal(targetName, oldName, uid) {
     elements.mergeCancelBtn.onclick = () => {
       elements.mergeModal.style.display = 'none';
       if (!state.loginFromMainScreen) {
-        promptForGoogleNickname(oldName, uid);
+        assignGuestNickname().then(name => {
+          setGoogleNickname(uid, name);
+          db.ref(`google/${uid}`).set({ uid, nickname: name });
+        });
       }
     };
   });
@@ -458,7 +310,10 @@ function handleGoogleLogin(user) {
         maybeStartTutorial();
       });
     } else {
-      promptForGoogleNickname(oldName, uid);
+      assignGuestNickname().then(name => {
+        setGoogleNickname(uid, name);
+        db.ref(`google/${uid}`).set({ uid, nickname: name });
+      });
     }
   });
 }
@@ -469,7 +324,6 @@ function handleAuthStateChange(buttons, user) {
   setLoginUsernameText(nickname);
   if (user) {
     handleGoogleLogin(user);
-    hideUsernameModal();
     showRankSection();
     hideGuestPrompt();
     fetchOverallStats(nickname).then(res => {
@@ -481,7 +335,6 @@ function handleAuthStateChange(buttons, user) {
       }
     });
   } else {
-    restoreUsernameModalDefaults();
     hideRankSection();
     showGuestPrompt();
     if (!getUsername()) {
@@ -530,7 +383,7 @@ export function initializeAuthUI(options = {}) {
   setConfigFunctions(options);
   captureElements(options.ids || {});
 
-  const buttons = [elements.googleLoginBtn, elements.modalGoogleLoginBtn].filter(Boolean);
+  const buttons = [elements.googleLoginBtn].filter(Boolean);
   if (!buttons.length || typeof firebase === 'undefined' || !firebase.auth) {
     return Promise.resolve();
   }
@@ -553,8 +406,6 @@ export const __testing = {
   setConfigFunctions,
   captureElements,
   assignGuestNickname,
-  promptForGoogleNickname,
-  onGoogleUsernameSubmit,
   registerUsernameIfNeeded,
   removeUsername,
   showMergeModal,

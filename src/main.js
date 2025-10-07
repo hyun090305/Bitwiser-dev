@@ -747,13 +747,6 @@ document.addEventListener("DOMContentLoaded", () => {
     fetchProgressSummary,
     ids: {
       googleLoginBtnId: 'googleLoginBtn',
-      modalGoogleLoginBtnId: 'modalGoogleLoginBtn',
-      usernameModalId: 'usernameModal',
-      usernameInputId: 'usernameInput',
-      usernameErrorId: 'usernameError',
-      usernameSubmitId: 'usernameSubmit',
-      usernameModalHeadingSelector: '#usernameModal h2',
-      loginInfoId: 'loginInfo',
       guestUsernameId: 'guestUsername',
       loginUsernameId: 'loginUsername',
       rankSectionId: 'rankSection',
