@@ -120,9 +120,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   let overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
 
-  const MIN_CAMERA_SCALE = 1;
-  const MAX_CAMERA_SCALE = 3;
-
   const state = {
     mode: 'idle',
     placingType: null,
@@ -139,7 +136,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     spaceHeld: false,
     panning: false,
     panLast: null,
-    pinch: null,
   };
 
   const undoStack = [];
@@ -162,10 +158,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return camera.screenToCell(x, y);
     }
     return pxToCell(x, y, circuit, panelTotalWidth);
-  }
-
-  function isWithinGrid(x, y) {
-    return x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight;
   }
 
   function cellTopLeft(r, c) {
@@ -554,75 +546,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
-  function getTouchPoints(touches) {
-    const rect = overlayCanvas.getBoundingClientRect();
-    const scale = parseFloat(overlayCanvas.dataset.scale || '1');
-    return Array.from(touches)
-      .slice(0, 2)
-      .map(touch => ({
-        x: (touch.clientX - rect.left) / scale,
-        y: (touch.clientY - rect.top) / scale,
-      }));
-  }
-
-  function startPinch(touches) {
-    if (!useCamera || !touches || touches.length < 2) return false;
-    const points = getTouchPoints(touches);
-    if (points.length < 2) return false;
-    const [p1, p2] = points;
-    if (!isWithinGrid(p1.x, p1.y) && !isWithinGrid(p2.x, p2.y)) return false;
-    const distance = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-    if (!distance) return false;
-    const center = {
-      x: (p1.x + p2.x) / 2,
-      y: (p1.y + p2.y) / 2,
-    };
-    state.pinch = {
-      active: true,
-      startDistance: distance,
-      startScale: camera.getScale(),
-      lastCenter: center,
-    };
-    state.pointerDown = null;
-    state.pointerMoved = false;
-    state.selecting = false;
-    state.panLast = null;
-    state.panning = false;
-    return true;
-  }
-
-  function updatePinch(touches) {
-    if (!state.pinch?.active || !useCamera || !touches || touches.length < 2) return;
-    const points = getTouchPoints(touches);
-    if (points.length < 2) return;
-    const [p1, p2] = points;
-    const distance = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-    if (!distance || !state.pinch.startDistance) return;
-    const center = {
-      x: (p1.x + p2.x) / 2,
-      y: (p1.y + p2.y) / 2,
-    };
-    const scaleFactor = distance / state.pinch.startDistance;
-    const nextScale = Math.min(
-      MAX_CAMERA_SCALE,
-      Math.max(MIN_CAMERA_SCALE, state.pinch.startScale * scaleFactor)
-    );
-    camera.setScale(nextScale, center.x, center.y);
-    if (state.pinch.lastCenter) {
-      const dx = center.x - state.pinch.lastCenter.x;
-      const dy = center.y - state.pinch.lastCenter.y;
-      if (dx || dy) {
-        camera.pan(dx, dy);
-      }
-    }
-    state.pinch.lastCenter = center;
-  }
-
-  function endPinch() {
-    if (!state.pinch?.active) return;
-    state.pinch = null;
-  }
-
   function createKeydownHandler() {
     return e => {
       const key = e.key.toLowerCase();
@@ -724,7 +647,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function handlePointerDown(e) {
-    if (state.pinch?.active) return false;
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
@@ -740,7 +662,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return handled;
     }
     if (e.button === 2) {
-      if (isWithinGrid(x, y)) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         state.selecting = true;
         state.selectStart = cell;
@@ -751,7 +673,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       e.preventDefault();
     } else {
       if (state.selection) {
-        const inGrid = isWithinGrid(x, y);
+        const inGrid = x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight;
         let inside = false;
         if (inGrid) {
           const cell = pointerToCell(x, y);
@@ -775,7 +697,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           state.draggingBlock = { type: item.type, name: item.label };
           handled = true;
         }
-      } else if (isWithinGrid(x, y)) {
+      } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         if (state.mode === 'wireDrawing') {
           if (blockAt(cell)) {
@@ -844,20 +766,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
-    if (startPinch(e.touches)) {
-      e.preventDefault();
-      return;
-    }
     const handled = handlePointerDown(e);
     if (handled) e.preventDefault();
   }, { passive: false });
   overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
   function handlePointerUp(e) {
-    if (state.pinch?.active) {
-      endPinch();
-      return;
-    }
     const { x, y } = getPointerPos(e);
     if (state.panning) {
       state.panning = false;
@@ -869,7 +783,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.selecting = false;
       state.pointerDown = null;
       state.pointerMoved = false;
-      if (isWithinGrid(x, y)) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         const r1 = Math.min(state.selectStart.r, cell.r);
         const c1 = Math.min(state.selectStart.c, cell.c);
@@ -902,7 +816,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return;
     }
     if (!state.pointerMoved && state.mode === 'idle') {
-      if (isWithinGrid(x, y)) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         const blk = blockAt(cell);
         if (blk && blk.type === 'INPUT') {
@@ -927,7 +841,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
       let placed = false;
-      if (isWithinGrid(x, y)) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         if (state.draggingBlock.id) {
           const collision = blockAt(cell) || cellHasWire(cell);
@@ -1001,28 +915,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-  overlayCanvas.addEventListener('mouseup', handlePointerUp);
-  overlayCanvas.addEventListener('touchend', e => {
-    if (state.pinch?.active) {
-      if (!e.touches || e.touches.length < 2) {
-        endPinch();
-      }
-      e.preventDefault();
-      return;
-    }
-    handlePointerUp(e);
-  }, { passive: false });
-  overlayCanvas.addEventListener('touchcancel', e => {
-    if (state.pinch?.active) {
-      endPinch();
-      e.preventDefault();
-      return;
-    }
-    handlePointerUp(e);
-  }, { passive: false });
+    overlayCanvas.addEventListener('mouseup', handlePointerUp);
+    overlayCanvas.addEventListener('touchend', handlePointerUp);
 
   function handlePointerMove(e) {
-    if (state.pinch?.active) return;
     const { x, y } = getPointerPos(e);
     if (state.panning) {
       if (state.panLast) {
@@ -1037,7 +933,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) state.pointerMoved = true;
     }
     if (state.selecting) {
-      if (!isWithinGrid(x, y)) {
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) {
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         return;
       }
@@ -1059,7 +955,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
-      if (!isWithinGrid(x, y)) return;
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
       const cell = pointerToCell(x, y);
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
@@ -1089,7 +985,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.stroke();
       overlayCtx.restore();
     } else {
-      if (isWithinGrid(x, y)) {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToCell(x, y);
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
@@ -1148,16 +1044,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
-    if (state.pinch?.active) {
-      updatePinch(e.touches);
-      e.preventDefault();
-      return;
-    }
-    if (useCamera && e.touches?.length >= 2 && startPinch(e.touches)) {
-      updatePinch(e.touches);
-      e.preventDefault();
-      return;
-    }
     handlePointerMove(e);
     if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
       e.preventDefault();
@@ -1165,7 +1051,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   function handleDocMove(e) {
-    if (state.pinch?.active) return;
     if (!state.draggingBlock) return;
     const rect = overlayCanvas.getBoundingClientRect();
     const point = e.touches?.[0] || e;
@@ -1176,10 +1061,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
-    if (state.pinch?.active) {
-      endPinch();
-      return;
-    }
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
       const scale = parseFloat(overlayCanvas.dataset.scale || '1');
@@ -1221,7 +1102,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   document.addEventListener('touchmove', handleDocMove, { passive: false });
   document.addEventListener('mouseup', handleDocUp);
   document.addEventListener('touchend', handleDocUp);
-  document.addEventListener('touchcancel', handleDocUp);
 
   function startBlockDrag(type, name) {
     state.draggingBlock = { type, name };
