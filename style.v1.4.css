@@ -2663,3 +2663,87 @@ html, body {
   }
 }
 
+
+#labScreen {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#labCanvasContainer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+}
+
+#labCanvasContainer canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+#labBgCanvas,
+#labContentCanvas {
+  pointer-events: none;
+}
+
+#labOverlayCanvas {
+  pointer-events: auto;
+}
+
+.lab-exit-btn {
+  position: fixed;
+  top: 1.5rem;
+  left: 1.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: 999px;
+  border: none;
+  font-weight: 600;
+  background: rgba(25, 30, 48, 0.8);
+  color: #f5f7ff;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+  z-index: 25;
+}
+
+.lab-exit-btn:hover {
+  background: rgba(35, 40, 60, 0.9);
+}
+
+body.lab-mode-active {
+  overflow: hidden;
+  background-color: #070a12;
+}
+
+.lab-right-panel {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  max-height: 100vh;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(18, 22, 36, 0.92), rgba(12, 16, 28, 0.94));
+  padding: 1.5rem 1.25rem;
+  box-shadow: -12px 0 30px rgba(0, 0, 0, 0.35);
+  z-index: 30;
+}
+
+.lab-right-panel .main-button,
+.lab-right-panel button {
+  background: rgba(255, 255, 255, 0.15);
+  color: #f8f9ff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.lab-right-panel .main-button:hover,
+.lab-right-panel button:hover {
+  background: rgba(255, 255, 255, 0.25);
+}

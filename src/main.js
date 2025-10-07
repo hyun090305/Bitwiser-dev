@@ -73,6 +73,7 @@ import {
   showClearedModal,
   initializeRankingUI
 } from './modules/rank.js';
+import { initializeLabMode } from './modules/labMode.js';
 
 void uiModule;
 
@@ -817,6 +818,7 @@ const userProblemsScreen = document.getElementById('user-problems-screen');
 configureLevelModule({ renderUserProblemList });
 
 initializeHintUI();
+initializeLabMode();
 
 function placeFixedIO(problem) {
   getPlayController()?.placeFixedIO?.(problem);
