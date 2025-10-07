@@ -2697,11 +2697,9 @@ body.lab-mode #gameArea {
 }
 
 body.lab-mode #gameLayout {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
 }
 
 body.lab-mode #canvasContainer {
@@ -2710,6 +2708,7 @@ body.lab-mode #canvasContainer {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
 body.lab-mode #canvasContainer canvas {
@@ -2718,7 +2717,7 @@ body.lab-mode #canvasContainer canvas {
 
 body.lab-mode #rightPanel {
   position: absolute;
-  top: 4vh;
+  top: clamp(1.5rem, 4vh, 3rem);
   right: clamp(1.5rem, 4vw, 4rem);
   background: rgba(255, 255, 255, 0.95);
   border-radius: 24px;
@@ -2745,97 +2744,29 @@ body.lab-mode #moveButtonWrapper {
   background: transparent;
 }
 
-body.lab-mode #labPanels {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  pointer-events: none;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 45%, rgba(161, 177, 255, 0.12) 100%);
+.lab-exit-btn {
+  display: none;
 }
 
-body.lab-mode .lab-panel {
-  pointer-events: auto;
-  background: rgba(255, 255, 255, 0.92);
-  border-radius: 24px;
-  padding: clamp(1rem, 2vw, 1.75rem);
-  margin: clamp(1.5rem, 3vw, 3rem);
-  box-shadow: 0 20px 55px rgba(53, 66, 122, 0.22);
-  color: #1e293b;
-}
-
-body.lab-mode .lab-info-panel {
-  align-self: flex-start;
-  max-width: min(28rem, 38vw);
-}
-
-body.lab-mode .lab-shortcuts-panel {
-  align-self: flex-end;
-  max-width: min(20rem, 30vw);
-}
-
-body.lab-mode .lab-panel-title {
-  margin: 0;
-  font-size: clamp(1.1rem, 2vw, 1.5rem);
-  font-weight: 700;
-}
-
-body.lab-mode .lab-panel-text {
-  margin-top: 0.75rem;
-  margin-bottom: 0;
-  line-height: 1.6;
-  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
-}
-
-body.lab-mode .lab-panel-header {
-  display: flex;
+body.lab-mode .lab-exit-btn {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-}
-
-body.lab-mode .lab-close-btn {
+  gap: 0.25rem;
+  align-self: flex-end;
   border: none;
   background: linear-gradient(135deg, #4c6ef5, #5f8bff);
   color: #fff;
-  font-size: 0.95rem;
-  padding: 0.55rem 1.1rem;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.9rem;
   border-radius: 999px;
   cursor: pointer;
-  box-shadow: 0 10px 25px rgba(76, 110, 245, 0.35);
+  box-shadow: 0 10px 20px rgba(76, 110, 245, 0.35);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-body.lab-mode .lab-close-btn:hover {
+body.lab-mode .lab-exit-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 16px 30px rgba(76, 110, 245, 0.45);
-}
-
-body.lab-mode .lab-shortcuts-list {
-  list-style: none;
-  padding: 0;
-  margin: 0.75rem 0 0;
-  display: grid;
-  gap: 0.5rem;
-}
-
-body.lab-mode .lab-shortcuts-list li {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: clamp(0.95rem, 1.8vw, 1.1rem);
-}
-
-body.lab-mode kbd {
-  display: inline-block;
-  padding: 0.2rem 0.45rem;
-  border-radius: 6px;
-  border: 1px solid #cbd5f5;
-  background: rgba(241, 245, 255, 0.85);
-  font-family: 'Noto Sans KR', sans-serif;
-  font-size: 0.85em;
-  box-shadow: inset 0 -2px 0 rgba(99, 102, 241, 0.25);
+  box-shadow: 0 16px 28px rgba(76, 110, 245, 0.45);
 }
 
 body.lab-mode #gridOverlay {
