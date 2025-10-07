@@ -230,9 +230,32 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0, camera = null) {
 }
 
 // Render the circuit: wires then blocks to keep z-order
-export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = null, camera = null) {
+export function renderContent(
+  ctx,
+  circuit,
+  phase = 0,
+  offsetX = 0,
+  hoverId = null,
+  camera = null
+) {
   resetTransformAndClear(ctx);
+  const panelClipWidth = offsetX;
+  const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
+  const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
+  const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
+  const clipWidth = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
+  const clipHeight = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
   ctx.save();
+  if (panelClipWidth > 0) {
+    ctx.beginPath();
+    ctx.rect(
+      panelClipWidth,
+      0,
+      Math.max(0, clipWidth - panelClipWidth),
+      clipHeight
+    );
+    ctx.clip();
+  }
   if (camera) {
     offsetX = 0;
   }
@@ -249,9 +272,16 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, groups = [], opt
     background = '#ffffff',
     border = '#ddd',
     labelColor = '#555',
-    itemGradient = ['#f0f0ff', '#d0d0ff']
+    itemGradient = ['#f0f0ff', '#d0d0ff'],
+    panelBackground = null
   } = options;
   ctx.clearRect(0, 0, panelWidth, canvasHeight);
+  if (panelBackground) {
+    ctx.save();
+    ctx.fillStyle = panelBackground;
+    ctx.fillRect(0, 0, panelWidth, canvasHeight);
+    ctx.restore();
+  }
   groups.forEach(g => {
     ctx.save();
     ctx.fillStyle = background;
