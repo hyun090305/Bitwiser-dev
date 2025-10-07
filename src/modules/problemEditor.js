@@ -79,6 +79,16 @@ function formatDifficultyValue(value) {
   return template.replace('{value}', value);
 }
 
+function formatDifficultyStars(value) {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed) || parsed <= 0) return '';
+
+  const filled = Math.max(0, Math.min(MAX_DIFFICULTY, parsed));
+  const empty = Math.max(0, MAX_DIFFICULTY - filled);
+
+  return '★'.repeat(filled) + '☆'.repeat(empty);
+}
+
 function updateDifficultyAriaLabels() {
   const labelTemplate = translate('problemDifficultyStarAria', '난이도 {value}점');
   getDifficultyStars().forEach(star => {
@@ -951,9 +961,10 @@ function createUserProblemListItem(problem) {
 
   const difficultyInfo = document.createElement('span');
   const difficultyLabel = translate('problemDifficultyLabel', '난이도');
-  const difficultyValue = problem.difficulty
-    ? `${problem.difficulty}/5`
-    : '—';
+  const difficultyStars = formatDifficultyStars(problem.difficulty);
+  const difficultyValue = difficultyStars
+    ? difficultyStars
+    : translate('problemDifficultyUnknown', '미정');
   difficultyInfo.textContent = `${difficultyLabel}: ${difficultyValue}`;
   stats.appendChild(difficultyInfo);
 
