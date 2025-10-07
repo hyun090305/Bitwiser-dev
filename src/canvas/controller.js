@@ -38,6 +38,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     panelWidth = 180,
     forceHideInOut = false,
     onCircuitModified,
+    infiniteGrid = false,
   } = options;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
@@ -174,7 +175,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     applyState(next);
   }
 
-  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth);
+  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, {
+    infinite: infiniteGrid,
+  });
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects);
   startEngine(contentCtx, circuit, (ctx, circ, phase) =>
     renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId)
