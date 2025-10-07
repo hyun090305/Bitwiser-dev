@@ -1,3 +1,5 @@
+import { createCamera } from '../canvas/camera.js';
+
 const DEFAULT_GRID_SIZE = 6;
 
 let gridRows = DEFAULT_GRID_SIZE;
@@ -5,6 +7,7 @@ let gridCols = DEFAULT_GRID_SIZE;
 
 let playCircuit = null;
 let playController = null;
+let playCamera = null;
 let problemCircuit = null;
 let problemController = null;
 
@@ -61,6 +64,7 @@ export function destroyPlayContext() {
   playController?.destroy?.();
   playController = null;
   playCircuit = null;
+  playCamera = null;
 }
 
 export function destroyProblemContext({ destroyController = true } = {}) {
@@ -205,7 +209,11 @@ export function setupGrid(
     const { makeCircuit } = m;
     return import('../canvas/controller.js').then(c => {
       const { createController } = c;
-      const { onCircuitModified: customCircuitModified, ...restOptions } = options;
+      const {
+        onCircuitModified: customCircuitModified,
+        camera: providedCamera,
+        ...restOptions
+      } = options;
       const gridContext = prefix ? CIRCUIT_CONTEXT.PROBLEM : CIRCUIT_CONTEXT.PLAY;
       const handleCircuitModified = () => {
         markCircuitModified(gridContext);
@@ -218,6 +226,14 @@ export function setupGrid(
         }
       };
       const circuit = makeCircuit(rows, cols);
+      let camera = providedCamera || null;
+      if (!camera && !prefix) {
+        if (!playCamera) {
+          playCamera = createCamera({ panelWidth: 180 });
+        }
+        camera = playCamera;
+        camera?.reset?.();
+      }
       const controller = createController(
         { bgCanvas, contentCanvas, overlayCanvas },
         circuit,
@@ -239,6 +255,7 @@ export function setupGrid(
           paletteGroups,
           panelWidth: 180,
           ...restOptions,
+          camera,
           onCircuitModified: handleCircuitModified,
         }
       );
@@ -248,6 +265,7 @@ export function setupGrid(
       } else {
         playCircuit = circuit;
         playController = controller;
+        playCamera = camera;
       }
       adjustGridZoom(containerId);
       return controller;
