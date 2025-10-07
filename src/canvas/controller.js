@@ -136,7 +136,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     spaceHeld: false,
     panning: false,
     panLast: null,
-    pinch: null,
   };
 
   const undoStack = [];
@@ -547,81 +546,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
-  function getTouchPairInfo(target, touches) {
-    if (!touches || touches.length < 2) return null;
-    const rect = target.getBoundingClientRect();
-    const scale = parseFloat(target?.dataset.scale || '1');
-    const points = [touches[0], touches[1]].map(touch => ({
-      x: (touch.clientX - rect.left) / scale,
-      y: (touch.clientY - rect.top) / scale,
-    }));
-    const dx = points[0].x - points[1].x;
-    const dy = points[0].y - points[1].y;
-    const distance = Math.hypot(dx, dy);
-    const center = {
-      x: (points[0].x + points[1].x) / 2,
-      y: (points[0].y + points[1].y) / 2,
-    };
-    return { distance, center };
-  }
-
-  function beginPinch(e) {
-    if (!useCamera) return false;
-    if (state.draggingBlock || state.dragCandidate) return false;
-    const info = getTouchPairInfo(overlayCanvas, e.touches);
-    if (!info || info.distance === 0) return false;
-    state.pinch = {
-      startDistance: info.distance,
-      startScale: camera.getScale(),
-      prevCenter: info.center,
-    };
-    state.pointerDown = null;
-    state.panning = false;
-    state.panLast = null;
-    let clearedOverlay = false;
-    if (state.selecting) {
-      state.selecting = false;
-      clearedOverlay = true;
-    }
-    if (state.wireTrace.length > 0) {
-      state.wireTrace = [];
-      clearedOverlay = true;
-    }
-    if (clearedOverlay) {
-      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      if (state.selection) {
-        drawSelection();
-      }
-    }
-    return true;
-  }
-
-  function updatePinch(e) {
-    if (!state.pinch || !useCamera) return;
-    const info = getTouchPairInfo(overlayCanvas, e.touches);
-    if (!info || info.distance === 0) return;
-    const scaleFactor = info.distance / state.pinch.startDistance;
-    const maxScale = Math.max(state.pinch.startScale * 3, 1);
-    const nextScale = Math.max(1, Math.min(maxScale, state.pinch.startScale * scaleFactor));
-    camera.setScale(nextScale, info.center.x, info.center.y);
-    if (state.pinch.prevCenter) {
-      const dx = info.center.x - state.pinch.prevCenter.x;
-      const dy = info.center.y - state.pinch.prevCenter.y;
-      if (dx || dy) {
-        camera.pan(dx, dy);
-      }
-    }
-    state.pinch.prevCenter = info.center;
-  }
-
-  function endPinch() {
-    state.pinch = null;
-    state.panning = false;
-    state.panLast = null;
-    state.pointerDown = null;
-    state.pointerMoved = false;
-  }
-
   function createKeydownHandler() {
     return e => {
       const key = e.key.toLowerCase();
@@ -842,13 +766,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
-    if (useCamera && e.touches && e.touches.length === 2) {
-      const started = beginPinch(e);
-      if (started) {
-        e.preventDefault();
-        return;
-      }
-    }
     const handled = handlePointerDown(e);
     if (handled) e.preventDefault();
   }, { passive: false });
@@ -998,25 +915,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-  overlayCanvas.addEventListener('mouseup', handlePointerUp);
-  overlayCanvas.addEventListener('touchend', e => {
-    if (useCamera && state.pinch) {
-      if (!e.touches || e.touches.length < 2) {
-        endPinch();
-      }
-      if (e.touches && e.touches.length > 0) {
-        e.preventDefault();
-        return;
-      }
-    }
-    handlePointerUp(e);
-  }, { passive: false });
-  overlayCanvas.addEventListener('touchcancel', e => {
-    if (useCamera && state.pinch) {
-      endPinch();
-    }
-    handlePointerUp(e);
-  }, { passive: false });
+    overlayCanvas.addEventListener('mouseup', handlePointerUp);
+    overlayCanvas.addEventListener('touchend', handlePointerUp);
 
   function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
@@ -1144,11 +1044,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
-    if (useCamera && state.pinch && e.touches && e.touches.length >= 2) {
-      updatePinch(e);
-      e.preventDefault();
-      return;
-    }
     handlePointerMove(e);
     if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
       e.preventDefault();
@@ -1166,9 +1061,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
-    if (state.pinch) {
-      endPinch();
-    }
     if (state.draggingBlock) {
       const rect = overlayCanvas.getBoundingClientRect();
       const scale = parseFloat(overlayCanvas.dataset.scale || '1');
