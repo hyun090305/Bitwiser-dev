@@ -40,12 +40,25 @@ function resetTransformAndClear(ctx) {
   ctx.restore();
 }
 
-function drawInfiniteGrid(ctx, camera, { background = '#0d101a', panelFill = 'rgba(22, 26, 42, 0.6)', gridFillA = 'rgba(255,255,255,0.05)', gridFillB = 'rgba(255,255,255,0.08)', gridStroke = 'rgba(255,255,255,0.12)' } = {}) {
+function drawInfiniteGrid(
+  ctx,
+  camera,
+  {
+    background = '#0d101a',
+    panelFill = 'rgba(22, 26, 42, 0.6)',
+    gridFillA = 'rgba(255,255,255,0.05)',
+    gridFillB = 'rgba(255,255,255,0.08)',
+    gridStroke = 'rgba(255,255,255,0.12)'
+  } = {}
+) {
   if (!camera) return;
   resetTransformAndClear(ctx);
   const { panelWidth, scale, originX, originY } = camera.getState();
-  const width = ctx.canvas.width;
-  const height = ctx.canvas.height;
+  const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
+  const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
+  const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
+  const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
+  const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
 
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, width, height);
