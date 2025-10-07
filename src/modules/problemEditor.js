@@ -24,6 +24,27 @@ let difficultyValueInputEl = null;
 let difficultyValueLabelEl = null;
 let difficultySelectorInitialized = false;
 let currentDifficulty = 3;
+const POPULAR_LIKE_THRESHOLD = 3;
+
+const DEFAULT_USER_PROBLEM_FILTERS = Object.freeze({
+  sort: 'latest',
+  searchRaw: '',
+  searchText: '',
+  searchCreator: '',
+  creatorFilter: '',
+  gridSize: 'all',
+  difficulty: 'all',
+  minLikes: 0,
+  onlyMine: false,
+  onlyUnsolved: false,
+  onlyPopular: false
+});
+
+let userProblemFilterState = { ...DEFAULT_USER_PROBLEM_FILTERS };
+let userProblemsDataCache = [];
+let userProblemControlsInitialized = false;
+let userProblemListRequestId = 0;
+let userProblemListLoading = false;
 
 const MIN_DIFFICULTY = 1;
 const MAX_DIFFICULTY = 5;
@@ -732,8 +753,452 @@ export function initializeProblemCreationFlow({
 
 }
 
+function getViewerNickname() {
+  return getUsername() || '익명';
+}
+
+function parseSearchValue(raw) {
+  const value = (raw || '').toString();
+  const fromRegex = /from:("[^"]+"|\S+)/gi;
+  let creator = '';
+  let cleaned = value;
+
+  cleaned = cleaned.replace(fromRegex, match => {
+    const [, captured] = /from:("[^"]+"|\S+)/i.exec(match) || [];
+    if (captured) {
+      creator = captured.trim().replace(/^"|"$/g, '');
+    }
+    return ' ';
+  });
+
+  return {
+    text: cleaned.trim(),
+    creator: creator.trim()
+  };
+}
+
+function normalizeText(text) {
+  return (text || '').toString().toLowerCase();
+}
+
+function matchesDifficultyFilter(value, filter) {
+  if (filter === 'all') return true;
+  if (filter === 'easy') return value <= 2;
+  if (filter === 'normal') return value === 3;
+  if (filter === 'hard') return value >= 4;
+  return true;
+}
+
+function updateFilterToggleUI() {
+  document
+    .querySelectorAll('.user-problem-filter-toggle')
+    .forEach(button => {
+      const key = button.dataset.userProblemToggle;
+      if (!key) return;
+      const active = Boolean(userProblemFilterState[key]);
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+}
+
+function updateFilterControlValues() {
+  const searchInput = document.getElementById('userProblemSearch');
+  if (searchInput && searchInput.value !== userProblemFilterState.searchRaw) {
+    searchInput.value = userProblemFilterState.searchRaw;
+  }
+
+  const sortSelect = document.getElementById('userProblemSort');
+  if (sortSelect && sortSelect.value !== userProblemFilterState.sort) {
+    sortSelect.value = userProblemFilterState.sort;
+  }
+
+  const gridSelect = document.getElementById('userProblemFilterGrid');
+  if (gridSelect) {
+    const available = Array.from(gridSelect.options).map(option => option.value);
+    if (!available.includes(userProblemFilterState.gridSize)) {
+      userProblemFilterState.gridSize = 'all';
+    }
+    gridSelect.value = userProblemFilterState.gridSize;
+  }
+
+  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
+  if (difficultySelect && difficultySelect.value !== userProblemFilterState.difficulty) {
+    difficultySelect.value = userProblemFilterState.difficulty;
+  }
+
+  const minLikesInput = document.getElementById('userProblemMinLikes');
+  if (minLikesInput) {
+    minLikesInput.value = userProblemFilterState.minLikes
+      ? String(userProblemFilterState.minLikes)
+      : '';
+  }
+
+  const creatorInput = document.getElementById('userProblemCreatorFilter');
+  if (creatorInput && creatorInput.value !== userProblemFilterState.creatorFilter) {
+    creatorInput.value = userProblemFilterState.creatorFilter;
+  }
+}
+
+function resetUserProblemFilters() {
+  userProblemFilterState = { ...DEFAULT_USER_PROBLEM_FILTERS };
+  updateFilterControlValues();
+  updateFilterToggleUI();
+  if (!userProblemListLoading) {
+    updateUserProblemListUI();
+  }
+}
+
+function ensureUserProblemControls() {
+  if (userProblemControlsInitialized) return;
+
+  const searchInput = document.getElementById('userProblemSearch');
+  if (searchInput) {
+    searchInput.addEventListener('input', () => {
+      const raw = searchInput.value || '';
+      const { text, creator } = parseSearchValue(raw);
+      userProblemFilterState.searchRaw = raw;
+      userProblemFilterState.searchText = text;
+      userProblemFilterState.searchCreator = creator;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const sortSelect = document.getElementById('userProblemSort');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', () => {
+      userProblemFilterState.sort = sortSelect.value;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  document
+    .querySelectorAll('.user-problem-filter-toggle')
+    .forEach(button => {
+      const key = button.dataset.userProblemToggle;
+      if (!key) return;
+      button.addEventListener('click', () => {
+        userProblemFilterState[key] = !userProblemFilterState[key];
+        updateFilterToggleUI();
+        if (!userProblemListLoading) {
+          updateUserProblemListUI();
+        }
+      });
+    });
+
+  const gridSelect = document.getElementById('userProblemFilterGrid');
+  if (gridSelect) {
+    gridSelect.addEventListener('change', () => {
+      userProblemFilterState.gridSize = gridSelect.value;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
+  if (difficultySelect) {
+    difficultySelect.addEventListener('change', () => {
+      userProblemFilterState.difficulty = difficultySelect.value;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const minLikesInput = document.getElementById('userProblemMinLikes');
+  if (minLikesInput) {
+    minLikesInput.addEventListener('input', () => {
+      const value = Number.parseInt(minLikesInput.value, 10);
+      userProblemFilterState.minLikes = Number.isNaN(value) ? 0 : Math.max(0, value);
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const creatorInput = document.getElementById('userProblemCreatorFilter');
+  if (creatorInput) {
+    creatorInput.addEventListener('input', () => {
+      userProblemFilterState.creatorFilter = creatorInput.value;
+      if (!userProblemListLoading) {
+        updateUserProblemListUI();
+      }
+    });
+  }
+
+  const resetButton = document.getElementById('userProblemResetFilters');
+  if (resetButton) {
+    resetButton.addEventListener('click', resetUserProblemFilters);
+  }
+
+  updateFilterControlValues();
+  updateFilterToggleUI();
+  userProblemControlsInitialized = true;
+}
+
+function parseGridSize(value) {
+  const match = /^\s*(\d+)[×x](\d+)\s*$/.exec(value || '');
+  if (!match) return { rows: 0, cols: 0 };
+  return {
+    rows: Number.parseInt(match[1], 10) || 0,
+    cols: Number.parseInt(match[2], 10) || 0
+  };
+}
+
+function updateGridSizeOptions() {
+  const gridSelect = document.getElementById('userProblemFilterGrid');
+  if (!gridSelect) return;
+
+  const previousValue = userProblemFilterState.gridSize;
+  const sizes = Array.from(new Set(
+    userProblemsDataCache.map(problem => `${problem.gridRows}×${problem.gridCols}`)
+  ));
+
+  sizes.sort((a, b) => {
+    const sizeA = parseGridSize(a);
+    const sizeB = parseGridSize(b);
+    if (sizeA.rows !== sizeB.rows) return sizeA.rows - sizeB.rows;
+    return sizeA.cols - sizeB.cols;
+  });
+
+  const fragment = document.createDocumentFragment();
+  const allOption = document.createElement('option');
+  allOption.value = 'all';
+  allOption.id = 'userProblemFilterGridAnyOption';
+  allOption.textContent = translate('userProblemFilterGridAnyOption', '전체');
+  fragment.appendChild(allOption);
+
+  sizes.forEach(size => {
+    const option = document.createElement('option');
+    option.value = size;
+    option.textContent = size;
+    fragment.appendChild(option);
+  });
+
+  gridSelect.innerHTML = '';
+  gridSelect.appendChild(fragment);
+
+  if (previousValue !== 'all' && !sizes.includes(previousValue)) {
+    userProblemFilterState.gridSize = 'all';
+  }
+
+  gridSelect.value = userProblemFilterState.gridSize;
+}
+
+function updateUserProblemResultSummary(visibleCount, totalCount) {
+  const summary = document.getElementById('userProblemResultSummary');
+  if (!summary) return;
+  const template = translate(
+    'userProblemResultSummaryTemplate',
+    '총 {total}개 중 {visible}개 표시'
+  );
+  summary.textContent = template
+    .replace('{visible}', String(visibleCount))
+    .replace('{total}', String(totalCount));
+}
+
+function createUserProblemListItem(problem) {
+  const item = document.createElement('li');
+  item.className = 'problem-item';
+  if (problem.solvedByMe) item.classList.add('solved');
+  item.tabIndex = 0;
+
+  const header = document.createElement('div');
+  header.className = 'problem-item-header';
+
+  const title = document.createElement('span');
+  title.className = 'problem-item-title';
+  title.textContent = problem.title;
+
+  const grid = document.createElement('span');
+  grid.className = 'problem-item-grid';
+  grid.textContent = `${problem.gridRows}×${problem.gridCols}`;
+
+  header.append(title, grid);
+
+  const meta = document.createElement('div');
+  meta.className = 'problem-item-meta';
+
+  const creator = document.createElement('span');
+  creator.textContent = `${translate('thCreator', '제작자')}: ${problem.creator}${problem.isMine ? ' (나)' : ''}`;
+
+  const createdAt = document.createElement('span');
+  const createdAtLabel = translate('thCreatedAt', '제작일');
+  const createdAtValue = problem.createdAt
+    ? problem.createdAt.toLocaleDateString()
+    : '-';
+  createdAt.textContent = `${createdAtLabel}: ${createdAtValue}`;
+
+  meta.append(creator, createdAt);
+
+  const footer = document.createElement('div');
+  footer.className = 'problem-item-footer';
+
+  const stats = document.createElement('div');
+  stats.className = 'problem-item-stats';
+
+  const solvedInfo = document.createElement('span');
+  solvedInfo.textContent = `${translate('thSolved', '해결 수')}: ${problem.solved}`;
+  stats.appendChild(solvedInfo);
+
+  const difficultyInfo = document.createElement('span');
+  const difficultyLabel = translate('problemDifficultyLabel', '난이도');
+  const difficultyValue = problem.difficulty
+    ? `${problem.difficulty}/5`
+    : '—';
+  difficultyInfo.textContent = `${difficultyLabel}: ${difficultyValue}`;
+  stats.appendChild(difficultyInfo);
+
+  const actions = document.createElement('div');
+  actions.className = 'problem-item-actions';
+
+  const likeButton = document.createElement('button');
+  likeButton.type = 'button';
+  likeButton.className = 'likeBtn';
+  likeButton.dataset.key = problem.key;
+  likeButton.setAttribute('aria-label', `${translate('thLikes', '좋아요')}: ${problem.likes}`);
+  likeButton.title = translate('thLikes', '좋아요');
+  likeButton.setAttribute('aria-pressed', problem.likedByViewer ? 'true' : 'false');
+  if (problem.likedByViewer) {
+    likeButton.classList.add('active');
+  }
+
+  const likeIcon = document.createElement('span');
+  likeIcon.setAttribute('aria-hidden', 'true');
+  likeIcon.textContent = '♥';
+
+  const likeCount = document.createElement('span');
+  likeCount.className = 'likeCount';
+  likeCount.textContent = problem.likes;
+
+  likeButton.append(likeIcon, likeCount);
+  actions.appendChild(likeButton);
+
+  if (problem.isMine) {
+    const deleteButton = document.createElement('button');
+    deleteButton.type = 'button';
+    deleteButton.className = 'deleteProbBtn';
+    deleteButton.dataset.key = problem.key;
+    deleteButton.textContent = translate('deleteBtn', '삭제');
+    actions.appendChild(deleteButton);
+    deleteButton.addEventListener('click', event => {
+      event.stopPropagation();
+      if (confirm(t('confirmDelete'))) {
+        deleteUserProblem(deleteButton.dataset.key);
+      }
+    });
+  }
+
+  footer.append(stats, actions);
+  item.append(header, meta, footer);
+
+  item.addEventListener('click', () => {
+    previewUserProblem(problem.key);
+  });
+
+  item.addEventListener('keydown', event => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      previewUserProblem(problem.key);
+    }
+  });
+
+  likeButton.addEventListener('click', event => {
+    event.stopPropagation();
+    toggleLikeProblem(likeButton.dataset.key);
+  });
+
+  return item;
+}
+
+function updateUserProblemListUI() {
+  if (userProblemListLoading) return;
+  const listContainer = document.getElementById('userProblemList');
+  if (!listContainer) return;
+
+  listContainer.innerHTML = '';
+
+  const totalCount = userProblemsDataCache.length;
+  if (!totalCount) {
+    const emptyItem = document.createElement('li');
+    emptyItem.className = 'problem-item problem-item-empty';
+    emptyItem.textContent = translate('noUserProblems', '등록된 문제가 없습니다.');
+    listContainer.appendChild(emptyItem);
+    updateUserProblemResultSummary(0, 0);
+    return;
+  }
+
+  const state = userProblemFilterState;
+  const searchText = normalizeText(state.searchText);
+  const creatorFilter = normalizeText(state.searchCreator || state.creatorFilter);
+  const minLikes = Math.max(0, Number.parseInt(state.minLikes, 10) || 0);
+  const requiredLikes = state.onlyPopular
+    ? Math.max(minLikes, POPULAR_LIKE_THRESHOLD)
+    : minLikes;
+
+  const filtered = userProblemsDataCache.filter(problem => {
+    if (state.onlyMine && !problem.isMine) return false;
+    if (state.onlyUnsolved && problem.solvedByMe) return false;
+    if (problem.likes < requiredLikes) return false;
+    if (state.gridSize !== 'all') {
+      const size = `${problem.gridRows}×${problem.gridCols}`;
+      if (size !== state.gridSize) return false;
+    }
+    if (!matchesDifficultyFilter(problem.difficulty, state.difficulty)) return false;
+    if (creatorFilter && !problem.creatorLower.includes(creatorFilter)) return false;
+    if (searchText && !problem.searchHaystack.includes(searchText)) return false;
+    return true;
+  });
+
+  if (!filtered.length) {
+    const emptyItem = document.createElement('li');
+    emptyItem.className = 'problem-item problem-item-empty';
+    emptyItem.textContent = translate('userProblemNoMatch', '조건에 맞는 문제가 없습니다.');
+    listContainer.appendChild(emptyItem);
+    updateUserProblemResultSummary(0, totalCount);
+    return;
+  }
+
+  const locale = typeof currentLang === 'string'
+    ? currentLang
+    : (navigator.language || 'en');
+
+  const sorted = filtered.slice().sort((a, b) => {
+    if (state.sort === 'popular') {
+      const diff = b.likes - a.likes;
+      if (diff !== 0) return diff;
+    } else if (state.sort === 'solved') {
+      const diff = b.solved - a.solved;
+      if (diff !== 0) return diff;
+    } else if (state.sort === 'difficulty') {
+      const diff = b.difficulty - a.difficulty;
+      if (diff !== 0) return diff;
+    } else if (state.sort === 'name') {
+      const nameDiff = a.title.localeCompare(b.title, locale, {
+        sensitivity: 'base',
+        numeric: true
+      });
+      if (nameDiff !== 0) return nameDiff;
+    }
+
+    return b.timestampValue - a.timestampValue;
+  });
+
+  const fragment = document.createDocumentFragment();
+  sorted.forEach(problem => {
+    fragment.appendChild(createUserProblemListItem(problem));
+  });
+  listContainer.appendChild(fragment);
+
+  updateUserProblemResultSummary(sorted.length, totalCount);
+}
+
 function toggleLikeProblem(key) {
-  const nickname = getUsername() || '익명';
+  const nickname = getViewerNickname();
   const likeRef = db.ref(`problems/${key}/likes/${nickname}`);
   likeRef.once('value').then(snapshot => {
     if (snapshot.exists()) likeRef.remove();
@@ -764,129 +1229,99 @@ export function renderUserProblemList() {
   const listContainer = document.getElementById('userProblemList');
   if (!listContainer) return;
 
+  ensureUserProblemControls();
+  updateFilterToggleUI();
+  updateFilterControlValues();
+
+  userProblemListRequestId += 1;
+  const requestId = userProblemListRequestId;
+
+  userProblemListLoading = true;
   listContainer.innerHTML = '';
-  const nickname = getUsername() || '익명';
-  db.ref('problems').once('value').then(snapshot => {
-    listContainer.innerHTML = '';
-    if (!snapshot.exists()) {
-      const emptyItem = document.createElement('li');
-      emptyItem.className = 'problem-item problem-item-empty';
-      emptyItem.textContent = t('noUserProblems');
-      listContainer.appendChild(emptyItem);
-      return;
-    }
 
-    snapshot.forEach(child => {
-      const data = child.val();
-      const solved = data.ranking
-        ? new Set(Object.values(data.ranking).map(r => r.nickname)).size
-        : 0;
-      const likes = data.likes ? Object.keys(data.likes).length : 0;
-      const isMine = data.creator === nickname;
-      const solvedByMe = data.ranking && Object.values(data.ranking)
-        .some(r => r.nickname === nickname);
+  const loadingItem = document.createElement('li');
+  loadingItem.className = 'problem-item problem-item-empty';
+  loadingItem.textContent = translate('loadingText', '데이터 불러오는 중...');
+  listContainer.appendChild(loadingItem);
+  updateUserProblemResultSummary(0, 0);
 
-      const item = document.createElement('li');
-      item.className = 'problem-item';
-      if (solvedByMe) item.classList.add('solved');
-      item.tabIndex = 0;
+  const nickname = getViewerNickname();
 
-      const header = document.createElement('div');
-      header.className = 'problem-item-header';
+  db.ref('problems').once('value')
+    .then(snapshot => {
+      if (requestId !== userProblemListRequestId) return;
 
-      const title = document.createElement('span');
-      title.className = 'problem-item-title';
-      title.textContent = data.title || child.key;
+      userProblemListLoading = false;
+      userProblemsDataCache = [];
 
-      const grid = document.createElement('span');
-      grid.className = 'problem-item-grid';
-      grid.textContent = `${(data.gridRows || 6)}×${(data.gridCols || 6)}`;
-
-      header.append(title, grid);
-
-      const meta = document.createElement('div');
-      meta.className = 'problem-item-meta';
-
-      const creator = document.createElement('span');
-      creator.textContent = `${t('thCreator')}: ${data.creator || '익명'}${isMine ? ' (나)' : ''}`;
-
-      const createdAt = document.createElement('span');
-      createdAt.textContent = `${t('thCreatedAt')}: ${new Date(data.timestamp).toLocaleDateString()}`;
-
-      meta.append(creator, createdAt);
-
-      const footer = document.createElement('div');
-      footer.className = 'problem-item-footer';
-
-      const stats = document.createElement('div');
-      stats.className = 'problem-item-stats';
-
-      const solvedInfo = document.createElement('span');
-      solvedInfo.textContent = `${t('thSolved')}: ${solved}`;
-
-      stats.appendChild(solvedInfo);
-
-      const actions = document.createElement('div');
-      actions.className = 'problem-item-actions';
-
-      const likeButton = document.createElement('button');
-      likeButton.type = 'button';
-      likeButton.className = 'likeBtn';
-      likeButton.dataset.key = child.key;
-      likeButton.setAttribute('aria-label', `${t('thLikes')}: ${likes}`);
-      likeButton.title = t('thLikes');
-
-      const likeIcon = document.createElement('span');
-      likeIcon.setAttribute('aria-hidden', 'true');
-      likeIcon.textContent = '♥';
-
-      const likeCount = document.createElement('span');
-      likeCount.className = 'likeCount';
-      likeCount.textContent = likes;
-
-      likeButton.append(likeIcon, likeCount);
-
-      actions.appendChild(likeButton);
-
-      if (isMine) {
-        const deleteButton = document.createElement('button');
-        deleteButton.type = 'button';
-        deleteButton.className = 'deleteProbBtn';
-        deleteButton.dataset.key = child.key;
-        deleteButton.textContent = t('deleteBtn');
-        actions.appendChild(deleteButton);
-        deleteButton.addEventListener('click', event => {
-          event.stopPropagation();
-          if (confirm(t('confirmDelete'))) {
-            deleteUserProblem(deleteButton.dataset.key);
-          }
-        });
+      if (!snapshot.exists()) {
+        updateGridSizeOptions();
+        updateFilterControlValues();
+        updateUserProblemListUI();
+        return;
       }
 
-      footer.append(stats, actions);
+      snapshot.forEach(child => {
+        const data = child.val();
+        if (!data) return false;
 
-      item.append(header, meta, footer);
+        const rankingEntries = data.ranking ? Object.values(data.ranking) : [];
+        const solved = rankingEntries.length
+          ? new Set(rankingEntries.map(entry => entry.nickname)).size
+          : 0;
+        const likesObject = data.likes || {};
+        const likes = Object.keys(likesObject).length;
+        const likedByViewer = Boolean(likesObject[nickname]);
+        const isMine = data.creator === nickname;
+        const solvedByMe = rankingEntries.some(entry => entry.nickname === nickname);
+        const gridRows = Number.parseInt(data.gridRows, 10) || 6;
+        const gridCols = Number.parseInt(data.gridCols, 10) || 6;
+        const difficulty = Number.parseInt(data.difficulty, 10) || 0;
+        const title = data.title || child.key;
+        const description = data.description || '';
+        const creator = data.creator || '익명';
+        const parsedTimestamp = data.timestamp ? Date.parse(data.timestamp) : Number.NaN;
+        const timestampValue = Number.isNaN(parsedTimestamp) ? 0 : parsedTimestamp;
+        const createdAt = Number.isNaN(parsedTimestamp) ? null : new Date(parsedTimestamp);
 
-      item.addEventListener('click', () => {
-        previewUserProblem(child.key);
+        userProblemsDataCache.push({
+          key: child.key,
+          title,
+          titleLower: title.toLowerCase(),
+          description,
+          creator,
+          creatorLower: creator.toLowerCase(),
+          createdAt,
+          timestampValue,
+          likes,
+          likedByViewer,
+          solved,
+          solvedByMe,
+          isMine,
+          difficulty,
+          gridRows,
+          gridCols,
+          searchHaystack: `${title} ${description} ${creator}`.toLowerCase().trim()
+        });
+
+        return false;
       });
 
-      item.addEventListener('keydown', event => {
-        if (event.key === 'Enter' || event.key === ' ') {
-          event.preventDefault();
-          previewUserProblem(child.key);
-        }
-      });
-
-      likeButton.addEventListener('click', event => {
-        event.stopPropagation();
-        toggleLikeProblem(likeButton.dataset.key);
-      });
-
-      listContainer.appendChild(item);
-      return false;
+      updateGridSizeOptions();
+      updateFilterControlValues();
+      updateUserProblemListUI();
+    })
+    .catch(err => {
+      if (requestId !== userProblemListRequestId) return;
+      userProblemListLoading = false;
+      console.error('Failed to load user problems', err);
+      listContainer.innerHTML = '';
+      const errorItem = document.createElement('li');
+      errorItem.className = 'problem-item problem-item-empty';
+      errorItem.textContent = translate('userProblemLoadFailed', '문제 목록을 불러오지 못했습니다.');
+      listContainer.appendChild(errorItem);
+      updateUserProblemResultSummary(0, 0);
     });
-  });
 }
 
 export function showProblemIntro(problem, callback) {
