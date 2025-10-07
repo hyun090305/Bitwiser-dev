@@ -21,6 +21,10 @@ let initializeAuthQueued = false;
 
 export { GOOGLE_CLIENT_ID, DRIVE_SCOPE };
 
+export function hasStoredDriveRefreshToken() {
+  return Boolean(getCookieValue(DRIVE_REFRESH_COOKIE));
+}
+
 export function getCookieValue(name) {
   if (typeof document === 'undefined' || !document.cookie) return null;
   const prefix = `${name}=`;
@@ -94,6 +98,99 @@ function applyDriveAccessToken(tokenData) {
   } else if (typeof window !== 'undefined' && window.gapi && window.gapi.client) {
     window.gapi.client.setToken(token);
   }
+}
+
+export function configureGoogleProviderForDrive(provider, options = {}) {
+  if (!provider || typeof provider.addScope !== 'function') {
+    return provider;
+  }
+  try {
+    provider.addScope(DRIVE_SCOPE);
+  } catch (err) {
+    console.warn('Failed to append Drive scope to GoogleAuthProvider', err);
+  }
+  if (typeof provider.setCustomParameters !== 'function') {
+    return provider;
+  }
+  const params = {
+    include_granted_scopes: 'true',
+    access_type: 'offline'
+  };
+  if (options && options.forceConsent) {
+    params.prompt = 'consent';
+  } else if (options && options.prompt) {
+    params.prompt = options.prompt;
+  }
+  if (options && options.loginHint) {
+    params.login_hint = options.loginHint;
+  }
+  try {
+    provider.setCustomParameters(params);
+  } catch (err) {
+    console.warn('Failed to set Drive custom parameters on GoogleAuthProvider', err);
+  }
+  return provider;
+}
+
+function normalizeExpiresInSeconds(tokenResponse, credential = null) {
+  if (tokenResponse && tokenResponse.oauthExpirationTime) {
+    const rawExpiration = Number(tokenResponse.oauthExpirationTime);
+    if (Number.isFinite(rawExpiration) && rawExpiration > 0) {
+      const millis = rawExpiration > 1e12 ? rawExpiration : rawExpiration * 1000;
+      const deltaMs = millis - Date.now();
+      if (deltaMs > 0) {
+        return Math.floor(deltaMs / 1000);
+      }
+    }
+  }
+  const candidates = [
+    tokenResponse && tokenResponse.oauthExpireIn,
+    tokenResponse && tokenResponse.oauthExpiresIn,
+    tokenResponse && tokenResponse.expiresIn,
+    tokenResponse && tokenResponse.expires_in,
+    credential && credential.expiresIn,
+    credential && credential.expires_in
+  ];
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isFinite(value) && value > 0) {
+      return value;
+    }
+  }
+  return undefined;
+}
+
+export function persistDriveTokensFromFirebaseResult(result) {
+  if (!result) return false;
+  const tokenResponse = result._tokenResponse || {};
+  const credential = result.credential || {};
+  const refreshToken =
+    tokenResponse.oauthRefreshToken ||
+    tokenResponse.refreshToken ||
+    credential.refreshToken ||
+    credential.refresh_token ||
+    null;
+  if (refreshToken) {
+    setSecureCookie(DRIVE_REFRESH_COOKIE, refreshToken, DRIVE_REFRESH_COOKIE_MAX_AGE);
+  }
+  const accessToken =
+    tokenResponse.oauthAccessToken ||
+    credential.accessToken ||
+    credential.access_token ||
+    null;
+  const expiresIn = normalizeExpiresInSeconds(tokenResponse, credential);
+  if (accessToken) {
+    const scopeRaw = tokenResponse.oauthScopes || credential.scope || credential.scopes;
+    const scope = Array.isArray(scopeRaw)
+      ? scopeRaw.join(' ')
+      : (typeof scopeRaw === 'string' ? scopeRaw : DRIVE_SCOPE);
+    try {
+      applyDriveAccessToken({ access_token: accessToken, expires_in: expiresIn, scope });
+    } catch (err) {
+      console.warn('Failed to apply Drive tokens from Firebase sign-in result', err);
+    }
+  }
+  return Boolean(refreshToken || accessToken);
 }
 
 export async function exchangeCodeForTokens(code, codeVerifier) {
