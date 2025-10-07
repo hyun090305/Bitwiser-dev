@@ -350,6 +350,45 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     updateUsageCounts();
   }
 
+  function setIOPaletteNames(inputNames = [], outputNames = []) {
+    const normalizedInputs = Array.isArray(inputNames) ? inputNames : [];
+    const normalizedOutputs = Array.isArray(outputNames) ? outputNames : [];
+
+    const updateGroupItems = (type, names) => {
+      let index = 0;
+      paletteGroups.forEach(group => {
+        (group.items || []).forEach(item => {
+          if (item.type === type) {
+            const newLabel = names[index] || '';
+            item.label = newLabel;
+            index++;
+          }
+        });
+      });
+    };
+
+    const updatePaletteItemsForType = (type, names) => {
+      let index = 0;
+      paletteItems.forEach(item => {
+        if (item.type === type) {
+          const newLabel = names[index] || '';
+          item.label = newLabel;
+          const shouldHide =
+            !newLabel || (forceHideInOut && (type === 'INPUT' || type === 'OUTPUT'));
+          item.hidden = shouldHide;
+          index++;
+        }
+      });
+    };
+
+    updateGroupItems('INPUT', normalizedInputs);
+    updateGroupItems('OUTPUT', normalizedOutputs);
+    updatePaletteItemsForType('INPUT', normalizedInputs);
+    updatePaletteItemsForType('OUTPUT', normalizedOutputs);
+
+    syncPaletteWithCircuit();
+  }
+
   function blockAt(cell) {
     return Object.values(circuit.blocks).find(b => b.pos.r === cell.r && b.pos.c === cell.c);
   }
@@ -1117,6 +1156,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     circuit,
     startBlockDrag,
     syncPaletteWithCircuit,
+    setIOPaletteNames,
     moveCircuit,
     placeFixedIO,
     moveSelection,

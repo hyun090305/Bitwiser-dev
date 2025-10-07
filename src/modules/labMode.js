@@ -3,12 +3,44 @@ import { createController } from '../canvas/controller.js';
 import { createCamera } from '../canvas/camera.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
 
-function collectPaletteGroups() {
+function getAvailableIONames(circuit, count = 5) {
+  const collectNames = (type, prefix) => {
+    const used = new Set();
+    const pattern = new RegExp(`^${prefix}(\\d+)$`);
+    if (circuit?.blocks) {
+      Object.values(circuit.blocks).forEach(block => {
+        if (block.type !== type || typeof block.name !== 'string') return;
+        const match = block.name.match(pattern);
+        if (match) {
+          const idx = Number.parseInt(match[1], 10);
+          if (Number.isFinite(idx)) used.add(idx);
+        }
+      });
+    }
+    const names = [];
+    let cursor = 1;
+    while (names.length < count) {
+      if (!used.has(cursor)) {
+        names.push(`${prefix}${cursor}`);
+      }
+      cursor += 1;
+    }
+    return names;
+  };
+
+  return {
+    inputs: collectNames('INPUT', 'IN'),
+    outputs: collectNames('OUTPUT', 'OUT'),
+  };
+}
+
+function collectPaletteGroups(circuit) {
   const blockSets = typeof getLevelBlockSets === 'function' ? getLevelBlockSets() : {};
   const unique = new Map();
   Object.values(blockSets).forEach(list => {
     (list || []).forEach(block => {
       if (!block || !block.type) return;
+      if (block.type === 'INPUT' || block.type === 'OUTPUT') return;
       const key = `${block.type}:${block.name || ''}`;
       if (!unique.has(key)) {
         unique.set(key, {
@@ -21,9 +53,6 @@ function collectPaletteGroups() {
 
   if (!unique.size) {
     [
-      { type: 'INPUT', name: 'A' },
-      { type: 'INPUT', name: 'B' },
-      { type: 'OUTPUT', name: 'OUT' },
       { type: 'AND' },
       { type: 'OR' },
       { type: 'NOT' },
@@ -34,10 +63,15 @@ function collectPaletteGroups() {
     });
   }
 
-  const blocks = Array.from(unique.values()).map(block => ({
-    type: block.type,
-    name: block.name,
-  }));
+  const { inputs, outputs } = getAvailableIONames(circuit, 5);
+  const blocks = [
+    ...inputs.map(name => ({ type: 'INPUT', name })),
+    ...outputs.map(name => ({ type: 'OUTPUT', name })),
+    ...Array.from(unique.values()).map(block => ({
+      type: block.type,
+      name: block.name,
+    })),
+  ];
   return buildPaletteGroups(blocks);
 }
 
@@ -84,8 +118,14 @@ function createLabController() {
   if (!bgCanvas || !contentCanvas || !overlayCanvas) return;
 
   labCircuit = makeCircuit(24, 24);
-  const paletteGroups = collectPaletteGroups();
+  const paletteGroups = collectPaletteGroups(labCircuit);
   labCamera = createCamera({ panelWidth: 220 });
+
+  const applyDynamicIOPalette = () => {
+    if (!labController) return;
+    const { inputs, outputs } = getAvailableIONames(labCircuit, 5);
+    labController.setIOPaletteNames?.(inputs, outputs);
+  };
 
   const { innerWidth, innerHeight } = window;
   labController = createController(
@@ -103,6 +143,7 @@ function createLabController() {
       camera: labCamera,
       unboundedGrid: true,
       canvasSize: { width: innerWidth, height: innerHeight },
+      onCircuitModified: applyDynamicIOPalette,
       panelDrawOptions: {
         grid: {
           background: '#e4ecff',
@@ -121,6 +162,8 @@ function createLabController() {
       }
     }
   );
+
+  applyDynamicIOPalette();
 
   const resizeObserver = () => {
     if (!labController?.resizeCanvas) return;
