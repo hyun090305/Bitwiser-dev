@@ -25,30 +25,36 @@ let difficultyValueLabelEl = null;
 let difficultySelectorInitialized = false;
 let currentDifficulty = 3;
 const POPULAR_LIKE_THRESHOLD = 3;
+const MIN_DIFFICULTY = 1;
+const MAX_DIFFICULTY = 5;
+const DEFAULT_DIFFICULTY = 3;
 
-const DEFAULT_USER_PROBLEM_FILTERS = Object.freeze({
-  sort: 'latest',
-  searchRaw: '',
-  searchText: '',
-  searchCreator: '',
-  creatorFilter: '',
-  gridSize: 'all',
-  difficulty: 'all',
-  minLikes: 0,
-  onlyMine: false,
-  onlyUnsolved: false,
-  onlyPopular: false
-});
+function createDefaultDifficultySelection() {
+  const selection = {};
+  for (let level = MIN_DIFFICULTY; level <= MAX_DIFFICULTY; level += 1) {
+    selection[level] = true;
+  }
+  return selection;
+}
 
-let userProblemFilterState = { ...DEFAULT_USER_PROBLEM_FILTERS };
+function createDefaultUserProblemFilters() {
+  return {
+    sort: 'latest',
+    searchRaw: '',
+    searchText: '',
+    searchCreator: '',
+    onlyMine: false,
+    onlyUnsolved: false,
+    onlyPopular: false,
+    difficultyLevels: createDefaultDifficultySelection()
+  };
+}
+
+let userProblemFilterState = createDefaultUserProblemFilters();
 let userProblemsDataCache = [];
 let userProblemControlsInitialized = false;
 let userProblemListRequestId = 0;
 let userProblemListLoading = false;
-
-const MIN_DIFFICULTY = 1;
-const MAX_DIFFICULTY = 5;
-const DEFAULT_DIFFICULTY = 3;
 
 function clamp(value, min, max, fallback) {
   const num = Number.parseInt(value, 10);
@@ -781,12 +787,13 @@ function normalizeText(text) {
   return (text || '').toString().toLowerCase();
 }
 
-function matchesDifficultyFilter(value, filter) {
-  if (filter === 'all') return true;
-  if (filter === 'easy') return value <= 2;
-  if (filter === 'normal') return value === 3;
-  if (filter === 'hard') return value >= 4;
-  return true;
+function matchesDifficultySelection(value, selection) {
+  if (!selection) return true;
+  const difficulty = Number.parseInt(value, 10) || 0;
+  if (difficulty < MIN_DIFFICULTY || difficulty > MAX_DIFFICULTY) {
+    return true;
+  }
+  return Boolean(selection[difficulty]);
 }
 
 function updateFilterToggleUI() {
@@ -796,6 +803,16 @@ function updateFilterToggleUI() {
       const key = button.dataset.userProblemToggle;
       if (!key) return;
       const active = Boolean(userProblemFilterState[key]);
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', active ? 'true' : 'false');
+    });
+
+  document
+    .querySelectorAll('.user-problem-difficulty-toggle')
+    .forEach(button => {
+      const level = Number.parseInt(button.dataset.userProblemDifficulty, 10);
+      if (Number.isNaN(level)) return;
+      const active = Boolean(userProblemFilterState.difficultyLevels?.[level]);
       button.classList.toggle('active', active);
       button.setAttribute('aria-pressed', active ? 'true' : 'false');
     });
@@ -810,41 +827,6 @@ function updateFilterControlValues() {
   const sortSelect = document.getElementById('userProblemSort');
   if (sortSelect && sortSelect.value !== userProblemFilterState.sort) {
     sortSelect.value = userProblemFilterState.sort;
-  }
-
-  const gridSelect = document.getElementById('userProblemFilterGrid');
-  if (gridSelect) {
-    const available = Array.from(gridSelect.options).map(option => option.value);
-    if (!available.includes(userProblemFilterState.gridSize)) {
-      userProblemFilterState.gridSize = 'all';
-    }
-    gridSelect.value = userProblemFilterState.gridSize;
-  }
-
-  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
-  if (difficultySelect && difficultySelect.value !== userProblemFilterState.difficulty) {
-    difficultySelect.value = userProblemFilterState.difficulty;
-  }
-
-  const minLikesInput = document.getElementById('userProblemMinLikes');
-  if (minLikesInput) {
-    minLikesInput.value = userProblemFilterState.minLikes
-      ? String(userProblemFilterState.minLikes)
-      : '';
-  }
-
-  const creatorInput = document.getElementById('userProblemCreatorFilter');
-  if (creatorInput && creatorInput.value !== userProblemFilterState.creatorFilter) {
-    creatorInput.value = userProblemFilterState.creatorFilter;
-  }
-}
-
-function resetUserProblemFilters() {
-  userProblemFilterState = { ...DEFAULT_USER_PROBLEM_FILTERS };
-  updateFilterControlValues();
-  updateFilterToggleUI();
-  if (!userProblemListLoading) {
-    updateUserProblemListUI();
   }
 }
 
@@ -889,104 +871,26 @@ function ensureUserProblemControls() {
       });
     });
 
-  const gridSelect = document.getElementById('userProblemFilterGrid');
-  if (gridSelect) {
-    gridSelect.addEventListener('change', () => {
-      userProblemFilterState.gridSize = gridSelect.value;
-      if (!userProblemListLoading) {
-        updateUserProblemListUI();
-      }
+  document
+    .querySelectorAll('.user-problem-difficulty-toggle')
+    .forEach(button => {
+      const level = Number.parseInt(button.dataset.userProblemDifficulty, 10);
+      if (Number.isNaN(level)) return;
+      button.addEventListener('click', () => {
+        if (!userProblemFilterState.difficultyLevels) {
+          userProblemFilterState.difficultyLevels = createDefaultDifficultySelection();
+        }
+        userProblemFilterState.difficultyLevels[level] = !userProblemFilterState.difficultyLevels[level];
+        updateFilterToggleUI();
+        if (!userProblemListLoading) {
+          updateUserProblemListUI();
+        }
+      });
     });
-  }
-
-  const difficultySelect = document.getElementById('userProblemFilterDifficulty');
-  if (difficultySelect) {
-    difficultySelect.addEventListener('change', () => {
-      userProblemFilterState.difficulty = difficultySelect.value;
-      if (!userProblemListLoading) {
-        updateUserProblemListUI();
-      }
-    });
-  }
-
-  const minLikesInput = document.getElementById('userProblemMinLikes');
-  if (minLikesInput) {
-    minLikesInput.addEventListener('input', () => {
-      const value = Number.parseInt(minLikesInput.value, 10);
-      userProblemFilterState.minLikes = Number.isNaN(value) ? 0 : Math.max(0, value);
-      if (!userProblemListLoading) {
-        updateUserProblemListUI();
-      }
-    });
-  }
-
-  const creatorInput = document.getElementById('userProblemCreatorFilter');
-  if (creatorInput) {
-    creatorInput.addEventListener('input', () => {
-      userProblemFilterState.creatorFilter = creatorInput.value;
-      if (!userProblemListLoading) {
-        updateUserProblemListUI();
-      }
-    });
-  }
-
-  const resetButton = document.getElementById('userProblemResetFilters');
-  if (resetButton) {
-    resetButton.addEventListener('click', resetUserProblemFilters);
-  }
 
   updateFilterControlValues();
   updateFilterToggleUI();
   userProblemControlsInitialized = true;
-}
-
-function parseGridSize(value) {
-  const match = /^\s*(\d+)[×x](\d+)\s*$/.exec(value || '');
-  if (!match) return { rows: 0, cols: 0 };
-  return {
-    rows: Number.parseInt(match[1], 10) || 0,
-    cols: Number.parseInt(match[2], 10) || 0
-  };
-}
-
-function updateGridSizeOptions() {
-  const gridSelect = document.getElementById('userProblemFilterGrid');
-  if (!gridSelect) return;
-
-  const previousValue = userProblemFilterState.gridSize;
-  const sizes = Array.from(new Set(
-    userProblemsDataCache.map(problem => `${problem.gridRows}×${problem.gridCols}`)
-  ));
-
-  sizes.sort((a, b) => {
-    const sizeA = parseGridSize(a);
-    const sizeB = parseGridSize(b);
-    if (sizeA.rows !== sizeB.rows) return sizeA.rows - sizeB.rows;
-    return sizeA.cols - sizeB.cols;
-  });
-
-  const fragment = document.createDocumentFragment();
-  const allOption = document.createElement('option');
-  allOption.value = 'all';
-  allOption.id = 'userProblemFilterGridAnyOption';
-  allOption.textContent = translate('userProblemFilterGridAnyOption', '전체');
-  fragment.appendChild(allOption);
-
-  sizes.forEach(size => {
-    const option = document.createElement('option');
-    option.value = size;
-    option.textContent = size;
-    fragment.appendChild(option);
-  });
-
-  gridSelect.innerHTML = '';
-  gridSelect.appendChild(fragment);
-
-  if (previousValue !== 'all' && !sizes.includes(previousValue)) {
-    userProblemFilterState.gridSize = 'all';
-  }
-
-  gridSelect.value = userProblemFilterState.gridSize;
 }
 
 function updateUserProblemResultSummary(visibleCount, totalCount) {
@@ -1134,21 +1038,16 @@ function updateUserProblemListUI() {
 
   const state = userProblemFilterState;
   const searchText = normalizeText(state.searchText);
-  const creatorFilter = normalizeText(state.searchCreator || state.creatorFilter);
-  const minLikes = Math.max(0, Number.parseInt(state.minLikes, 10) || 0);
+  const creatorFilter = normalizeText(state.searchCreator);
   const requiredLikes = state.onlyPopular
-    ? Math.max(minLikes, POPULAR_LIKE_THRESHOLD)
-    : minLikes;
+    ? POPULAR_LIKE_THRESHOLD
+    : 0;
 
   const filtered = userProblemsDataCache.filter(problem => {
     if (state.onlyMine && !problem.isMine) return false;
     if (state.onlyUnsolved && problem.solvedByMe) return false;
     if (problem.likes < requiredLikes) return false;
-    if (state.gridSize !== 'all') {
-      const size = `${problem.gridRows}×${problem.gridCols}`;
-      if (size !== state.gridSize) return false;
-    }
-    if (!matchesDifficultyFilter(problem.difficulty, state.difficulty)) return false;
+    if (!matchesDifficultySelection(problem.difficulty, state.difficultyLevels)) return false;
     if (creatorFilter && !problem.creatorLower.includes(creatorFilter)) return false;
     if (searchText && !problem.searchHaystack.includes(searchText)) return false;
     return true;
@@ -1255,7 +1154,6 @@ export function renderUserProblemList() {
       userProblemsDataCache = [];
 
       if (!snapshot.exists()) {
-        updateGridSizeOptions();
         updateFilterControlValues();
         updateUserProblemListUI();
         return;
@@ -1307,7 +1205,6 @@ export function renderUserProblemList() {
         return false;
       });
 
-      updateGridSizeOptions();
       updateFilterControlValues();
       updateUserProblemListUI();
     })
