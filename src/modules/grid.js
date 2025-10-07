@@ -128,11 +128,12 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   const gridContainer = document.getElementById(containerId);
   if (!gridContainer) return;
 
-  const margin = 20;
+  const isLabMode = document.body?.classList?.contains('lab-mode');
+  const margin = isLabMode ? 0 : 20;
   let availableWidth = window.innerWidth - margin * 2;
   let availableHeight = window.innerHeight - margin * 2;
 
-  if (containerId === 'canvasContainer') {
+  if (!isLabMode && containerId === 'canvasContainer') {
     const menuBar = document.getElementById('menuBar');
     if (menuBar) {
       const menuRect = menuBar.getBoundingClientRect();
