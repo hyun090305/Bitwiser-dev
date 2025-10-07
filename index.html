@@ -396,7 +396,6 @@
         <!-- 우측: 시뮬레이트 + 안내 + 삭제 -->
         <div class="rightPanel" id="rightPanel"
           style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-          <button id="exitLabBtn" class="lab-exit-btn" type="button">← 메인으로</button>
           <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
           <button id="gradeButton" class="main-button">채점하기</button>
           <div style="text-align: center; line-height: 1.6;">
@@ -441,6 +440,23 @@
         </div>
       </div>
       <div id="circuitError">회로에 오류가 존재합니다</div>
+      <div id="labPanels" class="lab-overlay-panels" style="display:none" aria-hidden="true">
+        <div class="lab-panel lab-info-panel">
+          <div class="lab-panel-header">
+            <h2 class="lab-panel-title">🔬 실험실</h2>
+            <button id="exitLabBtn" class="lab-close-btn" type="button">← 메인으로</button>
+          </div>
+          <p class="lab-panel-text">격자 위에서 자유롭게 회로를 실험해 보세요.</p>
+        </div>
+        <div class="lab-panel lab-shortcuts-panel">
+          <h3 class="lab-panel-title">⌨️ 단축키</h3>
+          <ul class="lab-shortcuts-list">
+            <li><kbd>Ctrl</kbd> / <kbd>Cmd</kbd> - 도선 그리기</li>
+            <li><kbd>Shift</kbd> - 도선·블록 삭제</li>
+            <li><kbd>R</kbd> - 회로 초기화</li>
+          </ul>
+        </div>
+      </div>
       </div>
       <!-- 메뉴바 -->
       <div id="menuBar">
