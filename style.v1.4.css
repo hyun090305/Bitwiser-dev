@@ -2650,63 +2650,6 @@ html, body {
   }
 }
 
-#labScreen {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  display: none;
-  pointer-events: none;
-}
-
-#labScreen.active {
-  display: block;
-}
-
-#labCanvas {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: auto;
-  z-index: 5;
-}
-
-#labRightPanel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  display: flex;
-  align-items: stretch;
-  justify-content: flex-end;
-  pointer-events: none;
-  z-index: 6;
-}
-
-.rightPanel.lab-fixed {
-  pointer-events: auto;
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100vh;
-  overflow-y: auto;
-  background: rgba(15, 23, 42, 0.92);
-  backdrop-filter: blur(6px);
-  box-shadow: -16px 0 32px rgba(15, 23, 42, 0.25);
-}
-
-.rightPanel.lab-fixed h1 {
-  color: #e0e7ff;
-}
-
-.rightPanel.lab-fixed .main-button,
-.rightPanel.lab-fixed .toggle-key {
-  background: rgba(96, 165, 250, 0.1);
-  color: #e2e8f0;
-  border-color: rgba(148, 163, 184, 0.4);
-}
-
 @media (max-width: 600px) {
   .toast-container {
     right: 0.75rem;
