@@ -2,6 +2,37 @@ import { CELL, GAP } from './model.js';
 
 const PITCH = CELL + GAP;
 
+const DEFAULT_GRID_STYLE = {
+  background: '#ffffff',
+  panelFill: null,
+  panelShadow: {
+    color: 'rgba(15, 23, 42, 0.08)',
+    blur: 16,
+    offsetX: 0,
+    offsetY: 4
+  },
+  gridFillA: null,
+  gridFillB: null,
+  gridStroke: '#ddd',
+  gridLineWidth: 1,
+  cellRadius: 3,
+  borderColor: '#666',
+  borderWidth: GAP
+};
+
+function resolveGridStyle(options = {}) {
+  const style = { ...DEFAULT_GRID_STYLE, ...options };
+  if (options.panelShadow === null) {
+    style.panelShadow = null;
+  } else {
+    style.panelShadow = {
+      ...DEFAULT_GRID_STYLE.panelShadow,
+      ...(options.panelShadow || {})
+    };
+  }
+  return style;
+}
+
 function roundRect(ctx, x, y, w, h, r = 6) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -40,17 +71,7 @@ function resetTransformAndClear(ctx) {
   ctx.restore();
 }
 
-function drawInfiniteGrid(
-  ctx,
-  camera,
-  {
-    background = '#0d101a',
-    panelFill = 'rgba(22, 26, 42, 0.6)',
-    gridFillA = 'rgba(255,255,255,0.05)',
-    gridFillB = 'rgba(255,255,255,0.08)',
-    gridStroke = 'rgba(255,255,255,0.12)'
-  } = {}
-) {
+function drawInfiniteGrid(ctx, camera, options = {}) {
   if (!camera) return;
   resetTransformAndClear(ctx);
   const { panelWidth, scale, originX, originY } = camera.getState();
@@ -60,20 +81,33 @@ function drawInfiniteGrid(
   const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
   const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
 
+  const {
+    background,
+    panelFill,
+    panelShadow,
+    gridFillA,
+    gridFillB,
+    gridStroke,
+    gridLineWidth,
+    cellRadius
+  } = resolveGridStyle(options);
+
   ctx.fillStyle = background;
   ctx.fillRect(0, 0, width, height);
 
-  if (panelWidth > 0) {
+  if (panelWidth > 0 && panelFill) {
     ctx.save();
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 20;
-    ctx.shadowOffsetY = 6;
+    if (panelShadow) {
+      ctx.shadowColor = panelShadow.color;
+      ctx.shadowBlur = panelShadow.blur;
+      ctx.shadowOffsetX = panelShadow.offsetX;
+      ctx.shadowOffsetY = panelShadow.offsetY;
+    }
     ctx.fillStyle = panelFill;
     ctx.fillRect(0, 0, panelWidth, height);
     ctx.restore();
   }
 
-  const pitchScaled = PITCH * scale;
   const cellScaled = CELL * scale;
 
   const visibleWidth = (width - panelWidth) / scale;
@@ -88,23 +122,29 @@ function drawInfiniteGrid(
   const startRow = Math.floor((startWorldY - GAP) / PITCH) - 1;
   const endRow = Math.ceil((endWorldY - GAP) / PITCH) + 1;
 
-  ctx.save();
   for (let r = startRow; r <= endRow; r++) {
     for (let c = startCol; c <= endCol; c++) {
       const topLeft = camera.cellToScreenCell({ r, c });
       const { x, y } = topLeft;
-      if (x + cellScaled < panelWidth - pitchScaled) continue;
-      ctx.save();
-      ctx.fillStyle = (r + c) % 2 === 0 ? gridFillA : gridFillB;
+      if (x + cellScaled <= panelWidth) continue;
+      const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
+      const fillColor = hasChecker
+        ? gridFillA && gridFillB
+          ? (r + c) % 2 === 0
+            ? gridFillA
+            : gridFillB
+          : gridFillA || gridFillB
+        : null;
+      roundRect(ctx, x, y, cellScaled, cellScaled, Math.max(1, cellRadius * scale));
+      if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+      }
       ctx.strokeStyle = gridStroke;
-      ctx.lineWidth = Math.max(1, scale);
-      roundRect(ctx, x, y, cellScaled, cellScaled, 4 * scale);
-      ctx.fill();
+      ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
       ctx.stroke();
-      ctx.restore();
     }
   }
-  ctx.restore();
 }
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
@@ -113,25 +153,57 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     drawInfiniteGrid(ctx, camera, options);
     return;
   }
+  const {
+    background,
+    gridFillA,
+    gridFillB,
+    gridStroke,
+    gridLineWidth,
+    cellRadius,
+    borderColor,
+    borderWidth
+  } = resolveGridStyle(options);
+
   resetTransformAndClear(ctx);
   const width = cols * PITCH + GAP;
   const height = rows * PITCH + GAP;
   ctx.save();
-  ctx.fillStyle = '#fff';
+  ctx.fillStyle = background;
   ctx.fillRect(offsetX, 0, width, height);
-  ctx.strokeStyle = '#ddd';
-  ctx.lineWidth = 1;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = offsetX + GAP + c * PITCH;
       const y = GAP + r * PITCH;
-      roundRect(ctx, x, y, CELL, CELL, 3);
+      const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
+      const fillColor = hasChecker
+        ? gridFillA && gridFillB
+          ? (r + c) % 2 === 0
+            ? gridFillA
+            : gridFillB
+          : gridFillA || gridFillB
+        : null;
+      roundRect(ctx, x, y, CELL, CELL, cellRadius);
+      if (fillColor) {
+        ctx.fillStyle = fillColor;
+        ctx.fill();
+      }
+      ctx.strokeStyle = gridStroke;
+      ctx.lineWidth = gridLineWidth;
       ctx.stroke();
     }
   }
-  ctx.strokeStyle = '#666';
-  ctx.lineWidth = GAP;
-  ctx.strokeRect(offsetX + GAP / 2, GAP / 2, width - GAP, height - GAP);
+  if (borderColor && borderWidth > 0) {
+    const innerWidth = width - 2 * GAP;
+    const innerHeight = height - 2 * GAP;
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
+    ctx.strokeRect(
+      offsetX + GAP - borderWidth / 2,
+      GAP - borderWidth / 2,
+      innerWidth + borderWidth,
+      innerHeight + borderWidth
+    );
+  }
   ctx.restore();
 }
 
