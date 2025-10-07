@@ -264,65 +264,69 @@
     <div id="user-problems-screen" class="screen" style="display:none;">
       <div class="panel-overlay user-problems-panel">
         <h1 id="userProblemsTitle">📝 사용자 문제</h1>
-        <div class="user-problems-toolbar" role="region" aria-labelledby="userProblemsTitle">
-          <div class="user-problems-toolbar-row">
-            <label id="userProblemSearchLabel" class="sr-only" for="userProblemSearch">검색</label>
-            <div class="user-problems-search">
-              <span aria-hidden="true">🔍</span>
-              <input id="userProblemSearch" type="search" placeholder="제목 또는 from:제작자" autocomplete="off" spellcheck="false" />
-            </div>
-            <div class="user-problems-sort">
-              <label id="userProblemSortLabel" for="userProblemSort">정렬</label>
-              <select id="userProblemSort" aria-labelledby="userProblemSortLabel">
-                <option id="userProblemSortLatestOption" value="latest">최신순</option>
-                <option id="userProblemSortPopularOption" value="popular">인기순</option>
-                <option id="userProblemSortSolvedOption" value="solved">해결순</option>
-                <option id="userProblemSortDifficultyOption" value="difficulty">난이도순</option>
-                <option id="userProblemSortNameOption" value="name">이름순</option>
-              </select>
-            </div>
-          </div>
-          <p id="userProblemSearchHelp" class="user-problems-search-help">예: XOR, from:garden</p>
-          <div class="user-problems-filter-row" role="group" aria-label="사용자 문제 필터">
-            <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyMine" aria-pressed="false">
-              🧑‍💻 <span id="userProblemFilterMine">나의 문제</span>
-            </button>
-            <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyUnsolved" aria-pressed="false">
-              🧩 <span id="userProblemFilterUnsolved">미해결</span>
-            </button>
-            <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyPopular" aria-pressed="false">
-              ♥ <span id="userProblemFilterPopular">인기</span>
-            </button>
-            <details id="userProblemAdvancedFilters" class="user-problems-advanced">
-              <summary id="userProblemAdvancedSummary">⚙ 필터</summary>
-              <div class="user-problems-advanced-grid">
-                <label id="userProblemFilterGridLabel" for="userProblemFilterGrid">그리드 크기</label>
-                <select id="userProblemFilterGrid">
-                  <option id="userProblemFilterGridAnyOption" value="all">전체</option>
-                </select>
-                <label id="userProblemFilterDifficultyLabel" for="userProblemFilterDifficulty">난이도</label>
-                <select id="userProblemFilterDifficulty">
-                  <option id="userProblemFilterDifficultyAll" value="all">전체</option>
-                  <option id="userProblemFilterDifficultyEasy" value="easy">쉬움</option>
-                  <option id="userProblemFilterDifficultyNormal" value="normal">보통</option>
-                  <option id="userProblemFilterDifficultyHard" value="hard">어려움</option>
-                </select>
-                <label id="userProblemFilterMinLikesLabel" for="userProblemMinLikes">좋아요 수 이상</label>
-                <input id="userProblemMinLikes" type="number" min="0" inputmode="numeric" placeholder="0" />
-                <label id="userProblemFilterCreatorLabel" for="userProblemCreatorFilter">제작자</label>
-                <input id="userProblemCreatorFilter" type="text" placeholder="예: garden" />
-                <button id="userProblemResetFilters" type="button" class="user-problem-reset">필터 초기화</button>
+        <div class="user-problems-content">
+          <div class="user-problems-sidebar">
+            <div class="user-problems-toolbar" role="region" aria-labelledby="userProblemsTitle">
+              <div class="user-problems-toolbar-row">
+                <label id="userProblemSearchLabel" class="sr-only" for="userProblemSearch">검색</label>
+                <div class="user-problems-search">
+                  <span aria-hidden="true">🔍</span>
+                  <input id="userProblemSearch" type="search" placeholder="제목 또는 from:제작자" autocomplete="off" spellcheck="false" />
+                </div>
+                <div class="user-problems-sort">
+                  <label id="userProblemSortLabel" for="userProblemSort">정렬</label>
+                  <select id="userProblemSort" aria-labelledby="userProblemSortLabel">
+                    <option id="userProblemSortLatestOption" value="latest">최신순</option>
+                    <option id="userProblemSortPopularOption" value="popular">인기순</option>
+                    <option id="userProblemSortSolvedOption" value="solved">해결순</option>
+                    <option id="userProblemSortDifficultyOption" value="difficulty">난이도순</option>
+                    <option id="userProblemSortNameOption" value="name">이름순</option>
+                  </select>
+                </div>
               </div>
-            </details>
+              <p id="userProblemSearchHelp" class="user-problems-search-help">예: XOR, from:garden</p>
+              <div class="user-problems-filter-row" role="group" aria-label="사용자 문제 필터">
+                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyMine" aria-pressed="false">
+                  🧑‍💻 <span id="userProblemFilterMine">나의 문제</span>
+                </button>
+                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyUnsolved" aria-pressed="false">
+                  🧩 <span id="userProblemFilterUnsolved">미해결</span>
+                </button>
+                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyPopular" aria-pressed="false">
+                  ♥ <span id="userProblemFilterPopular">인기</span>
+                </button>
+                <details id="userProblemAdvancedFilters" class="user-problems-advanced">
+                  <summary id="userProblemAdvancedSummary">⚙ 필터</summary>
+                  <div class="user-problems-advanced-grid">
+                    <label id="userProblemFilterGridLabel" for="userProblemFilterGrid">그리드 크기</label>
+                    <select id="userProblemFilterGrid">
+                      <option id="userProblemFilterGridAnyOption" value="all">전체</option>
+                    </select>
+                    <label id="userProblemFilterDifficultyLabel" for="userProblemFilterDifficulty">난이도</label>
+                    <select id="userProblemFilterDifficulty">
+                      <option id="userProblemFilterDifficultyAll" value="all">전체</option>
+                      <option id="userProblemFilterDifficultyEasy" value="easy">쉬움</option>
+                      <option id="userProblemFilterDifficultyNormal" value="normal">보통</option>
+                      <option id="userProblemFilterDifficultyHard" value="hard">어려움</option>
+                    </select>
+                    <label id="userProblemFilterMinLikesLabel" for="userProblemMinLikes">좋아요 수 이상</label>
+                    <input id="userProblemMinLikes" type="number" min="0" inputmode="numeric" placeholder="0" />
+                    <label id="userProblemFilterCreatorLabel" for="userProblemCreatorFilter">제작자</label>
+                    <input id="userProblemCreatorFilter" type="text" placeholder="예: garden" />
+                    <button id="userProblemResetFilters" type="button" class="user-problem-reset">필터 초기화</button>
+                  </div>
+                </details>
+              </div>
+              <div id="userProblemResultSummary" class="user-problem-result-summary"></div>
+            </div>
+            <div class="user-problems-actions">
+              <button id="openProblemCreatorBtn" class="btn-primary">문제 만들기</button>
+              <button id="backToChapterFromUserProblems" class="btn-back user-problems-back">← 메인으로</button>
+            </div>
           </div>
-          <div id="userProblemResultSummary" class="user-problem-result-summary"></div>
-        </div>
-        <div class="user-problems-list-container">
-          <ul id="userProblemList" class="problem-list"></ul>
-        </div>
-        <div class="user-problems-actions">
-          <button id="openProblemCreatorBtn" class="btn-primary">문제 만들기</button>
-          <button id="backToChapterFromUserProblems" class="btn-back user-problems-back">← 메인으로</button>
+          <div class="user-problems-list-container">
+            <ul id="userProblemList" class="problem-list"></ul>
+          </div>
         </div>
       </div>
     </div>
