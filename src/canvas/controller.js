@@ -41,8 +41,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     camera: externalCamera = null,
     unboundedGrid = false,
     canvasSize = null,
-    panelDrawOptions = {},
-    dynamicPaletteConfig = null
+    panelDrawOptions = {}
   } = options;
   const camera = externalCamera && typeof externalCamera.screenToCell === 'function'
     ? externalCamera
@@ -60,10 +59,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let paletteItems = [];
   let groupRects = [];
   const clampToBounds = !unboundedGrid;
-  const dynamicConfig = dynamicPaletteConfig && typeof dynamicPaletteConfig === 'object'
-    ? dynamicPaletteConfig
-    : null;
-  const dynamicPaletteItems = new Map();
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -76,7 +71,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const padding = GROUP_PADDING;
       let currentY = y + padding + LABEL_H + 5;
       g.items.forEach(it => {
-        const paletteItem = {
+        paletteItems.push({
           type: it.type,
           label: it.label || it.type,
           x: x + padding,
@@ -85,14 +80,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           h: PALETTE_ITEM_H - 20,
           hidden:
             forceHideInOut && (it.type === 'INPUT' || it.type === 'OUTPUT'),
-        };
-        paletteItems.push(paletteItem);
-        if (dynamicConfig?.[it.type]) {
-          if (!dynamicPaletteItems.has(it.type)) {
-            dynamicPaletteItems.set(it.type, []);
-          }
-          dynamicPaletteItems.get(it.type).push(paletteItem);
-        }
+        });
         currentY += PALETTE_ITEM_H;
       });
       const groupHeight = LABEL_H + 5 + g.items.length * PALETTE_ITEM_H + padding * 2 - 10;
@@ -114,16 +102,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       h: PALETTE_ITEM_H - 20,
       hidden: forceHideInOut && (type === 'INPUT' || type === 'OUTPUT'),
     }));
-    if (dynamicConfig) {
-      paletteItems.forEach(item => {
-        if (dynamicConfig[item.type]) {
-          if (!dynamicPaletteItems.has(item.type)) {
-            dynamicPaletteItems.set(item.type, []);
-          }
-          dynamicPaletteItems.get(item.type).push(item);
-        }
-      });
-    }
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 20);
   }
 
@@ -324,7 +302,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function hidePaletteItem(type, label) {
-    if (dynamicConfig?.[type]) return;
     const item = paletteItems.find(it => it.type === type && it.label === label);
     if (item) {
       item.hidden = true;
@@ -333,7 +310,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function showPaletteItem(type, label) {
-    if (dynamicConfig?.[type]) return;
     const item = paletteItems.find(it => it.type === type && it.label === label);
     if (item) {
       if (forceHideInOut && (type === 'INPUT' || type === 'OUTPUT')) return;
@@ -358,45 +334,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function syncPaletteWithCircuit() {
-    const usedNamesByType = new Map();
-    Object.values(circuit.blocks).forEach(b => {
-      if (!usedNamesByType.has(b.type)) {
-        usedNamesByType.set(b.type, new Set());
-      }
-      usedNamesByType.get(b.type).add(b.name);
-    });
-
-    if (dynamicConfig) {
-      dynamicPaletteItems.forEach((items, type) => {
-        const config = dynamicConfig[type];
-        if (!config) return;
-        const prefix = typeof config.prefix === 'string' ? config.prefix : '';
-        const startIndex = Number.isFinite(config.startIndex) ? config.startIndex : 1;
-        const used = usedNamesByType.get(type) || new Set();
-        const available = [];
-        let current = startIndex;
-        while (available.length < items.length) {
-          const candidate = `${prefix}${current}`;
-          if (!used.has(candidate)) {
-            available.push(candidate);
-          }
-          current += 1;
-        }
-        items.forEach((item, index) => {
-          const label = available[index];
-          item.label = label;
-          item.name = label;
-          if (forceHideInOut && (item.type === 'INPUT' || item.type === 'OUTPUT')) {
-            item.hidden = true;
-          } else {
-            item.hidden = false;
-          }
-        });
-      });
-    }
-
     paletteItems.forEach(it => {
-      if (dynamicConfig?.[it.type]) return;
       if (it.type === 'INPUT' || it.type === 'OUTPUT') {
         if (forceHideInOut) {
           it.hidden = true;
@@ -1172,7 +1110,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     snapshot();
   }
 
-  syncPaletteWithCircuit();
+  updateUsageCounts();
   snapshot();
   return {
     state,
