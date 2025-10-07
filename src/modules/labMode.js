@@ -9,6 +9,7 @@ function collectPaletteGroups() {
   Object.values(blockSets).forEach(list => {
     (list || []).forEach(block => {
       if (!block || !block.type) return;
+      if (block.type === 'INPUT' || block.type === 'OUTPUT') return;
       const key = `${block.type}:${block.name || ''}`;
       if (!unique.has(key)) {
         unique.set(key, {
@@ -21,9 +22,6 @@ function collectPaletteGroups() {
 
   if (!unique.size) {
     [
-      { type: 'INPUT', name: 'A' },
-      { type: 'INPUT', name: 'B' },
-      { type: 'OUTPUT', name: 'OUT' },
       { type: 'AND' },
       { type: 'OR' },
       { type: 'NOT' },
@@ -34,10 +32,19 @@ function collectPaletteGroups() {
     });
   }
 
-  const blocks = Array.from(unique.values()).map(block => ({
+  const dynamicInputs = Array.from({ length: 5 }).map((_, i) => ({
+    type: 'INPUT',
+    name: `IN${i + 1}`,
+  }));
+  const dynamicOutputs = Array.from({ length: 5 }).map((_, i) => ({
+    type: 'OUTPUT',
+    name: `OUT${i + 1}`,
+  }));
+  const otherBlocks = Array.from(unique.values()).map(block => ({
     type: block.type,
     name: block.name,
   }));
+  const blocks = [...dynamicInputs, ...dynamicOutputs, ...otherBlocks];
   return buildPaletteGroups(blocks);
 }
 
@@ -101,6 +108,10 @@ function createLabController() {
       paletteGroups,
       panelWidth: 220,
       camera: labCamera,
+      dynamicPaletteConfig: {
+        INPUT: { prefix: 'IN', startIndex: 1 },
+        OUTPUT: { prefix: 'OUT', startIndex: 1 },
+      },
       unboundedGrid: true,
       canvasSize: { width: innerWidth, height: innerHeight },
       panelDrawOptions: {
