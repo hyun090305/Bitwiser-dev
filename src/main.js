@@ -73,6 +73,7 @@ import {
   showClearedModal,
   initializeRankingUI
 } from './modules/rank.js';
+import initializeLabMode from './modules/labMode.js';
 
 void uiModule;
 
@@ -765,6 +766,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   setupKeyToggles();
   setupMenuToggle();
+  initializeLabMode();
   setupSettings();
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
