@@ -856,14 +856,6 @@ html, body {
     margin: 0 auto;
   }
 
-  .user-problems-panel {
-    align-items: center;
-  }
-
-  .user-problems-panel .btn-back {
-    align-self: flex-start;
-  }
-
 #mainScreen,
 #loginArea{
   width: 320px;
@@ -1333,27 +1325,167 @@ html, body {
   cursor: not-allowed;
 }
 
+  #user-problems-screen {
+    overflow: hidden;
+  }
+
+  .user-problems-panel {
+    align-items: center;
+    max-height: calc(100vh - 4rem);
+  }
+
+  .user-problems-list-container {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
   /* 사용자 문제 목록 */
   .problem-list {
-  list-style: none;
-  padding: 0;
-  margin: 0 auto;
-  width: 100%;
-  max-width: 600px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  overflow: hidden;
-}
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    width: min(100%, 900px);
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    overflow-y: auto;
+    padding-right: 0.25rem;
+    min-height: 0;
+  }
 
-.problem-list .problem-item {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid #eee;
-  cursor: pointer;
-}
+  .problem-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    border: 1px solid rgba(148, 163, 184, 0.4);
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.08);
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
 
-.problem-list .problem-item:last-child {
-  border-bottom: none;
-}
+  .problem-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.12);
+    border-color: rgba(59, 130, 246, 0.5);
+  }
+
+  .problem-item.solved {
+    border-color: rgba(34, 197, 94, 0.6);
+    box-shadow: 0 12px 28px rgba(34, 197, 94, 0.15);
+  }
+
+  .problem-item-header,
+  .problem-item-footer {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: baseline;
+  }
+
+  .problem-item-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .problem-item-grid {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #475569;
+  }
+
+  .problem-item-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #64748b;
+  }
+
+  .problem-item-footer {
+    align-items: center;
+  }
+
+  .problem-item-stats {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.9rem;
+    color: #475569;
+  }
+
+  .problem-item-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .problem-item button {
+    cursor: pointer;
+  }
+
+  .problem-item .likeBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(244, 63, 94, 0.4);
+    background: rgba(248, 113, 113, 0.15);
+    color: #be123c;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .problem-item .likeBtn:hover {
+    background: rgba(244, 63, 94, 0.2);
+    border-color: rgba(244, 63, 94, 0.5);
+  }
+
+  .problem-item .deleteProbBtn {
+    padding: 0.4rem 0.75rem;
+    border-radius: 999px;
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #b91c1c;
+    font-weight: 600;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+
+  .problem-item .deleteProbBtn:hover {
+    background: rgba(248, 113, 113, 0.18);
+    border-color: rgba(239, 68, 68, 0.55);
+  }
+
+  .problem-item-empty {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: #64748b;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .user-problems-actions {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .user-problems-actions .btn-back {
+    align-self: center;
+    margin-top: 0;
+  }
 
   /* Primary button */
   .btn-primary {

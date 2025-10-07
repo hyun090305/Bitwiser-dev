@@ -768,73 +768,123 @@ export function renderUserProblemList() {
   const nickname = getUsername() || '익명';
   db.ref('problems').once('value').then(snapshot => {
     listContainer.innerHTML = '';
-    const table = document.createElement('table');
-    table.id = 'userProblemTable';
-    table.innerHTML = `
-      <thead>
-        <tr>
-          <th>${t('thTitle')}</th>
-          <th>${t('thGrid')}</th>
-          <th>${t('thCreator')}</th>
-          <th>${t('thCreatedAt')}</th>
-          <th>${t('thSolved')}</th>
-          <th>${t('thLikes')}</th>
-          <th>${t('thNotes')}</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    `;
-    const tbody = table.querySelector('tbody');
     if (!snapshot.exists()) {
-      const row = document.createElement('tr');
-      row.innerHTML = `<td colspan="7">${t('noUserProblems')}</td>`;
-      tbody.appendChild(row);
-    } else {
-      snapshot.forEach(child => {
-        const data = child.val();
-        const solved = data.ranking
-          ? new Set(Object.values(data.ranking).map(r => r.nickname)).size
-          : 0;
-        const likes = data.likes ? Object.keys(data.likes).length : 0;
-        const isMine = data.creator === nickname;
-        const solvedByMe = data.ranking && Object.values(data.ranking)
-          .some(r => r.nickname === nickname);
-        const row = document.createElement('tr');
-        row.innerHTML = `
-          <td class="probTitle">${data.title || child.key}</td>
-          <td>${(data.gridRows || 6)}×${(data.gridCols || 6)}</td>
-          <td>${data.creator || '익명'}${isMine ? ' (나)' : ''}</td>
-          <td>${new Date(data.timestamp).toLocaleDateString()}</td>
-          <td>${solved}</td>
-          <td><span class="likeCount">${likes}</span> <button class="likeBtn" data-key="${child.key}" aria-label="${t('thLikes')}">♥</button></td>
-          <td>${isMine ? `<button class="deleteProbBtn" data-key="${child.key}">${t('deleteBtn')}</button>` : ''}</td>
-        `;
-        if (solvedByMe) row.classList.add('solved');
-        row.addEventListener('click', event => {
-          if (event.target.classList.contains('likeBtn') || event.target.classList.contains('deleteProbBtn')) {
-            return;
-          }
-          previewUserProblem(child.key);
-        });
-        tbody.appendChild(row);
-        return false;
-      });
+      const emptyItem = document.createElement('li');
+      emptyItem.className = 'problem-item problem-item-empty';
+      emptyItem.textContent = t('noUserProblems');
+      listContainer.appendChild(emptyItem);
+      return;
     }
 
-    listContainer.appendChild(table);
-    listContainer.querySelectorAll('.likeBtn').forEach(button => {
-      button.addEventListener('click', event => {
-        event.stopPropagation();
-        toggleLikeProblem(button.dataset.key);
+    snapshot.forEach(child => {
+      const data = child.val();
+      const solved = data.ranking
+        ? new Set(Object.values(data.ranking).map(r => r.nickname)).size
+        : 0;
+      const likes = data.likes ? Object.keys(data.likes).length : 0;
+      const isMine = data.creator === nickname;
+      const solvedByMe = data.ranking && Object.values(data.ranking)
+        .some(r => r.nickname === nickname);
+
+      const item = document.createElement('li');
+      item.className = 'problem-item';
+      if (solvedByMe) item.classList.add('solved');
+      item.tabIndex = 0;
+
+      const header = document.createElement('div');
+      header.className = 'problem-item-header';
+
+      const title = document.createElement('span');
+      title.className = 'problem-item-title';
+      title.textContent = data.title || child.key;
+
+      const grid = document.createElement('span');
+      grid.className = 'problem-item-grid';
+      grid.textContent = `${(data.gridRows || 6)}×${(data.gridCols || 6)}`;
+
+      header.append(title, grid);
+
+      const meta = document.createElement('div');
+      meta.className = 'problem-item-meta';
+
+      const creator = document.createElement('span');
+      creator.textContent = `${t('thCreator')}: ${data.creator || '익명'}${isMine ? ' (나)' : ''}`;
+
+      const createdAt = document.createElement('span');
+      createdAt.textContent = `${t('thCreatedAt')}: ${new Date(data.timestamp).toLocaleDateString()}`;
+
+      meta.append(creator, createdAt);
+
+      const footer = document.createElement('div');
+      footer.className = 'problem-item-footer';
+
+      const stats = document.createElement('div');
+      stats.className = 'problem-item-stats';
+
+      const solvedInfo = document.createElement('span');
+      solvedInfo.textContent = `${t('thSolved')}: ${solved}`;
+
+      stats.appendChild(solvedInfo);
+
+      const actions = document.createElement('div');
+      actions.className = 'problem-item-actions';
+
+      const likeButton = document.createElement('button');
+      likeButton.type = 'button';
+      likeButton.className = 'likeBtn';
+      likeButton.dataset.key = child.key;
+      likeButton.setAttribute('aria-label', `${t('thLikes')}: ${likes}`);
+      likeButton.title = t('thLikes');
+
+      const likeIcon = document.createElement('span');
+      likeIcon.setAttribute('aria-hidden', 'true');
+      likeIcon.textContent = '♥';
+
+      const likeCount = document.createElement('span');
+      likeCount.className = 'likeCount';
+      likeCount.textContent = likes;
+
+      likeButton.append(likeIcon, likeCount);
+
+      actions.appendChild(likeButton);
+
+      if (isMine) {
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'deleteProbBtn';
+        deleteButton.dataset.key = child.key;
+        deleteButton.textContent = t('deleteBtn');
+        actions.appendChild(deleteButton);
+        deleteButton.addEventListener('click', event => {
+          event.stopPropagation();
+          if (confirm(t('confirmDelete'))) {
+            deleteUserProblem(deleteButton.dataset.key);
+          }
+        });
+      }
+
+      footer.append(stats, actions);
+
+      item.append(header, meta, footer);
+
+      item.addEventListener('click', () => {
+        previewUserProblem(child.key);
       });
-    });
-    listContainer.querySelectorAll('.deleteProbBtn').forEach(button => {
-      button.addEventListener('click', event => {
-        event.stopPropagation();
-        if (confirm(t('confirmDelete'))) {
-          deleteUserProblem(button.dataset.key);
+
+      item.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          previewUserProblem(child.key);
         }
       });
+
+      likeButton.addEventListener('click', event => {
+        event.stopPropagation();
+        toggleLikeProblem(likeButton.dataset.key);
+      });
+
+      listContainer.appendChild(item);
+      return false;
     });
   });
 }
