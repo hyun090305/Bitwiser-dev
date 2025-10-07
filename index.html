@@ -227,6 +227,18 @@
         <h3 id="problemInfoTitle">문제 정보 입력</h3>
         <input id="problemTitleInput" type="text" placeholder="문제 제목" class="modal-input" />
         <textarea id="problemDescInput" rows="3" placeholder="문제 설명" class="modal-textarea"></textarea>
+        <div class="difficulty-row">
+          <span id="problemDifficultyLabel">난이도</span>
+          <div id="problemDifficultyStars" class="difficulty-stars" role="radiogroup" aria-labelledby="problemDifficultyLabel">
+            <button type="button" class="difficulty-star" data-value="1" role="radio" aria-checked="false" aria-label="난이도 1">★</button>
+            <button type="button" class="difficulty-star" data-value="2" role="radio" aria-checked="false" aria-label="난이도 2">★</button>
+            <button type="button" class="difficulty-star" data-value="3" role="radio" aria-checked="false" aria-label="난이도 3">★</button>
+            <button type="button" class="difficulty-star" data-value="4" role="radio" aria-checked="false" aria-label="난이도 4">★</button>
+            <button type="button" class="difficulty-star" data-value="5" role="radio" aria-checked="false" aria-label="난이도 5">★</button>
+          </div>
+          <span id="problemDifficultyValueLabel" class="difficulty-value"></span>
+          <input type="hidden" id="problemDifficultyValue" value="3" />
+        </div>
         <label>
           <input type="checkbox" id="fixIOCheck">
           <span id="fixIOCheckLabel">IN/OUT 위치 고정</span>

@@ -1424,6 +1424,44 @@ html, body {
   box-sizing: border-box;
 }
 
+.difficulty-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.difficulty-stars {
+  display: inline-flex;
+  gap: 0.25rem;
+}
+
+.difficulty-star {
+  border: none;
+  background: transparent;
+  color: #ccc;
+  font-size: 1.5rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.difficulty-star.active {
+  color: #ffb400;
+}
+
+.difficulty-star:focus-visible {
+  outline: 2px solid #ffb400;
+  outline-offset: 2px;
+}
+
+.difficulty-value {
+  margin-left: auto;
+  font-size: 0.85rem;
+  color: #555;
+}
+
 /* 버튼 그룹 (가로 정렬) */
 .modal-buttons {
   display: flex;

@@ -19,6 +19,15 @@ let saveProblemButton = null;
 let confirmSaveProblemButton = null;
 let activeCustomProblem = null;
 let activeCustomProblemKey = null;
+let difficultyContainerEl = null;
+let difficultyValueInputEl = null;
+let difficultyValueLabelEl = null;
+let difficultySelectorInitialized = false;
+let currentDifficulty = 3;
+
+const MIN_DIFFICULTY = 1;
+const MAX_DIFFICULTY = 5;
+const DEFAULT_DIFFICULTY = 3;
 
 function clamp(value, min, max, fallback) {
   const num = Number.parseInt(value, 10);
@@ -31,6 +40,109 @@ function translate(key, fallback = '') {
     return t(key);
   }
   return fallback;
+}
+
+function getDifficultyStars() {
+  if (!difficultyContainerEl) return [];
+  return Array.from(difficultyContainerEl.querySelectorAll('.difficulty-star'));
+}
+
+function formatDifficultyValue(value) {
+  const template = translate('problemDifficultyValue', '{value}/5');
+  return template.replace('{value}', value);
+}
+
+function updateDifficultyAriaLabels() {
+  const labelTemplate = translate('problemDifficultyStarAria', '난이도 {value}점');
+  getDifficultyStars().forEach(star => {
+    const starValue = Number.parseInt(star.dataset.value, 10) || 0;
+    star.setAttribute('aria-label', labelTemplate.replace('{value}', starValue));
+  });
+}
+
+function setProblemDifficulty(value, { focus = false } = {}) {
+  const clamped = clamp(value, MIN_DIFFICULTY, MAX_DIFFICULTY, DEFAULT_DIFFICULTY);
+  currentDifficulty = clamped;
+
+  if (difficultyValueInputEl) {
+    difficultyValueInputEl.value = String(clamped);
+  }
+
+  const stars = getDifficultyStars();
+  stars.forEach(star => {
+    const starValue = Number.parseInt(star.dataset.value, 10) || 0;
+    const isActive = starValue <= clamped;
+    const isCurrent = starValue === clamped;
+    star.classList.toggle('active', isActive);
+    star.setAttribute('aria-checked', isCurrent ? 'true' : 'false');
+    star.tabIndex = isCurrent ? 0 : -1;
+    if (focus && isCurrent) {
+      star.focus();
+    }
+  });
+
+  if (difficultyValueLabelEl) {
+    difficultyValueLabelEl.textContent = formatDifficultyValue(clamped);
+  }
+
+  updateDifficultyAriaLabels();
+}
+
+function getProblemDifficultyValue() {
+  const sourceValue = difficultyValueInputEl?.value ?? currentDifficulty;
+  return clamp(sourceValue, MIN_DIFFICULTY, MAX_DIFFICULTY, DEFAULT_DIFFICULTY);
+}
+
+function handleDifficultyKeydown(event) {
+  const { key, currentTarget } = event;
+  if (!currentTarget) return;
+
+  const currentValue = Number.parseInt(currentTarget.dataset.value, 10) || currentDifficulty;
+  let nextValue = null;
+
+  if (key === 'ArrowRight' || key === 'ArrowUp') {
+    nextValue = Math.min(currentDifficulty + 1, MAX_DIFFICULTY);
+  } else if (key === 'ArrowLeft' || key === 'ArrowDown') {
+    nextValue = Math.max(currentDifficulty - 1, MIN_DIFFICULTY);
+  } else if (key === 'Home') {
+    nextValue = MIN_DIFFICULTY;
+  } else if (key === 'End') {
+    nextValue = MAX_DIFFICULTY;
+  } else if (key === ' ' || key === 'Enter') {
+    nextValue = currentValue;
+  }
+
+  if (nextValue !== null) {
+    event.preventDefault();
+    setProblemDifficulty(nextValue, { focus: true });
+  }
+}
+
+function initializeDifficultySelector(container, input, valueLabel) {
+  if (container) difficultyContainerEl = container;
+  if (input) difficultyValueInputEl = input;
+  if (valueLabel) difficultyValueLabelEl = valueLabel;
+
+  if (!difficultyContainerEl || difficultySelectorInitialized) return;
+
+  const stars = getDifficultyStars();
+  if (!stars.length) return;
+
+  stars.forEach(star => {
+    star.addEventListener('click', () => {
+      const value = Number.parseInt(star.dataset.value, 10) || DEFAULT_DIFFICULTY;
+      setProblemDifficulty(value, { focus: true });
+    });
+    star.addEventListener('keydown', handleDifficultyKeydown);
+  });
+
+  difficultySelectorInitialized = true;
+
+  if (difficultyValueInputEl && !difficultyValueInputEl.value) {
+    difficultyValueInputEl.value = String(DEFAULT_DIFFICULTY);
+  }
+
+  setProblemDifficulty(getProblemDifficultyValue());
 }
 
 function getSaveProblemButton() {
@@ -356,6 +468,7 @@ export function collectProblemData() {
   return {
     title: titleInput ? titleInput.value.trim() : '',
     description: descInput ? descInput.value.trim() : '',
+    difficulty: getProblemDifficultyValue(),
     inputCount: clamp(
       document.getElementById('inputCount')?.value,
       1,
@@ -497,10 +610,12 @@ function getModalBackdrop(selector) {
   return document.querySelector(selector);
 }
 
-function showProblemSaveModal(modal, titleInput, descInput, fixIOCheck) {
+function showProblemSaveModal(modal, titleInput, descInput, fixIOCheck, difficultyInput) {
   if (titleInput) titleInput.value = '';
   if (descInput) descInput.value = '';
   if (fixIOCheck) fixIOCheck.checked = false;
+  if (difficultyInput) difficultyInput.value = String(DEFAULT_DIFFICULTY);
+  setProblemDifficulty(DEFAULT_DIFFICULTY);
   if (modal) {
     modal.style.display = 'flex';
     titleInput?.focus();
@@ -560,13 +675,24 @@ export function initializeProblemCreationFlow({
   const problemSaveModal = getElement(ids.problemSaveModalId);
   const problemTitleInput = getElement(ids.problemTitleInputId);
   const problemDescInput = getElement(ids.problemDescInputId);
+  const difficultyContainer = getElement(ids.problemDifficultyContainerId);
+  const difficultyValueInput = getElement(ids.problemDifficultyValueInputId);
+  const difficultyValueLabel = getElement(ids.problemDifficultyValueLabelId);
   const fixIOCheck = getElement(ids.fixIOCheckId);
+
+  initializeDifficultySelector(difficultyContainer, difficultyValueInput, difficultyValueLabel);
 
   const saveProblemBtn = getElement(ids.saveProblemBtnId);
   if (saveProblemBtn) {
     saveProblemButton = saveProblemBtn;
     saveProblemBtn.addEventListener('click', () =>
-      showProblemSaveModal(problemSaveModal, problemTitleInput, problemDescInput, fixIOCheck)
+      showProblemSaveModal(
+        problemSaveModal,
+        problemTitleInput,
+        problemDescInput,
+        fixIOCheck,
+        difficultyValueInput
+      )
     );
   }
 
