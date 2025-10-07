@@ -15,7 +15,6 @@ import {
   setupGrid,
   setGridDimensions,
   clearGrid,
-  destroyPlayContext,
   moveCircuit,
   setupMenuToggle,
   collapseMenuBarForMobile,
@@ -130,26 +129,6 @@ const TOAST_IDS = {
 };
 let activeSavedToastId = null;
 
-const LAB_GRID_SIZE = { rows: 18, cols: 24 };
-const LAB_BLOCK_LIBRARY = [
-  { type: 'INPUT', name: 'IN1' },
-  { type: 'INPUT', name: 'IN2' },
-  { type: 'INPUT', name: 'IN3' },
-  { type: 'INPUT', name: 'IN4' },
-  { type: 'OUTPUT', name: 'OUT1' },
-  { type: 'OUTPUT', name: 'OUT2' },
-  { type: 'OUTPUT', name: 'OUT3' },
-  { type: 'OUTPUT', name: 'OUT4' },
-  { type: 'AND' },
-  { type: 'OR' },
-  { type: 'NOT' },
-  { type: 'JUNCTION' }
-];
-
-let labPaletteGroups = null;
-let labEntering = false;
-let previousGameTitle = null;
-
 function showGifLoadingToast(message) {
   if (!message) return;
   toastManager.show({
@@ -163,15 +142,6 @@ function showGifLoadingToast(message) {
 
 function hideGifLoadingToast() {
   toastManager.remove(TOAST_IDS.gif, { silent: true });
-}
-
-function getLabPaletteGroups() {
-  if (!labPaletteGroups) {
-    labPaletteGroups = buildPaletteGroups(
-      LAB_BLOCK_LIBRARY.map(block => ({ ...block }))
-    );
-  }
-  return labPaletteGroups;
 }
 
 function showCircuitSavingToast(message) {
@@ -477,88 +447,6 @@ const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const firstScreen = document.getElementById('firstScreen');
 const chapterListEl = document.getElementById("chapterList");
-
-const labBtn = document.getElementById('labBtn');
-const exitLabBtn = document.getElementById('exitLabBtn');
-const labPanels = document.getElementById('labPanels');
-const gameTitleEl = document.getElementById('gameTitle');
-
-async function openLabScreen() {
-  if (labEntering) return;
-  labEntering = true;
-  const rightPanelEl = document.getElementById('rightPanel');
-  try {
-    lockOrientationLandscape();
-    const paletteGroups = getLabPaletteGroups();
-    await setupGrid(
-      'canvasContainer',
-      LAB_GRID_SIZE.rows,
-      LAB_GRID_SIZE.cols,
-      paletteGroups,
-      { infiniteGrid: true }
-    );
-    document.body.classList.add('game-active');
-    document.body.classList.add('lab-mode');
-    if (firstScreen) firstScreen.style.display = 'none';
-    if (gameScreen) gameScreen.style.display = 'block';
-    if (rightPanelEl) rightPanelEl.style.display = 'flex';
-    if (labPanels) {
-      labPanels.style.display = 'flex';
-      labPanels.setAttribute('aria-hidden', 'false');
-    }
-    if (gameTitleEl) {
-      previousGameTitle = gameTitleEl.textContent;
-      gameTitleEl.textContent = '🔬 Lab';
-    }
-    adjustGridZoom('canvasContainer');
-    window.dispatchEvent(new Event('resize'));
-  } catch (err) {
-    console.error('Failed to open lab screen', err);
-  } finally {
-    labEntering = false;
-  }
-}
-
-function closeLabScreen() {
-  if (!document.body.classList.contains('lab-mode')) return;
-  document.body.classList.remove('lab-mode');
-  document.body.classList.remove('game-active');
-  if (labPanels) {
-    labPanels.style.display = 'none';
-    labPanels.setAttribute('aria-hidden', 'true');
-  }
-  const rightPanelEl = document.getElementById('rightPanel');
-  if (rightPanelEl) {
-    rightPanelEl.style.display = 'none';
-  }
-  if (gameTitleEl) {
-    gameTitleEl.textContent = previousGameTitle || '🧠 Bitwiser';
-  }
-  previousGameTitle = null;
-  destroyPlayContext();
-  if (gameScreen) gameScreen.style.display = 'none';
-  if (firstScreen) firstScreen.style.display = '';
-}
-
-if (labBtn) {
-  labBtn.addEventListener('click', () => {
-    if (document.body.classList.contains('lab-mode')) return;
-    openLabScreen();
-  });
-}
-
-if (exitLabBtn) {
-  exitLabBtn.addEventListener('click', () => {
-    closeLabScreen();
-  });
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && document.body.classList.contains('lab-mode')) {
-    e.preventDefault();
-    closeLabScreen();
-  }
-});
 
 document.getElementById("toggleChapterList").onclick = () => {
   chapterListEl.classList.toggle('hidden');

@@ -32,44 +32,13 @@ export function setupCanvas(canvas, width, height) {
 }
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
-export function drawGrid(ctx, rows, cols, offsetX = 0, options = {}) {
-  const { infinite = false } = options;
+export function drawGrid(ctx, rows, cols, offsetX = 0) {
   const width = cols * (CELL + GAP) + GAP;
   const height = rows * (CELL + GAP) + GAP;
-  const tileSize = CELL + GAP;
   ctx.save();
-
-  if (infinite) {
-    const patternCanvas = document.createElement('canvas');
-    patternCanvas.width = tileSize;
-    patternCanvas.height = tileSize;
-    const pctx = patternCanvas.getContext('2d');
-    pctx.fillStyle = '#f6f8ff';
-    pctx.fillRect(0, 0, tileSize, tileSize);
-    pctx.strokeStyle = '#dbe0f5';
-    pctx.lineWidth = 1;
-    roundRect(pctx, GAP / 2, GAP / 2, CELL, CELL, 3);
-    pctx.stroke();
-    const pattern = ctx.createPattern(patternCanvas, 'repeat');
-    if (pattern) {
-      ctx.fillStyle = pattern;
-      ctx.fillRect(
-        offsetX - tileSize * 4,
-        -tileSize * 4,
-        ctx.canvas.width + tileSize * 8,
-        ctx.canvas.height + tileSize * 8
-      );
-    } else {
-      ctx.fillStyle = '#f6f8ff';
-      ctx.fillRect(offsetX, 0, ctx.canvas.width - offsetX, ctx.canvas.height);
-    }
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
-  } else {
-    ctx.fillStyle = '#fff';
-  }
+  ctx.fillStyle = '#fff';
   ctx.fillRect(offsetX, 0, width, height);
-
-  ctx.strokeStyle = infinite ? '#cfd5ec' : '#ddd';
+  ctx.strokeStyle = '#ddd';
   ctx.lineWidth = 1;
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -79,13 +48,9 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, options = {}) {
       ctx.stroke();
     }
   }
-
-  if (!infinite) {
-    ctx.strokeStyle = '#666';
-    ctx.lineWidth = GAP;
-    ctx.strokeRect(offsetX + GAP / 2, GAP / 2, width - GAP, height - GAP);
-  }
-
+  ctx.strokeStyle = '#666';
+  ctx.lineWidth = GAP;
+  ctx.strokeRect(offsetX + GAP / 2, GAP / 2, width - GAP, height - GAP);
   ctx.restore();
 }
 
