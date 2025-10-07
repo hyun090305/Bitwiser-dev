@@ -104,17 +104,17 @@ function createLabController() {
       canvasSize: { width: innerWidth, height: innerHeight },
       panelDrawOptions: {
         grid: {
-          background: '#0c0f19',
-          panelFill: 'rgba(28,34,54,0.65)',
-          gridFillA: 'rgba(255,255,255,0.06)',
-          gridFillB: 'rgba(255,255,255,0.1)',
-          gridStroke: 'rgba(255,255,255,0.15)'
+          background: '#eef2ff',
+          panelFill: 'rgba(248,250,252,0.96)',
+          gridFillA: 'rgba(148,163,184,0.16)',
+          gridFillB: 'rgba(148,163,184,0.28)',
+          gridStroke: 'rgba(100,116,139,0.25)'
         },
         panel: {
-          background: 'rgba(255,255,255,0.25)',
-          border: 'rgba(255,255,255,0.4)',
-          labelColor: '#eef2ff',
-          itemGradient: ['rgba(245,246,255,0.95)', 'rgba(214,220,255,0.9)']
+          background: '#ffffff',
+          border: 'rgba(148,163,184,0.55)',
+          labelColor: '#1e293b',
+          itemGradient: ['rgba(241,245,249,1)', 'rgba(226,232,240,1)']
         }
       }
     }
