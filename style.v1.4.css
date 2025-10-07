@@ -923,6 +923,12 @@ html, body {
     gap: 0.5rem;
   }
 
+  .user-problem-difficulty-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+  }
+
   .user-problem-filter-toggle {
     display: inline-flex;
     align-items: center;
