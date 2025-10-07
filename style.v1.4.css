@@ -1541,6 +1541,7 @@ html, body {
     align-items: stretch;
     max-height: calc(100vh - 4rem);
     overflow: hidden;
+    height: calc(100vh - 4rem);
   }
 
   .user-problems-content {
@@ -1551,6 +1552,7 @@ html, body {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
+    height: 100%;
   }
 
   .user-problems-sidebar {
@@ -1570,6 +1572,8 @@ html, body {
     justify-content: center;
     align-items: stretch;
     overflow: hidden;
+    max-height: 100%;
+    height: 100%;
   }
 
   /* 사용자 문제 목록 */
@@ -1585,6 +1589,8 @@ html, body {
     padding-right: 0.25rem;
     min-height: 0;
     max-height: 100%;
+    flex: 1 1 auto;
+    height: 100%;
   }
 
   .problem-item {
