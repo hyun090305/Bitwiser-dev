@@ -295,27 +295,59 @@
                 <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyPopular" aria-pressed="false">
                   ♥ <span id="userProblemFilterPopular">인기</span>
                 </button>
-                <details id="userProblemAdvancedFilters" class="user-problems-advanced">
-                  <summary id="userProblemAdvancedSummary">⚙ 필터</summary>
-                  <div class="user-problems-advanced-grid">
-                    <label id="userProblemFilterGridLabel" for="userProblemFilterGrid">그리드 크기</label>
-                    <select id="userProblemFilterGrid">
-                      <option id="userProblemFilterGridAnyOption" value="all">전체</option>
-                    </select>
-                    <label id="userProblemFilterDifficultyLabel" for="userProblemFilterDifficulty">난이도</label>
-                    <select id="userProblemFilterDifficulty">
-                      <option id="userProblemFilterDifficultyAll" value="all">전체</option>
-                      <option id="userProblemFilterDifficultyEasy" value="easy">쉬움</option>
-                      <option id="userProblemFilterDifficultyNormal" value="normal">보통</option>
-                      <option id="userProblemFilterDifficultyHard" value="hard">어려움</option>
-                    </select>
-                    <label id="userProblemFilterMinLikesLabel" for="userProblemMinLikes">좋아요 수 이상</label>
-                    <input id="userProblemMinLikes" type="number" min="0" inputmode="numeric" placeholder="0" />
-                    <label id="userProblemFilterCreatorLabel" for="userProblemCreatorFilter">제작자</label>
-                    <input id="userProblemCreatorFilter" type="text" placeholder="예: garden" />
-                    <button id="userProblemResetFilters" type="button" class="user-problem-reset">필터 초기화</button>
+                <div class="user-problem-difficulty-group" role="group" aria-labelledby="userProblemFilterDifficultyLabel">
+                  <span id="userProblemFilterDifficultyLabel" class="user-problem-difficulty-label">난이도</span>
+                  <div class="user-problem-difficulty-buttons">
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="all"
+                      aria-pressed="true"
+                    >
+                      <span id="userProblemFilterDifficultyAll">전체</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="1"
+                      aria-pressed="false"
+                    >
+                      1
+                    </button>
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="2"
+                      aria-pressed="false"
+                    >
+                      2
+                    </button>
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="3"
+                      aria-pressed="false"
+                    >
+                      3
+                    </button>
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="4"
+                      aria-pressed="false"
+                    >
+                      4
+                    </button>
+                    <button
+                      type="button"
+                      class="user-problem-filter-toggle user-problem-difficulty-toggle"
+                      data-user-problem-difficulty="5"
+                      aria-pressed="false"
+                    >
+                      5
+                    </button>
                   </div>
-                </details>
+                </div>
               </div>
               <div id="userProblemResultSummary" class="user-problem-result-summary"></div>
             </div>

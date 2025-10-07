@@ -923,6 +923,25 @@ html, body {
     gap: 0.5rem;
   }
 
+  .user-problem-difficulty-group {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding-left: 0.25rem;
+  }
+
+  .user-problem-difficulty-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+  }
+
+  .user-problem-difficulty-buttons {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
   .user-problem-filter-toggle {
     display: inline-flex;
     align-items: center;
@@ -952,6 +971,12 @@ html, body {
 
   .user-problem-filter-toggle span {
     font-size: 0.9rem;
+  }
+
+  .user-problem-difficulty-toggle {
+    min-width: 2.35rem;
+    justify-content: center;
+    padding-inline: 0.75rem;
   }
 
   .user-problems-advanced {
