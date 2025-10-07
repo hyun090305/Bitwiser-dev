@@ -47,6 +47,7 @@ let labCircuit = null;
 let labCamera = null;
 let rightPanelPlaceholder = null;
 let originalGradeDisplay = '';
+let originalGameTitleText = '';
 
 function moveRightPanelInto(container) {
   const rightPanel = document.getElementById('rightPanel');
@@ -104,14 +105,15 @@ function createLabController() {
       canvasSize: { width: innerWidth, height: innerHeight },
       panelDrawOptions: {
         grid: {
-          background: '#eaf0ff',
-          panelFill: 'rgba(240, 244, 255, 0.95)',
+          background: '#e4ecff',
+          panelFill: '#eef2ff',
           gridFillA: 'rgba(148, 163, 184, 0.16)',
           gridFillB: 'rgba(148, 163, 184, 0.24)',
           gridStroke: 'rgba(99, 102, 241, 0.28)'
         },
         panel: {
-          background: 'rgba(248, 250, 255, 0.98)',
+          panelBackground: '#f8faff',
+          background: '#f0f4ff',
           border: 'rgba(148, 163, 184, 0.55)',
           labelColor: '#1e293b',
           itemGradient: ['rgba(226, 232, 255, 0.95)', 'rgba(199, 210, 254, 0.92)']
@@ -135,6 +137,13 @@ function showLabScreen() {
   moveRightPanelInto(labScreen);
   labScreen.style.display = 'block';
   document.body.classList.add('lab-mode-active');
+  const titleEl = document.getElementById('gameTitle');
+  if (titleEl) {
+    if (!originalGameTitleText) {
+      originalGameTitleText = titleEl.textContent || '';
+    }
+    titleEl.textContent = '🔬 Lab Mode';
+  }
   if (!labInitialized) {
     createLabController();
     labInitialized = true;
@@ -151,6 +160,11 @@ function hideLabScreen() {
   const firstScreen = document.getElementById('firstScreen');
   if (firstScreen) firstScreen.style.display = '';
   document.body.classList.remove('lab-mode-active');
+  const titleEl = document.getElementById('gameTitle');
+  if (titleEl) {
+    const fallbackTitle = originalGameTitleText || '🧠 Bitwiser';
+    titleEl.textContent = fallbackTitle;
+  }
 }
 
 export function initializeLabMode() {
