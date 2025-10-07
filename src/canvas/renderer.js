@@ -33,13 +33,12 @@ export function setupCanvas(canvas, width, height) {
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
 export function drawGrid(ctx, rows, cols, offsetX = 0, options = {}) {
-  const { infinite = false, translateX = 0, translateY = 0 } = options;
+  const { infinite = false } = options;
   const width = cols * (CELL + GAP) + GAP;
   const height = rows * (CELL + GAP) + GAP;
   const tileSize = CELL + GAP;
   ctx.save();
-  ctx.translate(translateX, translateY);
-  ctx.clearRect(-translateX, -translateY, ctx.canvas.width, ctx.canvas.height);
+
   if (infinite) {
     const patternCanvas = document.createElement('canvas');
     patternCanvas.width = tileSize;
@@ -168,23 +167,12 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0) {
 }
 
 // Render the circuit: wires then blocks to keep z-order
-export function renderContent(
-  ctx,
-  circuit,
-  phase = 0,
-  offsetX = 0,
-  hoverId = null,
-  options = {}
-) {
-  const { translateX = 0, translateY = 0 } = options;
-  ctx.save();
-  ctx.translate(translateX, translateY);
-  ctx.clearRect(-translateX, -translateY, ctx.canvas.width, ctx.canvas.height);
+export function renderContent(ctx, circuit, phase = 0, offsetX = 0, hoverId = null) {
+  ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
   Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX));
   Object.values(circuit.blocks).forEach(b =>
     drawBlock(ctx, b, offsetX, b.id === hoverId)
   );
-  ctx.restore();
 }
 
 // Draw palette on the left panel
