@@ -54,7 +54,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const MIN_CAMERA_SCALE = 0.2;
   const MAX_CAMERA_SCALE = 3;
   const ZOOM_SENSITIVITY = 0.0015;
-  const DOUBLE_TAP_DELAY_MS = 300;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
@@ -168,9 +167,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const undoStack = [];
   const redoStack = [];
   let hasInitialSnapshot = false;
-
-  let lastSingleTouchTime = 0;
-  let doubleTapPrevented = false;
 
   const pitch = CELL + GAP;
 
@@ -649,51 +645,29 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (!Number.isFinite(distance) || distance <= 0) {
       return false;
     }
-    const previousCameraState = camera.getState();
-    const previousScale = previousCameraState.scale;
+    const previousScale = camera.getState().scale;
     const scaleRatio = distance / pinch.startDistance;
     const targetScale = clamp(pinch.startScale * scaleRatio, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
     camera.setScale(targetScale);
-    const {
-      scale: appliedScale,
-      originX,
-      originY,
-      panelWidth: appliedPanelWidth
-    } = camera.getState();
+    const { scale: appliedScale, originX, originY } = camera.getState();
     const scaleChanged = Math.abs(appliedScale - previousScale) > 1e-4;
-    const panelForCalc = Number.isFinite(appliedPanelWidth)
-      ? appliedPanelWidth
-      : panelTotalWidth;
-    const desiredOriginsX = [];
-    const desiredOriginsY = [];
-    const desiredOriginX1 = pinch.world1.x - (pos1.x - panelForCalc) / appliedScale;
+    const desiredOriginX1 = pinch.world1.x - (pos1.x - panelTotalWidth) / appliedScale;
     const desiredOriginY1 = pinch.world1.y - pos1.y / appliedScale;
-    if (Number.isFinite(desiredOriginX1) && Number.isFinite(desiredOriginY1)) {
-      desiredOriginsX.push(desiredOriginX1);
-      desiredOriginsY.push(desiredOriginY1);
-    }
-    const desiredOriginX2 = pinch.world2.x - (pos2.x - panelForCalc) / appliedScale;
+    const desiredOriginX2 = pinch.world2.x - (pos2.x - panelTotalWidth) / appliedScale;
     const desiredOriginY2 = pinch.world2.y - pos2.y / appliedScale;
-    if (Number.isFinite(desiredOriginX2) && Number.isFinite(desiredOriginY2)) {
-      desiredOriginsX.push(desiredOriginX2);
-      desiredOriginsY.push(desiredOriginY2);
+    const desiredOriginX = (desiredOriginX1 + desiredOriginX2) / 2;
+    const desiredOriginY = (desiredOriginY1 + desiredOriginY2) / 2;
+    const deltaOriginX = originX - desiredOriginX;
+    const deltaOriginY = originY - desiredOriginY;
+    let panChanged = false;
+    if (Math.abs(deltaOriginX) > 1e-4 || Math.abs(deltaOriginY) > 1e-4) {
+      panChanged = camera.pan(deltaOriginX * appliedScale, deltaOriginY * appliedScale);
     }
-    let originChanged = false;
-    if (desiredOriginsX.length > 0 && desiredOriginsY.length > 0) {
-      const desiredOriginX = desiredOriginsX.reduce((sum, value) => sum + value, 0) / desiredOriginsX.length;
-      const desiredOriginY = desiredOriginsY.reduce((sum, value) => sum + value, 0) / desiredOriginsY.length;
-      const originNeedsUpdate =
-        Math.abs(originX - desiredOriginX) > 1e-4 ||
-        Math.abs(originY - desiredOriginY) > 1e-4;
-      if (originNeedsUpdate) {
-        originChanged = camera.setOrigin(desiredOriginX, desiredOriginY);
-      }
-    }
-    if (!scaleChanged && !originChanged && scaleRatio < 1 && clampToBounds) {
+    if (!scaleChanged && !panChanged && scaleRatio < 1 && clampToBounds) {
       endPinch();
       return false;
     }
-    return scaleChanged || originChanged;
+    return scaleChanged || panChanged;
   }
 
   function endPinch() {
@@ -943,20 +917,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
-    if (e.touches) {
-      if (e.touches.length === 1) {
-        const now = performance.now();
-        const isDoubleTap = now - lastSingleTouchTime < DOUBLE_TAP_DELAY_MS;
-        doubleTapPrevented = isDoubleTap;
-        if (isDoubleTap && e.cancelable) {
-          e.preventDefault();
-        }
-        lastSingleTouchTime = now;
-      } else {
-        lastSingleTouchTime = 0;
-        doubleTapPrevented = false;
-      }
-    }
     if (useCamera && e.touches && e.touches.length >= 2) {
       const started = startPinch(e);
       if (started) {
@@ -964,7 +924,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
     }
     const handled = handlePointerDown(e);
-    if (handled && !(clampToBounds && state.panning) && e.cancelable) e.preventDefault();
+    if (handled && !(clampToBounds && state.panning)) e.preventDefault();
   }, { passive: false });
   overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -1347,14 +1307,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   overlayCanvas.addEventListener('touchend', e => {
-    if (doubleTapPrevented && e.cancelable) {
-      e.preventDefault();
-      doubleTapPrevented = false;
-    }
     if (state.pinch && (!e.touches || e.touches.length < 2)) {
       endPinch();
     }
-  }, { passive: false });
+  });
 
   overlayCanvas.addEventListener('touchcancel', () => {
     if (state.pinch) endPinch();
