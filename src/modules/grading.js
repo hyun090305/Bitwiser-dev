@@ -1,3 +1,5 @@
+import { triggerConfetti } from './confetti.js';
+
 const WAIT_BETWEEN_TESTS = 100;
 
 function defaultTranslate(t) {
@@ -358,6 +360,8 @@ export function createGradingController(config = {}) {
     if (!allCorrect) {
       return;
     }
+
+    triggerConfetti();
 
     const { saveSuccess, loginNeeded, statusMessage } = await attemptAutoSave({
       getAutoSaveSetting,
