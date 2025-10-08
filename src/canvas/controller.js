@@ -133,6 +133,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   let contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   let overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
+  let lastTapTime = 0;
+  let lastTapPos = null;
 
   function updateCanvasMetadata() {
     [bgCanvas, contentCanvas, overlayCanvas].forEach(canvas => {
@@ -648,7 +650,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const previousScale = camera.getState().scale;
     const scaleRatio = distance / pinch.startDistance;
     const targetScale = clamp(pinch.startScale * scaleRatio, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
-    camera.setScale(targetScale);
+    const pivotX = (pos1.x + pos2.x) / 2;
+    const pivotY = (pos1.y + pos2.y) / 2;
+    camera.setScale(targetScale, pivotX, pivotY);
     const { scale: appliedScale, originX, originY } = camera.getState();
     const scaleChanged = Math.abs(appliedScale - previousScale) > 1e-4;
     const desiredOriginX1 = pinch.world1.x - (pos1.x - panelTotalWidth) / appliedScale;
@@ -661,7 +665,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const deltaOriginY = originY - desiredOriginY;
     let panChanged = false;
     if (Math.abs(deltaOriginX) > 1e-4 || Math.abs(deltaOriginY) > 1e-4) {
-      panChanged = camera.pan(deltaOriginX * appliedScale, deltaOriginY * appliedScale);
+      panChanged = camera.setOrigin(desiredOriginX, desiredOriginY);
+    }
+    if (scaleChanged || panChanged) {
+      pinch.world1 = camera.screenToWorld(pos1.x, pos1.y);
+      pinch.world2 = camera.screenToWorld(pos2.x, pos2.y);
     }
     if (!scaleChanged && !panChanged && scaleRatio < 1 && clampToBounds) {
       endPinch();
@@ -1307,10 +1315,27 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }, { passive: false });
 
   overlayCanvas.addEventListener('touchend', e => {
+    const isCancelable = e.cancelable;
+    const changedTouch = e.changedTouches?.[0];
+    const remainingTouches = e.touches?.length || 0;
+    if (remainingTouches === 0 && changedTouch) {
+      const now = typeof e.timeStamp === 'number' ? e.timeStamp : Date.now();
+      const isDoubleTap = now - lastTapTime <= 300;
+      const lastPos = lastTapPos;
+      const moveThreshold = 10;
+      const movedTooMuch = lastPos
+        ? Math.hypot(changedTouch.clientX - lastPos.x, changedTouch.clientY - lastPos.y) > moveThreshold
+        : false;
+      if (isDoubleTap && !movedTooMuch && isCancelable) {
+        e.preventDefault();
+      }
+      lastTapTime = now;
+      lastTapPos = { x: changedTouch.clientX, y: changedTouch.clientY };
+    }
     if (state.pinch && (!e.touches || e.touches.length < 2)) {
       endPinch();
     }
-  });
+  }, { passive: false });
 
   overlayCanvas.addEventListener('touchcancel', () => {
     if (state.pinch) endPinch();
