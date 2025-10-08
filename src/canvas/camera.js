@@ -121,11 +121,17 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
   }
 
   function pan(dx, dy) {
-    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    const prevX = originX;
+    const prevY = originY;
     originX -= dx / currentScale;
     originY -= dy / currentScale;
     clampOrigin();
-    notifyChange();
+    const moved = prevX !== originX || prevY !== originY;
+    if (moved) {
+      notifyChange();
+    }
+    return moved;
   }
 
   function setScale(nextScale, pivotX, pivotY) {
@@ -187,6 +193,13 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
     };
   }
 
+  function getMinAllowedScale() {
+    if (!clampToBounds || minScaleForBounds <= 0) {
+      return 0;
+    }
+    return minScaleForBounds;
+  }
+
   function setBounds(width, height, { clamp = true } = {}) {
     const normalizedWidth = Number.isFinite(width) && width >= 0
       ? width
@@ -225,6 +238,7 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
     cellToScreenCell,
     getScale,
     getState,
+    getMinAllowedScale,
     setOnChange,
     reset
   };

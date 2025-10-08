@@ -54,6 +54,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const MIN_CAMERA_SCALE = 0.2;
   const MAX_CAMERA_SCALE = 3;
   const ZOOM_SENSITIVITY = 0.0015;
+  const SCALE_EPSILON = 1e-4;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
@@ -161,6 +162,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     spaceHeld: false,
     panning: false,
     panLast: null,
+    panPreventDefault: false,
+    pointerDownPreventDefault: false,
     pinch: null,
   };
 
@@ -646,7 +649,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return false;
     }
     const scaleRatio = distance / pinch.startDistance;
-    const targetScale = clamp(pinch.startScale * scaleRatio, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
+    const minCameraScale = typeof camera.getMinAllowedScale === 'function'
+      ? Math.max(MIN_CAMERA_SCALE, camera.getMinAllowedScale())
+      : MIN_CAMERA_SCALE;
+    const currentScale = camera.getScale();
+    const rawTarget = pinch.startScale * scaleRatio;
+    const targetScale = clamp(rawTarget, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
+    const isZoomingOut = rawTarget < currentScale - SCALE_EPSILON;
+    const atLowerBound = targetScale <= minCameraScale + SCALE_EPSILON;
+    const currentlyAtLowerBound = currentScale <= minCameraScale + SCALE_EPSILON;
+    if (isZoomingOut && atLowerBound && currentlyAtLowerBound) {
+      return false;
+    }
     camera.setScale(targetScale);
     const { scale: appliedScale, originX, originY } = camera.getState();
     const desiredOriginX1 = pinch.world1.x - (pos1.x - panelTotalWidth) / appliedScale;
@@ -777,6 +791,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.pointerDown = { x, y };
     state.pointerMoved = false;
     let handled = false;
+    let preventDefault = false;
+    state.pointerDownPreventDefault = false;
+    state.panPreventDefault = false;
     const isMiddleButton = e.button === 1;
     const isPrimary = e.button === 0 || e.button === undefined;
     if (useCamera && (isMiddleButton || (state.spaceHeld && isPrimary))) {
@@ -784,7 +801,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.panLast = { x, y };
       state.pointerDown = null;
       handled = true;
-      e.preventDefault();
       return handled;
     }
     if (e.button === 2) {
@@ -796,6 +812,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           state.selection = null;
           overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
           handled = true;
+          preventDefault = true;
         }
       }
       e.preventDefault();
@@ -901,11 +918,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             state.panLast = { x, y };
             state.pointerDown = null;
             handled = true;
-            e.preventDefault();
           }
         }
       }
     }
+    if (handled && !state.panning) {
+      preventDefault = true;
+    }
+    state.pointerDownPreventDefault = preventDefault;
     return handled;
   }
 
@@ -914,12 +934,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (useCamera && e.touches && e.touches.length >= 2) {
       const started = startPinch(e);
       if (started) {
-        e.preventDefault();
         return;
       }
     }
     const handled = handlePointerDown(e);
-    if (handled) e.preventDefault();
+    if (handled && state.pointerDownPreventDefault) {
+      e.preventDefault();
+    }
   }, { passive: false });
   overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
 
@@ -959,6 +980,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (state.panning) {
       state.panning = false;
       state.panLast = null;
+      state.panPreventDefault = false;
       state.pointerDown = null;
       return;
     }
@@ -1144,8 +1166,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const { x, y } = getPointerPos(e);
     if (state.panning) {
       if (state.panLast) {
-        camera.pan(x - state.panLast.x, y - state.panLast.y);
-        state.panLast = { x, y };
+        const moved = camera.pan(x - state.panLast.x, y - state.panLast.y);
+        if (moved) {
+          state.panLast = { x, y };
+          state.panPreventDefault = true;
+          if (e.touches && typeof e.preventDefault === 'function' && e.cancelable) {
+            e.preventDefault();
+          }
+        } else {
+          state.panLast = { x, y };
+          state.panPreventDefault = false;
+        }
       }
       return;
     }
@@ -1285,10 +1316,20 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         e.preventDefault();
         return;
       }
+      if (state.pinch) {
+        return;
+      }
     }
     handlePointerMove(e);
-    if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
-      e.preventDefault();
+    if (
+      state.draggingBlock ||
+      state.wireTrace.length > 0 ||
+      state.dragCandidate ||
+      state.panPreventDefault
+    ) {
+      if (e.cancelable) {
+        e.preventDefault();
+      }
     }
   }, { passive: false });
 
@@ -1300,6 +1341,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('touchcancel', () => {
     if (state.pinch) endPinch();
+    state.panning = false;
+    state.panLast = null;
+    state.panPreventDefault = false;
   });
 
   function handleDocMove(e) {
