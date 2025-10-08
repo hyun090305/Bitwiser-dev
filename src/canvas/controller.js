@@ -66,6 +66,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let paletteItems = [];
   let groupRects = [];
   const clampToBounds = !unboundedGrid;
+  const baseGridWidth = gridWidth;
+  const baseGridHeight = gridHeight;
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -126,6 +128,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   let contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   let overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
+
+  function updateCanvasMetadata() {
+    [bgCanvas, contentCanvas, overlayCanvas].forEach(canvas => {
+      if (!canvas || !canvas.dataset) return;
+      canvas.dataset.panelWidth = String(panelTotalWidth);
+      canvas.dataset.gridBaseWidth = String(baseGridWidth);
+      canvas.dataset.gridBaseHeight = String(baseGridHeight);
+    });
+  }
+
+  updateCanvasMetadata();
 
   const state = {
     mode: 'idle',
@@ -236,6 +249,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
     contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
     overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
+    updateCanvasMetadata();
     if (useCamera) {
       camera.setViewport(canvasWidth, canvasHeight);
     }
