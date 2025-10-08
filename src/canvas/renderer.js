@@ -149,6 +149,11 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
 export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = {}) {
+  const { unbounded, ...styleOptions } = options || {};
+  if (unbounded && camera) {
+    drawInfiniteGrid(ctx, camera, styleOptions);
+    return;
+  }
   const {
     background,
     panelFill,
@@ -160,7 +165,7 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     cellRadius,
     borderColor,
     borderWidth
-  } = resolveGridStyle(options);
+  } = resolveGridStyle(styleOptions);
 
   resetTransformAndClear(ctx);
 
