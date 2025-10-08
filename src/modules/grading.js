@@ -16,6 +16,60 @@ function collectWires(circuit) {
   return Object.values(circuit?.wires || {});
 }
 
+let confettiLoaderPromise = null;
+
+function loadConfettiLibrary() {
+  if (typeof window === 'undefined' || typeof document === 'undefined') {
+    return Promise.resolve(null);
+  }
+  if (typeof window.confetti === 'function') {
+    return Promise.resolve(window.confetti);
+  }
+  if (!confettiLoaderPromise) {
+    confettiLoaderPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js';
+      script.async = true;
+      script.onload = () => resolve(typeof window.confetti === 'function' ? window.confetti : null);
+      script.onerror = reject;
+      document.head.appendChild(script);
+    }).catch(() => null);
+  }
+  return confettiLoaderPromise;
+}
+
+async function launchConfettiCelebration() {
+  const confetti = await loadConfettiLibrary();
+  if (typeof confetti !== 'function') {
+    return;
+  }
+
+  const duration = 2000;
+  const animationEnd = Date.now() + duration;
+  const defaults = { startVelocity: 25, spread: 360, ticks: 60, gravity: 0.6, scalar: 1.1 };
+
+  const interval = setInterval(() => {
+    const timeLeft = animationEnd - Date.now();
+    if (timeLeft <= 0) {
+      clearInterval(interval);
+      return;
+    }
+
+    const particleCount = Math.round(80 * (timeLeft / duration));
+
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: { x: Math.random() * 0.3 + 0.1, y: Math.random() * 0.2 + 0.1 }
+    });
+    confetti({
+      ...defaults,
+      particleCount,
+      origin: { x: Math.random() * 0.3 + 0.6, y: Math.random() * 0.2 + 0.1 }
+    });
+  }, 250);
+}
+
 function validateConnections(circuit, alertFn) {
   const blocks = collectBlocks(circuit);
   for (const block of blocks) {
@@ -352,6 +406,10 @@ export function createGradingController(config = {}) {
       gradingArea: elements.gradingArea,
       t: translate
     });
+
+    if (allCorrect) {
+      launchConfettiCelebration();
+    }
 
     appendReturnButton({ gradingArea: elements.gradingArea, t: translate, returnToEditScreen });
 
