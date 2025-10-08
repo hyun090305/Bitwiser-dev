@@ -10,6 +10,7 @@ let playController = null;
 let playCamera = null;
 let problemCircuit = null;
 let problemController = null;
+let problemCamera = null;
 
 const CIRCUIT_CONTEXT = {
   PLAY: 'play',
@@ -75,6 +76,9 @@ export function destroyProblemContext({ destroyController = true } = {}) {
   }
   problemController = null;
   problemCircuit = null;
+  if (destroyController) {
+    problemCamera = null;
+  }
 }
 
 export function onCircuitModified(listener) {
@@ -178,7 +182,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
   const isProblemContainer = containerId === 'problemCanvasContainer';
   const controller = isProblemContainer ? problemController : playController;
-  const camera = isProblemContainer ? null : playCamera;
+  const camera = isProblemContainer ? problemCamera : playCamera;
 
   if (camera && typeof controller?.resizeCanvas === 'function') {
     const MIN_CAMERA_SCALE = 0.2;
@@ -293,11 +297,18 @@ export function setupGrid(
       };
       const circuit = makeCircuit(rows, cols);
       let camera = providedCamera || null;
-      if (!camera && !prefix) {
-        if (!playCamera) {
-          playCamera = createCamera({ panelWidth: 180 });
+      if (!camera) {
+        if (prefix) {
+          if (!problemCamera) {
+            problemCamera = createCamera({ panelWidth: 180 });
+          }
+          camera = problemCamera;
+        } else {
+          if (!playCamera) {
+            playCamera = createCamera({ panelWidth: 180 });
+          }
+          camera = playCamera;
         }
-        camera = playCamera;
         camera?.reset?.();
       }
       const controller = createController(
@@ -328,6 +339,7 @@ export function setupGrid(
       if (prefix) {
         problemCircuit = circuit;
         problemController = controller;
+        problemCamera = camera;
       } else {
         playCircuit = circuit;
         playController = controller;
