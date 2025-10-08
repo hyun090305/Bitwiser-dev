@@ -133,21 +133,6 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
     return changed;
   }
 
-  function setOrigin(nextOriginX, nextOriginY) {
-    if (!Number.isFinite(nextOriginX) || !Number.isFinite(nextOriginY)) {
-      return false;
-    }
-    const prevX = originX;
-    const prevY = originY;
-    originX = nextOriginX;
-    originY = nextOriginY;
-    clampOrigin();
-    const changed =
-      Math.abs(originX - prevX) > 1e-5 || Math.abs(originY - prevY) > 1e-5;
-    notifyChange();
-    return changed;
-  }
-
   function setScale(nextScale, pivotX, pivotY) {
     const clamped = clampScaleToBounds(nextScale);
     if (!Number.isFinite(clamped) || clamped <= 0) return;
@@ -235,7 +220,6 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
 
   return {
     pan,
-    setOrigin,
     setScale,
     setViewport,
     setPanelWidth,
