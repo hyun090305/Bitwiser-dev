@@ -1,10 +1,10 @@
 const CONFETTI_COLORS = ['#ff6b6b', '#feca57', '#48dbfb', '#1dd1a1', '#5f27cd', '#ff9ff3'];
-const GRAVITY = 0.12; // acceleration per frame at 60fps
+const GRAVITY = 0.28; // acceleration per frame at 60fps
 const DRAG = 0.01;
-const TERMINAL_VELOCITY = 12;
-const PARTICLE_COUNT = 180;
-const EMISSION_SPAN_MS = 1200;
-const EFFECT_DURATION_MS = 3200;
+const TERMINAL_VELOCITY = 20;
+const PARTICLE_COUNT = 70;
+const EMISSION_SPAN_MS = 260;
+const EFFECT_DURATION_MS = 520;
 
 let canvas = null;
 let context = null;
@@ -68,7 +68,7 @@ function randomRange(min, max) {
 
 function createParticle(width, height) {
   const angle = Math.random() * Math.PI * 2;
-  const speed = randomRange(4, 9);
+  const speed = randomRange(8, 16);
 
   return {
     x: randomRange(0, width),
@@ -77,7 +77,7 @@ function createParticle(width, height) {
     rotation: randomRange(0, 360),
     rotationSpeed: randomRange(-8, 8),
     velocityX: Math.cos(angle) * speed,
-    velocityY: Math.sin(angle) * speed + 2,
+    velocityY: Math.sin(angle) * speed + 4,
     color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
     tilt: randomRange(0.5, 1.2)
   };
@@ -120,7 +120,7 @@ function updateParticles(deltaFactor) {
 
   const elapsed = performance.now() - startTimestamp;
   if (elapsed < EMISSION_SPAN_MS) {
-    const additional = Math.floor(Math.random() * 10);
+    const additional = Math.floor(Math.random() * 5);
     for (let i = 0; i < additional; i += 1) {
       particles.push(createParticle(width, height));
     }
