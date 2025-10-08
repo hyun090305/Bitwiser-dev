@@ -149,12 +149,10 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
 
 // Draw grid as individual tiles with gaps similar to GIF rendering
 export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = {}) {
-  if (camera) {
-    drawInfiniteGrid(ctx, camera, options);
-    return;
-  }
   const {
     background,
+    panelFill,
+    panelShadow,
     gridFillA,
     gridFillB,
     gridStroke,
@@ -165,6 +163,91 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   } = resolveGridStyle(options);
 
   resetTransformAndClear(ctx);
+
+  if (camera) {
+    const { panelWidth, scale, originX, originY } = camera.getState();
+    const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
+    const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
+    const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
+    const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
+    const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
+
+    ctx.save();
+    ctx.fillStyle = background;
+    ctx.fillRect(0, 0, width, height);
+
+    if (panelWidth > 0 && panelFill) {
+      ctx.save();
+      if (panelShadow) {
+        ctx.shadowColor = panelShadow.color;
+        ctx.shadowBlur = panelShadow.blur;
+        ctx.shadowOffsetX = panelShadow.offsetX;
+        ctx.shadowOffsetY = panelShadow.offsetY;
+      }
+      ctx.fillStyle = panelFill;
+      ctx.fillRect(0, 0, panelWidth, height);
+      ctx.restore();
+    }
+
+    const visibleWidth = (width - panelWidth) / scale;
+    const visibleHeight = height / scale;
+    const startWorldX = originX;
+    const endWorldX = originX + visibleWidth;
+    const startWorldY = originY;
+    const endWorldY = originY + visibleHeight;
+
+    const startCol = Math.max(0, Math.floor((startWorldX - GAP) / PITCH) - 1);
+    const endCol = Math.min(cols - 1, Math.ceil((endWorldX - GAP) / PITCH) + 1);
+    const startRow = Math.max(0, Math.floor((startWorldY - GAP) / PITCH) - 1);
+    const endRow = Math.min(rows - 1, Math.ceil((endWorldY - GAP) / PITCH) + 1);
+
+    if (startCol <= endCol && startRow <= endRow) {
+      const scaledCell = CELL * scale;
+      for (let r = startRow; r <= endRow; r++) {
+        for (let c = startCol; c <= endCol; c++) {
+          const topLeft = camera.cellToScreenCell({ r, c });
+          const { x, y } = topLeft;
+          if (x + scaledCell <= panelWidth) continue;
+          const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
+          const fillColor = hasChecker
+            ? gridFillA && gridFillB
+              ? (r + c) % 2 === 0
+                ? gridFillA
+                : gridFillB
+              : gridFillA || gridFillB
+            : null;
+          roundRect(ctx, x, y, scaledCell, scaledCell, Math.max(1, cellRadius * scale));
+          if (fillColor) {
+            ctx.fillStyle = fillColor;
+            ctx.fill();
+          }
+          ctx.strokeStyle = gridStroke;
+          ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
+          ctx.stroke();
+        }
+      }
+    }
+
+    if (borderColor && borderWidth > 0 && rows > 0 && cols > 0) {
+      const scaledBorderWidth = Math.max(borderWidth, borderWidth * scale);
+      const topLeft = camera.worldToScreen(GAP, GAP);
+      const bottomRight = camera.worldToScreen(
+        GAP + (cols - 1) * PITCH + CELL,
+        GAP + (rows - 1) * PITCH + CELL
+      );
+      const rectX = topLeft.x - scaledBorderWidth / 2;
+      const rectY = topLeft.y - scaledBorderWidth / 2;
+      const rectWidth = bottomRight.x - topLeft.x + scaledBorderWidth;
+      const rectHeight = bottomRight.y - topLeft.y + scaledBorderWidth;
+      ctx.strokeStyle = borderColor;
+      ctx.lineWidth = scaledBorderWidth;
+      ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+    }
+
+    ctx.restore();
+    return;
+  }
+
   const width = cols * PITCH + GAP;
   const height = rows * PITCH + GAP;
   ctx.save();
