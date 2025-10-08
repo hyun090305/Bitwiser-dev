@@ -161,6 +161,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     spaceHeld: false,
     panning: false,
     panLast: null,
+    pinch: null,
   };
 
   const undoStack = [];
@@ -586,6 +587,86 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
+  function getCanvasRelativePos(clientX, clientY) {
+    const rect = overlayCanvas.getBoundingClientRect();
+    const scale = parseFloat(overlayCanvas.dataset.scale || '1');
+    const normalizedScale = Number.isFinite(scale) && scale > 0 ? scale : 1;
+    return {
+      x: (clientX - rect.left) / normalizedScale,
+      y: (clientY - rect.top) / normalizedScale
+    };
+  }
+
+  function getTouchById(touchList, identifier) {
+    if (!touchList) return null;
+    for (let i = 0; i < touchList.length; i++) {
+      const touch = touchList[i];
+      if (touch.identifier === identifier) return touch;
+    }
+    return null;
+  }
+
+  function startPinch(e) {
+    if (!useCamera || !e.touches || e.touches.length < 2) return false;
+    const [first, second] = [e.touches[0], e.touches[1]];
+    const p1 = getCanvasRelativePos(first.clientX, first.clientY);
+    const p2 = getCanvasRelativePos(second.clientX, second.clientY);
+    const distance = Math.hypot(p2.x - p1.x, p2.y - p1.y);
+    if (!Number.isFinite(distance) || distance <= 0) return false;
+    const world1 = camera.screenToWorld(p1.x, p1.y);
+    const world2 = camera.screenToWorld(p2.x, p2.y);
+    state.pinch = {
+      id1: first.identifier,
+      id2: second.identifier,
+      startDistance: distance,
+      startScale: camera.getScale(),
+      world1,
+      world2
+    };
+    state.pointerDown = null;
+    state.pointerMoved = false;
+    state.panning = false;
+    state.panLast = null;
+    return true;
+  }
+
+  function updatePinch(e) {
+    if (!state.pinch || !useCamera) return false;
+    const pinch = state.pinch;
+    const touch1 = getTouchById(e.touches, pinch.id1);
+    const touch2 = getTouchById(e.touches, pinch.id2);
+    if (!touch1 || !touch2) {
+      endPinch();
+      return false;
+    }
+    const pos1 = getCanvasRelativePos(touch1.clientX, touch1.clientY);
+    const pos2 = getCanvasRelativePos(touch2.clientX, touch2.clientY);
+    const distance = Math.hypot(pos2.x - pos1.x, pos2.y - pos1.y);
+    if (!Number.isFinite(distance) || distance <= 0) {
+      return false;
+    }
+    const scaleRatio = distance / pinch.startDistance;
+    const targetScale = clamp(pinch.startScale * scaleRatio, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
+    camera.setScale(targetScale);
+    const { scale: appliedScale, originX, originY } = camera.getState();
+    const desiredOriginX1 = pinch.world1.x - (pos1.x - panelTotalWidth) / appliedScale;
+    const desiredOriginY1 = pinch.world1.y - pos1.y / appliedScale;
+    const desiredOriginX2 = pinch.world2.x - (pos2.x - panelTotalWidth) / appliedScale;
+    const desiredOriginY2 = pinch.world2.y - pos2.y / appliedScale;
+    const desiredOriginX = (desiredOriginX1 + desiredOriginX2) / 2;
+    const desiredOriginY = (desiredOriginY1 + desiredOriginY2) / 2;
+    const deltaOriginX = originX - desiredOriginX;
+    const deltaOriginY = originY - desiredOriginY;
+    if (Math.abs(deltaOriginX) > 1e-4 || Math.abs(deltaOriginY) > 1e-4) {
+      camera.pan(deltaOriginX * appliedScale, deltaOriginY * appliedScale);
+    }
+    return true;
+  }
+
+  function endPinch() {
+    state.pinch = null;
+  }
+
   function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
   }
@@ -691,6 +772,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function handlePointerDown(e) {
+    if (state.pinch) return true;
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
@@ -817,6 +899,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousedown', handlePointerDown);
   overlayCanvas.addEventListener('touchstart', e => {
+    if (useCamera && e.touches && e.touches.length >= 2) {
+      const started = startPinch(e);
+      if (started) {
+        e.preventDefault();
+        return;
+      }
+    }
     const handled = handlePointerDown(e);
     if (handled) e.preventDefault();
   }, { passive: false });
@@ -846,6 +935,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   overlayCanvas.addEventListener('wheel', handleWheel, { passive: false });
 
   function handlePointerUp(e) {
+    if (state.pinch) {
+      if (!e.touches || e.touches.length < 2) {
+        endPinch();
+      }
+      state.pointerDown = null;
+      state.pointerMoved = false;
+      return;
+    }
     const { x, y } = getPointerPos(e);
     if (state.panning) {
       state.panning = false;
@@ -1170,11 +1267,28 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
+    if (state.pinch) {
+      const handled = updatePinch(e);
+      if (handled) {
+        e.preventDefault();
+        return;
+      }
+    }
     handlePointerMove(e);
     if (state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate) {
       e.preventDefault();
     }
   }, { passive: false });
+
+  overlayCanvas.addEventListener('touchend', e => {
+    if (state.pinch && (!e.touches || e.touches.length < 2)) {
+      endPinch();
+    }
+  });
+
+  overlayCanvas.addEventListener('touchcancel', () => {
+    if (state.pinch) endPinch();
+  });
 
   function handleDocMove(e) {
     if (!state.draggingBlock) return;
