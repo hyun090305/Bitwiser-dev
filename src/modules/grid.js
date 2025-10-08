@@ -170,6 +170,70 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     baseHeight = firstCanvas.height / dpr;
   }
 
+  const panelWidth = parseFloat(firstCanvas.dataset?.panelWidth);
+  const baseGridWidth = parseFloat(firstCanvas.dataset?.gridBaseWidth);
+  const baseGridHeight = parseFloat(firstCanvas.dataset?.gridBaseHeight);
+
+  const isProblemContainer = containerId === 'problemCanvasContainer';
+  const controller = isProblemContainer ? problemController : playController;
+  const camera = isProblemContainer ? null : playCamera;
+
+  if (camera && typeof controller?.resizeCanvas === 'function') {
+    const MIN_CAMERA_SCALE = 0.2;
+    const resolvedPanelWidth = Number.isFinite(panelWidth)
+      ? panelWidth
+      : Math.max(0, baseWidth - (Number.isFinite(baseGridWidth) ? baseGridWidth : 0));
+    const resolvedGridWidth = Number.isFinite(baseGridWidth)
+      ? baseGridWidth
+      : Math.max(0, baseWidth - resolvedPanelWidth);
+    const resolvedGridHeight = Number.isFinite(baseGridHeight)
+      ? baseGridHeight
+      : baseHeight;
+
+    const gridAvailableWidth = Math.max(0, availableWidth - resolvedPanelWidth);
+    const gridAvailableHeight = Math.max(0, availableHeight);
+
+    let scale = 1;
+    if (resolvedGridWidth > 0) {
+      if (gridAvailableWidth > 0) {
+        scale = Math.min(scale, gridAvailableWidth / resolvedGridWidth);
+      } else {
+        scale = Math.min(scale, MIN_CAMERA_SCALE);
+      }
+    }
+    if (resolvedGridHeight > 0) {
+      if (gridAvailableHeight > 0) {
+        scale = Math.min(scale, gridAvailableHeight / resolvedGridHeight);
+      } else {
+        scale = Math.min(scale, MIN_CAMERA_SCALE);
+      }
+    }
+
+    if (!Number.isFinite(scale) || scale <= 0) {
+      scale = MIN_CAMERA_SCALE;
+    }
+
+    if (scale > 1) {
+      scale = 1;
+    }
+
+    if (scale < MIN_CAMERA_SCALE) {
+      scale = MIN_CAMERA_SCALE;
+    }
+
+    const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
+    const targetHeight = resolvedGridHeight * scale;
+
+    controller.resizeCanvas(targetWidth, targetHeight);
+    camera.reset?.();
+    camera.setScale?.(scale);
+
+    gridContainer.querySelectorAll('canvas').forEach(c => {
+      c.dataset.scale = scale;
+    });
+    return;
+  }
+
   const scale = Math.min(
     availableWidth / baseWidth,
     availableHeight / baseHeight,
