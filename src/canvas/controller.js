@@ -559,7 +559,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   // 공통 포인터 좌표 계산 (마우스/터치)
   function getPointerPos(e) {
     const rect = e.target.getBoundingClientRect();
-    const scale = parseFloat(e.target?.dataset.scale || '1');
+    const shouldNormalize = !useCamera;
+    const rawScale = shouldNormalize
+      ? parseFloat(e.target?.dataset.scale || '1')
+      : 1;
+    const scale = Number.isFinite(rawScale) && rawScale > 0 ? rawScale : 1;
     const point = e.touches?.[0] || e.changedTouches?.[0] || e;
     return {
       x: (point.clientX - rect.left) / scale,
