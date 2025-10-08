@@ -1456,7 +1456,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           type: state.type,
           name: state.name,
           pos: { r, c },
-          value: state.type === 'INPUT' ? state.value === '1' : false,
+          // Fixed IN/OUT blocks always start in the disabled (0) state.
+          value: false,
           fixed: true,
         });
       }
