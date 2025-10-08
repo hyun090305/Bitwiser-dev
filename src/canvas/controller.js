@@ -180,6 +180,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return pxToCell(x, y, circuit, panelTotalWidth);
   }
 
+  function pointerToBoundedCell(x, y) {
+    const cell = pointerToCell(x, y);
+    if (clampToBounds && !withinBounds(cell.r, cell.c)) {
+      return null;
+    }
+    return cell;
+  }
+
   function cellTopLeft(r, c) {
     if (useCamera) {
       return camera.worldToScreen(GAP + c * pitch, GAP + r * pitch);
@@ -511,6 +519,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     for (let i = 0; i < trace.length; i++) {
       const p = trace[i];
       const key = `${p.r},${p.c}`;
+      if (clampToBounds && !withinBounds(p.r, p.c)) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       if (i > 0) {
@@ -536,6 +545,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     for (let i = 0; i < trace.length; i++) {
       const p = trace[i];
       const key = `${p.r},${p.c}`;
+      if (clampToBounds && !withinBounds(p.r, p.c)) return false;
       if (seen.has(key)) return false;
       seen.add(key);
       if (i > 0) {
@@ -692,12 +702,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (e.button === 2) {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
-        state.selecting = true;
-        state.selectStart = cell;
-        state.selection = null;
-        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-        handled = true;
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          state.selecting = true;
+          state.selectStart = cell;
+          state.selection = null;
+          overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+          handled = true;
+        }
       }
       e.preventDefault();
     } else {
@@ -705,14 +717,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const inGrid = x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight;
         let inside = false;
         if (inGrid) {
-          const cell = pointerToCell(x, y);
-          if (
-            cell.r >= state.selection.r1 &&
-            cell.r <= state.selection.r2 &&
-            cell.c >= state.selection.c1 &&
-            cell.c <= state.selection.c2
-          ) {
-            inside = true;
+          const cell = pointerToBoundedCell(x, y);
+          if (cell) {
+            if (
+              cell.r >= state.selection.r1 &&
+              cell.r <= state.selection.r2 &&
+              cell.c >= state.selection.c1 &&
+              cell.c <= state.selection.c2
+            ) {
+              inside = true;
+            }
           }
         }
         if (!inside) clearSelection();
@@ -727,7 +741,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           handled = true;
         }
       } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
+        const cell = pointerToBoundedCell(x, y);
+        if (!cell) {
+          return handled;
+        }
         if (state.mode === 'wireDrawing') {
           if (blockAt(cell)) {
             state.wireTrace = [coord(cell.r, cell.c)];
@@ -835,30 +852,40 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.selecting = false;
       state.pointerDown = null;
       state.pointerMoved = false;
-      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
-        const r1 = Math.min(state.selectStart.r, cell.r);
-        const c1 = Math.min(state.selectStart.c, cell.c);
-        const r2 = Math.max(state.selectStart.r, cell.r);
-        const c2 = Math.max(state.selectStart.c, cell.c);
-        const blocks = new Set();
-        const wires = new Set();
-        let cross = false;
-        Object.entries(circuit.blocks).forEach(([id, b]) => {
-          if (b.pos.r >= r1 && b.pos.r <= r2 && b.pos.c >= c1 && b.pos.c <= c2) {
-            blocks.add(id);
-          }
-        });
-        Object.entries(circuit.wires).forEach(([id, w]) => {
-          const inside = w.path.every(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
-          const intersects = w.path.some(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
-          if (inside && blocks.has(w.startBlockId) && blocks.has(w.endBlockId)) {
-            wires.add(id);
-          } else if (intersects) {
-            cross = true;
-          }
-        });
-        state.selection = blocks.size || wires.size ? { r1, c1, r2, c2, blocks, wires, cross } : null;
+      if (
+        state.selectStart &&
+        x >= panelTotalWidth &&
+        x < canvasWidth &&
+        y >= 0 &&
+        y < gridHeight
+      ) {
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          const r1 = Math.min(state.selectStart.r, cell.r);
+          const c1 = Math.min(state.selectStart.c, cell.c);
+          const r2 = Math.max(state.selectStart.r, cell.r);
+          const c2 = Math.max(state.selectStart.c, cell.c);
+          const blocks = new Set();
+          const wires = new Set();
+          let cross = false;
+          Object.entries(circuit.blocks).forEach(([id, b]) => {
+            if (b.pos.r >= r1 && b.pos.r <= r2 && b.pos.c >= c1 && b.pos.c <= c2) {
+              blocks.add(id);
+            }
+          });
+          Object.entries(circuit.wires).forEach(([id, w]) => {
+            const inside = w.path.every(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
+            const intersects = w.path.some(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
+            if (inside && blocks.has(w.startBlockId) && blocks.has(w.endBlockId)) {
+              wires.add(id);
+            } else if (intersects) {
+              cross = true;
+            }
+          });
+          state.selection = blocks.size || wires.size ? { r1, c1, r2, c2, blocks, wires, cross } : null;
+        } else {
+          state.selection = null;
+        }
       } else {
         state.selection = null;
       }
@@ -869,12 +896,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (!state.pointerMoved && state.mode === 'idle') {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
-        const blk = blockAt(cell);
-        if (blk && blk.type === 'INPUT') {
-          blk.value = !blk.value;
-          evaluateCircuit(circuit);
-          renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          const blk = blockAt(cell);
+          if (blk && blk.type === 'INPUT') {
+            blk.value = !blk.value;
+            evaluateCircuit(circuit);
+            renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+          }
         }
       }
     }
@@ -894,8 +923,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     } else if (state.draggingBlock) {
       let placed = false;
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
-        if (state.draggingBlock.id) {
+        const cell = pointerToBoundedCell(x, y);
+        if (!cell) {
+          if (state.draggingBlock.id) {
+            const id = state.draggingBlock.id;
+            const target = state.draggingBlock.origPos;
+            circuit.blocks[id] = newBlock({
+              id,
+              type: state.draggingBlock.type,
+              name: state.draggingBlock.name,
+              pos: target,
+            });
+            placed = true;
+            if (state.draggingBlock.wires) {
+              state.draggingBlock.wires.forEach(w => {
+                circuit.wires[w.id] = w;
+                const endB = circuit.blocks[w.endBlockId];
+                if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
+              });
+            }
+          } else if (
+            state.draggingBlock.type === 'INPUT' ||
+            state.draggingBlock.type === 'OUTPUT'
+          ) {
+            showPaletteItem(
+              state.draggingBlock.type,
+              state.draggingBlock.name
+            );
+          }
+        } else if (state.draggingBlock.id) {
           const collision = blockAt(cell) || cellHasWire(cell);
           const target = collision ? state.draggingBlock.origPos : cell;
           const id = state.draggingBlock.id;
@@ -989,7 +1045,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         return;
       }
-      const cell = pointerToCell(x, y);
+      const cell = pointerToBoundedCell(x, y);
+      if (!cell || !state.selectStart) {
+        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        return;
+      }
       const r1 = Math.min(state.selectStart.r, cell.r);
       const c1 = Math.min(state.selectStart.c, cell.c);
       const r2 = Math.max(state.selectStart.r, cell.r);
@@ -1008,7 +1068,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
       if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return;
-      const cell = pointerToCell(x, y);
+      const cell = pointerToBoundedCell(x, y);
+      if (!cell) return;
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
@@ -1038,7 +1099,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.restore();
     } else {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
-        const cell = pointerToCell(x, y);
+        const cell = pointerToBoundedCell(x, y);
+        if (!cell) {
+          state.hoverBlockId = null;
+          overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+          if (state.selection && !state.draggingBlock && state.wireTrace.length === 0) {
+            drawSelection();
+          }
+          return;
+        }
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
