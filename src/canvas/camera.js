@@ -121,16 +121,25 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
   }
 
   function pan(dx, dy) {
-    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    const beforeX = originX;
+    const beforeY = originY;
     originX -= dx / currentScale;
     originY -= dy / currentScale;
     clampOrigin();
-    notifyChange();
+    const changed =
+      Math.abs(originX - beforeX) > 1e-6 ||
+      Math.abs(originY - beforeY) > 1e-6;
+    if (changed) notifyChange();
+    return changed;
   }
 
   function setScale(nextScale, pivotX, pivotY) {
     const clamped = clampScaleToBounds(nextScale);
-    if (!Number.isFinite(clamped) || clamped <= 0) return;
+    if (!Number.isFinite(clamped) || clamped <= 0) return false;
+    const beforeScale = currentScale;
+    const beforeOriginX = originX;
+    const beforeOriginY = originY;
     if (pivotX !== undefined && pivotY !== undefined) {
       const before = screenToWorld(pivotX, pivotY);
       currentScale = clamped;
@@ -141,7 +150,12 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
       currentScale = clamped;
     }
     clampOrigin();
-    notifyChange();
+    const changed =
+      Math.abs(currentScale - beforeScale) > 1e-6 ||
+      Math.abs(originX - beforeOriginX) > 1e-6 ||
+      Math.abs(originY - beforeOriginY) > 1e-6;
+    if (changed) notifyChange();
+    return changed;
   }
 
   function screenToWorld(x, y) {
