@@ -890,6 +890,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               state.dragCandidate = { id: bid, start: cell };
             }
             handled = true;
+          } else if (
+            useCamera &&
+            isPrimary &&
+            state.mode === 'idle' &&
+            !bid &&
+            !cellHasWire(cell)
+          ) {
+            state.panning = true;
+            state.panLast = { x, y };
+            state.pointerDown = null;
+            handled = true;
+            e.preventDefault();
           }
         }
       }
