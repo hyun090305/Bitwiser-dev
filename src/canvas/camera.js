@@ -121,11 +121,16 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
   }
 
   function pan(dx, dy) {
-    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
+    if (!Number.isFinite(dx) || !Number.isFinite(dy)) return false;
+    const prevX = originX;
+    const prevY = originY;
     originX -= dx / currentScale;
     originY -= dy / currentScale;
     clampOrigin();
+    const changed =
+      Math.abs(originX - prevX) > 1e-5 || Math.abs(originY - prevY) > 1e-5;
     notifyChange();
+    return changed;
   }
 
   function setScale(nextScale, pivotX, pivotY) {
