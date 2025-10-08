@@ -2,6 +2,9 @@
 <html>
   <head>
     <meta charset="UTF-8">
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
     <title>Bitwiser</title>
     <link rel="stylesheet" href="style.v1.4.css">
     <style>
@@ -574,6 +577,27 @@
         </div>
       </div>
     </div>
+    <script>
+      (function () {
+        let lastTouchEnd = 0;
+
+        document.addEventListener(
+          "touchend",
+          function (event) {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+              event.preventDefault();
+            }
+            lastTouchEnd = now;
+          },
+          { passive: false }
+        );
+
+        document.addEventListener("gesturestart", function (event) {
+          event.preventDefault();
+        });
+      })();
+    </script>
     <script>
       if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
