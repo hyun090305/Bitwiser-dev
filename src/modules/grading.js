@@ -1,5 +1,3 @@
-import { launchConfetti } from './confetti.js';
-
 const WAIT_BETWEEN_TESTS = 100;
 
 function defaultTranslate(t) {
@@ -361,8 +359,6 @@ export function createGradingController(config = {}) {
       return;
     }
 
-    launchConfetti().catch(error => console.error('Confetti failed:', error));
-
     const { saveSuccess, loginNeeded, statusMessage } = await attemptAutoSave({
       getAutoSaveSetting,
       getCurrentUser,
@@ -494,13 +490,7 @@ export function createGradingController(config = {}) {
 
     appendReturnButton({ gradingArea: elements.gradingArea, t: translate, returnToEditScreen });
 
-    if (!allCorrect) {
-      return;
-    }
-
-    launchConfetti().catch(error => console.error('Confetti failed:', error));
-
-    if (!key) {
+    if (!allCorrect || !key) {
       return;
     }
 
