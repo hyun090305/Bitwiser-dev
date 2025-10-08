@@ -124,6 +124,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   if (useCamera) {
     camera.setPanelWidth(panelTotalWidth);
     camera.setViewport(canvasWidth, canvasHeight);
+    camera.setBounds(
+      clampToBounds ? baseGridWidth : undefined,
+      clampToBounds ? baseGridHeight : undefined,
+      { clamp: clampToBounds }
+    );
   }
   let bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   let contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
