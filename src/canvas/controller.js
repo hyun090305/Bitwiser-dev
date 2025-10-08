@@ -51,6 +51,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     ? externalCamera
     : null;
   const useCamera = Boolean(camera);
+  const MIN_CAMERA_SCALE = 0.2;
+  const MAX_CAMERA_SCALE = 3;
+  const ZOOM_SENSITIVITY = 0.0015;
   const gap = 10;
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
@@ -550,6 +553,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     };
   }
 
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
   function createKeydownHandler() {
     return e => {
       const key = e.key.toLowerCase();
@@ -774,6 +781,29 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (handled) e.preventDefault();
   }, { passive: false });
   overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
+
+  function handleWheel(e) {
+    if (!useCamera) return;
+    const deltaRaw = e.deltaY;
+    if (deltaRaw === 0) return;
+    const { x, y } = getPointerPos(e);
+    const withinGrid =
+      x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight;
+    if (!withinGrid) return;
+    const deltaMultiplier = e.deltaMode === 1 ? 20 : e.deltaMode === 2 ? 100 : 1;
+    const delta = deltaRaw * deltaMultiplier;
+    const zoomFactor = Math.exp(-delta * ZOOM_SENSITIVITY);
+    const currentScale = camera.getScale();
+    const nextScale = clamp(currentScale * zoomFactor, MIN_CAMERA_SCALE, MAX_CAMERA_SCALE);
+    if (Math.abs(nextScale - currentScale) < 1e-4) {
+      e.preventDefault();
+      return;
+    }
+    camera.setScale(nextScale, x, y);
+    e.preventDefault();
+  }
+
+  overlayCanvas.addEventListener('wheel', handleWheel, { passive: false });
 
   function handlePointerUp(e) {
     const { x, y } = getPointerPos(e);
