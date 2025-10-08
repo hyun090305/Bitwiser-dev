@@ -1289,15 +1289,19 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   overlayCanvas.addEventListener('mousemove', handlePointerMove);
   overlayCanvas.addEventListener('touchmove', e => {
+    const isCancelable = e.cancelable;
     if (state.pinch) {
       const handled = updatePinch(e);
-      if (handled) {
+      if (handled && isCancelable) {
         e.preventDefault();
       }
       return;
     }
+    if (!isCancelable) {
+      return;
+    }
     const handled = handlePointerMove(e);
-    if (handled) {
+    if (handled && isCancelable) {
       e.preventDefault();
     }
   }, { passive: false });
@@ -1314,12 +1318,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handleDocMove(e) {
     if (!state.draggingBlock) return;
+    if (!e.cancelable) {
+      return;
+    }
     const rect = overlayCanvas.getBoundingClientRect();
     const point = e.touches?.[0] || e;
     if (point.clientX < rect.left || point.clientX >= rect.right || point.clientY < rect.top || point.clientY >= rect.bottom) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     }
-    if (e.touches) e.preventDefault();
+    if (e.touches && e.cancelable) {
+      e.preventDefault();
+    }
   }
 
   function handleDocUp(e) {
