@@ -91,8 +91,18 @@ export function setWireFlows(circuit) {
 export function startEngine(ctx, circuit, renderer) {
   let phase = 0;
   let lastTime = null;
+  let rafId = null;
+  let running = true;
   const FLOW_SPEED = 60; // dash units per second (roughly 60fps equivalent)
+
+  function scheduleNext() {
+    if (!running) return;
+    rafId = requestAnimationFrame(tick);
+  }
+
   function tick(time) {
+    if (!running) return;
+    rafId = null;
     // Recompute circuit values every frame based solely on the
     // in-memory circuit model so block states stay in sync with
     // current connections and input values.
@@ -105,7 +115,21 @@ export function startEngine(ctx, circuit, renderer) {
     // Advance the animation at a constant rate regardless of display refresh.
     phase = (phase + (delta / 1000) * FLOW_SPEED) % 40;
     renderer(ctx, circuit, phase);
-    requestAnimationFrame(tick);
+    scheduleNext();
   }
-  requestAnimationFrame(tick);
+
+  function stop() {
+    if (!running) return;
+    running = false;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+
+  scheduleNext();
+
+  return {
+    stop,
+  };
 }

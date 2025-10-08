@@ -61,6 +61,7 @@ export function getActiveController() {
 }
 
 export function destroyPlayContext() {
+  playController?.stopEngine?.();
   playController?.destroy?.();
   playController = null;
   playCircuit = null;
@@ -69,6 +70,7 @@ export function destroyPlayContext() {
 
 export function destroyProblemContext({ destroyController = true } = {}) {
   if (destroyController) {
+    problemController?.stopEngine?.();
     problemController?.destroy?.();
   }
   problemController = null;

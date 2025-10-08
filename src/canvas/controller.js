@@ -164,9 +164,26 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     pinch: null,
   };
 
+  const eventBindings = [];
+  const passiveFalseOption = { passive: false };
+
+  function bindEvent(target, type, handler, options) {
+    if (!target || typeof target.addEventListener !== 'function') return;
+    target.addEventListener(type, handler, options);
+    eventBindings.push({ target, type, handler, options });
+  }
+
+  function removeBoundEvents() {
+    while (eventBindings.length) {
+      const { target, type, handler, options } = eventBindings.pop();
+      target?.removeEventListener(type, handler, options);
+    }
+  }
+
   const undoStack = [];
   const redoStack = [];
   let hasInitialSnapshot = false;
+  let engineHandle = null;
 
   const pitch = CELL + GAP;
 
@@ -328,7 +345,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
-  startEngine(contentCtx, circuit, (ctx, circ, phase) =>
+  engineHandle = startEngine(contentCtx, circuit, (ctx, circ, phase) =>
     renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera)
   );
 
@@ -757,7 +774,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   attachKeyboardHandlers();
 
+  function stopEngine() {
+    if (engineHandle && typeof engineHandle.stop === 'function') {
+      engineHandle.stop();
+    }
+    engineHandle = null;
+  }
+
   function destroy() {
+    stopEngine();
+    removeBoundEvents();
     if (keydownHandler) {
       document.removeEventListener('keydown', keydownHandler);
       keydownHandler = null;
@@ -915,8 +941,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return handled;
   }
 
-  overlayCanvas.addEventListener('mousedown', handlePointerDown);
-  overlayCanvas.addEventListener('touchstart', e => {
+  const handleOverlayTouchStart = e => {
     if (useCamera && e.touches && e.touches.length >= 2) {
       const started = startPinch(e);
       if (started) {
@@ -925,8 +950,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     const handled = handlePointerDown(e);
     if (handled && !(clampToBounds && state.panning)) e.preventDefault();
-  }, { passive: false });
-  overlayCanvas.addEventListener('contextmenu', e => e.preventDefault());
+  };
+
+  const handleOverlayContextMenu = e => {
+    e.preventDefault();
+  };
+
+  bindEvent(overlayCanvas, 'mousedown', handlePointerDown);
+  bindEvent(overlayCanvas, 'touchstart', handleOverlayTouchStart, passiveFalseOption);
+  bindEvent(overlayCanvas, 'contextmenu', handleOverlayContextMenu);
 
   function handleWheel(e) {
     if (!useCamera) return;
@@ -949,7 +981,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     e.preventDefault();
   }
 
-  overlayCanvas.addEventListener('wheel', handleWheel, { passive: false });
+  bindEvent(overlayCanvas, 'wheel', handleWheel, passiveFalseOption);
 
   function handlePointerUp(e) {
     if (state.pinch) {
@@ -1142,8 +1174,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-    overlayCanvas.addEventListener('mouseup', handlePointerUp);
-    overlayCanvas.addEventListener('touchend', handlePointerUp);
+  bindEvent(overlayCanvas, 'mouseup', handlePointerUp);
+  bindEvent(overlayCanvas, 'touchend', handlePointerUp);
 
   function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
@@ -1287,8 +1319,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return Boolean(state.draggingBlock || state.wireTrace.length > 0 || state.dragCandidate);
   }
 
-  overlayCanvas.addEventListener('mousemove', handlePointerMove);
-  overlayCanvas.addEventListener('touchmove', e => {
+  const handleOverlayTouchMove = e => {
     const isCancelable = e.cancelable;
     if (state.pinch) {
       const handled = updatePinch(e);
@@ -1304,17 +1335,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (handled && isCancelable) {
       e.preventDefault();
     }
-  }, { passive: false });
+  };
 
-  overlayCanvas.addEventListener('touchend', e => {
+  const handleOverlayTouchEndPinch = e => {
     if (state.pinch && (!e.touches || e.touches.length < 2)) {
       endPinch();
     }
-  });
+  };
 
-  overlayCanvas.addEventListener('touchcancel', () => {
+  const handleOverlayTouchCancel = () => {
     if (state.pinch) endPinch();
-  });
+  };
+
+  bindEvent(overlayCanvas, 'mousemove', handlePointerMove);
+  bindEvent(overlayCanvas, 'touchmove', handleOverlayTouchMove, passiveFalseOption);
+  bindEvent(overlayCanvas, 'touchend', handleOverlayTouchEndPinch);
+  bindEvent(overlayCanvas, 'touchcancel', handleOverlayTouchCancel);
 
   function handleDocMove(e) {
     if (!state.draggingBlock) return;
@@ -1369,10 +1405,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.pointerMoved = false;
   }
 
-  document.addEventListener('mousemove', handleDocMove);
-  document.addEventListener('touchmove', handleDocMove, { passive: false });
-  document.addEventListener('mouseup', handleDocUp);
-  document.addEventListener('touchend', handleDocUp);
+  bindEvent(document, 'mousemove', handleDocMove);
+  bindEvent(document, 'touchmove', handleDocMove, passiveFalseOption);
+  bindEvent(document, 'mouseup', handleDocUp);
+  bindEvent(document, 'touchend', handleDocUp);
 
   function startBlockDrag(type, name) {
     state.draggingBlock = { type, name };
@@ -1446,6 +1482,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     clearSelection,
     undo,
     redo,
+    stopEngine,
     destroy,
     attachKeyboardHandlers,
     resizeCanvas,
