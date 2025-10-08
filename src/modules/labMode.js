@@ -176,13 +176,6 @@ function createLabController({ preserveCircuit = false } = {}) {
       canvasSize: { width: innerWidth, height: innerHeight },
       onCircuitModified: applyDynamicIOPalette,
       panelDrawOptions: {
-        grid: {
-          background: '#e4ecff',
-          panelFill: '#eef2ff',
-          gridFillA: 'rgba(148, 163, 184, 0.16)',
-          gridFillB: 'rgba(148, 163, 184, 0.24)',
-          gridStroke: 'rgba(99, 102, 241, 0.28)'
-        },
         panel: {
           panelBackground: '#f8faff',
           background: '#f0f4ff',

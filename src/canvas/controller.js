@@ -43,6 +43,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     canvasSize = null,
     panelDrawOptions = {}
   } = options;
+  const gridDrawOptions = unboundedGrid
+    ? { ...(panelDrawOptions.grid || {}), unbounded: true }
+    : panelDrawOptions.grid;
+  const panelStyleOptions = panelDrawOptions.panel;
   const camera = externalCamera && typeof externalCamera.screenToCell === 'function'
     ? externalCamera
     : null;
@@ -201,8 +205,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function refreshBackground() {
-    drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, panelDrawOptions.grid);
-    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelDrawOptions.panel);
+    drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
   }
 
   function refreshContent() {
@@ -291,14 +295,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     applyState(next);
   }
 
-  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, panelDrawOptions.grid);
-  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelDrawOptions.panel);
+  drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
+  drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
   startEngine(contentCtx, circuit, (ctx, circ, phase) =>
     renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera)
   );
 
   function redrawPanel() {
-    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelDrawOptions.panel);
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
   }
 
   function hidePaletteItem(type, label) {
