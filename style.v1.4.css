@@ -1248,6 +1248,7 @@ html, body {
     backdrop-filter: none;
     border: none;
     box-sizing: border-box;
+    overflow: auto;
   }
 
   @media (max-width: 1200px) {
