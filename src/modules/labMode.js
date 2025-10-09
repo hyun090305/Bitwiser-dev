@@ -163,6 +163,7 @@ function createLabController({ preserveCircuit = false } = {}) {
     { bgCanvas, contentCanvas, overlayCanvas },
     labCircuit,
     {
+      wireMoveInfo: document.getElementById('wireMoveInfo'),
       wireStatusInfo: document.getElementById('wireStatusInfo'),
       wireDeleteInfo: document.getElementById('wireDeleteInfo'),
       usedBlocksEl: document.getElementById('usedBlocks'),

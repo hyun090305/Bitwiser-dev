@@ -174,10 +174,23 @@
           <h1 id="problemCreatorTitle">📝 문제 출제</h1>
           <div style="display:flex; justify-content:space-between; gap:1rem;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:auto;">
-              <div style="text-align:center; line-height:1.6; margin-top:0.5rem;">
-                <button id="problemWireStatusInfo" class="toggle-key" style="color: darkgreen; font-weight:bold;">Ctrl / Cmd - 도선 그리기</button>
-                <button id="problemWireDeleteInfo" class="toggle-key" style="color: crimson; font-weight:bold;">Shift - 도선/블록 삭제</button>
-                <button id="problemDeleteAllInfo" class="toggle-key" style="color: crimson; font-weight:bold;">R - 회로 초기화</button>
+              <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
+                <button id="problemWireMoveInfo" class="status-toolbar__button" type="button"
+                  title="기본 상태" aria-label="기본 상태">
+                  <img src="assets/icon_move.svg" alt="" class="status-toolbar__icon">
+                </button>
+                <button id="problemWireStatusInfo" class="status-toolbar__button" type="button"
+                  title="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
+                  <img src="assets/icon_draw.svg" alt="" class="status-toolbar__icon">
+                </button>
+                <button id="problemWireDeleteInfo" class="status-toolbar__button" type="button"
+                  title="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
+                  <img src="assets/icon_delete.svg" alt="" class="status-toolbar__icon">
+                </button>
+                <button id="problemDeleteAllInfo" class="status-toolbar__button" type="button"
+                  title="R - 회로 초기화" aria-label="R - 회로 초기화">
+                  <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
+                </button>
               </div>
               <div id="problemMoveButtonWrapper">
                 <div id="problemMoveButtons">
@@ -410,18 +423,22 @@
           style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
           <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
           <button id="gradeButton" class="main-button">채점하기</button>
-          <div style="text-align: center; line-height: 1.6;">
-            <button id="wireStatusInfo" class="toggle-key"
-              style="color: darkgreen; font-weight: bold;">
-              Ctrl / Cmd - 도선 그리기
+          <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
+            <button id="wireMoveInfo" class="status-toolbar__button" type="button"
+              title="기본 상태" aria-label="기본 상태">
+              <img src="assets/icon_move.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="wireDeleteInfo" class="toggle-key"
-              style="color: crimson; font-weight: bold; ">
-              Shift - 도선/블록 삭제
+            <button id="wireStatusInfo" class="status-toolbar__button" type="button"
+              title="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
+              <img src="assets/icon_draw.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="DeleteAllInfo" class="toggle-key"
-              style="color: crimson; font-weight: bold; ">
-              R - 회로 초기화
+            <button id="wireDeleteInfo" class="status-toolbar__button" type="button"
+              title="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
+              <img src="assets/icon_delete.svg" alt="" class="status-toolbar__icon">
+            </button>
+            <button id="DeleteAllInfo" class="status-toolbar__button" type="button"
+              title="R - 회로 초기화" aria-label="R - 회로 초기화">
+              <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
             </button>
           </div>
           <div id="moveButtonWrapper">
