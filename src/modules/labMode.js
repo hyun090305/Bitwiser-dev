@@ -167,6 +167,8 @@ function createLabController({ preserveCircuit = false } = {}) {
       wireStatusInfo: document.getElementById('wireStatusInfo'),
       wireDeleteInfo: document.getElementById('wireDeleteInfo'),
       wireSelectInfo: document.getElementById('wireSelectInfo'),
+      undoButton: document.getElementById('undoBtn'),
+      redoButton: document.getElementById('redoBtn'),
       usedBlocksEl: document.getElementById('usedBlocks'),
       usedWiresEl: document.getElementById('usedWires')
     },
