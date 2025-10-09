@@ -196,6 +196,28 @@
                   <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
                 </button>
               </div>
+              <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
+                <button
+                  id="problemUndoBtn"
+                  class="status-toolbar__button"
+                  type="button"
+                  title="되돌리기 (Z)"
+                  aria-label="되돌리기"
+                  disabled
+                >
+                  <img src="assets/icon_undo.svg" alt="" class="status-toolbar__icon">
+                </button>
+                <button
+                  id="problemRedoBtn"
+                  class="status-toolbar__button"
+                  type="button"
+                  title="다시 실행 (Y)"
+                  aria-label="다시 실행"
+                  disabled
+                >
+                  <img src="assets/icon_redo.svg" alt="" class="status-toolbar__icon">
+                </button>
+              </div>
               <div id="problemUsageSection" style="width:100%;">
                 <table id="problemUsageTable">
                   <tr>
@@ -439,6 +461,28 @@
             <button id="DeleteAllInfo" class="status-toolbar__button" type="button"
               title="R - 회로 초기화" aria-label="R - 회로 초기화">
               <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
+            </button>
+          </div>
+          <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
+            <button
+              id="undoBtn"
+              class="status-toolbar__button"
+              type="button"
+              title="되돌리기 (Z)"
+              aria-label="되돌리기"
+              disabled
+            >
+              <img src="assets/icon_undo.svg" alt="" class="status-toolbar__icon">
+            </button>
+            <button
+              id="redoBtn"
+              class="status-toolbar__button"
+              type="button"
+              title="다시 실행 (Y)"
+              aria-label="다시 실행"
+              disabled
+            >
+              <img src="assets/icon_redo.svg" alt="" class="status-toolbar__icon">
             </button>
           </div>
           <div id="usageSection" style="width:100%;">

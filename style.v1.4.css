@@ -265,13 +265,18 @@ html, body {
     color: #fff;
   }
 
-  .status-toolbar {
+  .status-toolbar,
+  .history-toolbar {
     display: flex;
     gap: 0.5rem;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
     padding: 0.5rem 0;
+  }
+
+  .history-toolbar {
+    margin-bottom: 0.25rem;
   }
 
   .status-toolbar__button {
@@ -303,6 +308,19 @@ html, body {
 
   .status-toolbar__button:active {
     transform: translateY(1px);
+  }
+
+  .status-toolbar__button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    border-color: #e5e7eb;
+  }
+
+  .status-toolbar__button:disabled:hover,
+  .status-toolbar__button:disabled:focus-visible {
+    border-color: #e5e7eb;
+    box-shadow: none;
   }
 
   .status-toolbar__icon {

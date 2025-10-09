@@ -308,6 +308,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     } else {
       hasInitialSnapshot = true;
     }
+    updateButtons();
   }
 
   function applyState(str) {
@@ -375,8 +376,20 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const wireBtn = ui.wireStatusInfo;
   const delBtn = ui.wireDeleteInfo;
   const selectBtn = ui.wireSelectInfo;
+  const undoBtn = ui.undoButton;
+  const redoBtn = ui.redoButton;
   const usedBlocksEl = ui.usedBlocksEl;
   const usedWiresEl = ui.usedWiresEl;
+
+  bindEvent(undoBtn, 'click', e => {
+    e.preventDefault();
+    undo();
+  });
+
+  bindEvent(redoBtn, 'click', e => {
+    e.preventDefault();
+    redo();
+  });
 
   function updateUsageCounts() {
     const blockCount = Object.keys(circuit.blocks).length;
@@ -679,6 +692,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     wireBtn?.classList.toggle('active', isWireMode);
     delBtn?.classList.toggle('active', isDeleteMode);
     selectBtn?.classList.toggle('active', isSelectMode);
+    const canUndo = undoStack.length > 1;
+    const canRedo = redoStack.length > 0;
+    if (undoBtn) {
+      undoBtn.disabled = !canUndo;
+    }
+    if (redoBtn) {
+      redoBtn.disabled = !canRedo;
+    }
   }
 
   // 공통 포인터 좌표 계산 (마우스/터치)

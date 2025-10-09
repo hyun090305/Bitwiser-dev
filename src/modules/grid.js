@@ -327,6 +327,12 @@ export function setupGrid(
           wireSelectInfo: document.getElementById(
             prefix ? `${prefix}WireSelectInfo` : 'wireSelectInfo'
           ),
+          undoButton: document.getElementById(
+            prefix ? `${prefix}UndoBtn` : 'undoBtn'
+          ),
+          redoButton: document.getElementById(
+            prefix ? `${prefix}RedoBtn` : 'redoBtn'
+          ),
           usedBlocksEl: document.getElementById(
             prefix ? `${prefix}UsedBlocks` : 'usedBlocks'
           ),
