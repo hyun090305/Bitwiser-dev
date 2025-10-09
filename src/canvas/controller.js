@@ -370,6 +370,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
+  const moveBtn = ui.wireMoveInfo;
   const wireBtn = ui.wireStatusInfo;
   const delBtn = ui.wireDeleteInfo;
   const usedBlocksEl = ui.usedBlocksEl;
@@ -585,8 +586,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function updateButtons() {
-    wireBtn?.classList.toggle('active', state.mode === 'wireDrawing');
-    delBtn?.classList.toggle('active', state.mode === 'deleting');
+    const isWireMode = state.mode === 'wireDrawing';
+    const isDeleteMode = state.mode === 'deleting';
+    moveBtn?.classList.toggle('active', !isWireMode && !isDeleteMode);
+    wireBtn?.classList.toggle('active', isWireMode);
+    delBtn?.classList.toggle('active', isDeleteMode);
   }
 
   // 공통 포인터 좌표 계산 (마우스/터치)
@@ -793,6 +797,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       keyupHandler = null;
     }
   }
+
+  moveBtn?.addEventListener('click', () => {
+    state.mode = 'idle';
+    updateButtons();
+  });
 
   wireBtn?.addEventListener('click', () => {
     state.mode = state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing';

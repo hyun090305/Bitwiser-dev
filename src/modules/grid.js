@@ -315,6 +315,9 @@ export function setupGrid(
         { bgCanvas, contentCanvas, overlayCanvas },
         circuit,
         {
+          wireMoveInfo: document.getElementById(
+            prefix ? `${prefix}WireMoveInfo` : 'wireMoveInfo'
+          ),
           wireStatusInfo: document.getElementById(
             prefix ? `${prefix}WireStatusInfo` : 'wireStatusInfo'
           ),
