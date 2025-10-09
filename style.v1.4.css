@@ -152,7 +152,7 @@ html, body {
   }
 
   #problem-screen {
-    align-items: flex-start;
+    align-items: stretch;
     overflow: auto;
   }
 
@@ -885,7 +885,18 @@ html, body {
     box-sizing: border-box;
   }
 
-  #problem-screen,
+  #problem-screen {
+    background: #e2e8f0;
+    padding: 0;
+    align-items: stretch;
+    justify-content: flex-start;
+    position: fixed;
+    inset: 0;
+    height: 100vh;
+    overflow: auto;
+    z-index: 10;
+  }
+
   #user-problems-screen {
     background: transparent;
     padding: 2rem;
@@ -1128,25 +1139,33 @@ html, body {
 
   .problem-screen-panel {
     flex-direction: row;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: center;
     gap: 2rem;
     flex-wrap: wrap;
+    width: 100%;
+    max-width: none;
+    margin: 0;
+    padding: 2rem 3rem;
+    min-height: 100%;
+    background: #f8fafc;
+    border-radius: 0;
+    box-shadow: none;
+    backdrop-filter: none;
+    border: none;
+    box-sizing: border-box;
   }
 
   @media (max-width: 1200px) {
     .problem-screen-panel {
-      flex-wrap: nowrap;
-      justify-content: flex-start;
+      flex-direction: column;
       align-items: stretch;
-      width: max-content;
-      max-width: none;
-      margin-left: auto;
-      margin-right: auto;
+      justify-content: flex-start;
+      padding: 1.5rem;
     }
 
     #problem-screen {
-      overflow-x: auto;
+      overflow-x: hidden;
     }
   }
 
