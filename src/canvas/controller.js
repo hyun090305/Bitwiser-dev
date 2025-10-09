@@ -58,8 +58,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const PALETTE_ITEM_H = 50;
   const LABEL_H = 20;
   const GROUP_PADDING = 8;
-  const MAX_GRID_ROWS = 15;
-  const MAX_GRID_COLS = 15;
   const { bgCanvas, contentCanvas, overlayCanvas } = canvasSet;
   let gridWidth = circuit.cols * (CELL + GAP) + GAP;
   let gridHeight = circuit.rows * (CELL + GAP) + GAP;
@@ -68,9 +66,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let paletteItems = [];
   let groupRects = [];
   const clampToBounds = !unboundedGrid;
-  let baseGridWidth = gridWidth;
-  let baseGridHeight = gridHeight;
-  let minCanvasHeight;
+  const baseGridWidth = gridWidth;
+  const baseGridHeight = gridHeight;
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -116,8 +113,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }));
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 20);
   }
-
-  minCanvasHeight = canvasHeight;
 
   let canvasWidth = panelTotalWidth + gridWidth;
   if (canvasSize && Number.isFinite(canvasSize.width) && Number.isFinite(canvasSize.height)) {
@@ -468,141 +463,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function cellHasWire(cell) {
     return Object.values(circuit.wires).some(w => w.path.some(p => p.r === cell.r && p.c === cell.c));
-  }
-
-  function isRowEmpty(rowIndex) {
-    if (rowIndex < 0 || rowIndex >= circuit.rows) return true;
-    const hasBlock = Object.values(circuit.blocks).some(block => block.pos.r === rowIndex);
-    if (hasBlock) return false;
-    return !Object.values(circuit.wires).some(wire =>
-      (wire.path || []).some(point => point.r === rowIndex)
-    );
-  }
-
-  function isColEmpty(colIndex) {
-    if (colIndex < 0 || colIndex >= circuit.cols) return true;
-    const hasBlock = Object.values(circuit.blocks).some(block => block.pos.c === colIndex);
-    if (hasBlock) return false;
-    return !Object.values(circuit.wires).some(wire =>
-      (wire.path || []).some(point => point.c === colIndex)
-    );
-  }
-
-  function shiftCircuit(dx, dy) {
-    if (!dx && !dy) return true;
-    const blocks = Object.values(circuit.blocks);
-    const wires = Object.values(circuit.wires);
-    const okBlocks = blocks.every(block =>
-      withinBounds(block.pos.r + dy, block.pos.c + dx)
-    );
-    const okWires = wires.every(wire =>
-      (wire.path || []).every(point => withinBounds(point.r + dy, point.c + dx))
-    );
-    if (!okBlocks || !okWires) return false;
-    blocks.forEach(block => {
-      block.pos.r += dy;
-      block.pos.c += dx;
-    });
-    wires.forEach(wire => {
-      wire.path = (wire.path || []).map(point => ({
-        r: point.r + dy,
-        c: point.c + dx,
-      }));
-    });
-    return true;
-  }
-
-  function applyGridGeometry() {
-    baseGridWidth = circuit.cols * (CELL + GAP) + GAP;
-    baseGridHeight = circuit.rows * (CELL + GAP) + GAP;
-    const targetWidth = panelTotalWidth + baseGridWidth;
-    const targetHeight = Math.max(baseGridHeight, minCanvasHeight);
-    resizeCanvas(targetWidth, targetHeight);
-    if (useCamera) {
-      camera.setBounds(
-        clampToBounds ? baseGridWidth : undefined,
-        clampToBounds ? baseGridHeight : undefined,
-        { clamp: clampToBounds }
-      );
-    }
-  }
-
-  function canExpandGrid(direction) {
-    if (direction === 'top' || direction === 'bottom') {
-      return circuit.rows < MAX_GRID_ROWS;
-    }
-    if (direction === 'left' || direction === 'right') {
-      return circuit.cols < MAX_GRID_COLS;
-    }
-    return false;
-  }
-
-  function canShrinkGrid(direction) {
-    if (direction === 'top') {
-      if (circuit.rows <= 1) return false;
-      return isRowEmpty(0);
-    }
-    if (direction === 'bottom') {
-      if (circuit.rows <= 1) return false;
-      return isRowEmpty(circuit.rows - 1);
-    }
-    if (direction === 'left') {
-      if (circuit.cols <= 1) return false;
-      return isColEmpty(0);
-    }
-    if (direction === 'right') {
-      if (circuit.cols <= 1) return false;
-      return isColEmpty(circuit.cols - 1);
-    }
-    return false;
-  }
-
-  function expandGrid(direction) {
-    if (!canExpandGrid(direction)) return false;
-    if (direction === 'top') {
-      const previousRows = circuit.rows;
-      circuit.rows += 1;
-      if (!shiftCircuit(0, 1)) {
-        circuit.rows = previousRows;
-        return false;
-      }
-    } else if (direction === 'bottom') {
-      circuit.rows += 1;
-    } else if (direction === 'left') {
-      const previousCols = circuit.cols;
-      circuit.cols += 1;
-      if (!shiftCircuit(1, 0)) {
-        circuit.cols = previousCols;
-        return false;
-      }
-    } else if (direction === 'right') {
-      circuit.cols += 1;
-    } else {
-      return false;
-    }
-    applyGridGeometry();
-    snapshot();
-    return true;
-  }
-
-  function shrinkGrid(direction) {
-    if (!canShrinkGrid(direction)) return false;
-    if (direction === 'top') {
-      if (!shiftCircuit(0, -1)) return false;
-      circuit.rows = Math.max(1, circuit.rows - 1);
-    } else if (direction === 'bottom') {
-      circuit.rows = Math.max(1, circuit.rows - 1);
-    } else if (direction === 'left') {
-      if (!shiftCircuit(-1, 0)) return false;
-      circuit.cols = Math.max(1, circuit.cols - 1);
-    } else if (direction === 'right') {
-      circuit.cols = Math.max(1, circuit.cols - 1);
-    } else {
-      return false;
-    }
-    applyGridGeometry();
-    snapshot();
-    return true;
   }
 
   function clearSelection() {
@@ -1916,9 +1776,5 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     destroy,
     attachKeyboardHandlers,
     resizeCanvas,
-    expandGrid,
-    shrinkGrid,
-    canExpandGrid,
-    canShrinkGrid,
   };
 }
