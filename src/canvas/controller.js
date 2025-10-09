@@ -456,6 +456,78 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
   }
 
+  function expandSelectionConnections(blocks, wires) {
+    const queue = [...blocks];
+    while (queue.length) {
+      const current = queue.shift();
+      Object.entries(circuit.wires).forEach(([wid, w]) => {
+        if (wires.has(wid)) {
+          return;
+        }
+        if (w.startBlockId === current || w.endBlockId === current) {
+          wires.add(wid);
+          const otherId = w.startBlockId === current ? w.endBlockId : w.startBlockId;
+          if (otherId && circuit.blocks[otherId] && !blocks.has(otherId)) {
+            blocks.add(otherId);
+            queue.push(otherId);
+          }
+        }
+      });
+    }
+  }
+
+  function computeSelectionBounds(blocks, wires) {
+    let minR = Infinity;
+    let minC = Infinity;
+    let maxR = -Infinity;
+    let maxC = -Infinity;
+
+    const updateBounds = (r, c) => {
+      if (r < minR) minR = r;
+      if (c < minC) minC = c;
+      if (r > maxR) maxR = r;
+      if (c > maxC) maxC = c;
+    };
+
+    blocks.forEach(id => {
+      const b = circuit.blocks[id];
+      if (b) updateBounds(b.pos.r, b.pos.c);
+    });
+
+    wires.forEach(id => {
+      const w = circuit.wires[id];
+      if (w) {
+        w.path.forEach(p => updateBounds(p.r, p.c));
+      }
+    });
+
+    if (!Number.isFinite(minR) || !Number.isFinite(minC) || !Number.isFinite(maxR) || !Number.isFinite(maxC)) {
+      return null;
+    }
+
+    return { r1: minR, c1: minC, r2: maxR, c2: maxC };
+  }
+
+  function selectionHasCross(initialBounds, wires) {
+    if (!initialBounds) return false;
+    let cross = false;
+    Object.entries(circuit.wires).forEach(([id, w]) => {
+      if (cross || wires.has(id)) return;
+      if (
+        w.path.some(
+          p =>
+            p.r >= initialBounds.r1 &&
+            p.r <= initialBounds.r2 &&
+            p.c >= initialBounds.c1 &&
+            p.c <= initialBounds.c2
+        )
+      ) {
+        cross = true;
+      }
+    });
+    return cross;
+  }
+
   function drawSelection() {
     const sel = state.selection;
     if (!sel) return;
@@ -1040,22 +1112,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           const c2 = Math.max(state.selectStart.c, cell.c);
           const blocks = new Set();
           const wires = new Set();
-          let cross = false;
+          const initialBounds = { r1, c1, r2, c2 };
           Object.entries(circuit.blocks).forEach(([id, b]) => {
             if (b.pos.r >= r1 && b.pos.r <= r2 && b.pos.c >= c1 && b.pos.c <= c2) {
               blocks.add(id);
             }
           });
-          Object.entries(circuit.wires).forEach(([id, w]) => {
-            const inside = w.path.every(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
-            const intersects = w.path.some(p => p.r >= r1 && p.r <= r2 && p.c >= c1 && p.c <= c2);
-            if (inside && blocks.has(w.startBlockId) && blocks.has(w.endBlockId)) {
-              wires.add(id);
-            } else if (intersects) {
-              cross = true;
-            }
-          });
-          state.selection = blocks.size || wires.size ? { r1, c1, r2, c2, blocks, wires, cross } : null;
+          if (blocks.size) {
+            expandSelectionConnections(blocks, wires);
+          }
+          const bounds = computeSelectionBounds(blocks, wires);
+          if (bounds) {
+            const cross = selectionHasCross(initialBounds, wires);
+            state.selection = { ...bounds, blocks, wires, cross };
+          } else {
+            state.selection = null;
+          }
         } else {
           state.selection = null;
         }
