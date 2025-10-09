@@ -166,10 +166,25 @@
     <div id="problem-screen" class="screen" style="display:none;">
       <div class="panel-overlay problem-screen-panel">
         <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
+          <div class="grid-size-control grid-size-control--top">
+            <button id="addRowTopBtn" type="button" data-grid-action="add-row-top">+ 행</button>
+            <button id="removeRowTopBtn" type="button" data-grid-action="remove-row-top">- 행</button>
+          </div>
+          <div class="grid-size-control grid-size-control--bottom">
+            <button id="addRowBottomBtn" type="button" data-grid-action="add-row-bottom">+ 행</button>
+            <button id="removeRowBottomBtn" type="button" data-grid-action="remove-row-bottom">- 행</button>
+          </div>
+          <div class="grid-size-control grid-size-control--left">
+            <button id="addColLeftBtn" type="button" data-grid-action="add-col-left">+ 열</button>
+            <button id="removeColLeftBtn" type="button" data-grid-action="remove-col-left">- 열</button>
+          </div>
+          <div class="grid-size-control grid-size-control--right">
+            <button id="addColRightBtn" type="button" data-grid-action="add-col-right">+ 열</button>
+            <button id="removeColRightBtn" type="button" data-grid-action="remove-col-right">- 열</button>
+          </div>
           <canvas id="problemBgCanvas" style="position:relative;"></canvas>
           <canvas id="problemContentCanvas"></canvas>
           <canvas id="problemOverlayCanvas"></canvas>
-          <canvas id="problemHandleCanvas" aria-hidden="true"></canvas>
         </div>
         <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
           <h1 id="problemCreatorTitle">📝 문제 출제</h1>
