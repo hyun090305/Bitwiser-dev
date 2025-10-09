@@ -66,63 +66,6 @@ html, body {
     align-items: center;
   }
 
-  #moveButtonWrapper,
-  #problemMoveButtonWrapper {
-    border: 2px solid #444;
-    padding: 0.5rem;
-    border-radius: 8px;
-    display: inline-block;
-  }
-
-  #moveButtons,
-  #problemMoveButtons {
-    display: grid;
-    grid-template-areas:
-      '. up .'
-      'left down right';
-    grid-template-columns: repeat(3, 50px);
-    grid-template-rows: repeat(2, 50px);
-    gap: 0.5rem;
-    justify-content: center;
-  }
-
-  #moveUpBtn,
-  #problemMoveUpBtn {
-    grid-area: up;
-  }
-
-  #moveLeftBtn,
-  #problemMoveLeftBtn {
-    grid-area: left;
-  }
-
-  #moveDownBtn,
-  #problemMoveDownBtn {
-    grid-area: down;
-  }
-
-  #moveRightBtn,
-  #problemMoveRightBtn {
-    grid-area: right;
-  }
-
-  #moveButtons button,
-  #problemMoveButtons button {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-    border: 1px solid #999;
-    border-radius: 6px;
-    background: #f7f7f7;
-    box-shadow: 0 2px 0 #ccc;
-  }
-
-  #moveButtons button:active,
-  #problemMoveButtons button:active {
-    box-shadow: none;
-    transform: translateY(2px);
-  }
-
   #mainScreen {
     padding: 50px;
   }
