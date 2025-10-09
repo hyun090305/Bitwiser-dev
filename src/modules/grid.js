@@ -267,6 +267,7 @@ export function setupGrid(
   const bgCanvas = document.getElementById(prefix ? `${prefix}BgCanvas` : 'bgCanvas');
   const contentCanvas = document.getElementById(prefix ? `${prefix}ContentCanvas` : 'contentCanvas');
   const overlayCanvas = document.getElementById(prefix ? `${prefix}OverlayCanvas` : 'overlayCanvas');
+  const handleCanvas = document.getElementById(prefix ? `${prefix}HandleCanvas` : 'handleCanvas');
 
   if (prefix) {
     // Clean up the existing problem controller before creating a new one.
@@ -282,6 +283,8 @@ export function setupGrid(
       const {
         onCircuitModified: customCircuitModified,
         camera: providedCamera,
+        showGridExpansionHandles: showHandlesOption,
+        onGridGeometryChange: customGridGeometryChange,
         ...restOptions
       } = options;
       const gridContext = prefix ? CIRCUIT_CONTEXT.PROBLEM : CIRCUIT_CONTEXT.PLAY;
@@ -311,8 +314,13 @@ export function setupGrid(
         }
         camera?.reset?.();
       }
+      const enableHandles =
+        typeof showHandlesOption === 'boolean'
+          ? showHandlesOption
+          : Boolean(prefix);
+
       const controller = createController(
-        { bgCanvas, contentCanvas, overlayCanvas },
+        { bgCanvas, contentCanvas, overlayCanvas, handleCanvas },
         circuit,
         {
           wireMoveInfo: document.getElementById(
@@ -346,6 +354,18 @@ export function setupGrid(
           ...restOptions,
           camera,
           onCircuitModified: handleCircuitModified,
+          showGridExpansionHandles: enableHandles,
+          onGridGeometryChange: (nextRows, nextCols) => {
+            setGridDimensions(nextRows, nextCols);
+            adjustGridZoom(containerId);
+            if (typeof customGridGeometryChange === 'function') {
+              try {
+                customGridGeometryChange(nextRows, nextCols);
+              } catch (err) {
+                console.error('Error in custom onGridGeometryChange callback', err);
+              }
+            }
+          },
         }
       );
       if (prefix) {
