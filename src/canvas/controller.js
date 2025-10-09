@@ -1550,9 +1550,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           state.draggingBlock.name
         );
       }
+      const removedExistingBlock =
+        !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
         renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
         updateUsageCounts();
+        snapshot();
+      } else if (removedExistingBlock) {
         snapshot();
       }
       if (placed || state.draggingBlock.id) clearSelection();
