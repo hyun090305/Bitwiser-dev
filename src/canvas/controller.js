@@ -145,7 +145,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       canvas.dataset.panelWidth = String(panelTotalWidth);
       canvas.dataset.gridBaseWidth = String(baseGridWidth);
       canvas.dataset.gridBaseHeight = String(baseGridHeight);
-      canvas.dataset.minCanvasHeight = String(minCanvasHeight);
     });
   }
 
@@ -280,9 +279,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function resizeCanvas(width, height) {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return;
-    const enforcedHeight = Math.max(height, minCanvasHeight || 0);
     canvasWidth = width;
-    canvasHeight = enforcedHeight;
+    canvasHeight = height;
     gridWidth = Math.max(0, canvasWidth - panelTotalWidth);
     gridHeight = canvasHeight;
     bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
