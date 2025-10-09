@@ -22,65 +22,149 @@ body.game-active {
   position: relative;
 }
 
-.grid-size-control {
-  position: absolute;
-  display: flex;
-  gap: 0.5rem;
-  pointer-events: none;
-  z-index: 5;
-}
-
-.grid-size-control button {
-  pointer-events: auto;
+.panel-section {
+  width: 100%;
   background: rgba(255, 255, 255, 0.92);
-  border: 1px solid #c9c9c9;
-  border-radius: 6px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  border: 1px solid #d4d4d8;
+  border-radius: 16px;
+  padding: 1rem;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
 }
 
-.grid-size-control button:hover:not(:disabled) {
-  background: #f4f4f4;
-  border-color: #9e9e9e;
+.panel-section__title {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #0f172a;
 }
 
-.grid-size-control button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.grid-size-controller {
+  --controller-size: 220px;
+  --preview-size: 132px;
+  --button-size: 42px;
+  --gap: 10px;
+  position: relative;
+  width: var(--controller-size);
+  height: var(--controller-size);
+  margin: 0 auto;
 }
 
-.grid-size-control--top,
-.grid-size-control--bottom {
-  left: 0;
-  right: 0;
-  justify-content: center;
-}
-
-.grid-size-control--top {
-  top: -48px;
-}
-
-.grid-size-control--bottom {
-  bottom: -48px;
-}
-
-.grid-size-control--left,
-.grid-size-control--right {
-  top: 0;
-  bottom: 0;
+.grid-size-controller__preview {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: var(--preview-size);
+  height: var(--preview-size);
+  border: 2px solid #94a3b8;
+  border-radius: 18px;
+  background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+  display: flex;
   flex-direction: column;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.35rem;
+  color: #0f172a;
+  box-shadow: inset 0 3px 8px rgba(15, 23, 42, 0.08);
+  transform: translate(-50%, -50%);
+  z-index: 1;
 }
 
-.grid-size-control--left {
-  left: -56px;
+.grid-size-controller__preview span {
+  display: block;
 }
 
-.grid-size-control--right {
-  right: -56px;
+.grid-size-controller__button {
+  position: absolute;
+  width: var(--button-size);
+  height: var(--button-size);
+  border-radius: 12px;
+  border: 1px solid #cbd5f5;
+  background: #fff;
+  color: #0f172a;
+  font-size: 1.4rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.12);
+  z-index: 2;
+}
+
+.grid-size-controller__button span {
+  pointer-events: none;
+}
+
+.grid-size-controller__button:hover:not(:disabled) {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.18);
+  background: #f8fafc;
+}
+
+.grid-size-controller__button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.grid-size-controller__button--expand {
+  border-color: #7dd3fc;
+  background: linear-gradient(145deg, #e0f2fe, #bae6fd);
+}
+
+.grid-size-controller__button--shrink {
+  border-color: #fca5a5;
+  background: linear-gradient(145deg, #fee2e2, #fecaca);
+}
+
+.grid-size-controller__button--top-outer {
+  top: calc(50% - var(--preview-size) / 2 - var(--button-size) / 2 - var(--gap));
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--top-inner {
+  top: calc(50% - var(--preview-size) / 2 + var(--button-size) / 2 + var(--gap));
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--bottom-inner {
+  top: calc(50% + var(--preview-size) / 2 - var(--button-size) / 2 - var(--gap));
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--bottom-outer {
+  top: calc(50% + var(--preview-size) / 2 + var(--button-size) / 2 + var(--gap));
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--left-outer {
+  left: calc(50% - var(--preview-size) / 2 - var(--button-size) / 2 - var(--gap));
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--left-inner {
+  left: calc(50% - var(--preview-size) / 2 + var(--button-size) / 2 + var(--gap));
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--right-inner {
+  left: calc(50% + var(--preview-size) / 2 - var(--button-size) / 2 - var(--gap));
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--right-outer {
+  left: calc(50% + var(--preview-size) / 2 + var(--button-size) / 2 + var(--gap));
+  top: 50%;
+  transform: translate(-50%, -50%);
 }
 
 html, body {

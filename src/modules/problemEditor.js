@@ -585,7 +585,7 @@ function handleProblemCircuitModified() {
 
 function setupGridResizeControls() {
   if (gridResizeControlsInitialized) return;
-  const container = document.getElementById('problemCanvasContainer');
+  const container = document.getElementById('problemGridSizeController');
   if (!container) return;
   const buttons = container.querySelectorAll('[data-grid-action]');
   buttons.forEach(button => {
@@ -594,6 +594,7 @@ function setupGridResizeControls() {
     button.addEventListener('click', () => handleGridControl(action));
   });
   gridResizeControlsInitialized = true;
+  updateGridSizePreview();
 }
 
 function handleGridControl(action) {
@@ -626,21 +627,31 @@ function handleGridControl(action) {
 function updateGridResizeButtonStates() {
   const controller = getProblemController();
   const buttonStates = [
-    { id: 'addRowTopBtn', enabled: Boolean(controller?.canExpandGrid?.('top')) },
-    { id: 'removeRowTopBtn', enabled: Boolean(controller?.canShrinkGrid?.('top')) },
-    { id: 'addRowBottomBtn', enabled: Boolean(controller?.canExpandGrid?.('bottom')) },
-    { id: 'removeRowBottomBtn', enabled: Boolean(controller?.canShrinkGrid?.('bottom')) },
-    { id: 'addColLeftBtn', enabled: Boolean(controller?.canExpandGrid?.('left')) },
-    { id: 'removeColLeftBtn', enabled: Boolean(controller?.canShrinkGrid?.('left')) },
-    { id: 'addColRightBtn', enabled: Boolean(controller?.canExpandGrid?.('right')) },
-    { id: 'removeColRightBtn', enabled: Boolean(controller?.canShrinkGrid?.('right')) },
+    { action: 'add-row-top', enabled: Boolean(controller?.canExpandGrid?.('top')) },
+    { action: 'remove-row-top', enabled: Boolean(controller?.canShrinkGrid?.('top')) },
+    { action: 'add-row-bottom', enabled: Boolean(controller?.canExpandGrid?.('bottom')) },
+    { action: 'remove-row-bottom', enabled: Boolean(controller?.canShrinkGrid?.('bottom')) },
+    { action: 'add-col-left', enabled: Boolean(controller?.canExpandGrid?.('left')) },
+    { action: 'remove-col-left', enabled: Boolean(controller?.canShrinkGrid?.('left')) },
+    { action: 'add-col-right', enabled: Boolean(controller?.canExpandGrid?.('right')) },
+    { action: 'remove-col-right', enabled: Boolean(controller?.canShrinkGrid?.('right')) },
   ];
-  buttonStates.forEach(({ id, enabled }) => {
-    const button = document.getElementById(id);
+  buttonStates.forEach(({ action, enabled }) => {
+    const button = document.querySelector(
+      `#problemGridSizeController [data-grid-action="${action}"]`
+    );
     if (button) {
       button.disabled = !enabled;
     }
   });
+  updateGridSizePreview();
+}
+
+function updateGridSizePreview() {
+  const previewValue = document.getElementById('gridSizePreviewValue');
+  if (!previewValue) return;
+  const [rows, cols] = getGridDimensions();
+  previewValue.textContent = `${rows}×${cols}`;
 }
 
 export function collectProblemData() {
