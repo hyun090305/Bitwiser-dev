@@ -128,7 +128,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
   if (useCamera) {
     camera.setPanelWidth(panelTotalWidth);
-    camera.setViewport(canvasWidth, canvasHeight);
+    camera.setViewport(canvasWidth, canvasHeight, {
+      gridWidth,
+      gridHeight,
+    });
     camera.setBounds(
       clampToBounds ? baseGridWidth : undefined,
       clampToBounds ? baseGridHeight : undefined,
@@ -145,6 +148,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       canvas.dataset.panelWidth = String(panelTotalWidth);
       canvas.dataset.gridBaseWidth = String(baseGridWidth);
       canvas.dataset.gridBaseHeight = String(baseGridHeight);
+      canvas.dataset.gridViewportWidth = String(Math.max(0, gridWidth));
+      canvas.dataset.gridViewportHeight = String(Math.max(0, gridHeight));
+      canvas.dataset.minCanvasHeight = String(minCanvasHeight);
     });
   }
 
@@ -279,16 +285,25 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function resizeCanvas(width, height) {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return;
-    canvasWidth = width;
-    canvasHeight = height;
-    gridWidth = Math.max(0, canvasWidth - panelTotalWidth);
-    gridHeight = canvasHeight;
+    const normalizedGridHeight = Math.max(0, height);
+    const normalizedCanvasWidth = Math.max(width, panelTotalWidth);
+    const normalizedGridWidth = Math.max(0, normalizedCanvasWidth - panelTotalWidth);
+    const nextCanvasHeight = Math.max(normalizedGridHeight, minCanvasHeight);
+
+    canvasWidth = normalizedCanvasWidth;
+    canvasHeight = nextCanvasHeight;
+    gridWidth = normalizedGridWidth;
+    gridHeight = normalizedGridHeight;
+
     bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
     contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
     overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
     updateCanvasMetadata();
     if (useCamera) {
-      camera.setViewport(canvasWidth, canvasHeight);
+      camera.setViewport(canvasWidth, canvasHeight, {
+        gridWidth,
+        gridHeight,
+      });
     }
     refreshBackground();
     refreshContent();
@@ -516,8 +531,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     baseGridWidth = circuit.cols * (CELL + GAP) + GAP;
     baseGridHeight = circuit.rows * (CELL + GAP) + GAP;
     const targetWidth = panelTotalWidth + baseGridWidth;
-    const targetHeight = Math.max(baseGridHeight, minCanvasHeight);
-    resizeCanvas(targetWidth, targetHeight);
+    resizeCanvas(targetWidth, baseGridHeight);
     if (useCamera) {
       camera.setBounds(
         clampToBounds ? baseGridWidth : undefined,

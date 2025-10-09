@@ -8,6 +8,8 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
   let currentScale = scale;
   let viewportWidth = 0;
   let viewportHeight = 0;
+  let viewportGridWidth = null;
+  let viewportGridHeight = null;
   let panel = panelWidth;
   let changeHandler = null;
   let worldWidth = Number.POSITIVE_INFINITY;
@@ -16,10 +18,16 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
   let minScaleForBounds = 0;
 
   function getEffectiveViewportWidth() {
+    if (Number.isFinite(viewportGridWidth)) {
+      return Math.max(0, viewportGridWidth);
+    }
     return Math.max(0, viewportWidth - panel);
   }
 
   function getEffectiveViewportHeight() {
+    if (Number.isFinite(viewportGridHeight)) {
+      return Math.max(0, viewportGridHeight);
+    }
     return Math.max(0, viewportHeight);
   }
 
@@ -105,10 +113,13 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
     }
   }
 
-  function setViewport(width, height) {
+  function setViewport(width, height, options = {}) {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return;
     viewportWidth = width;
     viewportHeight = height;
+    const { gridWidth, gridHeight } = options || {};
+    viewportGridWidth = Number.isFinite(gridWidth) ? Math.max(0, gridWidth) : null;
+    viewportGridHeight = Number.isFinite(gridHeight) ? Math.max(0, gridHeight) : null;
     updateBoundConstraints();
     notifyChange();
   }
@@ -214,6 +225,12 @@ export function createCamera({ panelWidth = 0, scale = 1 } = {}) {
     originX = 0;
     originY = 0;
     currentScale = scale;
+    viewportGridWidth = Number.isFinite(viewportGridWidth)
+      ? Math.max(0, viewportGridWidth)
+      : viewportGridWidth;
+    viewportGridHeight = Number.isFinite(viewportGridHeight)
+      ? Math.max(0, viewportGridHeight)
+      : viewportGridHeight;
     updateBoundConstraints();
     notifyChange();
   }
