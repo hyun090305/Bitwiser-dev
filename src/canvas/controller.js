@@ -41,9 +41,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     camera: externalCamera = null,
     unboundedGrid = false,
     canvasSize = null,
-    panelDrawOptions = {},
-    showGridExpansionHandles = false,
-    onGridGeometryChange = null,
+    panelDrawOptions = {}
   } = options;
   const gridDrawOptions = unboundedGrid
     ? { ...(panelDrawOptions.grid || {}), unbounded: true }
@@ -62,10 +60,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const GROUP_PADDING = 8;
   const MAX_GRID_ROWS = 15;
   const MAX_GRID_COLS = 15;
-  const { bgCanvas, contentCanvas, overlayCanvas, handleCanvas = null } = canvasSet;
-  if (handleCanvas) {
-    handleCanvas.style.pointerEvents = 'none';
-  }
+  const { bgCanvas, contentCanvas, overlayCanvas } = canvasSet;
   let gridWidth = circuit.cols * (CELL + GAP) + GAP;
   let gridHeight = circuit.rows * (CELL + GAP) + GAP;
   let panelTotalWidth = panelWidth;
@@ -76,14 +71,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let baseGridWidth = gridWidth;
   let baseGridHeight = gridHeight;
   let minCanvasHeight;
-  const handlesEnabled = Boolean(showGridExpansionHandles && handleCanvas);
-  const gridHandleState = {
-    enabled: handlesEnabled,
-    hover: null,
-    rects: {},
-  };
-  let handleCtx = null;
-  let handleAnimationId = null;
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -151,12 +138,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
   let contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
   let overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
-  if (handleCanvas) {
-    handleCtx = setupCanvas(handleCanvas, canvasWidth, canvasHeight);
-  }
 
   function updateCanvasMetadata() {
-    [bgCanvas, contentCanvas, overlayCanvas, handleCanvas].forEach(canvas => {
+    [bgCanvas, contentCanvas, overlayCanvas].forEach(canvas => {
       if (!canvas || !canvas.dataset) return;
       canvas.dataset.panelWidth = String(panelTotalWidth);
       canvas.dataset.gridBaseWidth = String(baseGridWidth);
@@ -211,232 +195,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function getScale() {
     return useCamera ? camera.getScale() : 1;
-  }
-
-  function roundedRectPath(ctx, x, y, w, h, r) {
-    const radius = Math.max(0, Math.min(r, Math.min(w, h) / 2));
-    ctx.beginPath();
-    ctx.moveTo(x + radius, y);
-    ctx.lineTo(x + w - radius, y);
-    ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
-    ctx.lineTo(x + w, y + h - radius);
-    ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
-    ctx.lineTo(x + radius, y + h);
-    ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
-    ctx.lineTo(x, y + radius);
-    ctx.quadraticCurveTo(x, y, x + radius, y);
-    ctx.closePath();
-  }
-
-  function getGridScreenRect() {
-    if (circuit.rows <= 0 || circuit.cols <= 0) return null;
-    if (useCamera && camera && typeof camera.worldToScreen === 'function') {
-      const topLeft = camera.worldToScreen(GAP, GAP);
-      const bottomRight = camera.worldToScreen(
-        GAP + (circuit.cols - 1) * pitch + CELL,
-        GAP + (circuit.rows - 1) * pitch + CELL
-      );
-      const x = Math.min(topLeft.x, bottomRight.x);
-      const y = Math.min(topLeft.y, bottomRight.y);
-      const width = Math.abs(bottomRight.x - topLeft.x);
-      const height = Math.abs(bottomRight.y - topLeft.y);
-      return { x, y, width, height };
-    }
-    return {
-      x: panelTotalWidth + GAP,
-      y: GAP,
-      width: Math.max(0, circuit.cols * pitch - GAP),
-      height: Math.max(0, circuit.rows * pitch - GAP),
-    };
-  }
-
-  function computeHandleRects(baseRect) {
-    if (!baseRect) return {};
-    const spacing = 12;
-    const horizontalThickness = Math.max(28, Math.min(56, baseRect.height * 0.18));
-    const verticalThickness = Math.max(28, Math.min(56, baseRect.width * 0.18));
-    const topX = Math.max(panelTotalWidth, baseRect.x);
-    const topWidth = Math.min(baseRect.width, canvasWidth - topX);
-    const topY = Math.max(0, baseRect.y - spacing - horizontalThickness);
-    const bottomY = Math.min(
-      canvasHeight - horizontalThickness,
-      baseRect.y + baseRect.height + spacing
-    );
-    const leftY = Math.max(0, baseRect.y);
-    const leftHeight = Math.min(baseRect.height, canvasHeight - leftY);
-    const leftX = Math.max(panelTotalWidth, baseRect.x - spacing - verticalThickness);
-    const rightX = Math.min(
-      canvasWidth - verticalThickness,
-      baseRect.x + baseRect.width + spacing
-    );
-
-    return {
-      top: {
-        x: topX,
-        y: topY,
-        width: Math.max(0, topWidth),
-        height: horizontalThickness,
-      },
-      bottom: {
-        x: topX,
-        y: bottomY,
-        width: Math.max(0, topWidth),
-        height: horizontalThickness,
-      },
-      left: {
-        x: leftX,
-        y: leftY,
-        width: verticalThickness,
-        height: Math.max(0, leftHeight),
-      },
-      right: {
-        x: rightX,
-        y: leftY,
-        width: verticalThickness,
-        height: Math.max(0, leftHeight),
-      },
-    };
-  }
-
-  function drawHandleGlyph(direction, rect) {
-    const cx = rect.x + rect.width / 2;
-    const cy = rect.y + rect.height / 2;
-    const arrowSize = Math.min(rect.width, rect.height) * 0.6;
-    const plusSize = Math.min(rect.width, rect.height) * 0.36;
-    const barThickness = plusSize / 5;
-
-    const tipOffset = arrowSize / 2;
-    const baseOffset = arrowSize / 2;
-
-    const ctx = handleCtx;
-    if (!ctx) return;
-
-    ctx.beginPath();
-    if (direction === 'top') {
-      ctx.moveTo(cx, cy - tipOffset);
-      ctx.lineTo(cx - baseOffset, cy + baseOffset);
-      ctx.lineTo(cx + baseOffset, cy + baseOffset);
-    } else if (direction === 'bottom') {
-      ctx.moveTo(cx, cy + tipOffset);
-      ctx.lineTo(cx - baseOffset, cy - baseOffset);
-      ctx.lineTo(cx + baseOffset, cy - baseOffset);
-    } else if (direction === 'left') {
-      ctx.moveTo(cx - tipOffset, cy);
-      ctx.lineTo(cx + baseOffset, cy - baseOffset);
-      ctx.lineTo(cx + baseOffset, cy + baseOffset);
-    } else if (direction === 'right') {
-      ctx.moveTo(cx + tipOffset, cy);
-      ctx.lineTo(cx - baseOffset, cy - baseOffset);
-      ctx.lineTo(cx - baseOffset, cy + baseOffset);
-    }
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillRect(cx - barThickness / 2, cy - plusSize / 2, barThickness, plusSize);
-    ctx.fillRect(cx - plusSize / 2, cy - barThickness / 2, plusSize, barThickness);
-  }
-
-  function drawHandle(direction, rect, available, hovered, pulse) {
-    if (!handleCtx || !rect) return;
-    const ctx = handleCtx;
-    const radius = Math.min(18, Math.max(10, Math.min(rect.width, rect.height) / 3));
-    const baseAlpha = available
-      ? hovered
-        ? 0.85
-        : 0.55 + 0.25 * pulse
-      : 0.2;
-    ctx.save();
-    roundedRectPath(ctx, rect.x, rect.y, rect.width, rect.height, radius);
-    ctx.fillStyle = available ? `rgba(59,130,246,${baseAlpha})` : `rgba(148,163,184,${baseAlpha})`;
-    ctx.fill();
-    if (available) {
-      const strokeAlpha = hovered ? 0.95 : 0.65 + 0.25 * pulse;
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = `rgba(255,255,255,${strokeAlpha})`;
-      ctx.stroke();
-      ctx.fillStyle = hovered ? 'rgba(255,255,255,0.95)' : 'rgba(255,255,255,0.85)';
-      drawHandleGlyph(direction, rect);
-    }
-    ctx.restore();
-  }
-
-  function drawHandles(timestamp = performance.now()) {
-    if (!handleCanvas) return;
-    if (!gridHandleState.enabled) {
-      if (handleCtx) {
-        handleCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-      }
-      gridHandleState.hover = null;
-      gridHandleState.rects = {};
-      if (overlayCanvas) {
-        overlayCanvas.style.cursor = '';
-      }
-      return;
-    }
-    if (!handleCtx) return;
-    const gridRect = getGridScreenRect();
-    handleCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    if (!gridRect || gridRect.width <= 0 || gridRect.height <= 0) {
-      gridHandleState.rects = {};
-      return;
-    }
-    const rects = computeHandleRects(gridRect);
-    gridHandleState.rects = rects;
-    const pulse = (Math.sin(timestamp / 400) + 1) / 2;
-    Object.entries(rects).forEach(([direction, rect]) => {
-      const available = canExpandGrid(direction);
-      drawHandle(direction, rect, available, gridHandleState.hover === direction, pulse);
-    });
-  }
-
-  function animateHandles(timestamp) {
-    drawHandles(timestamp);
-    handleAnimationId = requestAnimationFrame(animateHandles);
-  }
-
-  function startHandleAnimation() {
-    if (!gridHandleState.enabled || !handleCanvas) return;
-    if (handleAnimationId) return;
-    handleAnimationId = requestAnimationFrame(animateHandles);
-  }
-
-  function stopHandleAnimation() {
-    if (handleAnimationId) {
-      cancelAnimationFrame(handleAnimationId);
-      handleAnimationId = null;
-    }
-  }
-
-  function getHandleAtPoint(x, y) {
-    if (!gridHandleState.enabled) return null;
-    const rects = gridHandleState.rects || {};
-    return Object.entries(rects).find(([, rect]) => {
-      if (!rect || rect.width <= 0 || rect.height <= 0) return false;
-      if (x < rect.x || x > rect.x + rect.width) return false;
-      if (y < rect.y || y > rect.y + rect.height) return false;
-      return true;
-    })?.[0] || null;
-  }
-
-  function setHandleHover(direction, { updateCursor = true } = {}) {
-    if (!gridHandleState.enabled) return;
-    const resolved = direction && canExpandGrid(direction) ? direction : null;
-    if (gridHandleState.hover !== resolved) {
-      gridHandleState.hover = resolved;
-      drawHandles();
-    }
-    if (updateCursor && overlayCanvas && !state.draggingBlock && !state.selectionDrag && !state.panning && state.mode !== 'wireDrawing' && !state.selecting) {
-      overlayCanvas.style.cursor = resolved ? 'pointer' : '';
-    } else if (updateCursor && overlayCanvas && !resolved && !state.draggingBlock && !state.selectionDrag && !state.panning && state.mode !== 'wireDrawing' && !state.selecting) {
-      overlayCanvas.style.cursor = '';
-    }
-  }
-
-  function updateHandleHoverFromPoint(x, y, { updateCursor = true } = {}) {
-    if (!gridHandleState.enabled) return null;
-    const direction = getHandleAtPoint(x, y);
-    setHandleHover(direction, { updateCursor });
-    return direction && canExpandGrid(direction) ? direction : null;
   }
 
   function withinBounds(r, c) {
@@ -528,20 +286,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);
     contentCtx = setupCanvas(contentCanvas, canvasWidth, canvasHeight);
     overlayCtx = setupCanvas(overlayCanvas, canvasWidth, canvasHeight);
-    if (handleCanvas) {
-      handleCtx = setupCanvas(handleCanvas, canvasWidth, canvasHeight);
-    }
     updateCanvasMetadata();
     if (useCamera) {
       camera.setViewport(canvasWidth, canvasHeight);
     }
     refreshBackground();
     refreshContent();
-    if (gridHandleState.enabled) {
-      drawHandles();
-    } else if (handleCtx) {
-      handleCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    }
   }
 
   function notifyCircuitModified() {
@@ -602,12 +352,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
-  if (gridHandleState.enabled) {
-    drawHandles();
-    startHandleAnimation();
-  } else if (handleCtx) {
-    handleCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-  }
   engineHandle = startEngine(contentCtx, circuit, (ctx, circ, phase) =>
     renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera)
   );
@@ -780,13 +524,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         clampToBounds ? baseGridHeight : undefined,
         { clamp: clampToBounds }
       );
-    }
-    if (typeof onGridGeometryChange === 'function') {
-      try {
-        onGridGeometryChange(circuit.rows, circuit.cols);
-      } catch (err) {
-        console.error('Error in onGridGeometryChange callback', err);
-      }
     }
   }
 
@@ -1371,10 +1108,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function destroy() {
     stopEngine();
-    stopHandleAnimation();
-    if (handleCtx) {
-      handleCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    }
     removeBoundEvents();
     if (keydownHandler) {
       document.removeEventListener('keydown', keydownHandler);
@@ -1411,37 +1144,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const { x, y } = getPointerPos(e);
     state.pointerDown = { x, y };
     state.pointerMoved = false;
-    let handleDirection = null;
-    if (gridHandleState.enabled) {
-      handleDirection = updateHandleHoverFromPoint(x, y, { updateCursor: false });
-      if (!handleDirection && overlayCanvas) {
-        overlayCanvas.style.cursor = '';
-      }
-    }
     let handled = false;
     const isMiddleButton = e.button === 1;
     const isPrimary = e.button === 0 || e.button === undefined;
-    if (handleDirection) {
-      if (!(isPrimary || (e.touches && e.touches.length > 0))) {
-        state.pointerDown = null;
-        state.pointerMoved = false;
-        if (typeof e.preventDefault === 'function') {
-          e.preventDefault();
-        }
-        return true;
-      }
-      const expanded = expandGrid(handleDirection);
-      state.pointerDown = null;
-      state.pointerMoved = false;
-      handled = true;
-      if (!expanded && gridHandleState.enabled) {
-        drawHandles();
-      }
-      if (typeof e.preventDefault === 'function') {
-        e.preventDefault();
-      }
-      return handled;
-    }
     if (useCamera && (isMiddleButton || (state.spaceHeld && isPrimary))) {
       state.panning = true;
       state.panLast = { x, y };
@@ -1610,11 +1315,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   bindEvent(overlayCanvas, 'mousedown', handlePointerDown);
   bindEvent(overlayCanvas, 'touchstart', handleOverlayTouchStart, passiveFalseOption);
   bindEvent(overlayCanvas, 'contextmenu', handleOverlayContextMenu);
-  bindEvent(overlayCanvas, 'mouseleave', () => {
-    if (gridHandleState.enabled) {
-      setHandleHover(null);
-    }
-  });
 
   function handleWheel(e) {
     if (!useCamera) return;
@@ -1880,31 +1580,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handlePointerMove(e) {
     const { x, y } = getPointerPos(e);
-    let handleHoverDirection = null;
-    if (gridHandleState.enabled) {
-      const allowCursorUpdate =
-        !state.pointerDown &&
-        !state.selectionDrag &&
-        !state.draggingBlock &&
-        !state.panning &&
-        state.mode !== 'wireDrawing' &&
-        !state.selecting;
-      handleHoverDirection = updateHandleHoverFromPoint(x, y, {
-        updateCursor: allowCursorUpdate,
-      });
-      const shouldBlockInteraction =
-        handleHoverDirection &&
-        !state.pointerDown &&
-        !state.selectionDrag &&
-        !state.draggingBlock &&
-        state.mode === 'idle' &&
-        !state.selecting &&
-        !state.panning &&
-        state.wireTrace.length === 0;
-      if (shouldBlockInteraction) {
-        return false;
-      }
-    }
     if (state.panning) {
       if (state.panLast) {
         const moved = camera.pan(x - state.panLast.x, y - state.panLast.y);
