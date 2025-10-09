@@ -40,11 +40,11 @@ body.game-active {
 
 .grid-size-controller {
   --controller-size: 220px;
-  --preview-size: 132px;
-  --button-size: 34px;
-  --button-length-horizontal: 116px;
-  --button-length-vertical: 116px;
-  --gap: 10px;
+  --preview-size: 150px;
+  --button-size: 25px;
+  --button-length-horizontal: 80px;
+  --button-length-vertical: 80px;
+  --gap: 5px;
   position: relative;
   width: var(--controller-size);
   height: var(--controller-size);
@@ -84,7 +84,7 @@ body.game-active {
   border: 1px solid #cbd5f5;
   background: #fff;
   color: #0f172a;
-  font-size: 1.4rem;
+  font-size: 1rem;
   font-weight: 700;
   display: flex;
   align-items: center;
