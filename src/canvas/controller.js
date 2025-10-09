@@ -158,6 +158,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     selection: null,
     selecting: false,
     selectStart: null,
+    selectionDrag: null,
     spaceHeld: false,
     panning: false,
     panLast: null,
@@ -453,6 +454,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function clearSelection() {
     state.selection = null;
+    state.selectionDrag = null;
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
   }
 
@@ -528,15 +530,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return cross;
   }
 
-  function drawSelection() {
+  function drawSelection({ offset = { dr: 0, dc: 0 }, invalid = false } = {}) {
     const sel = state.selection;
     if (!sel) return;
     overlayCtx.save();
-    overlayCtx.fillStyle = 'rgba(0,128,255,0.3)';
+    const dr = Number.isFinite(offset?.dr) ? offset.dr : 0;
+    const dc = Number.isFinite(offset?.dc) ? offset.dc : 0;
+    overlayCtx.fillStyle = invalid ? 'rgba(255,0,0,0.35)' : 'rgba(0,128,255,0.3)';
     sel.blocks.forEach(id => {
       const b = circuit.blocks[id];
       if (b) {
-        const rect = cellRect(b.pos.r, b.pos.c);
+        const rect = cellRect(b.pos.r + dr, b.pos.c + dc);
         overlayCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
       }
     });
@@ -544,7 +548,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const w = circuit.wires[id];
       if (w) {
         w.path.forEach(p => {
-          const rect = cellRect(p.r, p.c);
+          const rect = cellRect(p.r + dr, p.c + dc);
           overlayCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
         });
       }
@@ -552,9 +556,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCtx.restore();
   }
 
-  function moveSelection(dr, dc) {
+  function canMoveSelection(dr, dc) {
     const sel = state.selection;
     if (!sel || sel.cross) return false;
+
+    if (dr === 0 && dc === 0) return true;
 
     for (const id of sel.blocks) {
       const b = circuit.blocks[id];
@@ -589,6 +595,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (occupiedBlocks.has(`${nr},${nc}`) || occupiedWires.has(`${nr},${nc}`)) return false;
       }
     }
+
+    return true;
+  }
+
+  function moveSelection(dr, dc) {
+    const sel = state.selection;
+    if (!canMoveSelection(dr, dc)) return false;
 
     sel.blocks.forEach(id => {
       const b = circuit.blocks[id];
@@ -940,6 +953,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               cell.c <= state.selection.c2
             ) {
               inside = true;
+              if (state.mode === 'idle' && isPrimary) {
+                state.selectionDrag = {
+                  start: cell,
+                  currentOffset: { dr: 0, dc: 0 },
+                  valid: true,
+                };
+                state.pointerMoved = false;
+                return true;
+              }
             }
           }
         }
@@ -1077,6 +1099,39 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   bindEvent(overlayCanvas, 'wheel', handleWheel, passiveFalseOption);
 
+  function finishSelectionDrag(x = null, y = null) {
+    if (!state.selectionDrag) return false;
+    const dragState = state.selectionDrag;
+    let offset = dragState.currentOffset || { dr: 0, dc: 0 };
+    let candidateValid = dragState.valid;
+    if (typeof x === 'number' && typeof y === 'number') {
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          offset = {
+            dr: cell.r - dragState.start.r,
+            dc: cell.c - dragState.start.c,
+          };
+          candidateValid = canMoveSelection(offset.dr, offset.dc);
+        }
+      } else {
+        candidateValid = false;
+      }
+    }
+    state.selectionDrag = null;
+    const moved = offset.dr !== 0 || offset.dc !== 0;
+    const canApply = moved && candidateValid;
+    overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    if (canApply) {
+      moveSelection(offset.dr, offset.dc);
+    } else if (state.selection) {
+      drawSelection();
+    }
+    state.pointerDown = null;
+    state.pointerMoved = false;
+    return canApply;
+  }
+
   function handlePointerUp(e) {
     if (state.pinch) {
       if (!e.touches || e.touches.length < 2) {
@@ -1091,6 +1146,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.panning = false;
       state.panLast = null;
       state.pointerDown = null;
+      return;
+    }
+    if (state.selectionDrag) {
+      finishSelectionDrag(x, y);
       return;
     }
     if (state.selecting) {
@@ -1137,6 +1196,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       if (state.selection) drawSelection();
       state.selectStart = null;
+      if (state.mode === 'selecting') {
+        state.mode = 'idle';
+        updateButtons();
+      }
       return;
     }
     if (!state.pointerMoved && state.mode === 'idle') {
@@ -1280,6 +1343,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         return moved;
       }
       return false;
+    }
+    if (state.selectionDrag && state.selection) {
+      let offset = state.selectionDrag.currentOffset || { dr: 0, dc: 0 };
+      let valid = true;
+      let hasCell = false;
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          offset = {
+            dr: cell.r - state.selectionDrag.start.r,
+            dc: cell.c - state.selectionDrag.start.c,
+          };
+          state.selectionDrag.currentOffset = offset;
+          hasCell = true;
+          const moved = offset.dr !== 0 || offset.dc !== 0;
+          if (moved) {
+            state.pointerMoved = true;
+          }
+          valid = canMoveSelection(offset.dr, offset.dc);
+          state.selectionDrag.valid = valid;
+        }
+      } else {
+        valid = false;
+        state.selectionDrag.valid = false;
+      }
+      const invalidHighlight = (!valid || !hasCell) && (offset.dr !== 0 || offset.dc !== 0);
+      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      drawSelection({ offset, invalid: invalidHighlight });
+      return true;
     }
     if (state.pointerDown) {
       const dx = x - state.pointerDown.x;
@@ -1462,12 +1554,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
+    const rect = overlayCanvas.getBoundingClientRect();
+    const scale = parseFloat(overlayCanvas.dataset.scale || '1');
+    const point = e.changedTouches?.[0] || e;
+    const ox = (point.clientX - rect.left) / scale;
+    const oy = (point.clientY - rect.top) / scale;
     if (state.draggingBlock) {
-      const rect = overlayCanvas.getBoundingClientRect();
-      const scale = parseFloat(overlayCanvas.dataset.scale || '1');
-      const point = e.changedTouches?.[0] || e;
-      const ox = (point.clientX - rect.left) / scale;
-      const oy = (point.clientY - rect.top) / scale;
       const outsideGrid =
         ox < panelTotalWidth ||
         ox >= canvasWidth ||
@@ -1493,6 +1585,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    }
+    if (state.selectionDrag) {
+      finishSelectionDrag(ox, oy);
     }
     state.dragCandidate = null;
     state.pointerDown = null;
