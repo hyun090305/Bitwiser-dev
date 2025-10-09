@@ -145,11 +145,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       canvas.dataset.panelWidth = String(panelTotalWidth);
       canvas.dataset.gridBaseWidth = String(baseGridWidth);
       canvas.dataset.gridBaseHeight = String(baseGridHeight);
-      if (Number.isFinite(minCanvasHeight)) {
-        canvas.dataset.minCanvasHeight = String(minCanvasHeight);
-      } else {
-        delete canvas.dataset.minCanvasHeight;
-      }
     });
   }
 
@@ -284,14 +279,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function resizeCanvas(width, height) {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return;
-    const nextHeight = Number.isFinite(minCanvasHeight)
-      ? Math.max(height, minCanvasHeight)
-      : height;
-    if (Number.isFinite(nextHeight) && (!Number.isFinite(minCanvasHeight) || nextHeight > minCanvasHeight)) {
-      minCanvasHeight = nextHeight;
-    }
     canvasWidth = width;
-    canvasHeight = nextHeight;
+    canvasHeight = height;
     gridWidth = Math.max(0, canvasWidth - panelTotalWidth);
     gridHeight = canvasHeight;
     bgCtx = setupCanvas(bgCanvas, canvasWidth, canvasHeight);

@@ -161,7 +161,6 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   const datasetWidth = parseFloat(firstCanvas.dataset?.baseWidth);
   const datasetHeight = parseFloat(firstCanvas.dataset?.baseHeight);
   const datasetDpr = parseFloat(firstCanvas.dataset?.dpr);
-  const datasetMinCanvasHeight = parseFloat(firstCanvas.dataset?.minCanvasHeight);
   let baseWidth;
   let baseHeight;
 
@@ -229,10 +228,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     }
 
     const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
-    let targetHeight = resolvedGridHeight * scale;
-    if (Number.isFinite(datasetMinCanvasHeight)) {
-      targetHeight = Math.max(targetHeight, datasetMinCanvasHeight);
-    }
+    const targetHeight = resolvedGridHeight * scale;
 
     controller.resizeCanvas(targetWidth, targetHeight);
     camera.reset?.();
