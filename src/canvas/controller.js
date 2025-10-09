@@ -1800,6 +1800,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const ox = (point.clientX - rect.left) / scale;
     const oy = (point.clientY - rect.top) / scale;
     if (state.draggingBlock) {
+      let removedExistingBlock = false;
       const outsideGrid =
         ox < panelTotalWidth ||
         ox >= canvasWidth ||
@@ -1812,6 +1813,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         ) {
           showPaletteItem(state.draggingBlock.type, state.draggingBlock.name);
         }
+        removedExistingBlock = true;
         Object.keys(circuit.wires).forEach(wid => {
           const w = circuit.wires[wid];
           if (w.startBlockId === state.draggingBlock.id || w.endBlockId === state.draggingBlock.id) {
@@ -1825,6 +1827,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      if (removedExistingBlock) {
+        snapshot();
+      }
     }
     if (state.selectionDrag) {
       finishSelectionDrag(ox, oy);
