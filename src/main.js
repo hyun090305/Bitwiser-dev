@@ -325,14 +325,6 @@ const resetToggle   = document.getElementById("DeleteAllInfo");
 const problemStatusToggle = document.getElementById('problemWireStatusInfo');
 const problemDeleteToggle = document.getElementById('problemWireDeleteInfo');
 const problemResetToggle  = document.getElementById('problemDeleteAllInfo');
-const moveUpBtn    = document.getElementById('moveUpBtn');
-const moveDownBtn  = document.getElementById('moveDownBtn');
-const moveLeftBtn  = document.getElementById('moveLeftBtn');
-const moveRightBtn = document.getElementById('moveRightBtn');
-const problemMoveUpBtn    = document.getElementById('problemMoveUpBtn');
-const problemMoveDownBtn  = document.getElementById('problemMoveDownBtn');
-const problemMoveLeftBtn  = document.getElementById('problemMoveLeftBtn');
-const problemMoveRightBtn = document.getElementById('problemMoveRightBtn');
 let grid;
 
 function simulateKey(key, type = 'keydown') {
@@ -577,26 +569,6 @@ document.addEventListener('keydown', e => {
   e.preventDefault();
   moveCircuit(dx, dy, { isProblemFixed: getActiveCustomProblem()?.fixIO });
 });
-
-const moveWithConstraints = (dx, dy) =>
-  moveCircuit(dx, dy, { isProblemFixed: getActiveCustomProblem()?.fixIO });
-
-if (moveUpBtn)    moveUpBtn.addEventListener('click', () => moveWithConstraints(0, -1));
-if (moveDownBtn)  moveDownBtn.addEventListener('click', () => moveWithConstraints(0, 1));
-if (moveLeftBtn)  moveLeftBtn.addEventListener('click', () => moveWithConstraints(-1, 0));
-if (moveRightBtn) moveRightBtn.addEventListener('click', () => moveWithConstraints(1, 0));
-if (problemMoveUpBtn)
-  problemMoveUpBtn.addEventListener('click', () => moveWithConstraints(0, -1));
-if (problemMoveDownBtn)
-  problemMoveDownBtn.addEventListener('click', () => moveWithConstraints(0, 1));
-if (problemMoveLeftBtn)
-  problemMoveLeftBtn.addEventListener('click', () => moveWithConstraints(-1, 0));
-if (problemMoveRightBtn)
-  problemMoveRightBtn.addEventListener('click', () => moveWithConstraints(1, 0));
-
-
-
-
 
 // 회로 저장 완료 모달
 function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
