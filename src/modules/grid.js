@@ -161,6 +161,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   const datasetWidth = parseFloat(firstCanvas.dataset?.baseWidth);
   const datasetHeight = parseFloat(firstCanvas.dataset?.baseHeight);
   const datasetDpr = parseFloat(firstCanvas.dataset?.dpr);
+  const datasetMinCanvasHeight = parseFloat(firstCanvas.dataset?.minCanvasHeight);
   let baseWidth;
   let baseHeight;
 
@@ -194,6 +195,9 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
       : Math.max(0, baseWidth - resolvedPanelWidth);
     const resolvedGridHeight = Number.isFinite(baseGridHeight)
       ? baseGridHeight
+      : baseHeight;
+    const resolvedMinCanvasHeight = Number.isFinite(datasetMinCanvasHeight)
+      ? datasetMinCanvasHeight
       : baseHeight;
 
     const gridAvailableWidth = Math.max(0, availableWidth - resolvedPanelWidth);
@@ -229,6 +233,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
     const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
     const targetHeight = resolvedGridHeight * scale;
+    const targetCanvasHeight = Math.max(targetHeight, resolvedMinCanvasHeight);
 
     controller.resizeCanvas(targetWidth, targetHeight);
     camera.reset?.();
@@ -236,6 +241,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
     gridContainer.querySelectorAll('canvas').forEach(c => {
       c.dataset.scale = scale;
+      c.style.height = targetCanvasHeight + 'px';
     });
     return;
   }
