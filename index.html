@@ -165,7 +165,23 @@
 
     <div id="problem-screen" class="screen" style="display:none;">
       <div class="panel-overlay problem-screen-panel">
-        <div id="problemCanvasContainer" style="position:relative;margin:auto;">
+        <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
+          <div class="grid-size-control grid-size-control--top">
+            <button id="addRowTopBtn" type="button" data-grid-action="add-row-top">+ 행</button>
+            <button id="removeRowTopBtn" type="button" data-grid-action="remove-row-top">- 행</button>
+          </div>
+          <div class="grid-size-control grid-size-control--bottom">
+            <button id="addRowBottomBtn" type="button" data-grid-action="add-row-bottom">+ 행</button>
+            <button id="removeRowBottomBtn" type="button" data-grid-action="remove-row-bottom">- 행</button>
+          </div>
+          <div class="grid-size-control grid-size-control--left">
+            <button id="addColLeftBtn" type="button" data-grid-action="add-col-left">+ 열</button>
+            <button id="removeColLeftBtn" type="button" data-grid-action="remove-col-left">- 열</button>
+          </div>
+          <div class="grid-size-control grid-size-control--right">
+            <button id="addColRightBtn" type="button" data-grid-action="add-col-right">+ 열</button>
+            <button id="removeColRightBtn" type="button" data-grid-action="remove-col-right">- 열</button>
+          </div>
           <canvas id="problemBgCanvas" style="position:relative;"></canvas>
           <canvas id="problemContentCanvas"></canvas>
           <canvas id="problemOverlayCanvas"></canvas>
@@ -234,18 +250,6 @@
               </div>
             </div>
             <div style="display:flex; flex-direction:column; gap:0.5rem; margin:auto;">
-              <div>
-                <label id="inputLabel" for="inputCount">입력</label>
-                <input id="inputCount" type="number" min="1" max="6" value="1" style="width:40px;">
-                <label id="outputLabel" for="outputCount">출력</label>
-                <input id="outputCount" type="number" min="1" max="6" value="1" style="width:40px;">
-                <br>
-                <label id="rowLabel" for="gridRows">행</label>
-                <input id="gridRows" type="number" min="1" max="15" value="6" style="width:40px;">
-                <label id="colLabel" for="gridCols">열</label>
-                <input id="gridCols" type="number" min="1" max="15" value="6" style="width:40px;">
-                <button id="updateIOBtn">적용</button>
-              </div>
               <div id="testcaseContainer" style="margin: 0 auto;">
                 <table id="testcaseTable" border="1" style="font-size:0.9rem; text-align:center;">
                   <thead></thead>
