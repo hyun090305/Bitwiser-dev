@@ -41,7 +41,9 @@ body.game-active {
 .grid-size-controller {
   --controller-size: 220px;
   --preview-size: 132px;
-  --button-size: 42px;
+  --button-size: 34px;
+  --button-length-horizontal: 116px;
+  --button-length-vertical: 116px;
   --gap: 10px;
   position: relative;
   width: var(--controller-size);
@@ -119,6 +121,15 @@ body.game-active {
   background: linear-gradient(145deg, #fee2e2, #fecaca);
 }
 
+.grid-size-controller__button--top-outer,
+.grid-size-controller__button--top-inner,
+.grid-size-controller__button--bottom-inner,
+.grid-size-controller__button--bottom-outer {
+  width: var(--button-length-horizontal);
+  height: var(--button-size);
+  border-radius: 999px;
+}
+
 .grid-size-controller__button--top-outer {
   top: calc(50% - var(--preview-size) / 2 - var(--button-size) / 2 - var(--gap));
   left: 50%;
@@ -141,6 +152,15 @@ body.game-active {
   top: calc(50% + var(--preview-size) / 2 + var(--button-size) / 2 + var(--gap));
   left: 50%;
   transform: translate(-50%, -50%);
+}
+
+.grid-size-controller__button--left-outer,
+.grid-size-controller__button--left-inner,
+.grid-size-controller__button--right-inner,
+.grid-size-controller__button--right-outer {
+  width: var(--button-size);
+  height: var(--button-length-vertical);
+  border-radius: 999px;
 }
 
 .grid-size-controller__button--left-outer {
