@@ -6,7 +6,10 @@ import {
   adjustGridZoom,
   setGridDimensions,
   getGridCols,
-  getProblemCircuit
+  getGridDimensions,
+  getProblemCircuit,
+  getProblemController,
+  onCircuitModified
 } from './grid.js';
 import { getUsername } from './storage.js';
 
@@ -28,6 +31,16 @@ const POPULAR_LIKE_THRESHOLD = 3;
 const MIN_DIFFICULTY = 1;
 const MAX_DIFFICULTY = 5;
 const DEFAULT_DIFFICULTY = 3;
+
+const MAX_IO_COUNT = 6;
+const MAX_GRID_ROWS = 15;
+const MAX_GRID_COLS = 15;
+const DEFAULT_GRID_ROWS = 6;
+const DEFAULT_GRID_COLS = 6;
+
+let gridResizeControlsInitialized = false;
+let detachProblemCircuitListener = null;
+let cachedIOState = { inputs: [], outputs: [] };
 
 function createDefaultDifficultySelection() {
   const selection = {};
@@ -67,6 +80,66 @@ function translate(key, fallback = '') {
     return t(key);
   }
   return fallback;
+}
+
+function parseIONumber(name, prefix) {
+  if (typeof name !== 'string') return Number.NaN;
+  const regex = new RegExp(`^${prefix}(\\d+)$`, 'i');
+  const match = name.match(regex);
+  if (!match) return Number.NaN;
+  return Number.parseInt(match[1], 10);
+}
+
+function compareIONames(a, b, prefix) {
+  const aNum = parseIONumber(a, prefix);
+  const bNum = parseIONumber(b, prefix);
+  const aValid = Number.isFinite(aNum);
+  const bValid = Number.isFinite(bNum);
+  if (aValid && bValid) return aNum - bNum;
+  if (aValid) return -1;
+  if (bValid) return 1;
+  return a.localeCompare(b);
+}
+
+function normalizeIONames(names = [], prefix) {
+  const unique = Array.from(new Set(
+    (Array.isArray(names) ? names : []).filter(name => typeof name === 'string')
+  ));
+  return unique.sort((a, b) => compareIONames(a, b, prefix)).slice(0, MAX_IO_COUNT);
+}
+
+function getCurrentIOState() {
+  const circuit = getProblemCircuit();
+  if (!circuit) {
+    return { inputs: [], outputs: [] };
+  }
+  const blocks = Object.values(circuit.blocks || {});
+  const inputs = normalizeIONames(
+    blocks.filter(block => block.type === 'INPUT').map(block => block.name),
+    'IN'
+  );
+  const outputs = normalizeIONames(
+    blocks.filter(block => block.type === 'OUTPUT').map(block => block.name),
+    'OUT'
+  );
+  return { inputs, outputs };
+}
+
+function getNextAvailableName(prefix, usedNames = []) {
+  const used = new Set(Array.isArray(usedNames) ? usedNames : []);
+  for (let i = 1; i <= MAX_IO_COUNT; i += 1) {
+    const candidate = `${prefix}${i}`;
+    if (!used.has(candidate)) return candidate;
+  }
+  return null;
+}
+
+function arraysEqual(a = [], b = []) {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i] !== b[i]) return false;
+  }
+  return true;
 }
 
 function getDifficultyStars() {
@@ -248,17 +321,9 @@ function createPaletteForProblem() {
   const builder = typeof paletteGroupsBuilder === 'function'
     ? paletteGroupsBuilder
     : blocks => blocks;
-  const inputEl = document.getElementById('inputCount');
-  const outputEl = document.getElementById('outputCount');
-  const inputCnt = Number.parseInt(inputEl?.value, 10) || 1;
-  const outputCnt = Number.parseInt(outputEl?.value, 10) || 1;
   const blocks = [];
-  for (let i = 1; i <= inputCnt; i += 1) {
-    blocks.push({ type: 'INPUT', name: `IN${i}` });
-  }
-  for (let j = 1; j <= outputCnt; j += 1) {
-    blocks.push({ type: 'OUTPUT', name: `OUT${j}` });
-  }
+  blocks.push({ type: 'INPUT', name: 'IN1' });
+  blocks.push({ type: 'OUTPUT', name: 'OUT1' });
   ['AND', 'OR', 'NOT', 'JUNCTION'].forEach(type => {
     blocks.push({ type });
   });
@@ -285,117 +350,105 @@ function createPaletteForCustom(problem) {
 }
 
 export function initializeProblemEditorUI() {
-  const inputEl = document.getElementById('inputCount');
-  const outputEl = document.getElementById('outputCount');
-  if (!inputEl || !outputEl) return;
+  cachedIOState = { inputs: [], outputs: [] };
+  setupGridResizeControls();
+  detachProblemCircuitListener?.();
+  detachProblemCircuitListener = null;
 
-  inputEl.value = clamp(inputEl.value, 1, 6, 1);
-  outputEl.value = clamp(outputEl.value, 1, 6, 1);
-
-  const rowsEl = document.getElementById('gridRows');
-  const colsEl = document.getElementById('gridCols');
-  const rows = clamp(rowsEl?.value, 1, 15, 6);
-  const cols = clamp(colsEl?.value, 1, 15, 6);
-  if (rowsEl) rowsEl.value = rows;
-  if (colsEl) colsEl.value = cols;
-
+  const rows = DEFAULT_GRID_ROWS;
+  const cols = DEFAULT_GRID_COLS;
   const palette = createPaletteForProblem();
-  setupGrid('problemCanvasContainer', rows, cols, palette);
-  clearGrid();
-  clearWires();
-  setGridDimensions(rows, cols);
-  initTestcaseTable();
-  markCircuitModified('problem');
-  adjustGridZoom('problemCanvasContainer');
-  invalidateProblemOutputs();
+
+  setupGrid('problemCanvasContainer', rows, cols, palette).then(() => {
+    clearGrid();
+    clearWires();
+    setGridDimensions(rows, cols);
+    updateProblemIOState({ forceTable: true });
+    updateGridResizeButtonStates();
+    markCircuitModified('problem');
+    adjustGridZoom('problemCanvasContainer');
+    invalidateProblemOutputs();
+    detachProblemCircuitListener = onCircuitModified(context => {
+      if (context !== 'problem') return;
+      handleProblemCircuitModified();
+    });
+  });
 }
 
-export function initTestcaseTable() {
+function renderTruthTable(inputNames = [], outputNames = [], { preserve = true } = {}) {
   const table = document.getElementById('testcaseTable');
   if (!table) return;
-
-  const inputCnt = clamp(
-    document.getElementById('inputCount')?.value,
-    1,
-    6,
-    1
-  );
-  const outputCnt = clamp(
-    document.getElementById('outputCount')?.value,
-    1,
-    6,
-    1
-  );
-
   const thead = table.querySelector('thead');
   const tbody = table.querySelector('tbody');
   if (!thead || !tbody) return;
 
+  const shouldPreserve =
+    preserve && arraysEqual(cachedIOState.inputs, inputNames) && tbody.children.length > 0;
+  const previousRows = shouldPreserve
+    ? getProblemTruthTable(cachedIOState.inputs, cachedIOState.outputs)
+    : [];
+  const previousMap = new Map();
+  if (shouldPreserve && previousRows.length) {
+    previousRows.forEach(row => {
+      const key = cachedIOState.inputs
+        .map(name => (row[name] === 1 || row[name] === '1' ? 1 : 0))
+        .join('');
+      const stored = {};
+      cachedIOState.outputs.forEach(name => {
+        if (name in row) stored[name] = row[name];
+      });
+      previousMap.set(key, stored);
+    });
+  }
+
   thead.innerHTML = '';
   const headerRow = document.createElement('tr');
-  for (let i = 1; i <= inputCnt; i += 1) {
+  inputNames.forEach(name => {
     const th = document.createElement('th');
-    th.textContent = `IN${i}`;
+    th.textContent = name;
     headerRow.appendChild(th);
-  }
-  for (let j = 1; j <= outputCnt; j += 1) {
+  });
+  outputNames.forEach(name => {
     const th = document.createElement('th');
-    th.textContent = `OUT${j}`;
+    th.textContent = name;
     headerRow.appendChild(th);
-  }
+  });
   thead.appendChild(headerRow);
 
   tbody.innerHTML = '';
-  const totalRows = 1 << inputCnt;
-  for (let r = 0; r < totalRows; r += 1) {
-    const row = document.createElement('tr');
-    for (let i = 0; i < inputCnt; i += 1) {
+  const rowCount = inputNames.length > 0 ? Math.min(1 << inputNames.length, 1 << MAX_IO_COUNT) : 1;
+  for (let r = 0; r < rowCount; r += 1) {
+    const tr = document.createElement('tr');
+    const keyBits = [];
+    inputNames.forEach((_, idx) => {
+      const bit = inputNames.length ? (r >> (inputNames.length - 1 - idx)) & 1 : 0;
+      keyBits.push(bit);
       const td = document.createElement('td');
       td.style.width = '30px';
-      td.textContent = (r >> (inputCnt - 1 - i)) & 1;
-      row.appendChild(td);
-    }
-    for (let j = 0; j < outputCnt; j += 1) {
+      td.textContent = bit;
+      tr.appendChild(td);
+    });
+    const key = keyBits.join('');
+    const previousOutputs = previousMap.get(key) || {};
+    outputNames.forEach(name => {
       const td = document.createElement('td');
       td.style.width = '30px';
-      td.textContent = '';
-      row.appendChild(td);
-    }
-    tbody.appendChild(row);
+      const value = previousOutputs[name];
+      if (value === 1 || value === '1') td.textContent = '1';
+      else if (value === 0 || value === '0') td.textContent = '0';
+      else td.textContent = '';
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
   }
 }
 
+export function initTestcaseTable() {
+  renderTruthTable(cachedIOState.inputs, cachedIOState.outputs, { preserve: false });
+}
+
 export function addTestcaseRow() {
-  const table = document.getElementById('testcaseTable');
-  if (!table) return;
-
-  const inputCnt = clamp(
-    document.getElementById('inputCount')?.value,
-    1,
-    6,
-    1
-  );
-  const outputCnt = clamp(
-    document.getElementById('outputCount')?.value,
-    1,
-    6,
-    1
-  );
-
-  const tr = document.createElement('tr');
-  for (let i = 0; i < inputCnt; i += 1) {
-    const td = document.createElement('td');
-    td.style.width = '30px';
-    td.textContent = '0';
-    tr.appendChild(td);
-  }
-  for (let j = 0; j < outputCnt; j += 1) {
-    const td = document.createElement('td');
-    td.style.width = '30px';
-    td.textContent = '';
-    tr.appendChild(td);
-  }
-  table.querySelector('tbody')?.appendChild(tr);
+  renderTruthTable(cachedIOState.inputs, cachedIOState.outputs);
 }
 
 function getProblemGridData() {
@@ -452,38 +505,130 @@ function getProblemCircuitStats() {
   return { blockCounts, usedWires: wireCells.size };
 }
 
-function getProblemTruthTable() {
-  const inputCnt = clamp(
-    document.getElementById('inputCount')?.value,
-    1,
-    6,
-    1
-  );
-  const outputCnt = clamp(
-    document.getElementById('outputCount')?.value,
-    1,
-    6,
-    1
-  );
-  const rows = Array.from(
-    document.querySelectorAll('#testcaseTable tbody tr')
-  );
+function getProblemTruthTable(
+  inputNames = cachedIOState.inputs,
+  outputNames = cachedIOState.outputs
+) {
+  const table = document.getElementById('testcaseTable');
+  if (!table) return [];
+  const rows = Array.from(table.querySelectorAll('tbody tr'));
+  if (!rows.length) return [];
+
   return rows.map(tr => {
     const row = {};
     const cells = Array.from(tr.querySelectorAll('td'));
-    for (let i = 0; i < inputCnt; i += 1) {
-      row[`IN${i + 1}`] = cells[i].textContent.trim() === '1' ? 1 : 0;
-    }
-    for (let j = 0; j < outputCnt; j += 1) {
-      row[`OUT${j + 1}`] = cells[inputCnt + j].textContent.trim() === '1' ? 1 : 0;
-    }
+    inputNames.forEach((name, idx) => {
+      const cell = cells[idx];
+      row[name] = cell && cell.textContent.trim() === '1' ? 1 : 0;
+    });
+    outputNames.forEach((name, idx) => {
+      const cell = cells[inputNames.length + idx];
+      if (!cell) {
+        row[name] = '';
+      } else {
+        const value = cell.textContent.trim();
+        if (value === '1') row[name] = 1;
+        else if (value === '0') row[name] = 0;
+        else row[name] = '';
+      }
+    });
     return row;
+  });
+}
+
+function updateProblemPalette(inputNames, outputNames) {
+  const controller = getProblemController();
+  if (!controller?.setIOPaletteNames) return;
+  const nextInput = getNextAvailableName('IN', inputNames);
+  const nextOutput = getNextAvailableName('OUT', outputNames);
+  controller.setIOPaletteNames(
+    nextInput ? [nextInput] : [],
+    nextOutput ? [nextOutput] : []
+  );
+}
+
+function updateProblemIOState({ forceTable = false } = {}) {
+  const { inputs, outputs } = getCurrentIOState();
+  updateProblemPalette(inputs, outputs);
+  const inputsChanged = !arraysEqual(cachedIOState.inputs, inputs);
+  const outputsChanged = !arraysEqual(cachedIOState.outputs, outputs);
+  if (forceTable || inputsChanged || outputsChanged) {
+    const preserve = !forceTable && !inputsChanged;
+    renderTruthTable(inputs, outputs, { preserve });
+    cachedIOState = { inputs: [...inputs], outputs: [...outputs] };
+  }
+}
+
+function handleProblemCircuitModified() {
+  invalidateProblemOutputs();
+  updateProblemIOState();
+  updateGridResizeButtonStates();
+}
+
+function setupGridResizeControls() {
+  if (gridResizeControlsInitialized) return;
+  const container = document.getElementById('problemCanvasContainer');
+  if (!container) return;
+  const buttons = container.querySelectorAll('[data-grid-action]');
+  buttons.forEach(button => {
+    const action = button.dataset.gridAction;
+    if (!action) return;
+    button.addEventListener('click', () => handleGridControl(action));
+  });
+  gridResizeControlsInitialized = true;
+}
+
+function handleGridControl(action) {
+  const controller = getProblemController();
+  if (!controller) return;
+  const actionHandlers = {
+    'add-row-top': () => controller.expandGrid?.('top'),
+    'remove-row-top': () => controller.shrinkGrid?.('top'),
+    'add-row-bottom': () => controller.expandGrid?.('bottom'),
+    'remove-row-bottom': () => controller.shrinkGrid?.('bottom'),
+    'add-col-left': () => controller.expandGrid?.('left'),
+    'remove-col-left': () => controller.shrinkGrid?.('left'),
+    'add-col-right': () => controller.expandGrid?.('right'),
+    'remove-col-right': () => controller.shrinkGrid?.('right'),
+  };
+  const handler = actionHandlers[action];
+  if (!handler) return;
+  const changed = handler();
+  if (changed) {
+    const circuit = getProblemCircuit();
+    if (circuit) {
+      setGridDimensions(circuit.rows, circuit.cols);
+    }
+    adjustGridZoom('problemCanvasContainer');
+  }
+  updateGridResizeButtonStates();
+}
+
+function updateGridResizeButtonStates() {
+  const controller = getProblemController();
+  const buttonStates = [
+    { id: 'addRowTopBtn', enabled: Boolean(controller?.canExpandGrid?.('top')) },
+    { id: 'removeRowTopBtn', enabled: Boolean(controller?.canShrinkGrid?.('top')) },
+    { id: 'addRowBottomBtn', enabled: Boolean(controller?.canExpandGrid?.('bottom')) },
+    { id: 'removeRowBottomBtn', enabled: Boolean(controller?.canShrinkGrid?.('bottom')) },
+    { id: 'addColLeftBtn', enabled: Boolean(controller?.canExpandGrid?.('left')) },
+    { id: 'removeColLeftBtn', enabled: Boolean(controller?.canShrinkGrid?.('left')) },
+    { id: 'addColRightBtn', enabled: Boolean(controller?.canExpandGrid?.('right')) },
+    { id: 'removeColRightBtn', enabled: Boolean(controller?.canShrinkGrid?.('right')) },
+  ];
+  buttonStates.forEach(({ id, enabled }) => {
+    const button = document.getElementById(id);
+    if (button) {
+      button.disabled = !enabled;
+    }
   });
 }
 
 export function collectProblemData() {
   const circuit = getProblemCircuit();
   const cols = getGridCols();
+  const [gridRows, gridCols] = getGridDimensions();
+  const { inputs, outputs } = getCurrentIOState();
   const wiresObj = circuit
     ? Object.values(circuit.wires).map(wire => ({
         startIdx:
@@ -498,30 +643,18 @@ export function collectProblemData() {
 
   const titleInput = document.getElementById('problemTitleInput');
   const descInput = document.getElementById('problemDescInput');
-  const rowsInput = document.getElementById('gridRows');
-  const colsInput = document.getElementById('gridCols');
   const fixIOCheck = document.getElementById('fixIOCheck');
 
   return {
     title: titleInput ? titleInput.value.trim() : '',
     description: descInput ? descInput.value.trim() : '',
     difficulty: getProblemDifficultyValue(),
-    inputCount: clamp(
-      document.getElementById('inputCount')?.value,
-      1,
-      6,
-      1
-    ),
-    outputCount: clamp(
-      document.getElementById('outputCount')?.value,
-      1,
-      6,
-      1
-    ),
-    gridRows: clamp(rowsInput?.value, 1, 15, 6),
-    gridCols: clamp(colsInput?.value, 1, 15, 6),
+    inputCount: inputs.length,
+    outputCount: outputs.length,
+    gridRows,
+    gridCols,
     fixIO: Boolean(fixIOCheck?.checked),
-    table: getProblemTruthTable(),
+    table: getProblemTruthTable(inputs, outputs),
     grid: getProblemGridData(),
     wires: getProblemWireData(),
     wiresObj,
@@ -606,36 +739,39 @@ function leaveProblemScreen() {
 function computeProblemOutputs() {
   const circuit = getProblemCircuit();
   if (!circuit) return;
-  const inputCnt = parseInt(document.getElementById('inputCount')?.value, 10) || 1;
-  const outputCnt = parseInt(document.getElementById('outputCount')?.value, 10) || 1;
-  const inNames = Array.from({ length: inputCnt }, (_, i) => `IN${i + 1}`);
-  const outNames = Array.from({ length: outputCnt }, (_, i) => `OUT${i + 1}`);
-
-  const blocks = Object.values(circuit.blocks);
-  const actualOutputs = blocks.filter(b => b.type === 'OUTPUT').map(b => b.name);
-  const missing = outNames.filter(n => !actualOutputs.includes(n));
-  if (missing.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missing.join(', ')));
+  const { inputs: inputNames, outputs: outputNames } = getCurrentIOState();
+  if (!outputNames.length) {
+    alert(t('noOutputsDefined'));
     return;
   }
 
-  const inputs = inNames.map(name =>
-    blocks.find(b => b.type === 'INPUT' && b.name === name)
+  const blocks = Object.values(circuit.blocks || {});
+  const inputs = inputNames.map(name =>
+    blocks.find(block => block.type === 'INPUT' && block.name === name)
   );
-  const outputs = outNames.map(name =>
-    blocks.find(b => b.type === 'OUTPUT' && b.name === name)
+  const outputs = outputNames.map(name =>
+    blocks.find(block => block.type === 'OUTPUT' && block.name === name)
   );
 
-  const rows = document.querySelectorAll('#testcaseTable tbody tr');
+  const missingOutputs = outputNames.filter((_, idx) => !outputs[idx]);
+  if (missingOutputs.length > 0) {
+    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
+    return;
+  }
+
+  const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
+  if (!rows.length) return;
   import('../canvas/engine.js').then(({ evaluateCircuit }) => {
     rows.forEach(tr => {
       const cells = tr.querySelectorAll('td');
       inputs.forEach((inp, i) => {
-        if (inp) inp.value = cells[i].textContent.trim() === '1';
+        if (inp) inp.value = cells[i]?.textContent.trim() === '1';
       });
       evaluateCircuit(circuit);
       outputs.forEach((out, j) => {
-        if (out) cells[inputCnt + j].textContent = out.value ? 1 : 0;
+        if (!out) return;
+        const cell = cells[inputNames.length + j];
+        if (cell) cell.textContent = out.value ? '1' : '0';
       });
     });
     markProblemOutputsValid();
