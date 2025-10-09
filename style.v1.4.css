@@ -1560,9 +1560,6 @@ html, body {
 
   #user-problems-screen {
     overflow: hidden;
-    background: radial-gradient(circle at top left, rgba(221, 236, 255, 0.9), transparent 55%),
-      radial-gradient(circle at bottom right, rgba(236, 233, 254, 0.85), transparent 45%),
-      linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.95));
   }
 
   .user-problems-panel {
@@ -1674,7 +1671,6 @@ html, body {
     min-height: 0;
     max-height: 100%;
     flex: 1 1 auto;
-    height: 100%;
     background: linear-gradient(160deg, rgba(248, 250, 252, 0.92), rgba(241, 245, 249, 0.85));
     border-radius: 18px;
     border: 1px solid rgba(226, 232, 240, 0.7);
@@ -1899,7 +1895,6 @@ html, body {
     align-items: center;
     gap: 1rem;
     flex-wrap: wrap;
-    width: 100%;
     padding: 0.75rem 1.5rem;
     border-radius: 14px;
     border: 1px solid rgba(203, 213, 225, 0.6);
