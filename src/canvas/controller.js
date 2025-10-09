@@ -471,6 +471,78 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
   }
 
+  function canDeleteSelection() {
+    const sel = state.selection;
+    if (!sel) return false;
+
+    let hasDeletable = false;
+
+    for (const id of sel.blocks) {
+      const block = circuit.blocks[id];
+      if (!block) continue;
+      if (block.fixed) return false;
+      hasDeletable = true;
+    }
+
+    for (const id of sel.wires) {
+      if (circuit.wires[id]) {
+        hasDeletable = true;
+      }
+    }
+
+    return hasDeletable;
+  }
+
+  function deleteSelection() {
+    const sel = state.selection;
+    if (!sel || !canDeleteSelection()) return false;
+
+    const blocksToDelete = Array.from(sel.blocks).filter(id => circuit.blocks[id]);
+    const wiresToDelete = new Set(sel.wires);
+
+    blocksToDelete.forEach(id => {
+      Object.entries(circuit.wires).forEach(([wid, wire]) => {
+        if (wire.startBlockId === id || wire.endBlockId === id) {
+          wiresToDelete.add(wid);
+        }
+      });
+    });
+
+    let deleted = false;
+
+    wiresToDelete.forEach(wid => {
+      const wire = circuit.wires[wid];
+      if (!wire) return;
+      const endBlock = circuit.blocks[wire.endBlockId];
+      if (endBlock) {
+        endBlock.inputs = (endBlock.inputs || []).filter(
+          inputId => inputId !== wire.startBlockId
+        );
+      }
+      delete circuit.wires[wid];
+      deleted = true;
+    });
+
+    blocksToDelete.forEach(id => {
+      const block = circuit.blocks[id];
+      if (!block) return;
+      if (block.type === 'INPUT' || block.type === 'OUTPUT') {
+        showPaletteItem(block.type, block.name);
+      }
+      delete circuit.blocks[id];
+      deleted = true;
+    });
+
+    if (deleted) {
+      renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+      updateUsageCounts();
+      clearSelection();
+      snapshot();
+    }
+
+    return deleted;
+  }
+
   function expandSelectionConnections(blocks, wires) {
     const queue = [...blocks];
     while (queue.length) {
@@ -974,6 +1046,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               cell.c <= state.selection.c2
             ) {
               inside = true;
+              if (state.mode === 'deleting' && isPrimary) {
+                const deleted = deleteSelection();
+                if (deleted) {
+                  state.pointerDown = null;
+                  return true;
+                }
+              }
               if (state.mode === 'idle' && isPrimary) {
                 state.selectionDrag = {
                   start: cell,
