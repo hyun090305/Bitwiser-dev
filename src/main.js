@@ -837,8 +837,6 @@ initializeProblemCreationFlow({
     userProblemsScreenId: 'user-problems-screen',
     openProblemCreatorBtnId: 'openProblemCreatorBtn',
     updateIOBtnId: 'updateIOBtn',
-    addRowBtnId: 'addTestcaseRowBtn',
-    computeOutputsBtnId: 'computeOutputsBtn',
     saveProblemBtnId: 'saveProblemBtn',
     confirmSaveProblemBtnId: 'confirmSaveProblemBtn',
     cancelSaveProblemBtnId: 'cancelSaveProblemBtn',

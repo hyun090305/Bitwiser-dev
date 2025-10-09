@@ -11,13 +11,13 @@ import {
   getProblemController,
   onCircuitModified
 } from './grid.js';
+import { evaluateCircuit } from '../canvas/engine.js';
 import { getUsername } from './storage.js';
 
 let creationFlowConfig = null;
 let startCustomProblemHandler = null;
 let paletteGroupsBuilder = blocks => blocks;
 let previousScreen = null;
-let problemOutputsValid = false;
 let saveProblemButton = null;
 let confirmSaveProblemButton = null;
 let activeCustomProblem = null;
@@ -140,6 +140,63 @@ function arraysEqual(a = [], b = []) {
     if (a[i] !== b[i]) return false;
   }
   return true;
+}
+
+function hasSequentialIONames(names = [], prefix) {
+  if (!Array.isArray(names)) return false;
+  for (let i = 0; i < names.length; i += 1) {
+    if (names[i] !== `${prefix}${i + 1}`) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function hasCircuitConnectionErrors(circuit) {
+  if (!circuit) return true;
+  const blocks = Object.values(circuit.blocks || {});
+  const wires = Object.values(circuit.wires || {});
+  return blocks.some(block => {
+    if (block.type !== 'OUTPUT' && block.type !== 'JUNCTION') {
+      return false;
+    }
+    const incoming = wires.filter(wire => wire.endBlockId === block.id);
+    return incoming.length > 1;
+  });
+}
+
+function getProblemSaveState() {
+  const circuit = getProblemCircuit();
+  const { inputs, outputs } = getCurrentIOState();
+
+  if (!inputs.length || !outputs.length) {
+    return {
+      canSave: false,
+      message: translate(
+        'problemSaveNeedsIO',
+        'IN과 OUT 블록을 각각 최소 1개 이상 배치하세요.'
+      )
+    };
+  }
+
+  if (!hasSequentialIONames(inputs, 'IN') || !hasSequentialIONames(outputs, 'OUT')) {
+    return {
+      canSave: false,
+      message: translate(
+        'problemSaveNeedsSequentialIO',
+        'IN, OUT 블록 번호를 1부터 순서대로 설정하세요.'
+      )
+    };
+  }
+
+  if (hasCircuitConnectionErrors(circuit)) {
+    return {
+      canSave: false,
+      message: translate('problemSaveFixErrors', '회로 오류를 먼저 해결해주세요.')
+    };
+  }
+
+  return { canSave: true, message: '' };
 }
 
 function getDifficultyStars() {
@@ -272,33 +329,26 @@ function getConfirmSaveProblemButton() {
 }
 
 function updateProblemCreationAvailability() {
-  const disabled = !problemOutputsValid;
+  const { canSave, message } = getProblemSaveState();
   const saveBtn = getSaveProblemButton();
   const confirmBtn = getConfirmSaveProblemButton();
-  const message = disabled
-    ? translate('computeOutputsFirst', '출력 계산을 먼저 실행하세요.')
-    : '';
 
   if (saveBtn) {
-    saveBtn.disabled = disabled;
+    saveBtn.disabled = !canSave;
     if (message) saveBtn.title = message;
     else saveBtn.removeAttribute('title');
   }
 
   if (confirmBtn) {
-    confirmBtn.disabled = disabled;
+    confirmBtn.disabled = !canSave;
     if (message) confirmBtn.title = message;
     else confirmBtn.removeAttribute('title');
   }
+
+  return canSave;
 }
 
 export function invalidateProblemOutputs() {
-  problemOutputsValid = false;
-  updateProblemCreationAvailability();
-}
-
-function markProblemOutputsValid() {
-  problemOutputsValid = true;
   updateProblemCreationAvailability();
 }
 
@@ -363,92 +413,15 @@ export function initializeProblemEditorUI() {
     clearGrid();
     clearWires();
     setGridDimensions(rows, cols);
-    updateProblemIOState({ forceTable: true });
+    updateProblemIOState();
     updateGridResizeButtonStates();
     markCircuitModified('problem');
     adjustGridZoom('problemCanvasContainer');
-    invalidateProblemOutputs();
     detachProblemCircuitListener = onCircuitModified(context => {
       if (context !== 'problem') return;
       handleProblemCircuitModified();
     });
   });
-}
-
-function renderTruthTable(inputNames = [], outputNames = [], { preserve = true } = {}) {
-  const table = document.getElementById('testcaseTable');
-  if (!table) return;
-  const thead = table.querySelector('thead');
-  const tbody = table.querySelector('tbody');
-  if (!thead || !tbody) return;
-
-  const shouldPreserve =
-    preserve && arraysEqual(cachedIOState.inputs, inputNames) && tbody.children.length > 0;
-  const previousRows = shouldPreserve
-    ? getProblemTruthTable(cachedIOState.inputs, cachedIOState.outputs)
-    : [];
-  const previousMap = new Map();
-  if (shouldPreserve && previousRows.length) {
-    previousRows.forEach(row => {
-      const key = cachedIOState.inputs
-        .map(name => (row[name] === 1 || row[name] === '1' ? 1 : 0))
-        .join('');
-      const stored = {};
-      cachedIOState.outputs.forEach(name => {
-        if (name in row) stored[name] = row[name];
-      });
-      previousMap.set(key, stored);
-    });
-  }
-
-  thead.innerHTML = '';
-  const headerRow = document.createElement('tr');
-  inputNames.forEach(name => {
-    const th = document.createElement('th');
-    th.textContent = name;
-    headerRow.appendChild(th);
-  });
-  outputNames.forEach(name => {
-    const th = document.createElement('th');
-    th.textContent = name;
-    headerRow.appendChild(th);
-  });
-  thead.appendChild(headerRow);
-
-  tbody.innerHTML = '';
-  const rowCount = inputNames.length > 0 ? Math.min(1 << inputNames.length, 1 << MAX_IO_COUNT) : 1;
-  for (let r = 0; r < rowCount; r += 1) {
-    const tr = document.createElement('tr');
-    const keyBits = [];
-    inputNames.forEach((_, idx) => {
-      const bit = inputNames.length ? (r >> (inputNames.length - 1 - idx)) & 1 : 0;
-      keyBits.push(bit);
-      const td = document.createElement('td');
-      td.style.width = '30px';
-      td.textContent = bit;
-      tr.appendChild(td);
-    });
-    const key = keyBits.join('');
-    const previousOutputs = previousMap.get(key) || {};
-    outputNames.forEach(name => {
-      const td = document.createElement('td');
-      td.style.width = '30px';
-      const value = previousOutputs[name];
-      if (value === 1 || value === '1') td.textContent = '1';
-      else if (value === 0 || value === '0') td.textContent = '0';
-      else td.textContent = '';
-      tr.appendChild(td);
-    });
-    tbody.appendChild(tr);
-  }
-}
-
-export function initTestcaseTable() {
-  renderTruthTable(cachedIOState.inputs, cachedIOState.outputs, { preserve: false });
-}
-
-export function addTestcaseRow() {
-  renderTruthTable(cachedIOState.inputs, cachedIOState.outputs);
 }
 
 function getProblemGridData() {
@@ -509,31 +482,64 @@ function getProblemTruthTable(
   inputNames = cachedIOState.inputs,
   outputNames = cachedIOState.outputs
 ) {
-  const table = document.getElementById('testcaseTable');
-  if (!table) return [];
-  const rows = Array.from(table.querySelectorAll('tbody tr'));
-  if (!rows.length) return [];
+  const circuit = getProblemCircuit();
+  if (!circuit || !inputNames.length || !outputNames.length) {
+    return [];
+  }
 
-  return rows.map(tr => {
+  const blocks = Object.values(circuit.blocks || {});
+  const inputBlocks = inputNames.map(name =>
+    blocks.find(block => block.type === 'INPUT' && block.name === name)
+  );
+  const outputBlocks = outputNames.map(name =>
+    blocks.find(block => block.type === 'OUTPUT' && block.name === name)
+  );
+
+  const originalInputValues = inputBlocks.map(block => block?.value);
+  const originalOutputValues = outputBlocks.map(block => block?.value);
+
+  const rowCount = inputNames.length > 0
+    ? Math.min(1 << inputNames.length, 1 << MAX_IO_COUNT)
+    : 1;
+  const rows = [];
+
+  for (let r = 0; r < rowCount; r += 1) {
     const row = {};
-    const cells = Array.from(tr.querySelectorAll('td'));
     inputNames.forEach((name, idx) => {
-      const cell = cells[idx];
-      row[name] = cell && cell.textContent.trim() === '1' ? 1 : 0;
-    });
-    outputNames.forEach((name, idx) => {
-      const cell = cells[inputNames.length + idx];
-      if (!cell) {
-        row[name] = '';
-      } else {
-        const value = cell.textContent.trim();
-        if (value === '1') row[name] = 1;
-        else if (value === '0') row[name] = 0;
-        else row[name] = '';
+      const bit = (r >> (inputNames.length - 1 - idx)) & 1;
+      row[name] = bit;
+      const block = inputBlocks[idx];
+      if (block) {
+        block.value = bit === 1;
       }
     });
-    return row;
+
+    evaluateCircuit(circuit);
+
+    outputNames.forEach((name, idx) => {
+      const block = outputBlocks[idx];
+      if (block) {
+        row[name] = block.value ? 1 : 0;
+      } else {
+        row[name] = '';
+      }
+    });
+
+    rows.push(row);
+  }
+
+  inputBlocks.forEach((block, idx) => {
+    if (block) {
+      block.value = originalInputValues[idx];
+    }
   });
+  outputBlocks.forEach((block, idx) => {
+    if (block) {
+      block.value = originalOutputValues[idx];
+    }
+  });
+
+  return rows;
 }
 
 function updateProblemPalette(inputNames, outputNames) {
@@ -547,20 +553,18 @@ function updateProblemPalette(inputNames, outputNames) {
   );
 }
 
-function updateProblemIOState({ forceTable = false } = {}) {
+function updateProblemIOState() {
   const { inputs, outputs } = getCurrentIOState();
   updateProblemPalette(inputs, outputs);
   const inputsChanged = !arraysEqual(cachedIOState.inputs, inputs);
   const outputsChanged = !arraysEqual(cachedIOState.outputs, outputs);
-  if (forceTable || inputsChanged || outputsChanged) {
-    const preserve = !forceTable && !inputsChanged;
-    renderTruthTable(inputs, outputs, { preserve });
+  if (inputsChanged || outputsChanged) {
     cachedIOState = { inputs: [...inputs], outputs: [...outputs] };
   }
+  updateProblemCreationAvailability();
 }
 
 function handleProblemCircuitModified() {
-  invalidateProblemOutputs();
   updateProblemIOState();
   updateGridResizeButtonStates();
 }
@@ -680,8 +684,9 @@ export function saveProblem() {
     descInput.focus();
     return false;
   }
-  if (!problemOutputsValid) {
-    alert(t('computeOutputsFirst'));
+  const { canSave, message } = getProblemSaveState();
+  if (!canSave) {
+    if (message) alert(message);
     return false;
   }
 
@@ -734,48 +739,6 @@ function leaveProblemScreen() {
   }
   onRefreshUserData?.();
   previousScreen = null;
-}
-
-function computeProblemOutputs() {
-  const circuit = getProblemCircuit();
-  if (!circuit) return;
-  const { inputs: inputNames, outputs: outputNames } = getCurrentIOState();
-  if (!outputNames.length) {
-    alert(t('noOutputsDefined'));
-    return;
-  }
-
-  const blocks = Object.values(circuit.blocks || {});
-  const inputs = inputNames.map(name =>
-    blocks.find(block => block.type === 'INPUT' && block.name === name)
-  );
-  const outputs = outputNames.map(name =>
-    blocks.find(block => block.type === 'OUTPUT' && block.name === name)
-  );
-
-  const missingOutputs = outputNames.filter((_, idx) => !outputs[idx]);
-  if (missingOutputs.length > 0) {
-    alert(t('outputMissingAlert').replace('{list}', missingOutputs.join(', ')));
-    return;
-  }
-
-  const rows = Array.from(document.querySelectorAll('#testcaseTable tbody tr'));
-  if (!rows.length) return;
-  import('../canvas/engine.js').then(({ evaluateCircuit }) => {
-    rows.forEach(tr => {
-      const cells = tr.querySelectorAll('td');
-      inputs.forEach((inp, i) => {
-        if (inp) inp.value = cells[i]?.textContent.trim() === '1';
-      });
-      evaluateCircuit(circuit);
-      outputs.forEach((out, j) => {
-        if (!out) return;
-        const cell = cells[inputNames.length + j];
-        if (cell) cell.textContent = out.value ? '1' : '0';
-      });
-    });
-    markProblemOutputsValid();
-  });
 }
 
 function getModalBackdrop(selector) {
@@ -835,14 +798,6 @@ export function initializeProblemCreationFlow({
       alert('입출력/그리드 설정을 변경하면 회로가 초기화됩니다.');
       initializeProblemEditorUI();
     });
-  }
-
-  const addRowBtn = getElement(ids.addRowBtnId);
-  if (addRowBtn) addRowBtn.style.display = 'none';
-
-  const computeOutputsBtn = getElement(ids.computeOutputsBtnId);
-  if (computeOutputsBtn) {
-    computeOutputsBtn.addEventListener('click', computeProblemOutputs);
   }
 
   const problemSaveModal = getElement(ids.problemSaveModalId);
