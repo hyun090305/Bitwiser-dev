@@ -921,31 +921,80 @@ function createUserProblemListItem(problem) {
   if (problem.solvedByMe) item.classList.add('solved');
   item.tabIndex = 0;
 
+  const createBadge = (icon, label, value) => {
+    const badge = document.createElement('span');
+    badge.className = 'problem-item-badge';
+
+    const badgeIcon = document.createElement('span');
+    badgeIcon.className = 'problem-item-badge-icon';
+    badgeIcon.setAttribute('aria-hidden', 'true');
+    badgeIcon.textContent = icon;
+
+    const badgeText = document.createElement('span');
+    badgeText.className = 'problem-item-badge-text';
+
+    const badgeLabel = document.createElement('span');
+    badgeLabel.className = 'problem-item-badge-label';
+    badgeLabel.textContent = label;
+
+    const badgeValue = document.createElement('span');
+    badgeValue.className = 'problem-item-badge-value';
+    badgeValue.textContent = value;
+
+    badgeText.append(badgeLabel, badgeValue);
+    badge.append(badgeIcon, badgeText);
+
+    return badge;
+  };
+
   const header = document.createElement('div');
   header.className = 'problem-item-header';
+
+  const titleGroup = document.createElement('div');
+  titleGroup.className = 'problem-item-title-group';
 
   const title = document.createElement('span');
   title.className = 'problem-item-title';
   title.textContent = problem.title;
 
-  const grid = document.createElement('span');
-  grid.className = 'problem-item-grid';
-  grid.textContent = `${problem.gridRows}×${problem.gridCols}`;
+  titleGroup.append(title);
 
-  header.append(title, grid);
+  const headerBadges = document.createElement('div');
+  headerBadges.className = 'problem-item-header-badges';
+
+  const gridBadgeLabel = translate('problemGridSizeLabel', '격자 크기');
+  const gridBadgeValue = `${problem.gridRows}×${problem.gridCols}`;
+  const gridBadge = createBadge('🔢', gridBadgeLabel, gridBadgeValue);
+  headerBadges.appendChild(gridBadge);
+
+  header.append(titleGroup, headerBadges);
 
   const meta = document.createElement('div');
   meta.className = 'problem-item-meta';
 
   const creator = document.createElement('span');
-  creator.textContent = `${translate('thCreator', '제작자')}: ${problem.creator}${problem.isMine ? ' (나)' : ''}`;
+  creator.className = 'problem-item-meta-entry';
+  const creatorIcon = document.createElement('span');
+  creatorIcon.className = 'problem-item-meta-icon';
+  creatorIcon.setAttribute('aria-hidden', 'true');
+  creatorIcon.textContent = '👤';
+  const creatorText = document.createElement('span');
+  creatorText.textContent = `${translate('thCreator', '제작자')}: ${problem.creator}${problem.isMine ? ' (나)' : ''}`;
+  creator.append(creatorIcon, creatorText);
 
   const createdAt = document.createElement('span');
+  createdAt.className = 'problem-item-meta-entry';
+  const createdAtIcon = document.createElement('span');
+  createdAtIcon.className = 'problem-item-meta-icon';
+  createdAtIcon.setAttribute('aria-hidden', 'true');
+  createdAtIcon.textContent = '📅';
   const createdAtLabel = translate('thCreatedAt', '제작일');
   const createdAtValue = problem.createdAt
     ? problem.createdAt.toLocaleDateString()
     : '-';
-  createdAt.textContent = `${createdAtLabel}: ${createdAtValue}`;
+  const createdAtText = document.createElement('span');
+  createdAtText.textContent = `${createdAtLabel}: ${createdAtValue}`;
+  createdAt.append(createdAtIcon, createdAtText);
 
   meta.append(creator, createdAt);
 
@@ -955,18 +1004,17 @@ function createUserProblemListItem(problem) {
   const stats = document.createElement('div');
   stats.className = 'problem-item-stats';
 
-  const solvedInfo = document.createElement('span');
-  solvedInfo.textContent = `${translate('thSolved', '해결 수')}: ${problem.solved}`;
-  stats.appendChild(solvedInfo);
+  const solvedLabel = translate('thSolved', '해결 수');
+  const solvedBadge = createBadge('✅', solvedLabel, String(problem.solved));
+  stats.appendChild(solvedBadge);
 
-  const difficultyInfo = document.createElement('span');
   const difficultyLabel = translate('problemDifficultyLabel', '난이도');
   const difficultyStars = formatDifficultyStars(problem.difficulty);
   const difficultyValue = difficultyStars
     ? difficultyStars
     : translate('problemDifficultyUnknown', '미정');
-  difficultyInfo.textContent = `${difficultyLabel}: ${difficultyValue}`;
-  stats.appendChild(difficultyInfo);
+  const difficultyBadge = createBadge('⭐', difficultyLabel, difficultyValue);
+  stats.appendChild(difficultyBadge);
 
   const actions = document.createElement('div');
   actions.className = 'problem-item-actions';
