@@ -160,16 +160,6 @@ html, body {
     overflow: visible;
   }
 
-  #problem-screen #testcaseContainer {
-    max-width: 30vw;
-    max-height: 60vh;
-    overflow: auto;
-  }
-
-  #problem-screen #testcaseTable {
-    width: max-content;
-  }
-
     .button-row {
       display: flex;
       justify-content: center;
