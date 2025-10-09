@@ -166,28 +166,92 @@
     <div id="problem-screen" class="screen" style="display:none;">
       <div class="panel-overlay problem-screen-panel">
         <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
-          <div class="grid-size-control grid-size-control--top">
-            <button id="addRowTopBtn" type="button" data-grid-action="add-row-top">+ 행</button>
-            <button id="removeRowTopBtn" type="button" data-grid-action="remove-row-top">- 행</button>
-          </div>
-          <div class="grid-size-control grid-size-control--bottom">
-            <button id="addRowBottomBtn" type="button" data-grid-action="add-row-bottom">+ 행</button>
-            <button id="removeRowBottomBtn" type="button" data-grid-action="remove-row-bottom">- 행</button>
-          </div>
-          <div class="grid-size-control grid-size-control--left">
-            <button id="addColLeftBtn" type="button" data-grid-action="add-col-left">+ 열</button>
-            <button id="removeColLeftBtn" type="button" data-grid-action="remove-col-left">- 열</button>
-          </div>
-          <div class="grid-size-control grid-size-control--right">
-            <button id="addColRightBtn" type="button" data-grid-action="add-col-right">+ 열</button>
-            <button id="removeColRightBtn" type="button" data-grid-action="remove-col-right">- 열</button>
-          </div>
           <canvas id="problemBgCanvas" style="position:relative;"></canvas>
           <canvas id="problemContentCanvas"></canvas>
           <canvas id="problemOverlayCanvas"></canvas>
         </div>
         <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
           <h1 id="problemCreatorTitle">📝 문제 출제</h1>
+          <section class="panel-section" aria-labelledby="gridSizeControllerLabel">
+            <h2 id="gridSizeControllerLabel" class="panel-section__title">🧭 Grid Size</h2>
+            <div class="grid-size-controller" id="problemGridSizeController">
+              <button
+                id="addRowTopBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--expand grid-size-controller__button--top-outer"
+                data-grid-action="add-row-top"
+                aria-label="위쪽 행 추가"
+              >
+                <span aria-hidden="true">↑</span>
+              </button>
+              <button
+                id="removeRowTopBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--shrink grid-size-controller__button--top-inner"
+                data-grid-action="remove-row-top"
+                aria-label="위쪽 행 제거"
+              >
+                <span aria-hidden="true">↓</span>
+              </button>
+              <button
+                id="addRowBottomBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--expand grid-size-controller__button--bottom-outer"
+                data-grid-action="add-row-bottom"
+                aria-label="아래쪽 행 추가"
+              >
+                <span aria-hidden="true">↓</span>
+              </button>
+              <button
+                id="removeRowBottomBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--shrink grid-size-controller__button--bottom-inner"
+                data-grid-action="remove-row-bottom"
+                aria-label="아래쪽 행 제거"
+              >
+                <span aria-hidden="true">↑</span>
+              </button>
+              <button
+                id="addColLeftBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--expand grid-size-controller__button--left-outer"
+                data-grid-action="add-col-left"
+                aria-label="왼쪽 열 추가"
+              >
+                <span aria-hidden="true">←</span>
+              </button>
+              <button
+                id="removeColLeftBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--shrink grid-size-controller__button--left-inner"
+                data-grid-action="remove-col-left"
+                aria-label="왼쪽 열 제거"
+              >
+                <span aria-hidden="true">→</span>
+              </button>
+              <button
+                id="addColRightBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--expand grid-size-controller__button--right-outer"
+                data-grid-action="add-col-right"
+                aria-label="오른쪽 열 추가"
+              >
+                <span aria-hidden="true">→</span>
+              </button>
+              <button
+                id="removeColRightBtn"
+                type="button"
+                class="grid-size-controller__button grid-size-controller__button--shrink grid-size-controller__button--right-inner"
+                data-grid-action="remove-col-right"
+                aria-label="오른쪽 열 제거"
+              >
+                <span aria-hidden="true">←</span>
+              </button>
+              <div class="grid-size-controller__preview" id="gridSizePreview" aria-live="polite">
+                <span id="gridSizePreviewValue">0×0</span>
+              </div>
+            </div>
+          </section>
           <div style="display:flex; justify-content:space-between; gap:1rem;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:auto;">
               <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
