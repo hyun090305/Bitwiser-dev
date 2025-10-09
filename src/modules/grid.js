@@ -324,6 +324,9 @@ export function setupGrid(
           wireDeleteInfo: document.getElementById(
             prefix ? `${prefix}WireDeleteInfo` : 'wireDeleteInfo'
           ),
+          wireSelectInfo: document.getElementById(
+            prefix ? `${prefix}WireSelectInfo` : 'wireSelectInfo'
+          ),
           usedBlocksEl: document.getElementById(
             prefix ? `${prefix}UsedBlocks` : 'usedBlocks'
           ),

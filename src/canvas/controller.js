@@ -373,6 +373,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const moveBtn = ui.wireMoveInfo;
   const wireBtn = ui.wireStatusInfo;
   const delBtn = ui.wireDeleteInfo;
+  const selectBtn = ui.wireSelectInfo;
   const usedBlocksEl = ui.usedBlocksEl;
   const usedWiresEl = ui.usedWiresEl;
 
@@ -588,9 +589,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function updateButtons() {
     const isWireMode = state.mode === 'wireDrawing';
     const isDeleteMode = state.mode === 'deleting';
-    moveBtn?.classList.toggle('active', !isWireMode && !isDeleteMode);
+    const isSelectMode = state.mode === 'selecting';
+    moveBtn?.classList.toggle('active', !isWireMode && !isDeleteMode && !isSelectMode);
     wireBtn?.classList.toggle('active', isWireMode);
     delBtn?.classList.toggle('active', isDeleteMode);
+    selectBtn?.classList.toggle('active', isSelectMode);
   }
 
   // 공통 포인터 좌표 계산 (마우스/터치)
@@ -813,6 +816,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     updateButtons();
   });
 
+  selectBtn?.addEventListener('click', () => {
+    state.mode = state.mode === 'selecting' ? 'idle' : 'selecting';
+    updateButtons();
+  });
+
   function handlePointerDown(e) {
     if (state.pinch) return true;
     const { x, y } = getPointerPos(e);
@@ -829,7 +837,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       e.preventDefault();
       return handled;
     }
-    if (e.button === 2) {
+    const isSelectionTrigger = e.button === 2 || (state.mode === 'selecting' && isPrimary);
+    if (isSelectionTrigger) {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToBoundedCell(x, y);
         if (cell) {
@@ -839,6 +848,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
           handled = true;
         }
+      }
+      if (e.button === 2 && state.mode !== 'selecting') {
+        state.mode = 'selecting';
+        updateButtons();
       }
       e.preventDefault();
     } else {
@@ -1008,7 +1021,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.pointerDown = null;
       return;
     }
-    if (state.selecting && e.button === 2) {
+    if (state.selecting) {
       state.selecting = false;
       state.pointerDown = null;
       state.pointerMoved = false;
