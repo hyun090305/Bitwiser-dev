@@ -32,7 +32,7 @@ const MIN_DIFFICULTY = 1;
 const MAX_DIFFICULTY = 5;
 const DEFAULT_DIFFICULTY = 3;
 
-const MAX_IO_COUNT = 6;
+const TRUTH_TABLE_MAX_INPUTS = 6;
 const MAX_GRID_ROWS = 15;
 const MAX_GRID_COLS = 15;
 const DEFAULT_GRID_ROWS = 6;
@@ -102,10 +102,11 @@ function compareIONames(a, b, prefix) {
 }
 
 function normalizeIONames(names = [], prefix) {
-  const unique = Array.from(new Set(
-    (Array.isArray(names) ? names : []).filter(name => typeof name === 'string')
-  ));
-  return unique.sort((a, b) => compareIONames(a, b, prefix)).slice(0, MAX_IO_COUNT);
+  const validNames = (Array.isArray(names) ? names : []).filter(name =>
+    typeof name === 'string' && name.startsWith(prefix)
+  );
+  const unique = Array.from(new Set(validNames));
+  return unique.sort((a, b) => compareIONames(a, b, prefix));
 }
 
 function getCurrentIOState() {
@@ -126,12 +127,26 @@ function getCurrentIOState() {
 }
 
 function getNextAvailableName(prefix, usedNames = []) {
-  const used = new Set(Array.isArray(usedNames) ? usedNames : []);
-  for (let i = 1; i <= MAX_IO_COUNT; i += 1) {
-    const candidate = `${prefix}${i}`;
-    if (!used.has(candidate)) return candidate;
+  const numbers = new Set();
+  let maxNumber = 0;
+
+  (Array.isArray(usedNames) ? usedNames : []).forEach(name => {
+    if (typeof name !== 'string' || !name.startsWith(prefix)) return;
+    const parsed = Number.parseInt(name.slice(prefix.length), 10);
+    if (!Number.isFinite(parsed) || parsed <= 0) return;
+    numbers.add(parsed);
+    if (parsed > maxNumber) {
+      maxNumber = parsed;
+    }
+  });
+
+  for (let i = 1; i <= maxNumber; i += 1) {
+    if (!numbers.has(i)) {
+      return `${prefix}${i}`;
+    }
   }
-  return null;
+
+  return `${prefix}${maxNumber + 1}`;
 }
 
 function arraysEqual(a = [], b = []) {
@@ -498,9 +513,8 @@ function getProblemTruthTable(
   const originalInputValues = inputBlocks.map(block => block?.value);
   const originalOutputValues = outputBlocks.map(block => block?.value);
 
-  const rowCount = inputNames.length > 0
-    ? Math.min(1 << inputNames.length, 1 << MAX_IO_COUNT)
-    : 1;
+  const cappedInputCount = Math.min(inputNames.length, TRUTH_TABLE_MAX_INPUTS);
+  const rowCount = inputNames.length > 0 ? 1 << cappedInputCount : 1;
   const rows = [];
 
   for (let r = 0; r < rowCount; r += 1) {
@@ -604,6 +618,7 @@ function handleGridControl(action) {
       setGridDimensions(circuit.rows, circuit.cols);
     }
     adjustGridZoom('problemCanvasContainer');
+    updateProblemIOState();
   }
   updateGridResizeButtonStates();
 }
