@@ -2,6 +2,7 @@ import { makeCircuit } from '../canvas/model.js';
 import { createController } from '../canvas/controller.js';
 import { createCamera } from '../canvas/camera.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
+import { initializeCircuitCommunity } from './circuitCommunity.js';
 
 function getAvailableIONames(circuit, count = 5) {
   const collectNames = (type, prefix) => {
@@ -81,6 +82,7 @@ let labCircuit = null;
 let labCamera = null;
 let labResizeHandler = null;
 let rightPanelPlaceholder = null;
+let labCommunityControls = null;
 let originalGradeDisplay = '';
 let originalGameTitleText = '';
 
@@ -98,6 +100,12 @@ function moveRightPanelInto(container) {
     originalGradeDisplay = gradeButton.style.display;
     gradeButton.style.display = 'none';
   }
+  if (!labCommunityControls) {
+    labCommunityControls = document.getElementById('labCommunityControls');
+  }
+  if (labCommunityControls) {
+    labCommunityControls.style.display = 'flex';
+  }
   rightPanel.classList.add('lab-right-panel');
 }
 
@@ -109,6 +117,12 @@ function restoreRightPanel() {
   const gradeButton = document.getElementById('gradeButton');
   if (gradeButton) {
     gradeButton.style.display = originalGradeDisplay;
+  }
+  if (!labCommunityControls) {
+    labCommunityControls = document.getElementById('labCommunityControls');
+  }
+  if (labCommunityControls) {
+    labCommunityControls.style.display = 'none';
   }
 }
 
@@ -238,6 +252,40 @@ function hideLabScreen() {
   }
 }
 
+function applyCircuitToLabData(newCircuit) {
+  if (!newCircuit || typeof newCircuit !== 'object') {
+    console.warn('Invalid circuit data provided to lab loader');
+    return false;
+  }
+  const rows = Number(newCircuit.rows) || (labCircuit?.rows ?? 24);
+  const cols = Number(newCircuit.cols) || (labCircuit?.cols ?? 24);
+  if (!Number.isFinite(rows) || !Number.isFinite(cols)) {
+    console.warn('Circuit dimensions are not finite');
+    return false;
+  }
+  const blocks = newCircuit.blocks && typeof newCircuit.blocks === 'object' ? newCircuit.blocks : {};
+  const wires = newCircuit.wires && typeof newCircuit.wires === 'object' ? newCircuit.wires : {};
+  let clonedBlocks = {};
+  let clonedWires = {};
+  try {
+    clonedBlocks = JSON.parse(JSON.stringify(blocks));
+    clonedWires = JSON.parse(JSON.stringify(wires));
+  } catch (err) {
+    console.error('Failed to clone circuit data for lab mode', err);
+    return false;
+  }
+  labCircuit = {
+    rows,
+    cols,
+    blocks: clonedBlocks,
+    wires: clonedWires,
+  };
+  labController?.destroy?.();
+  labController = null;
+  createLabController({ preserveCircuit: false });
+  return true;
+}
+
 export function initializeLabMode() {
   const labBtn = document.getElementById('labBtn');
   if (!labBtn) return;
@@ -249,5 +297,11 @@ export function initializeLabMode() {
 
   exitBtn?.addEventListener('click', () => {
     hideLabScreen();
+  });
+
+  initializeCircuitCommunity({
+    getCircuit: () => labCircuit,
+    applyCircuit: circuitData => applyCircuitToLabData(circuitData),
+    ensureLabVisible: () => showLabScreen(),
   });
 }

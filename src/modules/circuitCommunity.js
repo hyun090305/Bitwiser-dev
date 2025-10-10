@@ -1,0 +1,468 @@
+import { getGoogleNickname, getUsername } from './storage.js';
+
+function getAuth() {
+  if (typeof firebase === 'undefined' || !firebase?.auth) return null;
+  try {
+    return firebase.auth();
+  } catch (err) {
+    console.error('Failed to access Firebase auth', err);
+    return null;
+  }
+}
+
+function getFirestore() {
+  if (typeof firebase === 'undefined' || typeof firebase.firestore !== 'function') {
+    return null;
+  }
+  try {
+    return firebase.firestore();
+  } catch (err) {
+    console.error('Failed to access Firestore', err);
+    return null;
+  }
+}
+
+function sanitizeCircuit(rawCircuit) {
+  if (!rawCircuit || typeof rawCircuit !== 'object') return null;
+  const base = {
+    rows: Number(rawCircuit.rows) || 0,
+    cols: Number(rawCircuit.cols) || 0,
+    blocks: rawCircuit.blocks && typeof rawCircuit.blocks === 'object' ? rawCircuit.blocks : {},
+    wires: rawCircuit.wires && typeof rawCircuit.wires === 'object' ? rawCircuit.wires : {},
+  };
+  try {
+    return JSON.parse(JSON.stringify(base));
+  } catch (err) {
+    console.warn('Failed to sanitize circuit payload', err);
+    return null;
+  }
+}
+
+function countWireCells(wires = {}) {
+  const cells = new Set();
+  Object.values(wires).forEach(wire => {
+    if (!wire || !Array.isArray(wire.path)) return;
+    wire.path.slice(1, -1).forEach(point => {
+      if (!point) return;
+      const { r, c } = point;
+      if (Number.isFinite(r) && Number.isFinite(c)) {
+        cells.add(`${r},${c}`);
+      }
+    });
+  });
+  return cells.size;
+}
+
+function resolveAuthorName(user) {
+  if (!user) return '알 수 없는 사용자';
+  const { uid, displayName, email } = user;
+  const nickname = uid ? getGoogleNickname(uid) : null;
+  const guestName = getUsername();
+  return displayName || nickname || email || guestName || '익명';
+}
+
+function formatDate(timestamp) {
+  if (!timestamp) return '';
+  try {
+    const date = typeof timestamp.toDate === 'function' ? timestamp.toDate() : new Date(timestamp);
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+    return date.toLocaleString();
+  } catch (err) {
+    console.warn('Failed to format timestamp', err);
+    return '';
+  }
+}
+
+const defaultConfig = {
+  shareButtonId: 'labShareCommunityBtn',
+  browseButtonId: 'labOpenCommunityBtn',
+  shareOverlayId: 'communityShareOverlay',
+  browserOverlayId: 'communityBrowserOverlay',
+  shareFormId: 'communityShareForm',
+  shareTitleInputId: 'communityShareTitle',
+  shareDescInputId: 'communityShareDescription',
+  shareCancelId: 'communityShareCancel',
+  shareSubmitId: 'communityShareSubmit',
+  shareCloseId: 'communityShareClose',
+  browseCloseId: 'communityBrowserClose',
+  listContainerId: 'communityList',
+  emptyStateId: 'communityEmptyState',
+  loadingId: 'communityLoading',
+  browserStatusId: 'communityBrowserStatus',
+  shareStatusId: 'communityShareStatus',
+  shareStatsId: 'communityShareStats',
+  loginHintId: 'labCommunityLoginHint',
+  statusMessageId: 'labCommunityStatus',
+};
+
+let initialized = false;
+
+export function initializeCircuitCommunity(options = {}) {
+  if (initialized) return;
+  initialized = true;
+  const config = { ...defaultConfig, ...options };
+
+  const shareBtn = document.getElementById(config.shareButtonId);
+  const browseBtn = document.getElementById(config.browseButtonId);
+  const shareOverlay = document.getElementById(config.shareOverlayId);
+  const browserOverlay = document.getElementById(config.browserOverlayId);
+  const shareForm = document.getElementById(config.shareFormId);
+  const titleInput = document.getElementById(config.shareTitleInputId);
+  const descInput = document.getElementById(config.shareDescInputId);
+  const shareCancel = document.getElementById(config.shareCancelId);
+  const shareClose = document.getElementById(config.shareCloseId);
+  const browseClose = document.getElementById(config.browseCloseId);
+  const listContainer = document.getElementById(config.listContainerId);
+  const emptyState = document.getElementById(config.emptyStateId);
+  const loadingEl = document.getElementById(config.loadingId);
+  const browserStatus = document.getElementById(config.browserStatusId);
+  const shareStatus = document.getElementById(config.shareStatusId);
+  const shareStats = document.getElementById(config.shareStatsId);
+  const loginHint = document.getElementById(config.loginHintId);
+  const statusMessage = document.getElementById(config.statusMessageId);
+  const shareSubmit = document.getElementById(config.shareSubmitId);
+
+  const getCircuit = typeof config.getCircuit === 'function' ? config.getCircuit : () => null;
+  const applyCircuit = typeof config.applyCircuit === 'function' ? config.applyCircuit : () => {};
+  const ensureLabVisible = typeof config.ensureLabVisible === 'function' ? config.ensureLabVisible : () => {};
+  const onCircuitLoaded = typeof config.onCircuitLoaded === 'function' ? config.onCircuitLoaded : () => {};
+
+  const firestore = getFirestore();
+  if (!firestore) {
+    console.warn('Firestore is not available; circuit community features disabled.');
+  }
+
+  const auth = getAuth();
+
+  let currentUser = auth?.currentUser ?? null;
+  let loadingList = false;
+
+  function setStatusMessage(message, tone = 'info') {
+    if (!statusMessage) return;
+    statusMessage.textContent = message || '';
+    statusMessage.classList.remove('lab-community-status--error', 'lab-community-status--success');
+    if (!message) return;
+    if (tone === 'error') {
+      statusMessage.classList.add('lab-community-status--error');
+    } else if (tone === 'success') {
+      statusMessage.classList.add('lab-community-status--success');
+    }
+  }
+
+  function updateLoginState(user) {
+    currentUser = user;
+    const loggedIn = Boolean(user);
+    [shareBtn, browseBtn].forEach(btn => {
+      if (!btn) return;
+      btn.disabled = !loggedIn || !firestore;
+      if (!loggedIn || !firestore) {
+        btn.setAttribute('aria-disabled', 'true');
+        btn.title = firestore
+          ? 'Google 로그인이 필요합니다.'
+          : 'Firestore 연결을 확인해주세요.';
+      } else {
+        btn.removeAttribute('aria-disabled');
+        btn.removeAttribute('title');
+      }
+    });
+    if (loginHint) {
+      loginHint.hidden = loggedIn && Boolean(firestore);
+    }
+  }
+
+  function closeOverlay(overlay) {
+    if (!overlay) return;
+    overlay.dataset.open = 'false';
+  }
+
+  function openOverlay(overlay) {
+    if (!overlay) return;
+    overlay.dataset.open = 'true';
+  }
+
+  function updateShareStats() {
+    if (!shareStats) return;
+    const circuit = getCircuit();
+    const sanitized = sanitizeCircuit(circuit);
+    if (!sanitized) {
+      shareStats.textContent = '회로 정보를 불러올 수 없습니다.';
+      return;
+    }
+    const blockCount = Object.keys(sanitized.blocks || {}).length;
+    const wireCount = countWireCells(sanitized.wires);
+    shareStats.textContent = `블록 ${blockCount}개 · 도선 ${wireCount}개`;
+  }
+
+  function resetShareForm() {
+    shareForm?.reset();
+    if (shareStatus) {
+      shareStatus.textContent = '';
+      shareStatus.classList.remove('community-status--error', 'community-status--success');
+    }
+    if (shareSubmit) {
+      shareSubmit.disabled = false;
+    }
+    updateShareStats();
+  }
+
+  function setShareStatus(message, tone = 'info') {
+    if (!shareStatus) return;
+    shareStatus.textContent = message || '';
+    shareStatus.classList.remove('community-status--error', 'community-status--success');
+    if (!message) return;
+    if (tone === 'error') {
+      shareStatus.classList.add('community-status--error');
+    } else if (tone === 'success') {
+      shareStatus.classList.add('community-status--success');
+    }
+  }
+
+  async function handleShareSubmit(event) {
+    event?.preventDefault?.();
+    if (!firestore) {
+      setShareStatus('Firestore 초기화에 실패했습니다.', 'error');
+      return;
+    }
+    if (!currentUser) {
+      setShareStatus('Google 로그인 후 이용해주세요.', 'error');
+      return;
+    }
+    const circuit = sanitizeCircuit(getCircuit());
+    if (!circuit || circuit.rows <= 0 || circuit.cols <= 0) {
+      setShareStatus('회로를 찾을 수 없어요.', 'error');
+      return;
+    }
+    const title = (titleInput?.value || '').trim();
+    const description = (descInput?.value || '').trim();
+    const blockCount = Object.keys(circuit.blocks || {}).length;
+    const wireCount = countWireCells(circuit.wires);
+
+    if (shareSubmit) {
+      shareSubmit.disabled = true;
+    }
+    setShareStatus('회로를 업로드하는 중입니다...');
+
+    const payload = {
+      title: title || '제목 없는 회로',
+      description,
+      stats: {
+        blocks: blockCount,
+        wires: wireCount,
+      },
+      circuit,
+      author: {
+        uid: currentUser.uid,
+        name: resolveAuthorName(currentUser),
+        photoURL: currentUser.photoURL || null,
+      },
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    };
+
+    try {
+      await firestore.collection('circuitCommunity').add(payload);
+      setShareStatus('커뮤니티에 회로를 공유했습니다!', 'success');
+      setStatusMessage('회로가 커뮤니티에 업로드되었습니다.', 'success');
+      if (shareOverlay) {
+        setTimeout(() => closeOverlay(shareOverlay), 800);
+      }
+      titleInput && (titleInput.value = '');
+      descInput && (descInput.value = '');
+    } catch (err) {
+      console.error('Failed to upload circuit to community', err);
+      setShareStatus('업로드에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+    } finally {
+      if (shareSubmit) {
+        shareSubmit.disabled = false;
+      }
+      updateShareStats();
+    }
+  }
+
+  function clearCommunityList() {
+    if (listContainer) {
+      listContainer.innerHTML = '';
+    }
+  }
+
+  function renderEmptyState(visible) {
+    if (emptyState) {
+      emptyState.hidden = !visible;
+    }
+  }
+
+  function setLoading(loading) {
+    if (loadingEl) {
+      loadingEl.hidden = !loading;
+    }
+  }
+
+  function setBrowserStatus(message, tone = 'info') {
+    if (!browserStatus) return;
+    browserStatus.textContent = message || '';
+    browserStatus.classList.remove('community-status--error', 'community-status--success');
+    if (!message) return;
+    if (tone === 'error') {
+      browserStatus.classList.add('community-status--error');
+    } else if (tone === 'success') {
+      browserStatus.classList.add('community-status--success');
+    }
+  }
+
+  function createCircuitCard(doc) {
+    const data = doc.data();
+    const card = document.createElement('article');
+    card.className = 'community-card';
+
+    const titleEl = document.createElement('h3');
+    titleEl.textContent = data.title || '제목 없는 회로';
+    card.appendChild(titleEl);
+
+    const meta = document.createElement('p');
+    const authorName = data.author?.name || '익명';
+    const createdText = formatDate(data.createdAt);
+    meta.className = 'community-card__meta';
+    meta.textContent = createdText
+      ? `${authorName} • ${createdText}`
+      : authorName;
+    card.appendChild(meta);
+
+    if (data.description) {
+      const desc = document.createElement('p');
+      desc.className = 'community-card__desc';
+      desc.textContent = data.description;
+      card.appendChild(desc);
+    }
+
+    const stats = document.createElement('p');
+    stats.className = 'community-card__stats';
+    const blocks = data.stats?.blocks ?? 0;
+    const wires = data.stats?.wires ?? 0;
+    stats.textContent = `블록 ${blocks}개 · 도선 ${wires}개`;
+    card.appendChild(stats);
+
+    const actions = document.createElement('div');
+    actions.className = 'community-card__actions';
+    const loadBtn = document.createElement('button');
+    loadBtn.type = 'button';
+    loadBtn.textContent = '이 회로 불러오기';
+    loadBtn.className = 'community-card__load';
+    loadBtn.addEventListener('click', () => {
+      const circuit = sanitizeCircuit(data.circuit);
+      if (!circuit) {
+        setBrowserStatus('회로 데이터를 불러오지 못했습니다.', 'error');
+        return;
+      }
+      const applied = applyCircuit(circuit);
+      if (!applied) {
+        setBrowserStatus('회로를 불러오는 데 실패했습니다.', 'error');
+        return;
+      }
+      ensureLabVisible();
+      closeOverlay(browserOverlay);
+      setStatusMessage('커뮤니티 회로를 불러왔습니다.', 'success');
+      onCircuitLoaded({ id: doc.id, data });
+    });
+    actions.appendChild(loadBtn);
+    card.appendChild(actions);
+
+    return card;
+  }
+
+  async function loadCommunityCircuits() {
+    if (!firestore) {
+      setBrowserStatus('Firestore 초기화에 실패했습니다.', 'error');
+      return;
+    }
+    if (loadingList) return;
+    loadingList = true;
+    setBrowserStatus('회로 목록을 불러오는 중입니다...');
+    setLoading(true);
+    renderEmptyState(false);
+    clearCommunityList();
+    try {
+      const snapshot = await firestore
+        .collection('circuitCommunity')
+        .orderBy('createdAt', 'desc')
+        .limit(50)
+        .get();
+      setLoading(false);
+      loadingList = false;
+      const docs = snapshot.docs || [];
+      if (!docs.length) {
+        renderEmptyState(true);
+        setBrowserStatus('아직 등록된 회로가 없어요. 첫 번째로 공유해보세요!');
+        return;
+      }
+      setBrowserStatus(`총 ${docs.length}개의 회로를 불러왔습니다.`);
+      docs.forEach(doc => {
+        const card = createCircuitCard(doc);
+        listContainer?.appendChild(card);
+      });
+    } catch (err) {
+      console.error('Failed to load community circuits', err);
+      setLoading(false);
+      loadingList = false;
+      setBrowserStatus('회로 목록을 가져오지 못했습니다.', 'error');
+    }
+  }
+
+  function handleOverlayBackgroundClick(event, overlay) {
+    if (!overlay || event.target !== overlay) return;
+    closeOverlay(overlay);
+  }
+
+  shareBtn?.addEventListener('click', () => {
+    if (!currentUser) {
+      setStatusMessage('Google 로그인 후 이용해주세요.', 'error');
+      return;
+    }
+    resetShareForm();
+    openOverlay(shareOverlay);
+  });
+
+  browseBtn?.addEventListener('click', () => {
+    if (!currentUser) {
+      setStatusMessage('Google 로그인 후 이용해주세요.', 'error');
+      return;
+    }
+    openOverlay(browserOverlay);
+    loadCommunityCircuits();
+  });
+
+  shareCancel?.addEventListener('click', () => {
+    closeOverlay(shareOverlay);
+  });
+  shareClose?.addEventListener('click', () => {
+    closeOverlay(shareOverlay);
+  });
+  browseClose?.addEventListener('click', () => {
+    closeOverlay(browserOverlay);
+  });
+
+  shareOverlay?.addEventListener('click', event => handleOverlayBackgroundClick(event, shareOverlay));
+  browserOverlay?.addEventListener('click', event => handleOverlayBackgroundClick(event, browserOverlay));
+
+  shareForm?.addEventListener('submit', handleShareSubmit);
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape') return;
+    if (shareOverlay?.dataset.open === 'true') {
+      closeOverlay(shareOverlay);
+    }
+    if (browserOverlay?.dataset.open === 'true') {
+      closeOverlay(browserOverlay);
+    }
+  });
+
+  if (auth) {
+    auth.onAuthStateChanged(user => {
+      updateLoginState(user);
+    });
+    updateLoginState(auth.currentUser);
+  } else {
+    updateLoginState(null);
+  }
+
+  updateShareStats();
+}
