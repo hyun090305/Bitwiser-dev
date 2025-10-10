@@ -178,8 +178,21 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
 
     ctx.save();
-    ctx.fillStyle = background;
-    ctx.fillRect(0, 0, width, height);
+    if (background && rows > 0 && cols > 0) {
+      const topLeft = camera.worldToScreen(0, 0);
+      const bottomRight = camera.worldToScreen(
+        cols * PITCH + GAP,
+        rows * PITCH + GAP
+      );
+      const rectX = Math.min(topLeft.x, bottomRight.x);
+      const rectY = Math.min(topLeft.y, bottomRight.y);
+      const rectWidth = Math.abs(bottomRight.x - topLeft.x);
+      const rectHeight = Math.abs(bottomRight.y - topLeft.y);
+      if (rectWidth > 0 && rectHeight > 0) {
+        ctx.fillStyle = background;
+        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
+      }
+    }
 
     if (panelWidth > 0 && panelFill) {
       ctx.save();
