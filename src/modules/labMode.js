@@ -245,6 +245,8 @@ function hideLabScreen() {
   if (firstScreen) firstScreen.style.display = '';
   document.body.classList.remove('lab-mode-active');
   removeLabResizeHandler();
+  labController?.destroy?.();
+  labController = null;
   const titleEl = document.getElementById('gameTitle');
   if (titleEl) {
     const fallbackTitle = originalGameTitleText || '🧠 Bitwiser';
