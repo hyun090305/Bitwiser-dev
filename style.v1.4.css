@@ -3396,6 +3396,8 @@ body.lab-mode-active {
 .community-card__actions {
   display: flex;
   justify-content: flex-end;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .community-card__load {
@@ -3412,4 +3414,25 @@ body.lab-mode-active {
 .community-card__load:hover {
   transform: translateY(-1px);
   box-shadow: 0 12px 24px rgba(79, 70, 229, 0.35);
+}
+
+.community-card__delete {
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-weight: 600;
+  background: rgba(248, 113, 113, 0.2);
+  color: #b91c1c;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.community-card__delete:hover:not(:disabled) {
+  background: rgba(248, 113, 113, 0.3);
+  transform: translateY(-1px);
+}
+
+.community-card__delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }

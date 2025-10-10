@@ -343,6 +343,7 @@ export function initializeCircuitCommunity(options = {}) {
 
     const actions = document.createElement('div');
     actions.className = 'community-card__actions';
+
     const loadBtn = document.createElement('button');
     loadBtn.type = 'button';
     loadBtn.textContent = '이 회로 불러오기';
@@ -364,6 +365,49 @@ export function initializeCircuitCommunity(options = {}) {
       onCircuitLoaded({ id: doc.id, data });
     });
     actions.appendChild(loadBtn);
+
+    const isOwner = currentUser && data.author?.uid && data.author.uid === currentUser.uid;
+    if (isOwner) {
+      const deleteBtn = document.createElement('button');
+      deleteBtn.type = 'button';
+      deleteBtn.textContent = '내 회로 삭제';
+      deleteBtn.className = 'community-card__delete';
+      deleteBtn.addEventListener('click', async () => {
+        if (!firestore) {
+          setBrowserStatus('Firestore 초기화에 실패했습니다.', 'error');
+          return;
+        }
+        if (!currentUser) {
+          setBrowserStatus('Google 로그인 후 이용해주세요.', 'error');
+          return;
+        }
+        if (typeof window !== 'undefined' && window.confirm) {
+          const confirmed = window.confirm('정말로 이 회로를 삭제할까요? 되돌릴 수 없습니다.');
+          if (!confirmed) return;
+        }
+
+        const originalText = deleteBtn.textContent;
+        deleteBtn.disabled = true;
+        deleteBtn.textContent = '삭제 중...';
+
+        try {
+          await firestore.collection('circuitCommunity').doc(doc.id).delete();
+          card.remove();
+          setBrowserStatus('회로를 삭제했습니다.', 'success');
+          setStatusMessage('커뮤니티 회로를 삭제했습니다.', 'success');
+          if (listContainer && !listContainer.querySelector('.community-card')) {
+            renderEmptyState(true);
+            setBrowserStatus('회로를 삭제했습니다. 현재 등록된 회로가 없습니다.', 'success');
+          }
+        } catch (err) {
+          console.error('Failed to delete community circuit', err);
+          setBrowserStatus('회로 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+          deleteBtn.disabled = false;
+          deleteBtn.textContent = originalText;
+        }
+      });
+      actions.appendChild(deleteBtn);
+    }
     card.appendChild(actions);
 
     return card;
