@@ -3,6 +3,21 @@ import { getUsername } from './storage.js';
 import { fetchOverallStats } from './rank.js';
 
 const DEFAULT_GRID_SIZE = 6;
+const STAGE_GRID_COLUMNS = 3;
+const STAGE_CARD_WIDTH = 200;
+const STAGE_CARD_HEIGHT = 125;
+const STAGE_GRID_GAP = 16;
+
+const defaultStageListLayout = {
+  cardWidth: STAGE_CARD_WIDTH,
+  cardHeight: STAGE_CARD_HEIGHT,
+  gapX: STAGE_GRID_GAP,
+  gapY: STAGE_GRID_GAP,
+  columns: STAGE_GRID_COLUMNS,
+  rows: 1
+};
+
+let stageListLayoutCache = { ...defaultStageListLayout };
 
 let levelTitles = {};
 let levelGridSizes = {};
@@ -15,6 +30,82 @@ let levelHints = {};
 let clearedLevelsFromDb = [];
 let stageDataPromise = Promise.resolve();
 let currentLevel = null;
+
+function parseSpacingValue(primary, secondary, fallback) {
+  const tryParse = value => {
+    if (typeof value !== 'string') return NaN;
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === 'normal') return NaN;
+    const parsed = parseFloat(trimmed);
+    return Number.isFinite(parsed) ? parsed : NaN;
+  };
+
+  const primaryParsed = tryParse(primary);
+  if (!Number.isNaN(primaryParsed)) return primaryParsed;
+
+  const secondaryParsed = tryParse(secondary);
+  if (!Number.isNaN(secondaryParsed)) return secondaryParsed;
+
+  return fallback;
+}
+
+function calculateStageBounds(layout) {
+  const width = layout.columns * layout.cardWidth + (layout.columns - 1) * layout.gapX;
+  const height = layout.rows * layout.cardHeight + (layout.rows - 1) * layout.gapY;
+  return { width, height };
+}
+
+function applyStageBounds(stageListEl, bounds) {
+  const widthPx = `${Math.max(bounds.width, 0)}px`;
+  const heightPx = `${Math.max(bounds.height, 0)}px`;
+  stageListEl.style.minWidth = widthPx;
+  stageListEl.style.minHeight = heightPx;
+
+  const stagePanel = stageListEl.closest('#stagePanel') || stageListEl.parentElement;
+  if (stagePanel) {
+    stagePanel.style.minWidth = widthPx;
+    stagePanel.style.minHeight = heightPx;
+  }
+}
+
+function ensureStageListMinSize(stageListEl, stageCount) {
+  const layout = { ...stageListLayoutCache };
+
+  if (stageCount > 0) {
+    layout.columns = Math.min(STAGE_GRID_COLUMNS, Math.max(stageCount, 1));
+    layout.rows = Math.max(1, Math.ceil(stageCount / STAGE_GRID_COLUMNS));
+    stageListLayoutCache = { ...stageListLayoutCache, columns: layout.columns, rows: layout.rows };
+  }
+
+  applyStageBounds(stageListEl, calculateStageBounds(layout));
+
+  if (stageCount > 0) {
+    const schedule = typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame
+      : (cb => setTimeout(cb, 0));
+
+    schedule(() => {
+      const firstCard = stageListEl.querySelector('.stageCard');
+      if (!firstCard) return;
+
+      const rect = firstCard.getBoundingClientRect();
+      const computed = getComputedStyle(stageListEl);
+      const gapX = parseSpacingValue(computed.columnGap, computed.gap, layout.gapX);
+      const gapY = parseSpacingValue(computed.rowGap, computed.gap, layout.gapY);
+
+      stageListLayoutCache = {
+        cardWidth: rect.width || layout.cardWidth,
+        cardHeight: rect.height || layout.cardHeight,
+        gapX,
+        gapY,
+        columns: layout.columns,
+        rows: layout.rows
+      };
+
+      applyStageBounds(stageListEl, calculateStageBounds(stageListLayoutCache));
+    });
+  }
+}
 
 const dependencies = {
   renderUserProblemList: null,
@@ -262,6 +353,8 @@ export function selectChapter(idx) {
 export async function renderStageList(stageList) {
   const stageListEl = document.getElementById('stageList');
   if (!stageListEl) return;
+
+  ensureStageListMinSize(stageListEl, stageList.length);
 
   stageListEl.querySelectorAll('.stageCard').forEach(card => {
     card.style.opacity = '0';
