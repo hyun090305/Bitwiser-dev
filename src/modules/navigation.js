@@ -115,8 +115,10 @@ export function setupNavigation({
         }
         chapterStageScreen.addEventListener(
           'animationend',
-          () => {
-            chapterStageScreen.classList.remove('stage-screen-enter');
+          event => {
+            if (event.target === chapterStageScreen) {
+              chapterStageScreen.classList.remove('stage-screen-enter');
+            }
           },
           { once: true }
         );
@@ -165,7 +167,8 @@ export function setupNavigation({
     screenEl.classList.add('stage-screen-exit');
     screenEl.addEventListener(
       'animationend',
-      () => {
+      event => {
+        if (event.target !== screenEl) return;
         screenEl.classList.remove('stage-screen-exit');
         screenEl.style.display = 'none';
 
