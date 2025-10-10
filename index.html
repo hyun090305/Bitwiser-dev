@@ -163,6 +163,67 @@
       <button id="labExitBtn" class="lab-exit-btn" type="button" aria-label="메인으로 돌아가기">⟲ 메인으로</button>
     </div>
 
+    <div
+      id="communityShareOverlay"
+      class="community-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="communityShareTitleLabel"
+      data-open="false"
+    >
+      <div class="community-overlay__panel community-share">
+        <button id="communityShareClose" class="community-overlay__close" type="button" aria-label="닫기">×</button>
+        <h2 id="communityShareTitleLabel" class="community-share__title">회로 커뮤니티에 올리기</h2>
+        <p class="community-share__intro">현재 실험실 회로를 커뮤니티에 공유합니다.</p>
+        <p id="communityShareStats" class="community-share__stats"></p>
+        <form id="communityShareForm" class="community-share__form">
+          <label for="communityShareTitle" class="community-share__label">회로 제목</label>
+          <input
+            id="communityShareTitle"
+            name="communityShareTitle"
+            type="text"
+            maxlength="80"
+            placeholder="예: 4비트 패리티 생성기"
+            class="community-share__input"
+          >
+          <label for="communityShareDescription" class="community-share__label">설명 (선택)</label>
+          <textarea
+            id="communityShareDescription"
+            name="communityShareDescription"
+            rows="3"
+            maxlength="300"
+            placeholder="회로 동작 방식이나 사용 팁을 간단히 남겨주세요."
+            class="community-share__textarea"
+          ></textarea>
+          <p id="communityShareStatus" class="community-share__status" role="status" aria-live="polite"></p>
+          <div class="community-share__actions">
+            <button id="communityShareCancel" type="button" class="community-button community-button--ghost">취소</button>
+            <button id="communityShareSubmit" type="submit" class="community-button community-button--primary">공유하기</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div
+      id="communityBrowserOverlay"
+      class="community-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="communityBrowserTitle"
+      data-open="false"
+    >
+      <div class="community-overlay__panel community-browser">
+        <div class="community-browser__header">
+          <h2 id="communityBrowserTitle">회로 커뮤니티</h2>
+          <button id="communityBrowserClose" class="community-overlay__close" type="button" aria-label="닫기">×</button>
+        </div>
+        <p id="communityBrowserStatus" class="community-browser__status" role="status" aria-live="polite"></p>
+        <div id="communityLoading" class="community-browser__loading" hidden>회로 목록을 불러오는 중...</div>
+        <div id="communityEmptyState" class="community-browser__empty" hidden>아직 등록된 회로가 없습니다.</div>
+        <div id="communityList" class="community-browser__list"></div>
+      </div>
+    </div>
+
     <div id="problem-screen" class="screen" style="display:none;">
       <div class="panel-overlay problem-screen-panel">
         <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
@@ -559,6 +620,14 @@
               </tr>
             </table>
           </div>
+          <div id="labCommunityControls" class="lab-community-controls" style="display:none;">
+            <h2 class="lab-community-title">🌐 회로 커뮤니티</h2>
+            <p class="lab-community-desc">실험한 회로를 공유하고 다른 연구자의 작품을 살펴보세요.</p>
+            <button id="labShareCommunityBtn" class="main-button" type="button">회로 커뮤니티에 올리기</button>
+            <button id="labOpenCommunityBtn" class="main-button" type="button">회로 커뮤니티 보기</button>
+            <p id="labCommunityStatus" class="lab-community-status" role="status" aria-live="polite"></p>
+            <p id="labCommunityLoginHint" class="lab-community-hint" hidden>Google 로그인 후 이용할 수 있습니다.</p>
+          </div>
         </div>
         <div id="gradingArea" style="display:none">
           <button id="returnToEditBtn">🛠 편집으로 돌아가기</button>
@@ -648,6 +717,8 @@
       src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
     <script
       src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore-compat.js"></script>
 
     <script>
     const firebaseConfig = {
@@ -663,6 +734,7 @@
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
+    const firestore = firebase.firestore();
   </script>
     <script src="https://apis.google.com/js/api.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
