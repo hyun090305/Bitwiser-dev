@@ -1,4 +1,5 @@
 import { getUsername } from './storage.js';
+import { ensureUsernameRegistered } from './authUI.js';
 
 const fallbackTranslate = key => key;
 
@@ -162,71 +163,83 @@ export function showOverallRanking(options = {}) {
   });
 }
 
-export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
-  const entry = {
-    nickname,
-    blockCounts,
-    usedWires,
-    hintsUsed,
-    timestamp: new Date().toISOString()
-  };
-  db.ref(`rankings/${levelId}`).push(entry);
+export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
+  try {
+    const storedName = getUsername();
+    const nickname = storedName || '익명';
+    const finalName = storedName ? await ensureUsernameRegistered(nickname) : nickname;
+    const entry = {
+      nickname: finalName,
+      blockCounts,
+      usedWires,
+      hintsUsed,
+      timestamp: new Date().toISOString()
+    };
+    await db.ref(`rankings/${levelId}`).push(entry);
+  } catch (err) {
+    console.error('Failed to save ranking entry', err);
+  }
 }
 
-export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
-  const entry = {
-    nickname,
-    blockCounts,
-    usedWires,
-    hintsUsed,
-    timestamp: new Date().toISOString()
-  };
-  const rankingRef = db.ref(`problems/${problemKey}/ranking`);
+export async function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
+  try {
+    const storedName = getUsername();
+    const nickname = storedName || '익명';
+    const finalName = storedName ? await ensureUsernameRegistered(nickname) : nickname;
+    const entry = {
+      nickname: finalName,
+      blockCounts,
+      usedWires,
+      hintsUsed,
+      timestamp: new Date().toISOString()
+    };
+    const rankingRef = db.ref(`problems/${problemKey}/ranking`);
 
-  const isBetter = (a, b) => {
-    const aBlocks = getBlockCountSum(a);
-    const bBlocks = getBlockCountSum(b);
-    if (aBlocks !== bBlocks) return aBlocks < bBlocks;
-    if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
-    const aHints = a.hintsUsed ?? 0;
-    const bHints = b.hintsUsed ?? 0;
-    if (aHints !== bHints) return aHints < bHints;
-    return new Date(a.timestamp) < new Date(b.timestamp);
-  };
+    const isBetter = (a, b) => {
+      const aBlocks = getBlockCountSum(a);
+      const bBlocks = getBlockCountSum(b);
+      if (aBlocks !== bBlocks) return aBlocks < bBlocks;
+      if (a.usedWires !== b.usedWires) return a.usedWires < b.usedWires;
+      const aHints = a.hintsUsed ?? 0;
+      const bHints = b.hintsUsed ?? 0;
+      if (aHints !== bHints) return aHints < bHints;
+      return new Date(a.timestamp) < new Date(b.timestamp);
+    };
 
-  rankingRef
-    .orderByChild('nickname')
-    .equalTo(nickname)
-    .once('value', snapshot => {
-      if (!snapshot.exists()) {
-        rankingRef.push(entry);
-        return;
+    const snapshot = await rankingRef
+      .orderByChild('nickname')
+      .equalTo(finalName)
+      .once('value');
+
+    if (!snapshot.exists()) {
+      await rankingRef.push(entry);
+      return;
+    }
+
+    let bestKey = null;
+    let bestVal = null;
+    const dupKeys = [];
+
+    snapshot.forEach(child => {
+      const val = child.val();
+      const key = child.key;
+      if (!bestVal || isBetter(val, bestVal)) {
+        if (bestKey) dupKeys.push(bestKey);
+        bestKey = key;
+        bestVal = val;
+      } else {
+        dupKeys.push(key);
       }
-
-      let bestKey = null;
-      let bestVal = null;
-      const dupKeys = [];
-
-      snapshot.forEach(child => {
-        const val = child.val();
-        const key = child.key;
-        if (!bestVal || isBetter(val, bestVal)) {
-          if (bestKey) dupKeys.push(bestKey);
-          bestKey = key;
-          bestVal = val;
-        } else {
-          dupKeys.push(key);
-        }
-        return undefined;
-      });
-
-      if (bestVal && isBetter(entry, bestVal)) {
-        rankingRef.child(bestKey).set(entry);
-      }
-      dupKeys.forEach(k => rankingRef.child(k).remove());
+      return undefined;
     });
+
+    if (bestVal && isBetter(entry, bestVal)) {
+      await rankingRef.child(bestKey).set(entry);
+    }
+    await Promise.all(dupKeys.map(k => rankingRef.child(k).remove()));
+  } catch (err) {
+    console.error('Failed to save problem ranking entry', err);
+  }
 }
 
 export function showRanking(levelId, options = {}) {

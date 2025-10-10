@@ -120,35 +120,59 @@ function hideGuestPrompt() {
   }
 }
 
-function assignGuestNickname() {
-  return new Promise(resolve => {
-    const attempt = () => {
-      const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
-      db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-        if (snap.exists()) {
-          attempt();
-        } else {
-          const id = db.ref('usernames').push().key;
-          db.ref(`usernames/${id}`).set(name);
-          setUsername(name);
-          setGuestUsernameText(name);
-          setLoginUsernameText(name);
-          loadClearedLevelsFromDb().then(maybeStartTutorial);
-          resolve(name);
-        }
-      });
-    };
-    attempt();
-  });
+function generateRandomGuestNickname() {
+  return `Player${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
-function registerUsernameIfNeeded(name) {
-  db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-    if (!snap.exists()) {
-      const id = db.ref('usernames').push().key;
-      db.ref(`usernames/${id}`).set(name);
+function assignGuestNickname() {
+  const name = generateRandomGuestNickname();
+  setUsername(name);
+  setGuestUsernameText(name);
+  setLoginUsernameText(name);
+  loadClearedLevelsFromDb().then(maybeStartTutorial);
+  return Promise.resolve(name);
+}
+
+async function ensureUsernameRegistered(name, { onRename, allowExisting = false } = {}) {
+  let nickname = name || getUsername();
+  if (!nickname) {
+    nickname = generateRandomGuestNickname();
+    setUsername(nickname);
+    setGuestUsernameText(nickname);
+    setLoginUsernameText(nickname);
+  }
+
+  const applyNickname = newName => {
+    setUsername(newName);
+    setGuestUsernameText(newName);
+    setLoginUsernameText(newName);
+    if (typeof onRename === 'function') {
+      onRename(newName);
     }
-  });
+  };
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const snapshot = await db
+      .ref('usernames')
+      .orderByValue()
+      .equalTo(nickname)
+      .once('value');
+
+    if (!snapshot.exists()) {
+      const id = db.ref('usernames').push().key;
+      await db.ref(`usernames/${id}`).set(nickname);
+      return nickname;
+    }
+
+    if (allowExisting) {
+      return nickname;
+    }
+
+    nickname = generateRandomGuestNickname();
+    applyNickname(nickname);
+  }
+
+  throw new Error('Failed to register a unique nickname after multiple attempts.');
 }
 
 function removeUsername(name) {
@@ -157,27 +181,54 @@ function removeUsername(name) {
   });
 }
 
-function showMergeModal(oldName, newName) {
+function showMergeModal(oldName, newName, options = {}) {
   if (!elements.mergeModal || !elements.mergeDetails || !elements.mergeConfirmBtn || !elements.mergeCancelBtn) {
     return;
   }
+  const { uid } = options;
   elements.mergeDetails.innerHTML = '<p>현재 로컬 진행 상황을 Google 계정과 병합하시겠습니까?</p>';
   elements.mergeConfirmBtn.textContent = '네';
   elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
   elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
   elements.mergeModal.style.display = 'flex';
-  elements.mergeConfirmBtn.onclick = () => {
+  elements.mergeConfirmBtn.onclick = async () => {
     elements.mergeModal.style.display = 'none';
-    mergeProgress(oldName, newName).then(() => {
-      loadClearedLevelsFromDb();
+    try {
+      const finalName = await ensureUsernameRegistered(newName, {
+        onRename: updated => {
+          if (uid) setGoogleNickname(uid, updated);
+        },
+        allowExisting: true
+      });
+      if (uid) {
+        await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      }
+      if (oldName && oldName !== finalName) {
+        await mergeProgress(oldName, finalName);
+      }
+      await loadClearedLevelsFromDb();
       showOverallRanking();
-    });
+    } catch (err) {
+      console.error('Failed to merge progress with Google account', err);
+    }
   };
-  elements.mergeCancelBtn.onclick = () => {
+  elements.mergeCancelBtn.onclick = async () => {
     elements.mergeModal.style.display = 'none';
-    registerUsernameIfNeeded(newName);
-    loadClearedLevelsFromDb();
-    showOverallRanking();
+    try {
+      const finalName = await ensureUsernameRegistered(newName, {
+        onRename: updated => {
+          if (uid) setGoogleNickname(uid, updated);
+        },
+        allowExisting: true
+      });
+      if (uid) {
+        await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      }
+      await loadClearedLevelsFromDb();
+      showOverallRanking();
+    } catch (err) {
+      console.error('Failed to finalise nickname after cancelling merge', err);
+    }
   };
 }
 
@@ -199,32 +250,46 @@ function showAccountClaimModal(targetName, oldName, uid) {
     elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
     elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
     elements.mergeModal.style.display = 'flex';
-    elements.mergeConfirmBtn.onclick = () => {
+    const applyAfterMerge = async finalName => {
+      await loadClearedLevelsFromDb();
+      showOverallRanking();
+      maybeStartTutorial();
+    };
+
+    elements.mergeConfirmBtn.onclick = async () => {
       elements.mergeModal.style.display = 'none';
-      setUsername(targetName);
-      setGoogleNickname(uid, targetName);
-      db.ref(`google/${uid}`).set({ uid, nickname: targetName });
-      setGuestUsernameText(targetName);
-      const after = () => {
-        loadClearedLevelsFromDb().then(() => {
-          showOverallRanking();
-          maybeStartTutorial();
+      try {
+        setUsername(targetName);
+        setGuestUsernameText(targetName);
+        setLoginUsernameText(targetName);
+        const finalName = await ensureUsernameRegistered(targetName, {
+          onRename: updated => setGoogleNickname(uid, updated),
+          allowExisting: true
         });
-      };
-      if (oldName && oldName !== targetName) {
-        mergeProgress(oldName, targetName).then(after);
-      } else {
-        registerUsernameIfNeeded(targetName);
-        after();
+        setGoogleNickname(uid, finalName);
+        await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+        if (oldName && oldName !== finalName) {
+          await mergeProgress(oldName, finalName);
+        }
+        await applyAfterMerge(finalName);
+      } catch (err) {
+        console.error('Failed to merge account progress', err);
       }
     };
-    elements.mergeCancelBtn.onclick = () => {
+
+    elements.mergeCancelBtn.onclick = async () => {
       elements.mergeModal.style.display = 'none';
       if (!state.loginFromMainScreen) {
-        assignGuestNickname().then(name => {
-          setGoogleNickname(uid, name);
-          db.ref(`google/${uid}`).set({ uid, nickname: name });
-        });
+        try {
+          const name = await assignGuestNickname();
+          const finalName = await ensureUsernameRegistered(name, {
+            onRename: updated => setGoogleNickname(uid, updated)
+          });
+          setGoogleNickname(uid, finalName);
+          await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+        } catch (err) {
+          console.error('Failed to assign guest nickname on merge cancel', err);
+        }
       }
     };
   });
@@ -260,30 +325,37 @@ function mergeProgress(oldName, newName) {
       }
     });
     removeUsername(oldName);
-    registerUsernameIfNeeded(newName);
     return Promise.all(promises);
   });
 }
 
-function applyGoogleNickname(name, oldName) {
+async function applyGoogleNickname(name, oldName, options = {}) {
+  const { uid } = options;
   if (oldName !== name) {
     setUsername(name);
     setGuestUsernameText(name);
-    loadClearedLevelsFromDb().then(() => {
-      if (oldName) {
-        showMergeModal(oldName, name);
-      } else {
-        registerUsernameIfNeeded(name);
-      }
-      maybeStartTutorial();
-    });
-  } else {
-    registerUsernameIfNeeded(name);
-    loadClearedLevelsFromDb().then(maybeStartTutorial);
+    setLoginUsernameText(name);
   }
+
+  const finalName = await ensureUsernameRegistered(name, {
+    onRename: updated => {
+      if (uid) setGoogleNickname(uid, updated);
+    }
+  });
+
+  if (uid && finalName !== name) {
+    await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+  }
+
+  await loadClearedLevelsFromDb();
+  if (oldName && oldName !== finalName) {
+    showMergeModal(oldName, finalName, { uid });
+  }
+  maybeStartTutorial();
+  return finalName;
 }
 
-function handleGoogleLogin(user) {
+async function handleGoogleLogin(user) {
   const uid = user.uid;
   if (user.displayName) {
     setGoogleDisplayName(uid, user.displayName);
@@ -292,30 +364,51 @@ function handleGoogleLogin(user) {
     setGoogleEmail(uid, user.email);
   }
   const oldName = getUsername();
-  db.ref(`google/${uid}`).once('value').then(snap => {
-    const dbName = snap.exists() ? snap.val().nickname : null;
-    const localGoogleName = getGoogleNickname(uid);
-    if (dbName) {
-      setGoogleNickname(uid, dbName);
-      applyGoogleNickname(dbName, oldName);
-    } else if (localGoogleName) {
-      db.ref(`google/${uid}`).set({ uid, nickname: localGoogleName });
-      applyGoogleNickname(localGoogleName, oldName);
-    } else if (oldName && !state.loginFromMainScreen) {
-      setGoogleNickname(uid, oldName);
-      db.ref(`google/${uid}`).set({ uid, nickname: oldName });
-      setGuestUsernameText(oldName);
-      loadClearedLevelsFromDb().then(() => {
-        showMergeModal(oldName, oldName);
-        maybeStartTutorial();
+  const snap = await db.ref(`google/${uid}`).once('value');
+  const dbName = snap.exists() ? snap.val().nickname : null;
+  const localGoogleName = getGoogleNickname(uid);
+
+  if (dbName) {
+    setGoogleNickname(uid, dbName);
+    await applyGoogleNickname(dbName, oldName, { uid });
+    return;
+  }
+
+  if (localGoogleName) {
+    const finalName = await applyGoogleNickname(localGoogleName, oldName, { uid });
+    setGoogleNickname(uid, finalName);
+    await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+    return;
+  }
+
+  if (oldName && !state.loginFromMainScreen) {
+    try {
+      const finalName = await ensureUsernameRegistered(oldName, {
+        onRename: updated => setGoogleNickname(uid, updated)
       });
-    } else {
-      assignGuestNickname().then(name => {
-        setGoogleNickname(uid, name);
-        db.ref(`google/${uid}`).set({ uid, nickname: name });
-      });
+      setGoogleNickname(uid, finalName);
+      await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      setGuestUsernameText(finalName);
+      setLoginUsernameText(finalName);
+      await loadClearedLevelsFromDb();
+      showMergeModal(oldName, finalName, { uid });
+      maybeStartTutorial();
+    } catch (err) {
+      console.error('Failed to ensure nickname during Google login merge', err);
     }
-  });
+    return;
+  }
+
+  try {
+    const name = await assignGuestNickname();
+    const finalName = await ensureUsernameRegistered(name, {
+      onRename: updated => setGoogleNickname(uid, updated)
+    });
+    setGoogleNickname(uid, finalName);
+    await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+  } catch (err) {
+    console.error('Failed to assign guest nickname during Google login', err);
+  }
 }
 
 function handleAuthStateChange(buttons, user) {
@@ -323,7 +416,9 @@ function handleAuthStateChange(buttons, user) {
   const nickname = getUsername() || '';
   setLoginUsernameText(nickname);
   if (user) {
-    handleGoogleLogin(user);
+    handleGoogleLogin(user).catch(err => {
+      console.error('Google login handling failed', err);
+    });
     showRankSection();
     hideGuestPrompt();
     fetchOverallStats(nickname).then(res => {
@@ -406,7 +501,7 @@ export const __testing = {
   setConfigFunctions,
   captureElements,
   assignGuestNickname,
-  registerUsernameIfNeeded,
+  ensureUsernameRegistered,
   removeUsername,
   showMergeModal,
   showAccountClaimModal,
@@ -416,3 +511,5 @@ export const __testing = {
   handleAuthStateChange,
   setupLoginButtonHandlers
 };
+
+export { assignGuestNickname, ensureUsernameRegistered };
