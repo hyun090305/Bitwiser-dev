@@ -280,7 +280,7 @@ html, body {
       color: #1d4ed8;
       cursor: pointer;
       transition: background-color 0.2s, transform 0.2s;
-      width: 120px;
+      /* width: 120px; */
     }
 
   #mainScreen .icon-button {
@@ -3102,7 +3102,8 @@ body.lab-mode-active {
 }
 
 .lab-community-controls {
-  width: 100%;
+  margin-top: 5vh;
+  /* width: 100%; */
   display: none;
   flex-direction: column;
   align-items: stretch;
@@ -3129,7 +3130,7 @@ body.lab-mode-active {
 }
 
 .lab-community-status {
-  min-height: 1.25rem;
+  /* min-height: 1.25rem; */
   margin: 0;
   font-size: 0.9rem;
   text-align: center;
@@ -3237,7 +3238,7 @@ body.lab-mode-active {
 
 .community-share__input,
 .community-share__textarea {
-  width: 100%;
+  /* width: 100%; */
   border-radius: 12px;
   border: 1px solid rgba(99, 102, 241, 0.35);
   padding: 0.75rem 1rem;
@@ -3351,7 +3352,8 @@ body.lab-mode-active {
   gap: 1.25rem;
   max-height: 55vh;
   overflow-y: auto;
-  padding-right: 0.5rem;
+  /* padding-right: 0.5rem; */
+  border-radius: 18px;
 }
 
 .community-card {
