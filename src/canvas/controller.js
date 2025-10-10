@@ -1,5 +1,13 @@
 import { CELL, GAP, coord, newWire, newBlock } from './model.js';
-import { drawGrid, renderContent, setupCanvas, drawBlock, drawPanel } from './renderer.js';
+import {
+  drawGrid,
+  renderContent,
+  setupCanvas,
+  drawBlock,
+  drawPanel,
+  roundRect,
+  CELL_CORNER_RADIUS
+} from './renderer.js';
 import { evaluateCircuit, startEngine } from './engine.js';
 
 let keydownHandler = null;
@@ -776,11 +784,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const dr = Number.isFinite(offset?.dr) ? offset.dr : 0;
     const dc = Number.isFinite(offset?.dc) ? offset.dc : 0;
     overlayCtx.fillStyle = invalid ? 'rgba(255,0,0,0.35)' : 'rgba(0,128,255,0.3)';
+    const radius = Math.max(1, CELL_CORNER_RADIUS * getScale());
+    const fillRoundedCell = rect => {
+      overlayCtx.beginPath();
+      roundRect(overlayCtx, rect.x, rect.y, rect.w, rect.h, radius);
+      overlayCtx.fill();
+    };
     sel.blocks.forEach(id => {
       const b = circuit.blocks[id];
       if (b) {
         const rect = cellRect(b.pos.r + dr, b.pos.c + dc);
-        overlayCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
+        fillRoundedCell(rect);
       }
     });
     sel.wires.forEach(id => {
@@ -788,7 +802,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       if (w) {
         w.path.forEach(p => {
           const rect = cellRect(p.r + dr, p.c + dc);
-          overlayCtx.fillRect(rect.x, rect.y, rect.w, rect.h);
+          fillRoundedCell(rect);
         });
       }
     });

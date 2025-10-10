@@ -1,5 +1,7 @@
 import { CELL, GAP } from './model.js';
 
+export const CELL_CORNER_RADIUS = 6;
+
 const PITCH = CELL + GAP;
 
 const DEFAULT_GRID_STYLE = {
@@ -15,7 +17,7 @@ const DEFAULT_GRID_STYLE = {
   gridFillB: null,
   gridStroke: '#ddd',
   gridLineWidth: 1,
-  cellRadius: 3,
+  cellRadius: CELL_CORNER_RADIUS,
   borderColor: '#666',
   borderWidth: GAP
 };
@@ -33,7 +35,7 @@ function resolveGridStyle(options = {}) {
   return style;
 }
 
-function roundRect(ctx, x, y, w, h, r = 6) {
+export function roundRect(ctx, x, y, w, h, r = 6) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -342,7 +344,7 @@ export function drawBlock(ctx, block, offsetX = 0, hovered = false, camera = nul
     grad.addColorStop(1, '#d0d0ff');
   }
   ctx.fillStyle = grad;
-  roundRect(ctx, x, y, size, size, 6 * shadowScale);
+  roundRect(ctx, x, y, size, size, Math.max(1, CELL_CORNER_RADIUS * shadowScale));
   ctx.fill();
 
   // Highlight active INPUT/OUTPUT/JUNCTION blocks with a dashed border
@@ -383,7 +385,8 @@ export function drawWire(ctx, wire, phase = 0, offsetX = 0, camera = null) {
       ? camera.cellToScreenCell(p).y
       : GAP + p.r * PITCH;
     const size = CELL * scale;
-    ctx.fillRect(x, y, size, size);
+    roundRect(ctx, x, y, size, size, Math.max(1, CELL_CORNER_RADIUS * scale));
+    ctx.fill();
   }
   ctx.beginPath();
   const start = wire.path[0];
