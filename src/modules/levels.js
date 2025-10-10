@@ -260,10 +260,16 @@ export function selectChapter(idx) {
 }
 
 export async function renderStageList(stageList) {
-  await loadClearedLevelsFromDb();
   const stageListEl = document.getElementById('stageList');
   if (!stageListEl) return;
+
+  stageListEl.querySelectorAll('.stageCard').forEach(card => {
+    card.style.opacity = '0';
+    card.style.transform = 'scale(0.96)';
+  });
+
   stageListEl.innerHTML = '';
+  await loadClearedLevelsFromDb();
   stageList.forEach((level, idx) => {
     const card = document.createElement('div');
     card.className = 'stageCard';
