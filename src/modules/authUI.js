@@ -1,6 +1,8 @@
 import {
   getUsername,
   setUsername,
+  getUsernameReservationKey,
+  setUsernameReservationKey,
   setGoogleDisplayName,
   setGoogleEmail,
   getGoogleNickname,
@@ -96,6 +98,16 @@ function setLoginUsernameText(value) {
   }
 }
 
+function setLocalNickname(name) {
+  setUsername(name);
+  setGuestUsernameText(name);
+  setLoginUsernameText(name);
+}
+
+function generateRandomNickname() {
+  return `Player${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
 function showRankSection() {
   if (elements.rankSection) {
     elements.rankSection.style.display = 'block';
@@ -121,34 +133,94 @@ function hideGuestPrompt() {
 }
 
 function assignGuestNickname() {
+  setUsernameReservationKey(null);
+  const usernamesRef = db && typeof db.ref === 'function' ? db.ref('usernames') : null;
+
+  const applyName = name => {
+    setLocalNickname(name);
+    loadClearedLevelsFromDb().then(maybeStartTutorial);
+    return name;
+  };
+
+  if (!usernamesRef || typeof usernamesRef.orderByValue !== 'function') {
+    const fallbackName = generateRandomNickname();
+    applyName(fallbackName);
+    return Promise.resolve(fallbackName);
+  }
+
   return new Promise(resolve => {
     const attempt = () => {
-      const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
-      db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-        if (snap.exists()) {
-          attempt();
-        } else {
-          const id = db.ref('usernames').push().key;
-          db.ref(`usernames/${id}`).set(name);
-          setUsername(name);
-          setGuestUsernameText(name);
-          setLoginUsernameText(name);
-          loadClearedLevelsFromDb().then(maybeStartTutorial);
-          resolve(name);
-        }
-      });
+      const candidate = generateRandomNickname();
+      usernamesRef
+        .orderByValue()
+        .equalTo(candidate)
+        .once('value', snap => {
+          if (snap.exists()) {
+            attempt();
+          } else {
+            resolve(applyName(candidate));
+          }
+        });
     };
     attempt();
   });
 }
 
-function registerUsernameIfNeeded(name) {
-  db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-    if (!snap.exists()) {
-      const id = db.ref('usernames').push().key;
-      db.ref(`usernames/${id}`).set(name);
+async function ensureUsernameRegistered(name, options = {}) {
+  const { reuseExisting = false } = options;
+  let targetName = name || getUsername();
+  if (!targetName) {
+    targetName = await assignGuestNickname();
+  }
+
+  const usernamesRef = db && typeof db.ref === 'function' ? db.ref('usernames') : null;
+  if (!usernamesRef || typeof usernamesRef.orderByValue !== 'function') {
+    return targetName;
+  }
+
+  const reservationKey = getUsernameReservationKey();
+  if (reservationKey) {
+    try {
+      const reservationSnap = await usernamesRef.child(reservationKey).once('value');
+      if (reservationSnap.exists() && reservationSnap.val() === targetName) {
+        return targetName;
+      }
+      await usernamesRef.child(reservationKey).remove();
+    } catch (err) {
+      console.warn('Failed to validate previous username reservation', err);
     }
-  });
+    setUsernameReservationKey(null);
+  }
+
+  // Attempt to reserve the desired nickname, retrying with a new guest nickname on conflicts.
+  // The loop is expected to terminate quickly because nicknames are randomly generated.
+  while (true) {
+    const snapshot = await usernamesRef.orderByValue().equalTo(targetName).once('value');
+    if (!snapshot.exists()) {
+      const newKey = usernamesRef.push().key;
+      await usernamesRef.child(newKey).set(targetName);
+      setUsernameReservationKey(newKey);
+      return targetName;
+    }
+
+    if (reuseExisting) {
+      let existingKey = null;
+      snapshot.forEach(child => {
+        if (!existingKey) {
+          existingKey = child.key;
+        }
+        return true;
+      });
+      if (existingKey) {
+        setUsernameReservationKey(existingKey);
+      }
+      return targetName;
+    }
+
+    // Conflict detected; generate a new nickname and try again.
+    // assignGuestNickname updates local storage/UI side effects for the new name.
+    targetName = await assignGuestNickname();
+  }
 }
 
 function removeUsername(name) {
@@ -166,17 +238,26 @@ function showMergeModal(oldName, newName) {
   elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
   elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
   elements.mergeModal.style.display = 'flex';
-  elements.mergeConfirmBtn.onclick = () => {
+  elements.mergeConfirmBtn.onclick = async () => {
     elements.mergeModal.style.display = 'none';
-    mergeProgress(oldName, newName).then(() => {
-      loadClearedLevelsFromDb();
+    try {
+      const finalName = await mergeProgress(oldName, newName);
+      if (finalName && finalName !== newName) {
+        setLocalNickname(finalName);
+      }
+    } finally {
+      await loadClearedLevelsFromDb();
       showOverallRanking();
-    });
+    }
   };
-  elements.mergeCancelBtn.onclick = () => {
+  elements.mergeCancelBtn.onclick = async () => {
     elements.mergeModal.style.display = 'none';
-    registerUsernameIfNeeded(newName);
-    loadClearedLevelsFromDb();
+    try {
+      await ensureUsernameRegistered(newName);
+    } catch (err) {
+      console.warn('Failed to ensure nickname during merge cancel', err);
+    }
+    await loadClearedLevelsFromDb();
     showOverallRanking();
   };
 }
@@ -199,24 +280,40 @@ function showAccountClaimModal(targetName, oldName, uid) {
     elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
     elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
     elements.mergeModal.style.display = 'flex';
-    elements.mergeConfirmBtn.onclick = () => {
+    elements.mergeConfirmBtn.onclick = async () => {
       elements.mergeModal.style.display = 'none';
-      setUsername(targetName);
+      setLocalNickname(targetName);
       setGoogleNickname(uid, targetName);
-      db.ref(`google/${uid}`).set({ uid, nickname: targetName });
-      setGuestUsernameText(targetName);
-      const after = () => {
-        loadClearedLevelsFromDb().then(() => {
-          showOverallRanking();
-          maybeStartTutorial();
-        });
+      await db.ref(`google/${uid}`).set({ uid, nickname: targetName });
+
+      const finalize = async () => {
+        await loadClearedLevelsFromDb();
+        showOverallRanking();
+        maybeStartTutorial();
       };
+
       if (oldName && oldName !== targetName) {
-        mergeProgress(oldName, targetName).then(after);
-      } else {
-        registerUsernameIfNeeded(targetName);
-        after();
+        const mergedName = await mergeProgress(oldName, targetName);
+        if (mergedName && mergedName !== targetName) {
+          setLocalNickname(mergedName);
+          setGoogleNickname(uid, mergedName);
+          await db.ref(`google/${uid}`).set({ uid, nickname: mergedName });
+        }
+        await finalize();
+        return;
       }
+
+      try {
+        const finalName = await ensureUsernameRegistered(targetName, { reuseExisting: true });
+        if (finalName !== targetName) {
+          setLocalNickname(finalName);
+          setGoogleNickname(uid, finalName);
+          await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+        }
+      } catch (err) {
+        console.warn('Failed to ensure nickname during account claim', err);
+      }
+      await finalize();
     };
     elements.mergeCancelBtn.onclick = () => {
       elements.mergeModal.style.display = 'none';
@@ -240,50 +337,60 @@ function isRecordBetter(a, b) {
   return new Date(a.timestamp) < new Date(b.timestamp);
 }
 
-function mergeProgress(oldName, newName) {
-  return db.ref('rankings').once('value').then(snap => {
-    const promises = [];
-    snap.forEach(levelSnap => {
-      let best = null;
-      const removeKeys = [];
-      levelSnap.forEach(recSnap => {
-        const v = recSnap.val();
-        if (v.nickname === oldName || v.nickname === newName) {
-          if (isRecordBetter(v, best)) best = { ...v };
-          removeKeys.push(recSnap.key);
-        }
-      });
-      removeKeys.forEach(k => promises.push(levelSnap.ref.child(k).remove()));
-      if (best) {
-        best.nickname = newName;
-        promises.push(levelSnap.ref.push(best));
+async function mergeProgress(oldName, newName) {
+  const finalName = await ensureUsernameRegistered(newName);
+  const snap = await db.ref('rankings').once('value');
+  const promises = [];
+
+  snap.forEach(levelSnap => {
+    let best = null;
+    const removeKeys = [];
+    levelSnap.forEach(recSnap => {
+      const v = recSnap.val();
+      if (v.nickname === oldName || v.nickname === finalName) {
+        if (isRecordBetter(v, best)) best = { ...v };
+        removeKeys.push(recSnap.key);
       }
     });
-    removeUsername(oldName);
-    registerUsernameIfNeeded(newName);
-    return Promise.all(promises);
+    removeKeys.forEach(k => promises.push(levelSnap.ref.child(k).remove()));
+    if (best) {
+      best.nickname = finalName;
+      promises.push(levelSnap.ref.push(best));
+    }
   });
+
+  removeUsername(oldName);
+  await Promise.all(promises);
+  return finalName;
 }
 
-function applyGoogleNickname(name, oldName) {
+async function applyGoogleNickname(name, oldName) {
   if (oldName !== name) {
-    setUsername(name);
-    setGuestUsernameText(name);
-    loadClearedLevelsFromDb().then(() => {
-      if (oldName) {
-        showMergeModal(oldName, name);
-      } else {
-        registerUsernameIfNeeded(name);
-      }
+    setLocalNickname(name);
+    await loadClearedLevelsFromDb();
+    if (oldName) {
+      showMergeModal(oldName, name);
       maybeStartTutorial();
-    });
-  } else {
-    registerUsernameIfNeeded(name);
-    loadClearedLevelsFromDb().then(maybeStartTutorial);
+      return name;
+    }
+    const finalName = await ensureUsernameRegistered(name);
+    if (finalName !== name) {
+      setLocalNickname(finalName);
+    }
+    maybeStartTutorial();
+    return finalName;
   }
+
+  const finalName = await ensureUsernameRegistered(name, { reuseExisting: true });
+  if (finalName !== name) {
+    setLocalNickname(finalName);
+  }
+  await loadClearedLevelsFromDb();
+  maybeStartTutorial();
+  return finalName;
 }
 
-function handleGoogleLogin(user) {
+async function handleGoogleLogin(user) {
   const uid = user.uid;
   if (user.displayName) {
     setGoogleDisplayName(uid, user.displayName);
@@ -292,30 +399,40 @@ function handleGoogleLogin(user) {
     setGoogleEmail(uid, user.email);
   }
   const oldName = getUsername();
-  db.ref(`google/${uid}`).once('value').then(snap => {
-    const dbName = snap.exists() ? snap.val().nickname : null;
-    const localGoogleName = getGoogleNickname(uid);
-    if (dbName) {
-      setGoogleNickname(uid, dbName);
-      applyGoogleNickname(dbName, oldName);
-    } else if (localGoogleName) {
-      db.ref(`google/${uid}`).set({ uid, nickname: localGoogleName });
-      applyGoogleNickname(localGoogleName, oldName);
-    } else if (oldName && !state.loginFromMainScreen) {
-      setGoogleNickname(uid, oldName);
-      db.ref(`google/${uid}`).set({ uid, nickname: oldName });
-      setGuestUsernameText(oldName);
-      loadClearedLevelsFromDb().then(() => {
-        showMergeModal(oldName, oldName);
-        maybeStartTutorial();
-      });
-    } else {
-      assignGuestNickname().then(name => {
-        setGoogleNickname(uid, name);
-        db.ref(`google/${uid}`).set({ uid, nickname: name });
-      });
+  const snap = await db.ref(`google/${uid}`).once('value');
+  const dbName = snap.exists() ? snap.val().nickname : null;
+  const localGoogleName = getGoogleNickname(uid);
+
+  if (dbName) {
+    setGoogleNickname(uid, dbName);
+    const finalName = await applyGoogleNickname(dbName, oldName);
+    if (finalName !== dbName) {
+      setGoogleNickname(uid, finalName);
+      await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
     }
-  });
+    return;
+  }
+
+  if (localGoogleName) {
+    const finalName = await applyGoogleNickname(localGoogleName, oldName);
+    setGoogleNickname(uid, finalName);
+    await db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+    return;
+  }
+
+  if (oldName && !state.loginFromMainScreen) {
+    setGoogleNickname(uid, oldName);
+    await db.ref(`google/${uid}`).set({ uid, nickname: oldName });
+    setGuestUsernameText(oldName);
+    await loadClearedLevelsFromDb();
+    showMergeModal(oldName, oldName);
+    maybeStartTutorial();
+    return;
+  }
+
+  const name = await assignGuestNickname();
+  setGoogleNickname(uid, name);
+  await db.ref(`google/${uid}`).set({ uid, nickname: name });
 }
 
 function handleAuthStateChange(buttons, user) {
@@ -323,7 +440,9 @@ function handleAuthStateChange(buttons, user) {
   const nickname = getUsername() || '';
   setLoginUsernameText(nickname);
   if (user) {
-    handleGoogleLogin(user);
+    handleGoogleLogin(user).catch(err => {
+      console.error('Failed to handle Google login', err);
+    });
     showRankSection();
     hideGuestPrompt();
     fetchOverallStats(nickname).then(res => {
@@ -402,11 +521,13 @@ export function initializeAuthUI(options = {}) {
   });
 }
 
+export { ensureUsernameRegistered };
+
 export const __testing = {
   setConfigFunctions,
   captureElements,
   assignGuestNickname,
-  registerUsernameIfNeeded,
+  ensureUsernameRegistered,
   removeUsername,
   showMergeModal,
   showAccountClaimModal,

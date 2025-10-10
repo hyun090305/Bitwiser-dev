@@ -1,4 +1,5 @@
 import { getUsername } from './storage.js';
+import { ensureUsernameRegistered } from './authUI.js';
 
 const fallbackTranslate = key => key;
 
@@ -162,8 +163,16 @@ export function showOverallRanking(options = {}) {
   });
 }
 
-export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
+export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
+  let nickname = getUsername() || '익명';
+  try {
+    const ensuredName = await ensureUsernameRegistered(nickname);
+    nickname = ensuredName || getUsername() || nickname;
+  } catch (err) {
+    console.warn('Failed to ensure nickname registration before saving ranking', err);
+    nickname = getUsername() || nickname;
+  }
+
   const entry = {
     nickname,
     blockCounts,
@@ -175,14 +184,7 @@ export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
 }
 
 export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
-  const entry = {
-    nickname,
-    blockCounts,
-    usedWires,
-    hintsUsed,
-    timestamp: new Date().toISOString()
-  };
+  let nickname = getUsername() || '익명';
   const rankingRef = db.ref(`problems/${problemKey}/ranking`);
 
   const isBetter = (a, b) => {
@@ -196,37 +198,56 @@ export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed
     return new Date(a.timestamp) < new Date(b.timestamp);
   };
 
-  rankingRef
-    .orderByChild('nickname')
-    .equalTo(nickname)
-    .once('value', snapshot => {
-      if (!snapshot.exists()) {
-        rankingRef.push(entry);
-        return;
-      }
-
-      let bestKey = null;
-      let bestVal = null;
-      const dupKeys = [];
-
-      snapshot.forEach(child => {
-        const val = child.val();
-        const key = child.key;
-        if (!bestVal || isBetter(val, bestVal)) {
-          if (bestKey) dupKeys.push(bestKey);
-          bestKey = key;
-          bestVal = val;
-        } else {
-          dupKeys.push(key);
-        }
-        return undefined;
-      });
-
-      if (bestVal && isBetter(entry, bestVal)) {
-        rankingRef.child(bestKey).set(entry);
-      }
-      dupKeys.forEach(k => rankingRef.child(k).remove());
+  const reservationPromise = ensureUsernameRegistered(nickname)
+    .then(ensuredName => {
+      nickname = ensuredName || getUsername() || nickname;
+    })
+    .catch(err => {
+      console.warn('Failed to ensure nickname registration before saving problem ranking', err);
+      nickname = getUsername() || nickname;
     });
+
+  return reservationPromise.finally(() => {
+    const entry = {
+      nickname,
+      blockCounts,
+      usedWires,
+      hintsUsed,
+      timestamp: new Date().toISOString()
+    };
+
+    rankingRef
+      .orderByChild('nickname')
+      .equalTo(nickname)
+      .once('value', snapshot => {
+        if (!snapshot.exists()) {
+          rankingRef.push(entry);
+          return;
+        }
+
+        let bestKey = null;
+        let bestVal = null;
+        const dupKeys = [];
+
+        snapshot.forEach(child => {
+          const val = child.val();
+          const key = child.key;
+          if (!bestVal || isBetter(val, bestVal)) {
+            if (bestKey) dupKeys.push(bestKey);
+            bestKey = key;
+            bestVal = val;
+          } else {
+            dupKeys.push(key);
+          }
+          return undefined;
+        });
+
+        if (bestVal && isBetter(entry, bestVal)) {
+          rankingRef.child(bestKey).set(entry);
+        }
+        dupKeys.forEach(k => rankingRef.child(k).remove());
+      });
+  });
 }
 
 export function showRanking(levelId, options = {}) {
