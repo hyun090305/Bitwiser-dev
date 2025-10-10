@@ -78,7 +78,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const clampToBounds = !unboundedGrid;
   let baseGridWidth = gridWidth;
   let baseGridHeight = gridHeight;
-  let minCanvasHeight;
+  let dynamicMinCanvasHeight;
 
   if (paletteGroups.length > 0) {
     const colWidth =
@@ -125,7 +125,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     canvasHeight = Math.max(canvasHeight, palette.length * PALETTE_ITEM_H + 20);
   }
 
-  minCanvasHeight = canvasHeight;
+  dynamicMinCanvasHeight = canvasHeight;
 
   let canvasWidth = panelTotalWidth + gridWidth;
   if (canvasSize && Number.isFinite(canvasSize.width) && Number.isFinite(canvasSize.height)) {
@@ -158,7 +158,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       canvas.dataset.gridBaseHeight = String(baseGridHeight);
       canvas.dataset.gridViewportWidth = String(Math.max(0, gridWidth));
       canvas.dataset.gridViewportHeight = String(Math.max(0, gridHeight));
-      canvas.dataset.minCanvasHeight = String(minCanvasHeight);
+      canvas.dataset.minCanvasHeight = String(dynamicMinCanvasHeight);
     });
   }
 
@@ -291,12 +291,23 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
   }
 
-  function resizeCanvas(width, height) {
+  function resolveMinCanvasHeight(options) {
+    if (options && typeof options === 'object' && options !== null) {
+      const override = Number.parseFloat(options.minHeight);
+      if (Number.isFinite(override)) {
+        dynamicMinCanvasHeight = Math.max(0, override);
+      }
+    }
+    return dynamicMinCanvasHeight;
+  }
+
+  function resizeCanvas(width, height, options) {
     if (!Number.isFinite(width) || !Number.isFinite(height)) return;
     const normalizedGridHeight = Math.max(0, height);
     const normalizedCanvasWidth = Math.max(width, panelTotalWidth);
     const normalizedGridWidth = Math.max(0, normalizedCanvasWidth - panelTotalWidth);
-    const nextCanvasHeight = Math.max(normalizedGridHeight, minCanvasHeight);
+    const effectiveMinHeight = resolveMinCanvasHeight(options);
+    const nextCanvasHeight = Math.max(normalizedGridHeight, effectiveMinHeight);
 
     canvasWidth = normalizedCanvasWidth;
     canvasHeight = nextCanvasHeight;

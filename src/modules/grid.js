@@ -233,9 +233,13 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
     const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
     const targetHeight = resolvedGridHeight * scale;
-    const targetCanvasHeight = Math.max(targetHeight, resolvedMinCanvasHeight);
+    const safeAvailableHeight = Math.max(0, gridAvailableHeight);
+    const minHeightOverride = safeAvailableHeight > 0
+      ? Math.min(resolvedMinCanvasHeight, safeAvailableHeight)
+      : resolvedMinCanvasHeight;
+    const targetCanvasHeight = Math.max(targetHeight, minHeightOverride);
 
-    controller.resizeCanvas(targetWidth, targetHeight);
+    controller.resizeCanvas(targetWidth, targetHeight, { minHeight: minHeightOverride });
     camera.reset?.();
     camera.setScale?.(scale);
 
