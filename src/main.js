@@ -572,16 +572,23 @@ document.addEventListener('keydown', e => {
 
 // 회로 저장 완료 모달
 function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
+  let hasContinued = false;
+  const continueFlow = () => {
+    if (hasContinued) return;
+    hasContinued = true;
+    const clearedLevel = gradingController.consumePendingClearedLevel();
+    if (clearedLevel !== null && clearedLevel !== undefined) {
+      showClearedModal(clearedLevel, clearedModalOptions);
+    }
+  };
+
+  continueFlow();
+
   showCircuitSavedToast({
     message,
     canShare,
     loginRequired,
-    onContinue: () => {
-      const clearedLevel = gradingController.consumePendingClearedLevel();
-      if (clearedLevel !== null && clearedLevel !== undefined) {
-        showClearedModal(clearedLevel, clearedModalOptions);
-      }
-    }
+    onContinue: continueFlow
   });
 }
 
