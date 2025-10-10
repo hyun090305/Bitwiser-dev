@@ -586,7 +586,6 @@ function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
 }
 
 const overlay = document.getElementById('gridOverlay');
-const blockPanel = document.getElementById('blockPanel');
 const rightPanel = document.getElementById('rightPanel');
 const gradingArea = document.getElementById('gradingArea');
 
@@ -616,7 +615,6 @@ const gradingController = createGradingController({
   returnToEditScreen,
   elements: {
     overlay,
-    blockPanel,
     rightPanel,
     gradingArea,
     toast: toastApi
@@ -829,14 +827,12 @@ async function startCustomProblem(key, problem) {
 
 initializeProblemCreationFlow({
   ids: {
-    createProblemBtnId: 'createProblemBtn',
     backButtonId: 'backToMainFromProblem',
     problemScreenId: 'problem-screen',
     firstScreenId: 'firstScreen',
     chapterStageScreenId: 'chapterStageScreen',
     userProblemsScreenId: 'user-problems-screen',
     openProblemCreatorBtnId: 'openProblemCreatorBtn',
-    updateIOBtnId: 'updateIOBtn',
     saveProblemBtnId: 'saveProblemBtn',
     confirmSaveProblemBtnId: 'confirmSaveProblemBtn',
     cancelSaveProblemBtnId: 'cancelSaveProblemBtn',
@@ -867,7 +863,6 @@ if (exportBtn) {
 
 // --- 모바일 세로 모드 안내 모달 ---
 const orientationModal = document.getElementById('orientationModal');
-const rotateLandscapeBtn = document.getElementById('rotateLandscapeBtn');
 const closeOrientationBtn = document.getElementById('closeOrientationBtn');
 
 function checkOrientation() {
@@ -878,13 +873,6 @@ function checkOrientation() {
   } else {
     orientationModal.style.display = 'none';
   }
-}
-
-if (rotateLandscapeBtn) {
-  rotateLandscapeBtn.addEventListener('click', () => {
-    lockOrientationLandscape();
-    if (orientationModal) orientationModal.style.display = 'none';
-  });
 }
 
 if (closeOrientationBtn) {

@@ -154,10 +154,8 @@ export function returnToEditScreen() {
   const overlay = document.getElementById('gridOverlay');
   if (overlay) overlay.style.display = 'none';
 
-  const blockPanel = document.getElementById('blockPanel');
   const rightPanel = document.getElementById('rightPanel');
   const gradingArea = document.getElementById('gradingArea');
-  if (blockPanel) blockPanel.style.display = 'flex';
   if (rightPanel) rightPanel.style.display = 'block';
   if (gradingArea) gradingArea.style.display = 'none';
 }
