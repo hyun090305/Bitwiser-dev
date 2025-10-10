@@ -803,11 +803,6 @@ export function initializeProblemCreationFlow({
     ? onStartCustomProblem
     : null;
 
-  const createProblemBtn = getElement(ids.createProblemBtnId);
-  if (createProblemBtn) {
-    createProblemBtn.addEventListener('click', () => enterProblemScreen('main'));
-  }
-
   const backButton = getElement(ids.backButtonId);
   if (backButton) {
     backButton.addEventListener('click', leaveProblemScreen);
@@ -816,14 +811,6 @@ export function initializeProblemCreationFlow({
   const openProblemCreatorBtn = getElement(ids.openProblemCreatorBtnId);
   if (openProblemCreatorBtn) {
     openProblemCreatorBtn.addEventListener('click', () => enterProblemScreen('userProblems'));
-  }
-
-  const updateIOBtn = getElement(ids.updateIOBtnId);
-  if (updateIOBtn) {
-    updateIOBtn.addEventListener('click', () => {
-      alert('입출력/그리드 설정을 변경하면 회로가 초기화됩니다.');
-      initializeProblemEditorUI();
-    });
   }
 
   const problemSaveModal = getElement(ids.problemSaveModalId);

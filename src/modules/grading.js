@@ -54,8 +54,7 @@ function showElement(el, displayValue = 'block') {
   if (el) el.style.display = displayValue;
 }
 
-function prepareGradingArea({ blockPanel, rightPanel, gradingArea }) {
-  hideElement(blockPanel);
+function prepareGradingArea({ rightPanel, gradingArea }) {
   hideElement(rightPanel);
   if (gradingArea) {
     showElement(gradingArea, 'block');
@@ -341,7 +340,6 @@ export function createGradingController(config = {}) {
     }
 
     prepareGradingArea({
-      blockPanel: elements.blockPanel,
       rightPanel: elements.rightPanel,
       gradingArea: elements.gradingArea
     });
@@ -473,7 +471,6 @@ export function createGradingController(config = {}) {
     }
 
     prepareGradingArea({
-      blockPanel: elements.blockPanel,
       rightPanel: elements.rightPanel,
       gradingArea: elements.gradingArea
     });
