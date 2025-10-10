@@ -1,4 +1,5 @@
 import { getUsername } from './storage.js';
+import { ensureUsernameRegistered } from './authUI.js';
 
 const fallbackTranslate = key => key;
 
@@ -162,8 +163,11 @@ export function showOverallRanking(options = {}) {
   });
 }
 
-export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
+export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
+  let nickname = getUsername() || '익명';
+  if (nickname && nickname !== '익명') {
+    nickname = await ensureUsernameRegistered(nickname);
+  }
   const entry = {
     nickname,
     blockCounts,
@@ -174,8 +178,11 @@ export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
   db.ref(`rankings/${levelId}`).push(entry);
 }
 
-export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
+export async function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
+  let nickname = getUsername() || '익명';
+  if (nickname && nickname !== '익명') {
+    nickname = await ensureUsernameRegistered(nickname);
+  }
   const entry = {
     nickname,
     blockCounts,

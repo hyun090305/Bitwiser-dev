@@ -120,35 +120,39 @@ function hideGuestPrompt() {
   }
 }
 
-function assignGuestNickname() {
-  return new Promise(resolve => {
-    const attempt = () => {
-      const name = `Player${Math.floor(1000 + Math.random() * 9000)}`;
-      db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-        if (snap.exists()) {
-          attempt();
-        } else {
-          const id = db.ref('usernames').push().key;
-          db.ref(`usernames/${id}`).set(name);
-          setUsername(name);
-          setGuestUsernameText(name);
-          setLoginUsernameText(name);
-          loadClearedLevelsFromDb().then(maybeStartTutorial);
-          resolve(name);
-        }
-      });
-    };
-    attempt();
-  });
+function generateRandomNickname() {
+  return `Player${Math.floor(1000 + Math.random() * 9000)}`;
 }
 
-function registerUsernameIfNeeded(name) {
-  db.ref('usernames').orderByValue().equalTo(name).once('value', snap => {
-    if (!snap.exists()) {
-      const id = db.ref('usernames').push().key;
-      db.ref(`usernames/${id}`).set(name);
+function applyNicknameLocally(name) {
+  setUsername(name);
+  setGuestUsernameText(name);
+  setLoginUsernameText(name);
+}
+
+function assignGuestNickname() {
+  const name = generateRandomNickname();
+  applyNicknameLocally(name);
+  loadClearedLevelsFromDb().then(maybeStartTutorial);
+  return Promise.resolve(name);
+}
+
+export async function ensureUsernameRegistered(name, { updateLocal = true } = {}) {
+  let candidate = name || generateRandomNickname();
+
+  while (true) {
+    const snapshot = await db.ref('usernames').orderByValue().equalTo(candidate).once('value');
+    if (!snapshot.exists()) {
+      const ref = db.ref('usernames').push();
+      await ref.set(candidate);
+      if (updateLocal) {
+        applyNicknameLocally(candidate);
+      }
+      return candidate;
     }
-  });
+
+    candidate = generateRandomNickname();
+  }
 }
 
 function removeUsername(name) {
@@ -157,7 +161,7 @@ function removeUsername(name) {
   });
 }
 
-function showMergeModal(oldName, newName) {
+function showMergeModal(oldName, newName, uid) {
   if (!elements.mergeModal || !elements.mergeDetails || !elements.mergeConfirmBtn || !elements.mergeCancelBtn) {
     return;
   }
@@ -166,18 +170,33 @@ function showMergeModal(oldName, newName) {
   elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
   elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
   elements.mergeModal.style.display = 'flex';
-  elements.mergeConfirmBtn.onclick = () => {
+  elements.mergeConfirmBtn.onclick = async () => {
     elements.mergeModal.style.display = 'none';
-    mergeProgress(oldName, newName).then(() => {
+    const finalName = await ensureUsernameRegistered(newName);
+    if (uid) {
+      setGoogleNickname(uid, finalName);
+      db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+    }
+    if (oldName && oldName !== finalName) {
+      mergeProgress(oldName, finalName).then(() => {
+        loadClearedLevelsFromDb();
+        showOverallRanking();
+      });
+    } else {
       loadClearedLevelsFromDb();
       showOverallRanking();
-    });
+    }
   };
   elements.mergeCancelBtn.onclick = () => {
     elements.mergeModal.style.display = 'none';
-    registerUsernameIfNeeded(newName);
-    loadClearedLevelsFromDb();
-    showOverallRanking();
+    ensureUsernameRegistered(newName).then(finalName => {
+      if (uid) {
+        setGoogleNickname(uid, finalName);
+        db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      }
+      loadClearedLevelsFromDb();
+      showOverallRanking();
+    });
   };
 }
 
@@ -199,22 +218,21 @@ function showAccountClaimModal(targetName, oldName, uid) {
     elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
     elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
     elements.mergeModal.style.display = 'flex';
-    elements.mergeConfirmBtn.onclick = () => {
+    elements.mergeConfirmBtn.onclick = async () => {
       elements.mergeModal.style.display = 'none';
-      setUsername(targetName);
-      setGoogleNickname(uid, targetName);
-      db.ref(`google/${uid}`).set({ uid, nickname: targetName });
-      setGuestUsernameText(targetName);
+      const finalName = await ensureUsernameRegistered(targetName);
+      setGoogleNickname(uid, finalName);
+      db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      setGuestUsernameText(finalName);
       const after = () => {
         loadClearedLevelsFromDb().then(() => {
           showOverallRanking();
           maybeStartTutorial();
         });
       };
-      if (oldName && oldName !== targetName) {
-        mergeProgress(oldName, targetName).then(after);
+      if (oldName && oldName !== finalName) {
+        mergeProgress(oldName, finalName).then(after);
       } else {
-        registerUsernameIfNeeded(targetName);
         after();
       }
     };
@@ -260,26 +278,35 @@ function mergeProgress(oldName, newName) {
       }
     });
     removeUsername(oldName);
-    registerUsernameIfNeeded(newName);
     return Promise.all(promises);
   });
 }
 
-function applyGoogleNickname(name, oldName) {
+function applyGoogleNickname(name, oldName, uid) {
   if (oldName !== name) {
-    setUsername(name);
-    setGuestUsernameText(name);
+    applyNicknameLocally(name);
     loadClearedLevelsFromDb().then(() => {
       if (oldName) {
-        showMergeModal(oldName, name);
+        showMergeModal(oldName, name, uid);
+        maybeStartTutorial();
       } else {
-        registerUsernameIfNeeded(name);
+        ensureUsernameRegistered(name).then(finalName => {
+          if (uid) {
+            setGoogleNickname(uid, finalName);
+            db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+          }
+          maybeStartTutorial();
+        });
       }
-      maybeStartTutorial();
     });
   } else {
-    registerUsernameIfNeeded(name);
-    loadClearedLevelsFromDb().then(maybeStartTutorial);
+    ensureUsernameRegistered(name).then(finalName => {
+      if (uid) {
+        setGoogleNickname(uid, finalName);
+        db.ref(`google/${uid}`).set({ uid, nickname: finalName });
+      }
+      loadClearedLevelsFromDb().then(maybeStartTutorial);
+    });
   }
 }
 
@@ -297,16 +324,16 @@ function handleGoogleLogin(user) {
     const localGoogleName = getGoogleNickname(uid);
     if (dbName) {
       setGoogleNickname(uid, dbName);
-      applyGoogleNickname(dbName, oldName);
+      applyGoogleNickname(dbName, oldName, uid);
     } else if (localGoogleName) {
       db.ref(`google/${uid}`).set({ uid, nickname: localGoogleName });
-      applyGoogleNickname(localGoogleName, oldName);
+      applyGoogleNickname(localGoogleName, oldName, uid);
     } else if (oldName && !state.loginFromMainScreen) {
       setGoogleNickname(uid, oldName);
       db.ref(`google/${uid}`).set({ uid, nickname: oldName });
       setGuestUsernameText(oldName);
       loadClearedLevelsFromDb().then(() => {
-        showMergeModal(oldName, oldName);
+        showMergeModal(oldName, oldName, uid);
         maybeStartTutorial();
       });
     } else {
@@ -406,7 +433,7 @@ export const __testing = {
   setConfigFunctions,
   captureElements,
   assignGuestNickname,
-  registerUsernameIfNeeded,
+  ensureUsernameRegistered,
   removeUsername,
   showMergeModal,
   showAccountClaimModal,
