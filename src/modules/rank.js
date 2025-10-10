@@ -1,4 +1,5 @@
 import { getUsername } from './storage.js';
+import { ensureUsernameRegistered } from './authUI.js';
 
 const fallbackTranslate = key => key;
 
@@ -162,8 +163,15 @@ export function showOverallRanking(options = {}) {
   });
 }
 
-export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
+export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
+  let nickname = getUsername() || '익명';
+  if (nickname !== '익명' && typeof ensureUsernameRegistered === 'function') {
+    try {
+      nickname = await ensureUsernameRegistered(nickname);
+    } catch (err) {
+      console.error('Failed to ensure nickname before saving ranking', err);
+    }
+  }
   const entry = {
     nickname,
     blockCounts,
@@ -174,8 +182,15 @@ export function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
   db.ref(`rankings/${levelId}`).push(entry);
 }
 
-export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  const nickname = getUsername() || '익명';
+export async function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
+  let nickname = getUsername() || '익명';
+  if (nickname !== '익명' && typeof ensureUsernameRegistered === 'function') {
+    try {
+      nickname = await ensureUsernameRegistered(nickname);
+    } catch (err) {
+      console.error('Failed to ensure nickname before saving problem ranking', err);
+    }
+  }
   const entry = {
     nickname,
     blockCounts,

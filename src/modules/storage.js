@@ -1,4 +1,5 @@
 const USERNAME_KEY = 'username';
+const USERNAME_RESERVATION_KEY = 'usernameReservationKey';
 const HINT_COOLDOWN_KEY = 'hintCooldownUntil';
 const AUTO_SAVE_KEY = 'autoSaveCircuit';
 
@@ -31,6 +32,14 @@ export function getUsername() {
 
 export function setUsername(name) {
   safeSetItem(USERNAME_KEY, name);
+}
+
+export function getUsernameReservationKey() {
+  return safeGetItem(USERNAME_RESERVATION_KEY);
+}
+
+export function setUsernameReservationKey(value) {
+  safeSetItem(USERNAME_RESERVATION_KEY, value);
 }
 
 export function getHintProgress(stage) {
