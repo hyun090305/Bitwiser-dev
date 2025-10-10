@@ -263,6 +263,11 @@ export async function renderStageList(stageList) {
   const stageListEl = document.getElementById('stageList');
   if (!stageListEl) return;
 
+  const previousHeight = stageListEl.offsetHeight;
+  if (previousHeight > 0) {
+    stageListEl.style.minHeight = `${previousHeight}px`;
+  }
+
   stageListEl.querySelectorAll('.stageCard').forEach(card => {
     card.style.opacity = '0';
     card.style.transform = 'scale(0.96)';
@@ -321,6 +326,15 @@ export async function renderStageList(stageList) {
       },
       { once: true }
     );
+  });
+
+  requestAnimationFrame(() => {
+    const measuredHeight = stageListEl.offsetHeight;
+    if (measuredHeight > 0) {
+      stageListEl.style.minHeight = `${measuredHeight}px`;
+    } else if (stageList.length === 0) {
+      stageListEl.style.removeProperty('min-height');
+    }
   });
 }
 
