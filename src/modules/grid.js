@@ -146,8 +146,24 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     const menuBar = document.getElementById('menuBar');
     if (menuBar) {
       const menuRect = menuBar.getBoundingClientRect();
+      const computedStyle = window.getComputedStyle(menuBar);
       const isVertical = menuRect.height > menuRect.width;
+
+      let ignoreMenuWidth = false;
       if (isVertical) {
+        const isFixed = computedStyle.position === 'fixed';
+        const top = parseFloat(computedStyle.top || '');
+        const right = parseFloat(computedStyle.right || '');
+        const left = parseFloat(computedStyle.left || '');
+        const isAnchoredToSide = Number.isFinite(right) ? Math.abs(right) < 0.5 : Number.isFinite(left) && Math.abs(left) < 0.5;
+        const isAnchoredToTop = Number.isFinite(top) && Math.abs(top) < 0.5;
+        ignoreMenuWidth = isFixed && isAnchoredToSide && isAnchoredToTop;
+      }
+
+      if (isVertical && ignoreMenuWidth) {
+        // On mobile layouts the vertical menu floats above the grid, so
+        // subtracting its width incorrectly shrinks the canvas.
+      } else if (isVertical) {
         availableWidth -= menuRect.width;
       } else {
         availableHeight -= menuRect.height;
