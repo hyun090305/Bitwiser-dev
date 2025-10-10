@@ -194,15 +194,30 @@ export async function returnToLevels({
     return;
   }
 
-  await renderChapterList();
-  const chapter = chapterData[selectedChapterIndex];
-  if (chapter) {
-    await renderStageList(chapter.stages);
-  }
   const chapterStageScreen = document.getElementById('chapterStageScreen');
   if (chapterStageScreen) {
     chapterStageScreen.style.display = 'block';
+    chapterStageScreen.classList.add('stage-screen-enter');
+    chapterStageScreen.addEventListener(
+      'animationend',
+      event => {
+        if (event.target === chapterStageScreen) {
+          chapterStageScreen.classList.remove('stage-screen-enter');
+        }
+      },
+      { once: true }
+    );
   }
+
+  await Promise.all([
+    renderChapterList(),
+    (async () => {
+      const chapter = chapterData[selectedChapterIndex];
+      if (chapter) {
+        await renderStageList(chapter.stages);
+      }
+    })()
+  ]);
 }
 
 export async function renderChapterList() {
@@ -251,7 +266,7 @@ export async function renderStageList(stageList) {
   stageListEl.innerHTML = '';
   stageList.forEach((level, idx) => {
     const card = document.createElement('div');
-    card.className = 'stageCard card-enter';
+    card.className = 'stageCard';
     card.style.animationDelay = `${idx * 40}ms`;
     card.dataset.stage = level;
     const title = levelTitles[level] ?? `Stage ${level}`;
@@ -283,6 +298,23 @@ export async function renderStageList(stageList) {
       };
     }
     stageListEl.appendChild(card);
+
+    requestAnimationFrame(() => {
+      card.classList.add('card-enter');
+    });
+
+    card.addEventListener(
+      'animationend',
+      event => {
+        if (event.animationName === 'cardIn') {
+          card.style.opacity = '1';
+          card.style.transform = 'scale(1)';
+          card.classList.remove('card-enter');
+          card.style.removeProperty('animation-delay');
+        }
+      },
+      { once: true }
+    );
   });
 }
 
