@@ -2,6 +2,7 @@ import { makeCircuit } from '../canvas/model.js';
 import { createController } from '../canvas/controller.js';
 import { createCamera } from '../canvas/camera.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
+import { initializeCircuitCommunity } from './circuitCommunity.js';
 
 function getAvailableIONames(circuit, count = 5) {
   const collectNames = (type, prefix) => {
@@ -83,6 +84,97 @@ let labResizeHandler = null;
 let rightPanelPlaceholder = null;
 let originalGradeDisplay = '';
 let originalGameTitleText = '';
+let labCommunityApi = null;
+
+function clampDimension(value, fallback = 24) {
+  const num = Number(value);
+  if (!Number.isFinite(num) || num < 1) return fallback;
+  return Math.min(50, Math.max(1, Math.round(num)));
+}
+
+function sanitizeCircuitData(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  const result = {
+    rows: clampDimension(raw.rows),
+    cols: clampDimension(raw.cols),
+    blocks: {},
+    wires: {}
+  };
+
+  const sourceBlocks = raw.blocks && typeof raw.blocks === 'object' ? raw.blocks : {};
+  Object.entries(sourceBlocks).forEach(([id, block]) => {
+    if (!id || !block || typeof block !== 'object') return;
+    const pos = block.pos || {};
+    const r = Number(pos.r);
+    const c = Number(pos.c);
+    if (!Number.isFinite(r) || !Number.isFinite(c)) return;
+    const entry = {
+      id,
+      type: typeof block.type === 'string' ? block.type : '',
+      pos: { r: Math.round(r), c: Math.round(c) },
+      value: Boolean(block.value),
+      fixed: Boolean(block.fixed)
+    };
+    if (typeof block.name === 'string' && block.name.trim()) {
+      entry.name = block.name.trim();
+    }
+    result.blocks[id] = entry;
+  });
+
+  const sourceWires = raw.wires && typeof raw.wires === 'object' ? raw.wires : {};
+  Object.entries(sourceWires).forEach(([id, wire]) => {
+    if (!id || !wire || typeof wire !== 'object') return;
+    const path = Array.isArray(wire.path)
+      ? wire.path
+          .map(point => {
+            const r = Number(point?.r);
+            const c = Number(point?.c);
+            if (!Number.isFinite(r) || !Number.isFinite(c)) return null;
+            return { r: Math.round(r), c: Math.round(c) };
+          })
+          .filter(Boolean)
+      : [];
+    result.wires[id] = {
+      id,
+      path,
+      startBlockId: typeof wire.startBlockId === 'string' ? wire.startBlockId : null,
+      endBlockId: typeof wire.endBlockId === 'string' ? wire.endBlockId : null,
+      flow: Array.isArray(wire.flow) ? wire.flow.slice() : []
+    };
+  });
+
+  return result;
+}
+
+function getLabCircuitSnapshot() {
+  if (!labCircuit) return null;
+  return sanitizeCircuitData(labCircuit);
+}
+
+function importCircuitFromCommunity(snapshot) {
+  const sanitized = sanitizeCircuitData(snapshot);
+  if (!sanitized) return false;
+  labCircuit = sanitized;
+  createLabController({ preserveCircuit: false });
+  return true;
+}
+
+function setLabCommunityActionsVisible(visible) {
+  const actions = document.getElementById('labCommunityActions');
+  if (!actions) return;
+  actions.hidden = !visible;
+}
+
+function ensureCommunityIntegration() {
+  if (labCommunityApi) return;
+  labCommunityApi = initializeCircuitCommunity({
+    getCircuitSnapshot: getLabCircuitSnapshot,
+    importCircuit: importCircuitFromCommunity,
+    onLabRevealed: () => {
+      labController?.attachKeyboardHandlers?.();
+    }
+  });
+}
 
 function moveRightPanelInto(container) {
   const rightPanel = document.getElementById('rightPanel');
@@ -110,6 +202,7 @@ function restoreRightPanel() {
   if (gradeButton) {
     gradeButton.style.display = originalGradeDisplay;
   }
+  setLabCommunityActionsVisible(false);
 }
 
 function removeLabResizeHandler() {
@@ -141,6 +234,12 @@ function createLabController({ preserveCircuit = false } = {}) {
     labController.resizeCanvas?.(innerWidth, innerHeight);
     labController.attachKeyboardHandlers?.();
     return;
+  }
+
+  if (labController) {
+    labController.stopEngine?.();
+    labController.destroy?.();
+    labController = null;
   }
 
   if (!labCircuit) {
@@ -208,7 +307,10 @@ function showLabScreen() {
   if (!labScreen) return;
   const firstScreen = document.getElementById('firstScreen');
   if (firstScreen) firstScreen.style.display = 'none';
+  ensureCommunityIntegration();
+  labCommunityApi?.hideCommunityScreen?.();
   moveRightPanelInto(labScreen);
+  setLabCommunityActionsVisible(true);
   labScreen.style.display = 'block';
   document.body.classList.add('lab-mode-active');
   const titleEl = document.getElementById('gameTitle');
@@ -226,6 +328,8 @@ function hideLabScreen() {
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
   labScreen.style.display = 'none';
+  labCommunityApi?.hideCommunityScreen?.();
+  setLabCommunityActionsVisible(false);
   restoreRightPanel();
   const firstScreen = document.getElementById('firstScreen');
   if (firstScreen) firstScreen.style.display = '';
@@ -242,6 +346,8 @@ export function initializeLabMode() {
   const labBtn = document.getElementById('labBtn');
   if (!labBtn) return;
   const exitBtn = document.getElementById('labExitBtn');
+
+  ensureCommunityIntegration();
 
   labBtn.addEventListener('click', () => {
     showLabScreen();
