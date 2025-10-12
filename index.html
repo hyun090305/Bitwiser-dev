@@ -31,6 +31,16 @@
       <div class="loader"></div>
       <p id="loadingText">데이터 불러오는 중...</p>
     </div>
+    <div id="usernameModal" class="modal" style="display:none;">
+      <div class="modal-content">
+        <h2 id="loginTitle">로그인 또는 게스트 플레이</h2>
+        <button id="modalGoogleLoginBtn" class="btn-primary" style="margin-bottom:1rem;">Google 계정으로 로그인</button>
+        <p class="info-text" id="loginInfo">또는 닉네임을 입력하여 게스트로 플레이하세요.<br>닉네임은 랭킹에 표시되며 변경할 수 없습니다.</p>
+        <input type="text" id="usernameInput" placeholder="닉네임 입력" />
+        <div id="usernameError" style="color:red; margin-top:0.5rem;"></div>
+        <button id="usernameSubmit">게스트로 시작하기</button>
+      </div>
+    </div>
     <div id="mergeModal" class="modal" style="display:none;">
       <div class="modal-content">
         <h2 id="mergeTitle">진행 상황 병합</h2>
