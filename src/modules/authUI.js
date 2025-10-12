@@ -338,7 +338,7 @@ function isRecordBetter(a, b) {
 }
 
 async function mergeProgress(oldName, newName) {
-  const finalName = await ensureUsernameRegistered(newName);
+  const finalName = await ensureUsernameRegistered(newName, { reuseExisting: true });
   const snap = await db.ref('rankings').once('value');
   const promises = [];
 
