@@ -1395,6 +1395,58 @@ html, body {
     position: relative;
   }
 
+  /* ── Username Modal: input & button 디자인 ── */
+  #usernameModal .modal-content input#usernameInput {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    margin: 0.5rem 0 1rem;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease;
+  }
+
+  #usernameModal .modal-content input#usernameInput:focus {
+    outline: none;
+    border-color: #6b8cff;
+  }
+
+  #usernameModal .modal-content button#usernameSubmit {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #fff;
+    background: linear-gradient(135deg, #6B8CFF 0%, #88E0EF 100%);
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+
+  #usernameModal .modal-content button#usernameSubmit:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(107, 140, 255, 0.5);
+  }
+
+  #usernameModal .modal-content .info-text {
+    margin: 0.25rem 0;
+    font-size: 0.9rem;
+    color: #555;
+  }
+
   /* 랭킹 모달 전용 중앙정렬 오버라이드 */
   #rankingModal {
     position: fixed !important;

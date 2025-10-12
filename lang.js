@@ -1,6 +1,12 @@
 const translations = {
   ko: {
     loadingText: {text: "데이터 불러오는 중..."},
+    loginTitle: {text: "로그인 또는 게스트 플레이"},
+    modalGoogleLoginBtn: {text: "Google 계정으로 로그인"},
+    loginInfo: {html: "또는 닉네임을 입력하여 게스트로 플레이하세요.<br>닉네임은 랭킹에 표시되며 변경할 수 없습니다."},
+    loginInfoGoogle: {html: "이전에 사용하던 닉네임이 있는 경우 해당 닉네임을 입력하여 계속 플레이할 수 있습니다.<br>닉네임은 랭킹에 표시되며 변경할 수 없습니다."},
+    usernameInput: {placeholder: "닉네임 입력"},
+    usernameSubmit: {text: "게스트로 시작하기"},
     mergeTitle: {text: "진행 상황 병합"},
     mergeMessage: {text: "현재 로컬 진행 상황을 Google 계정과 병합하시겠습니까?"},
     mergeConfirmBtn: {text: "네"},
@@ -192,6 +198,12 @@ const translations = {
   },
   en: {
     loadingText: {text: "Loading data..."},
+    loginTitle: {text: "Login or play as guest"},
+    modalGoogleLoginBtn: {text: "Sign in with Google"},
+    loginInfo: {html: "Or enter a nickname to play as a guest.<br>The nickname appears in the ranking and cannot be changed."},
+    loginInfoGoogle: {html: "If you previously used a nickname, enter it to continue playing.<br>The nickname appears in the ranking and cannot be changed."},
+    usernameInput: {placeholder: "Enter nickname"},
+    usernameSubmit: {text: "Start as guest"},
     mergeTitle: {text: "Merge Progress"},
     mergeMessage: {text: "Merge local progress with your Google account?"},
     mergeConfirmBtn: {text: "Yes"},
