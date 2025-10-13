@@ -1,4 +1,5 @@
 import { createCamera } from '../canvas/camera.js';
+import { onThemeChange } from '../themes.js';
 
 const DEFAULT_GRID_SIZE = 6;
 
@@ -11,6 +12,8 @@ let playCamera = null;
 let problemCircuit = null;
 let problemController = null;
 let problemCamera = null;
+let playThemeUnsub = null;
+let problemThemeUnsub = null;
 
 const CIRCUIT_CONTEXT = {
   PLAY: 'play',
@@ -62,6 +65,14 @@ export function getActiveController() {
 }
 
 export function destroyPlayContext() {
+  if (playThemeUnsub) {
+    try {
+      playThemeUnsub();
+    } catch (err) {
+      console.error('Error unsubscribing play theme listener', err);
+    }
+    playThemeUnsub = null;
+  }
   playController?.stopEngine?.();
   playController?.destroy?.();
   playController = null;
@@ -70,6 +81,14 @@ export function destroyPlayContext() {
 }
 
 export function destroyProblemContext({ destroyController = true } = {}) {
+  if (destroyController && problemThemeUnsub) {
+    try {
+      problemThemeUnsub();
+    } catch (err) {
+      console.error('Error unsubscribing problem theme listener', err);
+    }
+    problemThemeUnsub = null;
+  }
   if (destroyController) {
     problemController?.stopEngine?.();
     problemController?.destroy?.();
@@ -378,10 +397,20 @@ export function setupGrid(
         problemCircuit = circuit;
         problemController = controller;
         problemCamera = camera;
+        problemThemeUnsub?.();
+        problemThemeUnsub = onThemeChange(() => {
+          if (!problemController) return;
+          problemController.refreshVisuals?.();
+        });
       } else {
         playCircuit = circuit;
         playController = controller;
         playCamera = camera;
+        playThemeUnsub?.();
+        playThemeUnsub = onThemeChange(() => {
+          if (!playController) return;
+          playController.refreshVisuals?.();
+        });
       }
       adjustGridZoom(containerId);
       return controller;

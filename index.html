@@ -74,12 +74,27 @@
       </div>
     </div>
     <div id="settingsModal" class="modal" style="display:none;">
-      <div class="modal-content">
+      <div class="modal-content settings-modal">
         <h3 id="settingsTitle"></h3>
-        <label>
-          <input type="checkbox" id="autoSaveCheckbox">
-          <span id="autoSaveLabel"></span>
-        </label>
+        <div class="settings-section">
+          <label class="settings-checkbox">
+            <input type="checkbox" id="autoSaveCheckbox">
+            <span id="autoSaveLabel"></span>
+          </label>
+        </div>
+        <div class="settings-section">
+          <div class="settings-section__header">
+            <h4 id="themeHeading"></h4>
+          </div>
+          <div id="themeOptions" class="theme-options"></div>
+          <div class="theme-preview">
+            <div class="theme-preview__canvas">
+              <canvas id="themePreviewCanvas" width="158" height="158"></canvas>
+              <p id="themePreviewLabel"></p>
+            </div>
+            <p id="themeDescription" class="theme-description"></p>
+          </div>
+        </div>
         <div class="modal-buttons">
           <button id="settingsCloseBtn"></button>
         </div>

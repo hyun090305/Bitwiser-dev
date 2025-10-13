@@ -1,6 +1,7 @@
 import { makeCircuit } from '../canvas/model.js';
 import { createController } from '../canvas/controller.js';
 import { createCamera } from '../canvas/camera.js';
+import { onThemeChange } from '../themes.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
 import { initializeCircuitCommunity } from './circuitCommunity.js';
 
@@ -85,6 +86,7 @@ let rightPanelPlaceholder = null;
 let labCommunityControls = null;
 let originalGradeDisplay = '';
 let originalGameTitleText = '';
+let labThemeUnsub = null;
 
 function moveRightPanelInto(container) {
   const rightPanel = document.getElementById('rightPanel');
@@ -193,17 +195,13 @@ function createLabController({ preserveCircuit = false } = {}) {
       unboundedGrid: true,
       canvasSize: { width: innerWidth, height: innerHeight },
       onCircuitModified: applyDynamicIOPalette,
-      panelDrawOptions: {
-        panel: {
-          panelBackground: '#f8faff',
-          background: '#f0f4ff',
-          border: 'rgba(148, 163, 184, 0.55)',
-          labelColor: '#1e293b',
-          itemGradient: ['rgba(226, 232, 255, 0.95)', 'rgba(199, 210, 254, 0.92)']
-        }
-      }
     }
   );
+
+  labThemeUnsub?.();
+  labThemeUnsub = onThemeChange(() => {
+    labController?.refreshVisuals?.();
+  });
 
   applyDynamicIOPalette();
 
@@ -247,6 +245,14 @@ function hideLabScreen() {
   removeLabResizeHandler();
   labController?.destroy?.();
   labController = null;
+  if (labThemeUnsub) {
+    try {
+      labThemeUnsub();
+    } catch (err) {
+      console.error('Error unsubscribing lab theme listener', err);
+    }
+    labThemeUnsub = null;
+  }
   const titleEl = document.getElementById('gameTitle');
   if (titleEl) {
     const fallbackTitle = originalGameTitleText || '🧠 Bitwiser';

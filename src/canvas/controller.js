@@ -394,6 +394,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
   }
 
+  function refreshVisuals() {
+    drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
+    drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
+    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+  }
+
   function hidePaletteItem(type, label) {
     const item = paletteItems.find(it => it.type === type && it.label === label);
     if (item) {
@@ -1968,5 +1974,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     shrinkGrid,
     canExpandGrid,
     canShrinkGrid,
+    refreshVisuals,
   };
 }

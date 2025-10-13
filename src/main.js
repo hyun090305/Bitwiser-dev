@@ -74,6 +74,16 @@ import {
   initializeRankingUI
 } from './modules/rank.js';
 import { initializeLabMode } from './modules/labMode.js';
+import {
+  getAvailableThemes,
+  getActiveThemeId,
+  setActiveTheme,
+  getThemeById,
+  onThemeChange,
+  getThemeText
+} from './themes.js';
+import { drawGrid, renderContent, setupCanvas } from './canvas/renderer.js';
+import { CELL, GAP } from './canvas/model.js';
 
 void uiModule;
 
@@ -677,13 +687,184 @@ function setupSettings() {
   const modal = document.getElementById('settingsModal');
   const closeBtn = document.getElementById('settingsCloseBtn');
   const checkbox = document.getElementById('autoSaveCheckbox');
+  const themeOptionsEl = document.getElementById('themeOptions');
+  const previewCanvas = document.getElementById('themePreviewCanvas');
+  const previewLabel = document.getElementById('themePreviewLabel');
+  const themeDescriptionEl = document.getElementById('themeDescription');
   if (!btn || !modal || !closeBtn || !checkbox) return;
+
+  const hasThemeUI = Boolean(themeOptionsEl && previewCanvas && themeDescriptionEl);
+  const themeInputs = new Map();
+  const previewConfig = { rows: 3, cols: 3 };
+  const previewWidth = previewConfig.cols * (CELL + GAP) + GAP;
+  const previewHeight = previewConfig.rows * (CELL + GAP) + GAP;
+  const previewCircuit = {
+    rows: previewConfig.rows,
+    cols: previewConfig.cols,
+    blocks: {
+      in1: {
+        id: 'preview_in1',
+        type: 'INPUT',
+        name: 'IN1',
+        pos: { r: 1, c: 0 },
+        value: true
+      },
+      gate: {
+        id: 'preview_gate',
+        type: 'NOT',
+        name: 'NOT',
+        pos: { r: 1, c: 1 },
+        value: false
+      },
+      out1: {
+        id: 'preview_out1',
+        type: 'OUTPUT',
+        name: 'OUT1',
+        pos: { r: 1, c: 2 },
+        value: false
+      }
+    },
+    wires: {
+      w1: {
+        id: 'preview_wire1',
+        path: [
+          { r: 1, c: 0 },
+          { r: 1, c: 1 },
+          { r: 1, c: 2 }
+        ],
+        startBlockId: 'preview_in1',
+        endBlockId: 'preview_out1'
+      }
+    }
+  };
+
+  const themes = hasThemeUI ? getAvailableThemes() : [];
+  let previewCtx = null;
+
+  if (hasThemeUI) {
+    previewCtx = setupCanvas(previewCanvas, previewWidth, previewHeight);
+  }
 
   const enabled = getAutoSaveSetting();
   checkbox.checked = enabled;
   checkbox.addEventListener('change', () => {
     setAutoSaveSetting(checkbox.checked);
   });
+
+  const getCurrentLang = () =>
+    typeof window !== 'undefined' && window.currentLang === 'en' ? 'en' : 'ko';
+
+  const drawThemePreview = theme => {
+    if (!previewCtx || !theme) return;
+    drawGrid(previewCtx, previewCircuit.rows, previewCircuit.cols, 0, null, {
+      theme
+    });
+    renderContent(previewCtx, previewCircuit, 0, 0, null, null, { theme });
+  };
+
+  const buildThemeOptions = () => {
+    if (!hasThemeUI) return;
+    themeInputs.clear();
+    themeOptionsEl.innerHTML = '';
+    const lang = getCurrentLang();
+    const activeId = getActiveThemeId();
+    themes.forEach(theme => {
+      const label = document.createElement('label');
+      label.className = 'theme-option';
+      const accent = theme.accentColor || '#6366f1';
+      const accentSoft = theme.accentSoft || 'rgba(99, 102, 241, 0.24)';
+      label.style.setProperty('--theme-accent', accent);
+      label.style.setProperty('--theme-accent-soft', accentSoft);
+      const optionBg = theme.panel?.background || theme.grid?.background || 'rgba(248, 250, 252, 0.88)';
+      const activeBg = theme.grid?.gridFillA || theme.grid?.gridFillB || optionBg;
+      label.style.setProperty('--theme-option-bg', optionBg);
+      label.style.setProperty('--theme-option-bg-active', activeBg);
+
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = 'themeSelection';
+      input.value = theme.id;
+      input.checked = theme.id === activeId;
+      input.setAttribute('aria-label', getThemeText(theme, 'name', lang) || theme.id);
+
+      const content = document.createElement('span');
+      content.className = 'theme-option__content';
+
+      const swatches = document.createElement('span');
+      swatches.className = 'theme-option__swatches';
+      const swatchColors = (theme.swatches && theme.swatches.length
+        ? theme.swatches
+        : [accent, optionBg, activeBg]
+      ).filter(Boolean);
+      swatchColors.slice(0, 4).forEach(color => {
+        const sw = document.createElement('span');
+        sw.className = 'theme-option__swatch';
+        sw.style.background = color;
+        swatches.appendChild(sw);
+      });
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'theme-option__name';
+      nameEl.textContent = getThemeText(theme, 'name', lang) || theme.id;
+
+      const summaryText = getThemeText(theme, 'summary', lang);
+      const summaryEl = document.createElement('span');
+      summaryEl.className = 'theme-option__summary';
+      summaryEl.textContent = summaryText || '';
+
+      content.appendChild(swatches);
+      content.appendChild(nameEl);
+      if (summaryText) {
+        content.appendChild(summaryEl);
+      }
+
+      input.addEventListener('change', () => {
+        if (!input.checked) return;
+        const previous = getActiveThemeId();
+        const nextTheme = setActiveTheme(theme.id);
+        if (previous === theme.id && nextTheme) {
+          handleThemeChange(nextTheme);
+        }
+      });
+
+      label.appendChild(input);
+      label.appendChild(content);
+      themeOptionsEl.appendChild(label);
+      themeInputs.set(theme.id, { input, label });
+    });
+  };
+
+  const handleThemeChange = theme => {
+    if (!hasThemeUI || !theme) return;
+    const lang = getCurrentLang();
+    const name = getThemeText(theme, 'name', lang) || theme.id;
+    const description = getThemeText(theme, 'description', lang);
+    const previewText =
+      typeof window !== 'undefined' && typeof window.t === 'function'
+        ? window.t('themePreviewLabel')
+        : 'Preview';
+    themeInputs.forEach(({ input, label }, id) => {
+      const isActive = id === theme.id;
+      if (input) input.checked = isActive;
+      if (label) label.classList.toggle('is-active', isActive);
+    });
+    if (previewLabel) {
+      previewLabel.textContent = `${previewText} · ${name}`;
+    }
+    if (themeDescriptionEl) {
+      themeDescriptionEl.textContent = description || '';
+    }
+    drawThemePreview(theme);
+  };
+
+  if (hasThemeUI) {
+    buildThemeOptions();
+    onThemeChange(handleThemeChange);
+    const initialTheme = getThemeById(getActiveThemeId());
+    if (initialTheme) {
+      handleThemeChange(initialTheme);
+    }
+  }
 
   btn.addEventListener('click', () => {
     modal.style.display = 'flex';
