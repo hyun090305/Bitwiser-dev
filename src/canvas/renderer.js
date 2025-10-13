@@ -1,10 +1,11 @@
 import { CELL, GAP } from './model.js';
+import { getActiveTheme, getThemeAccent } from '../themes.js';
 
 export const CELL_CORNER_RADIUS = 6;
 
 const PITCH = CELL + GAP;
 
-const DEFAULT_GRID_STYLE = {
+const BASE_GRID_STYLE = {
   background: '#ffffff',
   panelFill: null,
   panelShadow: {
@@ -22,16 +23,184 @@ const DEFAULT_GRID_STYLE = {
   borderWidth: GAP
 };
 
-function resolveGridStyle(options = {}) {
-  const style = { ...DEFAULT_GRID_STYLE, ...options };
-  if (options.panelShadow === null) {
-    style.panelShadow = null;
-  } else {
-    style.panelShadow = {
-      ...DEFAULT_GRID_STYLE.panelShadow,
-      ...(options.panelShadow || {})
-    };
+const BASE_PANEL_STYLE = {
+  panelBackground: null,
+  background: '#ffffff',
+  border: 'rgba(148, 163, 184, 0.5)',
+  labelColor: '#334155',
+  itemGradient: ['#f0f0ff', '#d0d0ff'],
+  itemFill: null,
+  itemTextColor: '#111827',
+  itemShadow: {
+    color: 'rgba(15, 23, 42, 0.1)',
+    blur: 12,
+    offsetX: 0,
+    offsetY: 4
+  },
+  itemBorderColor: 'rgba(148, 163, 184, 0.4)',
+  itemBorderWidth: 1,
+  itemRadius: 10
+};
+
+const BASE_BLOCK_STYLE = {
+  fill: ['#f0f0ff', '#d0d0ff'],
+  hoverFill: ['#fdfdff', '#c8c8ff'],
+  textColor: '#000',
+  radius: CELL_CORNER_RADIUS,
+  shadow: {
+    color: 'rgba(0,0,0,0.18)',
+    blur: 12,
+    offsetX: 0,
+    offsetY: 6
+  },
+  hoverShadow: {
+    color: 'rgba(0,0,0,0.25)',
+    blur: 16,
+    offsetX: 0,
+    offsetY: 8
+  },
+  strokeColor: null,
+  strokeWidth: 0,
+  activeOutlineColor: '#000',
+  activeOutlineDash: [4, 4],
+  activeOutlineWidth: 2,
+  font: null
+};
+
+const BASE_WIRE_STYLE = {
+  color: '#111',
+  width: 2,
+  dashPattern: [20, 20],
+  nodeFill: '#ffe',
+  nodeShadow: null,
+  nodeRadius: CELL_CORNER_RADIUS
+};
+
+function mergeShadow(base, override) {
+  if (override === null) return null;
+  const baseObj =
+    base && typeof base === 'object'
+      ? { ...base }
+      : base
+      ? { color: base }
+      : {};
+  if (override === undefined) {
+    return Object.keys(baseObj).length ? baseObj : null;
   }
+  if (typeof override === 'string') {
+    return { ...baseObj, color: override };
+  }
+  if (!override) {
+    return Object.keys(baseObj).length ? baseObj : null;
+  }
+  return { ...baseObj, ...override };
+}
+
+function applyShadow(ctx, shadow) {
+  if (!shadow) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    return;
+  }
+  const spec = typeof shadow === 'object' ? shadow : { color: shadow };
+  ctx.shadowColor = spec.color || 'transparent';
+  ctx.shadowBlur = spec.blur ?? 0;
+  ctx.shadowOffsetX = spec.offsetX ?? 0;
+  ctx.shadowOffsetY = spec.offsetY ?? 0;
+}
+
+function applyScaledShadow(ctx, shadow, scale = 1) {
+  if (!shadow) {
+    applyShadow(ctx, null);
+    return;
+  }
+  const spec = typeof shadow === 'object' ? { ...shadow } : { color: shadow };
+  if (spec.blur != null) spec.blur *= scale;
+  if (spec.offsetX != null) spec.offsetX *= scale;
+  if (spec.offsetY != null) spec.offsetY *= scale;
+  applyShadow(ctx, spec);
+}
+
+function createFillStyle(ctx, fill, x, y, w, h) {
+  if (!fill) return null;
+  if (Array.isArray(fill)) {
+    const gradient = ctx.createLinearGradient(x, y, x, y + h);
+    const step = fill.length > 1 ? 1 / (fill.length - 1) : 1;
+    fill.forEach((color, index) => {
+      gradient.addColorStop(Math.min(1, Math.max(0, index * step)), color);
+    });
+    return gradient;
+  }
+  if (typeof fill === 'object' && fill.type === 'linear') {
+    const angle = (fill.angle ?? 90) * (Math.PI / 180);
+    const dx = Math.cos(angle);
+    const dy = Math.sin(angle);
+    const halfW = w / 2;
+    const halfH = h / 2;
+    const centerX = x + halfW;
+    const centerY = y + halfH;
+    const extent = Math.abs(w * dx) + Math.abs(h * dy) || 1;
+    const startX = centerX - (dx * extent) / 2;
+    const startY = centerY - (dy * extent) / 2;
+    const endX = centerX + (dx * extent) / 2;
+    const endY = centerY + (dy * extent) / 2;
+    const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+    (fill.stops || []).forEach(stop => {
+      const offset = Math.min(1, Math.max(0, stop.offset ?? 0));
+      gradient.addColorStop(offset, stop.color);
+    });
+    return gradient;
+  }
+  return fill;
+}
+
+function resolveGridStyle(options = {}) {
+  const { theme: themeOverride, panelShadow, ...overrides } = options || {};
+  const theme = themeOverride || getActiveTheme();
+  const themeGrid = theme?.grid || {};
+  const base = { ...BASE_GRID_STYLE, ...themeGrid };
+  const style = { ...base, ...overrides };
+  const baseShadow = mergeShadow(BASE_GRID_STYLE.panelShadow, themeGrid.panelShadow);
+  const resolvedShadow = mergeShadow(baseShadow, panelShadow);
+  style.panelShadow = resolvedShadow;
+  return style;
+}
+
+function resolvePanelStyle(options = {}) {
+  const { theme: themeOverride, itemShadow, ...overrides } = options || {};
+  const theme = themeOverride || getActiveTheme();
+  const themePanel = theme?.panel || {};
+  const base = { ...BASE_PANEL_STYLE, ...themePanel };
+  const style = { ...base, ...overrides };
+  style.itemShadow = mergeShadow(mergeShadow(BASE_PANEL_STYLE.itemShadow, themePanel.itemShadow), itemShadow);
+  return style;
+}
+
+function resolveBlockStyle(options = {}) {
+  const { theme: themeOverride, shadow, hoverShadow, ...overrides } = options || {};
+  const theme = themeOverride || getActiveTheme();
+  const themeBlock = theme?.block || {};
+  const base = { ...BASE_BLOCK_STYLE, ...themeBlock };
+  const style = { ...base, ...overrides };
+  style.shadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.shadow, themeBlock.shadow), shadow);
+  style.hoverShadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.hoverShadow, themeBlock.hoverShadow), hoverShadow);
+  style.radius = style.radius ?? CELL_CORNER_RADIUS;
+  style.font = style.font || base.font || null;
+  if (!style.activeOutlineColor) {
+    style.activeOutlineColor = getThemeAccent(theme);
+  }
+  return style;
+}
+
+function resolveWireStyle(options = {}) {
+  const { theme: themeOverride, ...overrides } = options || {};
+  const theme = themeOverride || getActiveTheme();
+  const themeWire = theme?.wire || {};
+  const base = { ...BASE_WIRE_STYLE, ...themeWire };
+  const style = { ...base, ...overrides };
+  style.nodeShadow = mergeShadow(mergeShadow(BASE_WIRE_STYLE.nodeShadow, themeWire.nodeShadow), overrides.nodeShadow);
   return style;
 }
 
@@ -83,6 +252,7 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
   const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
   const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
 
+  const gridStyle = resolveGridStyle(options);
   const {
     background,
     panelFill,
@@ -92,20 +262,17 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
     gridStroke,
     gridLineWidth,
     cellRadius
-  } = resolveGridStyle(options);
+  } = gridStyle;
 
-  ctx.fillStyle = background;
+  const backgroundFill = createFillStyle(ctx, background, 0, 0, width, height) || background;
+  ctx.fillStyle = backgroundFill;
   ctx.fillRect(0, 0, width, height);
 
   if (panelWidth > 0 && panelFill) {
     ctx.save();
-    if (panelShadow) {
-      ctx.shadowColor = panelShadow.color;
-      ctx.shadowBlur = panelShadow.blur;
-      ctx.shadowOffsetX = panelShadow.offsetX;
-      ctx.shadowOffsetY = panelShadow.offsetY;
-    }
-    ctx.fillStyle = panelFill;
+    applyShadow(ctx, panelShadow);
+    const panelFillStyle = createFillStyle(ctx, panelFill, 0, 0, panelWidth, height) || panelFill;
+    ctx.fillStyle = panelFillStyle;
     ctx.fillRect(0, 0, panelWidth, height);
     ctx.restore();
   }
@@ -129,8 +296,8 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
       const topLeft = camera.cellToScreenCell({ r, c });
       const { x, y } = topLeft;
       if (x + cellScaled <= panelWidth) continue;
-      const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
-      const fillColor = hasChecker
+      const hasChecker = gridFillA != null || gridFillB != null;
+      const fillSpec = hasChecker
         ? gridFillA && gridFillB
           ? (r + c) % 2 === 0
             ? gridFillA
@@ -138,8 +305,9 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
           : gridFillA || gridFillB
         : null;
       roundRect(ctx, x, y, cellScaled, cellScaled, Math.max(1, cellRadius * scale));
-      if (fillColor) {
-        ctx.fillStyle = fillColor;
+      if (fillSpec) {
+        const fillStyle = createFillStyle(ctx, fillSpec, x, y, cellScaled, cellScaled) || fillSpec;
+        ctx.fillStyle = fillStyle;
         ctx.fill();
       }
       ctx.strokeStyle = gridStroke;
@@ -156,6 +324,7 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     drawInfiniteGrid(ctx, camera, styleOptions);
     return;
   }
+  const gridStyle = resolveGridStyle(styleOptions);
   const {
     background,
     panelFill,
@@ -167,7 +336,7 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     cellRadius,
     borderColor,
     borderWidth
-  } = resolveGridStyle(styleOptions);
+  } = gridStyle;
 
   resetTransformAndClear(ctx);
 
@@ -191,20 +360,17 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
       const rectWidth = Math.abs(bottomRight.x - topLeft.x);
       const rectHeight = Math.abs(bottomRight.y - topLeft.y);
       if (rectWidth > 0 && rectHeight > 0) {
-        ctx.fillStyle = background;
+        const bgFill = createFillStyle(ctx, background, rectX, rectY, rectWidth, rectHeight) || background;
+        ctx.fillStyle = bgFill;
         ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
       }
     }
 
     if (panelWidth > 0 && panelFill) {
       ctx.save();
-      if (panelShadow) {
-        ctx.shadowColor = panelShadow.color;
-        ctx.shadowBlur = panelShadow.blur;
-        ctx.shadowOffsetX = panelShadow.offsetX;
-        ctx.shadowOffsetY = panelShadow.offsetY;
-      }
-      ctx.fillStyle = panelFill;
+      applyShadow(ctx, panelShadow);
+      const panelFillStyle = createFillStyle(ctx, panelFill, 0, 0, panelWidth, height) || panelFill;
+      ctx.fillStyle = panelFillStyle;
       ctx.fillRect(0, 0, panelWidth, height);
       ctx.restore();
     }
@@ -228,8 +394,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
           const topLeft = camera.cellToScreenCell({ r, c });
           const { x, y } = topLeft;
           if (x + scaledCell <= panelWidth) continue;
-          const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
-          const fillColor = hasChecker
+          const hasChecker = gridFillA != null || gridFillB != null;
+          const fillSpec = hasChecker
             ? gridFillA && gridFillB
               ? (r + c) % 2 === 0
                 ? gridFillA
@@ -237,8 +403,9 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
               : gridFillA || gridFillB
             : null;
           roundRect(ctx, x, y, scaledCell, scaledCell, Math.max(1, cellRadius * scale));
-          if (fillColor) {
-            ctx.fillStyle = fillColor;
+          if (fillSpec) {
+            const fillStyle = createFillStyle(ctx, fillSpec, x, y, scaledCell, scaledCell) || fillSpec;
+            ctx.fillStyle = fillStyle;
             ctx.fill();
           }
           ctx.strokeStyle = gridStroke;
@@ -271,14 +438,15 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   const width = cols * PITCH + GAP;
   const height = rows * PITCH + GAP;
   ctx.save();
-  ctx.fillStyle = background;
+  const bgFill = createFillStyle(ctx, background, offsetX, 0, width, height) || background;
+  ctx.fillStyle = bgFill;
   ctx.fillRect(offsetX, 0, width, height);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = offsetX + GAP + c * PITCH;
       const y = GAP + r * PITCH;
-      const hasChecker = typeof gridFillA === 'string' || typeof gridFillB === 'string';
-      const fillColor = hasChecker
+      const hasChecker = gridFillA != null || gridFillB != null;
+      const fillSpec = hasChecker
         ? gridFillA && gridFillB
           ? (r + c) % 2 === 0
             ? gridFillA
@@ -286,8 +454,9 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
           : gridFillA || gridFillB
         : null;
       roundRect(ctx, x, y, CELL, CELL, cellRadius);
-      if (fillColor) {
-        ctx.fillStyle = fillColor;
+      if (fillSpec) {
+        const fillStyle = createFillStyle(ctx, fillSpec, x, y, CELL, CELL) || fillSpec;
+        ctx.fillStyle = fillStyle;
         ctx.fill();
       }
       ctx.strokeStyle = gridStroke;
@@ -311,55 +480,76 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
 }
 
 // Blocks are drawn as rounded rectangles with text labels
-export function drawBlock(ctx, block, offsetX = 0, hovered = false, camera = null) {
+export function drawBlock(
+  ctx,
+  block,
+  offsetX = 0,
+  hovered = false,
+  camera = null,
+  options = {}
+) {
+  const style = resolveBlockStyle(options);
   const { r, c } = block.pos;
   let x;
   let y;
   let size = CELL;
+  const scale = camera ? camera.getScale() : 1;
   if (camera) {
     const point = camera.cellToScreenCell({ r, c });
     x = point.x;
     y = point.y;
-    size = CELL * camera.getScale();
+    size = CELL * scale;
   } else {
     x = offsetX + GAP + c * PITCH;
     y = GAP + r * PITCH;
   }
   ctx.save();
 
-  // Drop shadow for a subtle 3D effect
-  const shadowScale = camera ? camera.getScale() : 1;
-  ctx.shadowColor = 'rgba(0,0,0,0.25)';
-  ctx.shadowBlur = (hovered ? 8 : 4) * shadowScale;
-  ctx.shadowOffsetX = 2 * shadowScale;
-  ctx.shadowOffsetY = 2 * shadowScale;
-
-  // Gradient fill for depth
-  const grad = ctx.createLinearGradient(x, y, x, y + size);
-  if (hovered) {
-    grad.addColorStop(0, '#fdfdff');
-    grad.addColorStop(1, '#c8c8ff');
-  } else {
-    grad.addColorStop(0, '#f0f0ff');
-    grad.addColorStop(1, '#d0d0ff');
-  }
-  ctx.fillStyle = grad;
-  roundRect(ctx, x, y, size, size, Math.max(1, CELL_CORNER_RADIUS * shadowScale));
+  const blockRadius = Math.max(1, style.radius * scale);
+  const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
+  applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
+  const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
+  ctx.fillStyle = fillStyle;
+  roundRect(ctx, x, y, size, size, blockRadius);
   ctx.fill();
 
-  // Highlight active INPUT/OUTPUT/JUNCTION blocks with a dashed border
-  ctx.shadowColor = 'transparent';
-  if (block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)) {
-    ctx.strokeStyle = '#000';
-    ctx.lineWidth = 2 * shadowScale;
-    ctx.setLineDash([4 * shadowScale, 4 * shadowScale]);
+  if (style.strokeColor && style.strokeWidth > 0) {
+    ctx.shadowColor = 'transparent';
+    ctx.lineWidth = Math.max(style.strokeWidth * scale, 0.6);
+    ctx.strokeStyle = style.strokeColor;
+    roundRect(ctx, x, y, size, size, blockRadius);
     ctx.stroke();
-    ctx.setLineDash([]);
   }
 
-  // Text
-  ctx.fillStyle = '#000';
-  ctx.font = `bold ${16 * shadowScale}px "Noto Sans KR", sans-serif`;
+  ctx.shadowColor = 'transparent';
+  if (block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)) {
+    const dashPattern = Array.isArray(style.activeOutlineDash)
+      ? style.activeOutlineDash.map(v => v * scale)
+      : [];
+    if (dashPattern.length > 0) {
+      ctx.setLineDash(dashPattern);
+    }
+    ctx.lineWidth = Math.max((style.activeOutlineWidth || 2) * scale, 1);
+    ctx.strokeStyle = style.activeOutlineColor || '#000';
+    roundRect(ctx, x, y, size, size, blockRadius);
+    ctx.stroke();
+    if (dashPattern.length > 0) {
+      ctx.setLineDash([]);
+    }
+  }
+
+  const baseFont = style.font || `bold 16px "Noto Sans KR", sans-serif`;
+  const fontMatch = baseFont.match(/(\d+(?:\.\d+)?)px/);
+  let resolvedFont;
+  if (fontMatch) {
+    const px = parseFloat(fontMatch[1]);
+    const scaled = Math.max(10, px * scale);
+    resolvedFont = baseFont.replace(fontMatch[0], `${scaled}px`);
+  } else {
+    resolvedFont = `bold ${16 * scale}px "Noto Sans KR", sans-serif`;
+  }
+  ctx.fillStyle = style.textColor || '#000';
+  ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(block.name || block.type, x + size / 2, y + size / 2);
@@ -367,27 +557,51 @@ export function drawBlock(ctx, block, offsetX = 0, hovered = false, camera = nul
 }
 
 // Draw a wire path with flowing dashed line
-export function drawWire(ctx, wire, phase = 0, offsetX = 0, camera = null) {
+export function drawWire(
+  ctx,
+  wire,
+  phase = 0,
+  offsetX = 0,
+  camera = null,
+  options = {}
+) {
   if (!wire.path || wire.path.length < 2) return;
+  const style = resolveWireStyle(options);
   ctx.save();
-  ctx.strokeStyle = '#111';
   const scale = camera ? camera.getScale() : 1;
-  ctx.lineWidth = 2 * scale;
-  ctx.setLineDash([20 * scale, 20 * scale]);
-  ctx.lineDashOffset = (-phase * scale) % (40 * scale);
+  const lineWidth = Math.max((style.width || 2) * scale, 1);
+  ctx.strokeStyle = style.color || '#111';
+  ctx.lineWidth = lineWidth;
+  const pattern = Array.isArray(style.dashPattern)
+    ? style.dashPattern.map(v => v * scale)
+    : [];
+  if (pattern.length > 0) {
+    ctx.setLineDash(pattern);
+    const patternLength = pattern.reduce((sum, value) => sum + value, 0) || 1;
+    ctx.lineDashOffset = (-phase * scale) % patternLength;
+  } else {
+    ctx.setLineDash([]);
+  }
+
   for (let i = 1; i < wire.path.length - 1; i++) {
     const p = wire.path[i];
-    ctx.fillStyle = '#ffe';
-    const x = camera
-      ? camera.cellToScreenCell(p).x
-      : offsetX + GAP + p.c * PITCH;
-    const y = camera
-      ? camera.cellToScreenCell(p).y
-      : GAP + p.r * PITCH;
+    const point = camera
+      ? camera.cellToScreenCell(p)
+      : { x: offsetX + GAP + p.c * PITCH, y: GAP + p.r * PITCH };
     const size = CELL * scale;
-    roundRect(ctx, x, y, size, size, Math.max(1, CELL_CORNER_RADIUS * scale));
+    const radius = Math.max(1, (style.nodeRadius ?? CELL_CORNER_RADIUS) * scale);
+    ctx.save();
+    applyScaledShadow(ctx, style.nodeShadow, scale);
+    const nodeFill =
+      createFillStyle(ctx, style.nodeFill, point.x, point.y, size, size) ||
+      style.nodeFill ||
+      '#ffe';
+    ctx.fillStyle = nodeFill;
+    roundRect(ctx, point.x, point.y, size, size, radius);
     ctx.fill();
+    ctx.restore();
   }
+
   ctx.beginPath();
   const start = wire.path[0];
   const startPos = camera
@@ -412,7 +626,8 @@ export function renderContent(
   phase = 0,
   offsetX = 0,
   hoverId = null,
-  camera = null
+  camera = null,
+  options = {}
 ) {
   resetTransformAndClear(ctx);
   const panelClipWidth = offsetX;
@@ -435,61 +650,92 @@ export function renderContent(
   if (camera) {
     offsetX = 0;
   }
-  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX, camera));
+  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX, camera, options));
   Object.values(circuit.blocks).forEach(b =>
-    drawBlock(ctx, b, offsetX, b.id === hoverId, camera)
+    drawBlock(ctx, b, offsetX, b.id === hoverId, camera, options)
   );
   ctx.restore();
 }
 
 // Draw palette on the left panel
 export function drawPanel(ctx, items, panelWidth, canvasHeight, groups = [], options = {}) {
+  const style = resolvePanelStyle(options);
   const {
-    background = '#ffffff',
-    border = '#ddd',
-    labelColor = '#555',
-    itemGradient = ['#f0f0ff', '#d0d0ff'],
-    panelBackground = null
-  } = options;
+    background,
+    border,
+    labelColor,
+    itemGradient,
+    itemFill,
+    itemTextColor,
+    itemShadow,
+    itemBorderColor,
+    itemBorderWidth,
+    itemRadius,
+    panelBackground
+  } = style;
+
   ctx.clearRect(0, 0, panelWidth, canvasHeight);
   if (panelBackground) {
+    const panelFill = createFillStyle(ctx, panelBackground, 0, 0, panelWidth, canvasHeight) || panelBackground;
     ctx.save();
-    ctx.fillStyle = panelBackground;
+    ctx.fillStyle = panelFill;
     ctx.fillRect(0, 0, panelWidth, canvasHeight);
     ctx.restore();
   }
+
+  const groupRadius = itemRadius ?? 8;
+
   groups.forEach(g => {
     ctx.save();
-    ctx.fillStyle = background;
+    const groupFill = createFillStyle(ctx, background, g.x, g.y, g.w, g.h) || background;
+    ctx.fillStyle = groupFill;
     ctx.strokeStyle = border;
     ctx.lineWidth = 1;
-    roundRect(ctx, g.x, g.y, g.w, g.h, 8);
+    roundRect(ctx, g.x, g.y, g.w, g.h, groupRadius);
     ctx.fill();
-    ctx.stroke();
+    if (border) ctx.stroke();
     ctx.fillStyle = labelColor;
-    // group headings in Noto Sans KR
     ctx.font = 'bold 12px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'top';
     ctx.fillText(g.label, g.x + g.w / 2, g.y + g.padding);
     ctx.restore();
   });
+
   items.forEach(item => {
     if (item.hidden) return;
     ctx.save();
-    // mimic block appearance in palette items
-    ctx.shadowColor = 'rgba(0,0,0,0.25)';
-    ctx.shadowBlur = 4;
-    ctx.shadowOffsetX = 2;
-    ctx.shadowOffsetY = 2;
-    const grad = ctx.createLinearGradient(item.x, item.y, item.x, item.y + item.h);
-    grad.addColorStop(0, itemGradient[0]);
-    grad.addColorStop(1, itemGradient[1]);
-    ctx.fillStyle = grad;
-    roundRect(ctx, item.x, item.y, item.w, item.h, 6);
+    applyShadow(ctx, itemShadow);
+    let fillStyle = null;
+    if (itemFill) {
+      fillStyle = createFillStyle(ctx, itemFill, item.x, item.y, item.w, item.h) || itemFill;
+    }
+    if (!fillStyle) {
+      if (Array.isArray(itemGradient)) {
+        const grad = ctx.createLinearGradient(item.x, item.y, item.x, item.y + item.h);
+        const step = itemGradient.length > 1 ? 1 / (itemGradient.length - 1) : 1;
+        itemGradient.forEach((color, index) => {
+          grad.addColorStop(Math.min(1, Math.max(0, index * step)), color);
+        });
+        fillStyle = grad;
+      } else if (itemGradient) {
+        fillStyle = itemGradient;
+      } else {
+        fillStyle = '#f0f0ff';
+      }
+    }
+    ctx.fillStyle = fillStyle;
+    const radius = itemRadius ?? 8;
+    roundRect(ctx, item.x, item.y, item.w, item.h, radius);
     ctx.fill();
-    ctx.shadowColor = 'transparent';
-    ctx.fillStyle = '#000';
+    applyShadow(ctx, null);
+    if (itemBorderColor && itemBorderWidth > 0) {
+      ctx.strokeStyle = itemBorderColor;
+      ctx.lineWidth = itemBorderWidth;
+      roundRect(ctx, item.x, item.y, item.w, item.h, radius);
+      ctx.stroke();
+    }
+    ctx.fillStyle = itemTextColor || '#000';
     ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
