@@ -59,15 +59,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     ? externalCamera
     : null;
   const useCamera = Boolean(camera);
-  const requestFrame =
-    typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
-      ? window.requestAnimationFrame.bind(window)
-      : callback => setTimeout(callback, 16);
-  const cancelFrame =
-    typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function'
-      ? window.cancelAnimationFrame.bind(window)
-      : handle => clearTimeout(handle);
-  let pendingCameraFrame = null;
   const MIN_CAMERA_SCALE = 0.2;
   const MAX_CAMERA_SCALE = 3;
   const ZOOM_SENSITIVITY = 0.0015;
@@ -293,24 +284,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-  function cancelPendingCameraRefresh() {
-    if (pendingCameraFrame == null) return;
-    cancelFrame(pendingCameraFrame);
-    pendingCameraFrame = null;
-  }
-
-  function scheduleCameraRefresh() {
-    if (pendingCameraFrame != null) return;
-    pendingCameraFrame = requestFrame(() => {
-      pendingCameraFrame = null;
-      refreshBackground();
-      refreshContent();
-    });
-  }
-
   if (useCamera) {
     camera.setOnChange(() => {
-      scheduleCameraRefresh();
+      refreshBackground();
+      refreshContent();
     });
   }
 
@@ -346,7 +323,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         gridWidth,
         gridHeight,
       });
-      cancelPendingCameraRefresh();
     }
     refreshBackground();
     refreshContent();
@@ -1178,7 +1154,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function destroy() {
     stopEngine();
     removeBoundEvents();
-    cancelPendingCameraRefresh();
     if (keydownHandler) {
       document.removeEventListener('keydown', keydownHandler);
       keydownHandler = null;
