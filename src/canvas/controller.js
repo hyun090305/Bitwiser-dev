@@ -801,7 +801,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const dr = Number.isFinite(offset?.dr) ? offset.dr : 0;
     const dc = Number.isFinite(offset?.dc) ? offset.dc : 0;
     overlayCtx.fillStyle = invalid ? 'rgba(255,0,0,0.35)' : 'rgba(0,128,255,0.3)';
-    const radius = Math.max(1, CELL_CORNER_RADIUS * getScale());
+    const radius = Math.max(0, CELL_CORNER_RADIUS * getScale());
     const fillRoundedCell = rect => {
       overlayCtx.beginPath();
       roundRect(overlayCtx, rect.x, rect.y, rect.w, rect.h, radius);

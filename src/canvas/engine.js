@@ -113,7 +113,10 @@ export function startEngine(ctx, circuit, renderer) {
     const delta = time - lastTime;
     lastTime = time;
     // Advance the animation at a constant rate regardless of display refresh.
-    phase = (phase + (delta / 1000) * FLOW_SPEED) % 40;
+    phase += (delta / 1000) * FLOW_SPEED;
+    if (phase > 1e6) {
+      phase -= 1e6;
+    }
     renderer(ctx, circuit, phase);
     scheduleNext();
   }
