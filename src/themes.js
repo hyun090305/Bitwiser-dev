@@ -320,8 +320,9 @@ const THEMES = [
       fill: ['#fdba74', '#fb923c'],
       hoverFill: ['#fb923c', '#f97316'],
       textColor: '#7c2d12',
-      activeFill: '#f97316',
-      activeTextColor: '#fff7ed',
+      activeFill: ['#fef08a', '#fde047', '#facc15'],
+      activeHoverFill: ['#fef9c3', '#fde68a', '#fbbf24'],
+      activeTextColor: '#78350f',
       radius: 14,
       shadow: {
         color: 'rgba(249, 115, 22, 0.35)',
