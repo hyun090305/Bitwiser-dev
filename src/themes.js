@@ -513,3 +513,22 @@ export function getThemeAccentSoft(theme) {
   return theme.accentSoft || 'rgba(99, 102, 241, 0.2)';
 }
 
+export function getThemeGridBackground(theme) {
+  const sourceTheme = theme || getActiveTheme();
+  const background = sourceTheme?.grid?.background;
+  if (!background) return null;
+  if (typeof background === 'string') return background;
+  if (typeof background === 'object') {
+    if (typeof background.color === 'string') {
+      return background.color;
+    }
+    if (Array.isArray(background.stops)) {
+      const validStop = background.stops.find(stop => typeof stop?.color === 'string');
+      if (validStop?.color) {
+        return validStop.color;
+      }
+    }
+  }
+  return null;
+}
+

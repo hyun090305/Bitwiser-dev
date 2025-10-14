@@ -80,7 +80,8 @@ import {
   setActiveTheme,
   getThemeById,
   onThemeChange,
-  getThemeText
+  getThemeText,
+  getThemeGridBackground
 } from './themes.js';
 import { drawGrid, renderContent, setupCanvas } from './canvas/renderer.js';
 import { CELL, GAP } from './canvas/model.js';
@@ -682,6 +683,18 @@ configureLevelModule({
   onLevelIntroComplete: () =>
     collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
 });
+
+function syncGameAreaBackground(theme) {
+  const gameArea = document.getElementById('gameArea');
+  if (!gameArea) return;
+  const color = getThemeGridBackground(theme);
+  if (color) {
+    gameArea.style.backgroundColor = color;
+  } else {
+    gameArea.style.backgroundColor = '';
+  }
+}
+
 function setupSettings() {
   const btn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
@@ -702,24 +715,17 @@ function setupSettings() {
     rows: previewConfig.rows,
     cols: previewConfig.cols,
     blocks: {
-      in1: {
-        id: 'preview_in1',
+      input: {
+        id: 'preview_in',
         type: 'INPUT',
-        name: 'IN1',
+        name: 'IN',
         pos: { r: 1, c: 0 },
-        value: true
-      },
-      gate: {
-        id: 'preview_gate',
-        type: 'NOT',
-        name: 'NOT',
-        pos: { r: 1, c: 1 },
         value: false
       },
-      out1: {
-        id: 'preview_out1',
+      output: {
+        id: 'preview_out',
         type: 'OUTPUT',
-        name: 'OUT1',
+        name: 'OUT',
         pos: { r: 1, c: 2 },
         value: false
       }
@@ -732,8 +738,8 @@ function setupSettings() {
           { r: 1, c: 1 },
           { r: 1, c: 2 }
         ],
-        startBlockId: 'preview_in1',
-        endBlockId: 'preview_out1'
+        startBlockId: 'preview_in',
+        endBlockId: 'preview_out'
       }
     }
   };
@@ -835,6 +841,7 @@ function setupSettings() {
   };
 
   const handleThemeChange = theme => {
+    syncGameAreaBackground(theme);
     if (!hasThemeUI || !theme) return;
     const lang = getCurrentLang();
     const name = getThemeText(theme, 'name', lang) || theme.id;
@@ -935,6 +942,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKeyToggles();
   setupMenuToggle();
   setupSettings();
+  syncGameAreaBackground(getThemeById(getActiveThemeId()));
+  onThemeChange(syncGameAreaBackground);
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
     setupNavigation({

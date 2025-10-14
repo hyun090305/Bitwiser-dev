@@ -1,7 +1,7 @@
 import { CELL, GAP } from './model.js';
 import { getActiveTheme, getThemeAccent } from '../themes.js';
 
-export const CELL_CORNER_RADIUS = 6;
+export const CELL_CORNER_RADIUS = 3;
 
 const PITCH = CELL + GAP;
 
@@ -165,6 +165,7 @@ function resolveGridStyle(options = {}) {
   const baseShadow = mergeShadow(BASE_GRID_STYLE.panelShadow, themeGrid.panelShadow);
   const resolvedShadow = mergeShadow(baseShadow, panelShadow);
   style.panelShadow = resolvedShadow;
+  style.cellRadius = CELL_CORNER_RADIUS;
   return style;
 }
 
@@ -186,7 +187,7 @@ function resolveBlockStyle(options = {}) {
   const style = { ...base, ...overrides };
   style.shadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.shadow, themeBlock.shadow), shadow);
   style.hoverShadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.hoverShadow, themeBlock.hoverShadow), hoverShadow);
-  style.radius = style.radius ?? CELL_CORNER_RADIUS;
+  style.radius = CELL_CORNER_RADIUS;
   style.font = style.font || base.font || null;
   if (!style.activeOutlineColor) {
     style.activeOutlineColor = getThemeAccent(theme);
@@ -201,10 +202,11 @@ function resolveWireStyle(options = {}) {
   const base = { ...BASE_WIRE_STYLE, ...themeWire };
   const style = { ...base, ...overrides };
   style.nodeShadow = mergeShadow(mergeShadow(BASE_WIRE_STYLE.nodeShadow, themeWire.nodeShadow), overrides.nodeShadow);
+  style.nodeRadius = CELL_CORNER_RADIUS;
   return style;
 }
 
-export function roundRect(ctx, x, y, w, h, r = 6) {
+export function roundRect(ctx, x, y, w, h, r = CELL_CORNER_RADIUS) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
   ctx.lineTo(x + w - r, y);
@@ -304,7 +306,8 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
             : gridFillB
           : gridFillA || gridFillB
         : null;
-      roundRect(ctx, x, y, cellScaled, cellScaled, Math.max(1, cellRadius * scale));
+      const scaledRadius = Math.max(0, cellRadius * scale);
+      roundRect(ctx, x, y, cellScaled, cellScaled, scaledRadius);
       if (fillSpec) {
         const fillStyle = createFillStyle(ctx, fillSpec, x, y, cellScaled, cellScaled) || fillSpec;
         ctx.fillStyle = fillStyle;
@@ -402,7 +405,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
                 : gridFillB
               : gridFillA || gridFillB
             : null;
-          roundRect(ctx, x, y, scaledCell, scaledCell, Math.max(1, cellRadius * scale));
+          const scaledRadius = Math.max(0, cellRadius * scale);
+          roundRect(ctx, x, y, scaledCell, scaledCell, scaledRadius);
           if (fillSpec) {
             const fillStyle = createFillStyle(ctx, fillSpec, x, y, scaledCell, scaledCell) || fillSpec;
             ctx.fillStyle = fillStyle;
@@ -505,7 +509,7 @@ export function drawBlock(
   }
   ctx.save();
 
-  const blockRadius = Math.max(1, style.radius * scale);
+  const blockRadius = Math.max(0, style.radius * scale);
   const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
   applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
   const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
@@ -543,10 +547,11 @@ export function drawBlock(
   let resolvedFont;
   if (fontMatch) {
     const px = parseFloat(fontMatch[1]);
-    const scaled = Math.max(10, px * scale);
+    const scaled = Math.max(0, px * scale);
     resolvedFont = baseFont.replace(fontMatch[0], `${scaled}px`);
   } else {
-    resolvedFont = `bold ${16 * scale}px "Noto Sans KR", sans-serif`;
+    const fallbackSize = Math.max(0, 16 * scale);
+    resolvedFont = `bold ${fallbackSize}px "Noto Sans KR", sans-serif`;
   }
   ctx.fillStyle = style.textColor || '#000';
   ctx.font = resolvedFont;
@@ -578,7 +583,8 @@ export function drawWire(
   if (pattern.length > 0) {
     ctx.setLineDash(pattern);
     const patternLength = pattern.reduce((sum, value) => sum + value, 0) || 1;
-    ctx.lineDashOffset = (-phase * scale) % patternLength;
+    const offsetUnits = ((phase * scale) % patternLength + patternLength) % patternLength;
+    ctx.lineDashOffset = -offsetUnits;
   } else {
     ctx.setLineDash([]);
   }
@@ -589,7 +595,7 @@ export function drawWire(
       ? camera.cellToScreenCell(p)
       : { x: offsetX + GAP + p.c * PITCH, y: GAP + p.r * PITCH };
     const size = CELL * scale;
-    const radius = Math.max(1, (style.nodeRadius ?? CELL_CORNER_RADIUS) * scale);
+    const radius = Math.max(0, (style.nodeRadius ?? CELL_CORNER_RADIUS) * scale);
     ctx.save();
     applyScaledShadow(ctx, style.nodeShadow, scale);
     const nodeFill =
