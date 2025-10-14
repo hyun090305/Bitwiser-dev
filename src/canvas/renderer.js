@@ -62,6 +62,7 @@ const BASE_BLOCK_STYLE = {
   strokeColor: null,
   strokeWidth: 0,
   activeFill: null,
+  activeHoverFill: null,
   activeTextColor: null,
   font: null
 };
@@ -216,6 +217,12 @@ function resolveBlockStyle(options = {}) {
   style.radius = CELL_CORNER_RADIUS;
   style.font = style.font || base.font || null;
   style.activeFill = style.activeFill || getThemeAccent(theme);
+  style.activeHoverFill =
+    style.activeHoverFill ??
+    base.activeHoverFill ??
+    style.activeFill ??
+    style.hoverFill ??
+    style.fill;
   style.activeTextColor = style.activeTextColor || '#ffffff';
   return style;
 }
@@ -538,11 +545,13 @@ export function drawBlock(
     block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)
   );
   const blockRadius = Math.max(0, style.radius * scale);
-  const fillSpec = isActive && style.activeFill
-    ? style.activeFill
-    : hovered && style.hoverFill
-    ? style.hoverFill
-    : style.fill;
+  let fillSpec;
+  if (hovered) {
+    fillSpec = isActive ? style.activeHoverFill : style.hoverFill;
+  }
+  if (!fillSpec) {
+    fillSpec = isActive && style.activeFill ? style.activeFill : style.fill;
+  }
   applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
   const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
   ctx.fillStyle = fillStyle;
