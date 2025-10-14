@@ -82,8 +82,25 @@ const THEMES = [
       fill: ['#d7dbff', '#b9c1ff'],
       hoverFill: ['#c7cffb', '#a3b1ff'],
       textColor: '#111827',
-      activeFill: '#4f46e5',
-      activeTextColor: '#eef2ff',
+      activeFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
+        ]
+      },
+      activeHoverFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
+        ]
+      },
+      activeTextColor: '#422006',
       radius: 12,
       shadow: {
         color: 'rgba(79, 70, 229, 0.18)',
@@ -152,8 +169,25 @@ const THEMES = [
       fill: '#dce3ef',
       hoverFill: '#cfd8e6',
       textColor: '#1f2937',
-      activeFill: '#475569',
-      activeTextColor: '#f8fafc',
+      activeFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
+        ]
+      },
+      activeHoverFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
+        ]
+      },
+      activeTextColor: '#422006',
       radius: 12,
       shadow: {
         color: 'rgba(15, 23, 42, 0.18)',
@@ -236,8 +270,25 @@ const THEMES = [
       fill: ['#0ea5e9', '#38bdf8'],
       hoverFill: ['#38bdf8', '#67e8f9'],
       textColor: '#f8fafc',
-      activeFill: '#38bdf8',
-      activeTextColor: '#0f172a',
+      activeFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
+        ]
+      },
+      activeHoverFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
+        ]
+      },
+      activeTextColor: '#1f2937',
       radius: 12,
       shadow: {
         color: 'rgba(56, 189, 248, 0.35)',
@@ -320,8 +371,25 @@ const THEMES = [
       fill: ['#fdba74', '#fb923c'],
       hoverFill: ['#fb923c', '#f97316'],
       textColor: '#7c2d12',
-      activeFill: '#f97316',
-      activeTextColor: '#fff7ed',
+      activeFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
+        ]
+      },
+      activeHoverFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
+        ]
+      },
+      activeTextColor: '#422006',
       radius: 14,
       shadow: {
         color: 'rgba(249, 115, 22, 0.35)',
@@ -404,8 +472,25 @@ const THEMES = [
       fill: ['#a7f3d0', '#6ee7b7'],
       hoverFill: ['#6ee7b7', '#34d399'],
       textColor: '#064e3b',
-      activeFill: '#14b8a6',
-      activeTextColor: '#ecfdf5',
+      activeFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
+        ]
+      },
+      activeHoverFill: {
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
+        ]
+      },
+      activeTextColor: '#14532d',
       radius: 14,
       shadow: {
         color: 'rgba(16, 185, 129, 0.35)',
