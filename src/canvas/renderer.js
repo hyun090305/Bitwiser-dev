@@ -61,9 +61,8 @@ const BASE_BLOCK_STYLE = {
   },
   strokeColor: null,
   strokeWidth: 0,
-  activeOutlineColor: '#000',
-  activeOutlineDash: [4, 4],
-  activeOutlineWidth: 2,
+  activeFill: null,
+  activeTextColor: null,
   font: null
 };
 
@@ -156,12 +155,39 @@ function createFillStyle(ctx, fill, x, y, w, h) {
   return fill;
 }
 
+function resolveSolidColor(fill) {
+  if (!fill) return null;
+  if (Array.isArray(fill)) {
+    return fill.find(color => typeof color === 'string') || null;
+  }
+  if (typeof fill === 'object') {
+    if (typeof fill.color === 'string') {
+      return fill.color;
+    }
+    if (Array.isArray(fill.stops)) {
+      const stopWithColor = fill.stops.find(stop => typeof stop?.color === 'string');
+      if (stopWithColor) {
+        return stopWithColor.color;
+      }
+    }
+  }
+  if (typeof fill === 'string') {
+    return fill;
+  }
+  return null;
+}
+
 function resolveGridStyle(options = {}) {
   const { theme: themeOverride, panelShadow, ...overrides } = options || {};
   const theme = themeOverride || getActiveTheme();
   const themeGrid = theme?.grid || {};
   const base = { ...BASE_GRID_STYLE, ...themeGrid };
   const style = { ...base, ...overrides };
+  const resolvedBackground =
+    resolveSolidColor(style.background) ??
+    resolveSolidColor(base.background) ??
+    BASE_GRID_STYLE.background;
+  style.background = resolvedBackground;
   const baseShadow = mergeShadow(BASE_GRID_STYLE.panelShadow, themeGrid.panelShadow);
   const resolvedShadow = mergeShadow(baseShadow, panelShadow);
   style.panelShadow = resolvedShadow;
@@ -189,9 +215,8 @@ function resolveBlockStyle(options = {}) {
   style.hoverShadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.hoverShadow, themeBlock.hoverShadow), hoverShadow);
   style.radius = CELL_CORNER_RADIUS;
   style.font = style.font || base.font || null;
-  if (!style.activeOutlineColor) {
-    style.activeOutlineColor = getThemeAccent(theme);
-  }
+  style.activeFill = style.activeFill || getThemeAccent(theme);
+  style.activeTextColor = style.activeTextColor || '#ffffff';
   return style;
 }
 
@@ -509,8 +534,15 @@ export function drawBlock(
   }
   ctx.save();
 
+  const isActive = Boolean(
+    block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)
+  );
   const blockRadius = Math.max(0, style.radius * scale);
-  const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
+  const fillSpec = isActive && style.activeFill
+    ? style.activeFill
+    : hovered && style.hoverFill
+    ? style.hoverFill
+    : style.fill;
   applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
   const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
   ctx.fillStyle = fillStyle;
@@ -526,21 +558,6 @@ export function drawBlock(
   }
 
   ctx.shadowColor = 'transparent';
-  if (block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)) {
-    const dashPattern = Array.isArray(style.activeOutlineDash)
-      ? style.activeOutlineDash.map(v => v * scale)
-      : [];
-    if (dashPattern.length > 0) {
-      ctx.setLineDash(dashPattern);
-    }
-    ctx.lineWidth = Math.max((style.activeOutlineWidth || 2) * scale, 1);
-    ctx.strokeStyle = style.activeOutlineColor || '#000';
-    roundRect(ctx, x, y, size, size, blockRadius);
-    ctx.stroke();
-    if (dashPattern.length > 0) {
-      ctx.setLineDash([]);
-    }
-  }
 
   const baseFont = style.font || `bold 16px "Noto Sans KR", sans-serif`;
   const fontMatch = baseFont.match(/(\d+(?:\.\d+)?)px/);
@@ -553,7 +570,8 @@ export function drawBlock(
     const fallbackSize = Math.max(0, 16 * scale);
     resolvedFont = `bold ${fallbackSize}px "Noto Sans KR", sans-serif`;
   }
-  ctx.fillStyle = style.textColor || '#000';
+  const textColor = isActive && style.activeTextColor ? style.activeTextColor : style.textColor;
+  ctx.fillStyle = textColor || '#000';
   ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';

@@ -82,6 +82,8 @@ const THEMES = [
       fill: ['#d7dbff', '#b9c1ff'],
       hoverFill: ['#c7cffb', '#a3b1ff'],
       textColor: '#111827',
+      activeFill: '#4f46e5',
+      activeTextColor: '#eef2ff',
       radius: 12,
       shadow: {
         color: 'rgba(79, 70, 229, 0.18)',
@@ -96,10 +98,7 @@ const THEMES = [
         offsetY: 10
       },
       strokeColor: 'rgba(99, 102, 241, 0.4)',
-      strokeWidth: 1.2,
-      activeOutlineColor: '#1e293b',
-      activeOutlineDash: [4, 4],
-      activeOutlineWidth: 2.2
+      strokeWidth: 1.2
     },
     wire: {
       color: '#4338ca',
@@ -153,6 +152,8 @@ const THEMES = [
       fill: '#dce3ef',
       hoverFill: '#cfd8e6',
       textColor: '#1f2937',
+      activeFill: '#475569',
+      activeTextColor: '#f8fafc',
       radius: 12,
       shadow: {
         color: 'rgba(15, 23, 42, 0.18)',
@@ -167,10 +168,7 @@ const THEMES = [
         offsetY: 10
       },
       strokeColor: 'rgba(148, 163, 184, 0.75)',
-      strokeWidth: 1.4,
-      activeOutlineColor: '#1f2937',
-      activeOutlineDash: [3, 3],
-      activeOutlineWidth: 2
+      strokeWidth: 1.4
     },
     wire: {
       color: '#475569',
@@ -238,6 +236,8 @@ const THEMES = [
       fill: ['#0ea5e9', '#38bdf8'],
       hoverFill: ['#38bdf8', '#67e8f9'],
       textColor: '#f8fafc',
+      activeFill: '#38bdf8',
+      activeTextColor: '#0f172a',
       radius: 12,
       shadow: {
         color: 'rgba(56, 189, 248, 0.35)',
@@ -252,10 +252,7 @@ const THEMES = [
         offsetY: 14
       },
       strokeColor: 'rgba(94, 234, 212, 0.6)',
-      strokeWidth: 1.6,
-      activeOutlineColor: '#f8fafc',
-      activeOutlineDash: [4, 4],
-      activeOutlineWidth: 2.4
+      strokeWidth: 1.6
     },
     wire: {
       color: '#67e8f9',
@@ -323,6 +320,8 @@ const THEMES = [
       fill: ['#fdba74', '#fb923c'],
       hoverFill: ['#fb923c', '#f97316'],
       textColor: '#7c2d12',
+      activeFill: '#f97316',
+      activeTextColor: '#fff7ed',
       radius: 14,
       shadow: {
         color: 'rgba(249, 115, 22, 0.35)',
@@ -337,10 +336,7 @@ const THEMES = [
         offsetY: 12
       },
       strokeColor: 'rgba(234, 88, 12, 0.45)',
-      strokeWidth: 1.5,
-      activeOutlineColor: '#7c2d12',
-      activeOutlineDash: [4, 4],
-      activeOutlineWidth: 2.2
+      strokeWidth: 1.5
     },
     wire: {
       color: '#ea580c',
@@ -408,6 +404,8 @@ const THEMES = [
       fill: ['#a7f3d0', '#6ee7b7'],
       hoverFill: ['#6ee7b7', '#34d399'],
       textColor: '#064e3b',
+      activeFill: '#14b8a6',
+      activeTextColor: '#ecfdf5',
       radius: 14,
       shadow: {
         color: 'rgba(16, 185, 129, 0.35)',
@@ -422,10 +420,7 @@ const THEMES = [
         offsetY: 14
       },
       strokeColor: 'rgba(5, 150, 105, 0.45)',
-      strokeWidth: 1.5,
-      activeOutlineColor: '#065f46',
-      activeOutlineDash: [4, 4],
-      activeOutlineWidth: 2.2
+      strokeWidth: 1.5
     },
     wire: {
       color: '#0f766e',
