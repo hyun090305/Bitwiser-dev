@@ -281,7 +281,6 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
 
   const gridStyle = resolveGridStyle(options);
   const {
-    background,
     panelFill,
     panelShadow,
     gridFillA,
@@ -290,10 +289,6 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
     gridLineWidth,
     cellRadius
   } = gridStyle;
-
-  const backgroundFill = createFillStyle(ctx, background, 0, 0, width, height) || background;
-  ctx.fillStyle = backgroundFill;
-  ctx.fillRect(0, 0, width, height);
 
   if (panelWidth > 0 && panelFill) {
     ctx.save();
@@ -354,7 +349,6 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   }
   const gridStyle = resolveGridStyle(styleOptions);
   const {
-    background,
     panelFill,
     panelShadow,
     gridFillA,
@@ -377,23 +371,6 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
 
     ctx.save();
-    if (background && rows > 0 && cols > 0) {
-      const topLeft = camera.worldToScreen(0, 0);
-      const bottomRight = camera.worldToScreen(
-        cols * PITCH + GAP,
-        rows * PITCH + GAP
-      );
-      const rectX = Math.min(topLeft.x, bottomRight.x);
-      const rectY = Math.min(topLeft.y, bottomRight.y);
-      const rectWidth = Math.abs(bottomRight.x - topLeft.x);
-      const rectHeight = Math.abs(bottomRight.y - topLeft.y);
-      if (rectWidth > 0 && rectHeight > 0) {
-        const bgFill = createFillStyle(ctx, background, rectX, rectY, rectWidth, rectHeight) || background;
-        ctx.fillStyle = bgFill;
-        ctx.fillRect(rectX, rectY, rectWidth, rectHeight);
-      }
-    }
-
     if (panelWidth > 0 && panelFill) {
       ctx.save();
       applyShadow(ctx, panelShadow);
@@ -467,9 +444,6 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   const width = cols * PITCH + GAP;
   const height = rows * PITCH + GAP;
   ctx.save();
-  const bgFill = createFillStyle(ctx, background, offsetX, 0, width, height) || background;
-  ctx.fillStyle = bgFill;
-  ctx.fillRect(offsetX, 0, width, height);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       const x = offsetX + GAP + c * PITCH;
