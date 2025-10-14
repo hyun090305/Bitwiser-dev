@@ -390,6 +390,45 @@ html, body {
     align-items: center;
     flex: 1;
 }
+
+#gameArea.game-area--dark {
+  color: #e2e8f0;
+}
+
+#gameArea.game-area--dark .tagline,
+#gameArea.game-area--dark #mainArea p {
+  color: rgba(226, 232, 240, 0.85);
+}
+
+#gameArea.game-area--dark h1,
+#gameArea.game-area--dark h2,
+#gameArea.game-area--dark h3,
+#gameArea.game-area--dark h4,
+#gameArea.game-area--dark h5,
+#gameArea.game-area--dark h6 {
+  color: #f8fafc;
+}
+
+#gameArea.game-area--dark .main-button {
+  background-color: rgba(30, 41, 59, 0.75);
+  border-color: rgba(148, 163, 184, 0.7);
+  color: #f8fafc;
+}
+
+#gameArea.game-area--dark .main-button:hover {
+  background-color: rgba(46, 60, 88, 0.9);
+}
+
+#gameArea.game-area--dark #mainScreen #tutorialBtn,
+#gameArea.game-area--dark #mainScreen #copyStatusBtn {
+  background-color: rgba(71, 85, 105, 0.85);
+  color: #f8fafc;
+}
+
+#gameArea.game-area--dark #mainScreen #chapterNavBtn {
+  background-color: #2563eb;
+  color: #f8fafc;
+}
   .toggle-key {
     display: block;
     margin: 6px 0;
@@ -3499,6 +3538,9 @@ body.lab-mode-active {
 
 #settingsModal .settings-section:first-of-type {
   margin-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
 
 .settings-checkbox {

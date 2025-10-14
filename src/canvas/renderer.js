@@ -635,7 +635,14 @@ export function renderContent(
   camera = null,
   options = {}
 ) {
-  resetTransformAndClear(ctx);
+  const { preserveExisting, ...styleOptions } = options || {};
+  if (preserveExisting) {
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.restore();
+  } else {
+    resetTransformAndClear(ctx);
+  }
   const panelClipWidth = offsetX;
   const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
   const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
@@ -656,9 +663,11 @@ export function renderContent(
   if (camera) {
     offsetX = 0;
   }
-  Object.values(circuit.wires).forEach(w => drawWire(ctx, w, phase, offsetX, camera, options));
+  Object.values(circuit.wires).forEach(w =>
+    drawWire(ctx, w, phase, offsetX, camera, styleOptions)
+  );
   Object.values(circuit.blocks).forEach(b =>
-    drawBlock(ctx, b, offsetX, b.id === hoverId, camera, options)
+    drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions)
   );
   ctx.restore();
 }

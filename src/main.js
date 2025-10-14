@@ -6,7 +6,9 @@ import {
   getUsername,
   getHintProgress,
   getAutoSaveSetting,
-  setAutoSaveSetting
+  setAutoSaveSetting,
+  getBackgroundAnimationSetting,
+  setBackgroundAnimationSetting
 } from './modules/storage.js';
 import { initializeGuestbook } from './modules/guestbook.js';
 import { createToastManager } from './modules/toast.js';
@@ -684,6 +686,45 @@ configureLevelModule({
     collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
 });
 
+function parseColorToRgb(color) {
+  if (typeof color !== 'string' || !color) return null;
+  if (typeof document === 'undefined' || !document.body) return null;
+  const probe = document.createElement('span');
+  probe.style.display = 'none';
+  probe.style.color = color;
+  document.body.appendChild(probe);
+  const computed = getComputedStyle(probe).color;
+  probe.remove();
+  const match = computed.match(/rgba?\(([^)]+)\)/);
+  if (!match) return null;
+  const channels = match[1]
+    .split(',')
+    .slice(0, 3)
+    .map(part => Number.parseFloat(part.trim()))
+    .filter(v => Number.isFinite(v));
+  if (channels.length !== 3) return null;
+  return channels.map(v => Math.max(0, Math.min(255, v)));
+}
+
+function computeRelativeLuminance(rgb) {
+  if (!Array.isArray(rgb) || rgb.length !== 3) return null;
+  const [r, g, b] = rgb.map(channel => {
+    const normalized = channel / 255;
+    return normalized <= 0.03928
+      ? normalized / 12.92
+      : Math.pow((normalized + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+}
+
+function isColorDark(color) {
+  const rgb = parseColorToRgb(color);
+  if (!rgb) return false;
+  const luminance = computeRelativeLuminance(rgb);
+  if (luminance == null) return false;
+  return luminance < 0.45;
+}
+
 function syncGameAreaBackground(theme) {
   const gameArea = document.getElementById('gameArea');
   if (!gameArea) return;
@@ -693,18 +734,22 @@ function syncGameAreaBackground(theme) {
   } else {
     gameArea.style.backgroundColor = '';
   }
+  const isDarkTheme = color ? isColorDark(color) : false;
+  gameArea.style.color = isDarkTheme ? '#e2e8f0' : '';
+  gameArea.classList.toggle('game-area--dark', isDarkTheme);
 }
 
 function setupSettings() {
   const btn = document.getElementById('settingsBtn');
   const modal = document.getElementById('settingsModal');
   const closeBtn = document.getElementById('settingsCloseBtn');
-  const checkbox = document.getElementById('autoSaveCheckbox');
+  const autoSaveCheckbox = document.getElementById('autoSaveCheckbox');
+  const backgroundAnimationCheckbox = document.getElementById('backgroundAnimationCheckbox');
   const themeOptionsEl = document.getElementById('themeOptions');
   const previewCanvas = document.getElementById('themePreviewCanvas');
   const previewLabel = document.getElementById('themePreviewLabel');
   const themeDescriptionEl = document.getElementById('themeDescription');
-  if (!btn || !modal || !closeBtn || !checkbox) return;
+  if (!btn || !modal || !closeBtn || !autoSaveCheckbox) return;
 
   const hasThemeUI = Boolean(themeOptionsEl && previewCanvas && themeDescriptionEl);
   const themeInputs = new Map();
@@ -746,26 +791,88 @@ function setupSettings() {
 
   const themes = hasThemeUI ? getAvailableThemes() : [];
   let previewCtx = null;
+  let previewPhase = 0;
+  let previewAnimationId = null;
+  let previewActiveTheme = null;
 
   if (hasThemeUI) {
     previewCtx = setupCanvas(previewCanvas, previewWidth, previewHeight);
   }
 
-  const enabled = getAutoSaveSetting();
-  checkbox.checked = enabled;
-  checkbox.addEventListener('change', () => {
-    setAutoSaveSetting(checkbox.checked);
+  const autoSaveEnabled = getAutoSaveSetting();
+  autoSaveCheckbox.checked = autoSaveEnabled;
+  autoSaveCheckbox.addEventListener('change', () => {
+    setAutoSaveSetting(autoSaveCheckbox.checked);
   });
+
+  const backgroundAnimationEnabled = getBackgroundAnimationSetting();
+  if (backgroundAnimationCheckbox) {
+    backgroundAnimationCheckbox.checked = backgroundAnimationEnabled;
+    backgroundAnimationCheckbox.addEventListener('change', () => {
+      const enabled = backgroundAnimationCheckbox.checked;
+      setBackgroundAnimationSetting(enabled);
+      window.dispatchEvent(
+        new CustomEvent('bitwiser:backgroundAnimationToggle', {
+          detail: { enabled }
+        })
+      );
+    });
+  }
 
   const getCurrentLang = () =>
     typeof window !== 'undefined' && window.currentLang === 'en' ? 'en' : 'ko';
 
+  const clearPreviewCanvas = () => {
+    if (!previewCtx) return;
+    previewCtx.save();
+    previewCtx.setTransform(1, 0, 0, 1, 0, 0);
+    const pixelWidth = previewCanvas?.width || 0;
+    const pixelHeight = previewCanvas?.height || 0;
+    if (pixelWidth > 0 && pixelHeight > 0) {
+      previewCtx.clearRect(0, 0, pixelWidth, pixelHeight);
+    }
+    previewCtx.restore();
+  };
+
+  const renderPreviewFrame = () => {
+    if (!previewCtx || !previewActiveTheme) return;
+    clearPreviewCanvas();
+    drawGrid(previewCtx, previewCircuit.rows, previewCircuit.cols, 0, null, {
+      theme: previewActiveTheme
+    });
+    renderContent(
+      previewCtx,
+      previewCircuit,
+      previewPhase,
+      0,
+      null,
+      null,
+      { theme: previewActiveTheme, preserveExisting: true }
+    );
+  };
+
+  const stepPreviewAnimation = () => {
+    previewAnimationId = null;
+    if (!previewCtx || !previewActiveTheme) return;
+    previewPhase = (previewPhase + 1.5) % 256;
+    renderPreviewFrame();
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      previewAnimationId = window.requestAnimationFrame(stepPreviewAnimation);
+    }
+  };
+
   const drawThemePreview = theme => {
     if (!previewCtx || !theme) return;
-    drawGrid(previewCtx, previewCircuit.rows, previewCircuit.cols, 0, null, {
-      theme
-    });
-    renderContent(previewCtx, previewCircuit, 0, 0, null, null, { theme });
+    previewActiveTheme = theme;
+    previewPhase = 0;
+    renderPreviewFrame();
+    if (previewAnimationId != null && typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function') {
+      window.cancelAnimationFrame(previewAnimationId);
+      previewAnimationId = null;
+    }
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      previewAnimationId = window.requestAnimationFrame(stepPreviewAnimation);
+    }
   };
 
   const buildThemeOptions = () => {

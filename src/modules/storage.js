@@ -2,6 +2,7 @@ const USERNAME_KEY = 'username';
 const USERNAME_RESERVATION_KEY = 'usernameReservationKey';
 const HINT_COOLDOWN_KEY = 'hintCooldownUntil';
 const AUTO_SAVE_KEY = 'autoSaveCircuit';
+const BACKGROUND_ANIMATION_KEY = 'backgroundAnimationEnabled';
 
 function safeGetItem(key) {
   if (typeof localStorage === 'undefined') return null;
@@ -73,6 +74,16 @@ export function getAutoSaveSetting() {
 
 export function setAutoSaveSetting(enabled) {
   safeSetItem(AUTO_SAVE_KEY, String(Boolean(enabled)));
+}
+
+export function getBackgroundAnimationSetting() {
+  const raw = safeGetItem(BACKGROUND_ANIMATION_KEY);
+  if (raw === null) return true;
+  return raw !== 'false';
+}
+
+export function setBackgroundAnimationSetting(enabled) {
+  safeSetItem(BACKGROUND_ANIMATION_KEY, String(Boolean(enabled)));
 }
 
 function googleKey(prefix, uid) {
