@@ -4,6 +4,7 @@ import { getActiveTheme, getThemeAccent } from '../themes.js';
 export const CELL_CORNER_RADIUS = 3;
 
 const PITCH = CELL + GAP;
+const SIMPLE_GRID_THRESHOLD = 12;
 
 const BASE_GRID_STYLE = {
   background: '#ffffff',
@@ -271,6 +272,62 @@ function resetTransformAndClear(ctx) {
   ctx.restore();
 }
 
+function drawSimpleGridLines(ctx, config) {
+  if (!config) return;
+  const {
+    panelWidth,
+    canvasWidth,
+    canvasHeight,
+    minX = panelWidth,
+    maxX = canvasWidth,
+    minY = 0,
+    maxY = canvasHeight,
+    startCol,
+    endCol,
+    startRow,
+    endRow,
+    originX,
+    originY,
+    scale,
+    stroke,
+    lineWidth
+  } = config;
+
+  if (!Number.isFinite(scale) || scale <= 0) return;
+
+  const strokeStyle = stroke || 'rgba(148, 163, 184, 0.4)';
+  const baseLineWidth = Number.isFinite(lineWidth) ? lineWidth : 1;
+  const effectiveLineWidth = Math.max(baseLineWidth * scale, 0.5);
+  let drewLine = false;
+
+  ctx.beginPath();
+  for (let c = startCol; c <= endCol + 1; c++) {
+    const worldX = GAP + c * PITCH;
+    const screenX = panelWidth + (worldX - originX) * scale;
+    if (screenX < minX - 1 || screenX > maxX + 1) continue;
+    ctx.moveTo(screenX, minY);
+    ctx.lineTo(screenX, maxY);
+    drewLine = true;
+  }
+
+  for (let r = startRow; r <= endRow + 1; r++) {
+    const worldY = GAP + r * PITCH;
+    const screenY = (worldY - originY) * scale;
+    if (screenY < minY - 1 || screenY > maxY + 1) continue;
+    ctx.moveTo(minX, screenY);
+    ctx.lineTo(maxX, screenY);
+    drewLine = true;
+  }
+
+  if (drewLine) {
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = effectiveLineWidth;
+    ctx.stroke();
+  } else {
+    ctx.closePath();
+  }
+}
+
 function drawInfiniteGrid(ctx, camera, options = {}) {
   if (!camera) return;
   resetTransformAndClear(ctx);
@@ -319,6 +376,24 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
   const endCol = Math.ceil((endWorldX - GAP) / PITCH) + 1;
   const startRow = Math.floor((startWorldY - GAP) / PITCH) - 1;
   const endRow = Math.ceil((endWorldY - GAP) / PITCH) + 1;
+
+  if (cellScaled <= SIMPLE_GRID_THRESHOLD) {
+    drawSimpleGridLines(ctx, {
+      panelWidth,
+      canvasWidth: width,
+      canvasHeight: height,
+      startCol,
+      endCol,
+      startRow,
+      endRow,
+      originX,
+      originY,
+      scale,
+      stroke: gridStroke,
+      lineWidth: gridLineWidth
+    });
+    return;
+  }
 
   for (let r = startRow; r <= endRow; r++) {
     for (let c = startCol; c <= endCol; c++) {
@@ -419,29 +494,56 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
 
     if (startCol <= endCol && startRow <= endRow) {
       const scaledCell = CELL * scale;
-      for (let r = startRow; r <= endRow; r++) {
-        for (let c = startCol; c <= endCol; c++) {
-          const topLeft = camera.cellToScreenCell({ r, c });
-          const { x, y } = topLeft;
-          if (x + scaledCell <= panelWidth) continue;
-          const hasChecker = gridFillA != null || gridFillB != null;
-          const fillSpec = hasChecker
-            ? gridFillA && gridFillB
-              ? (r + c) % 2 === 0
-                ? gridFillA
-                : gridFillB
-              : gridFillA || gridFillB
-            : null;
-          const scaledRadius = Math.max(0, cellRadius * scale);
-          roundRect(ctx, x, y, scaledCell, scaledCell, scaledRadius);
-          if (fillSpec) {
-            const fillStyle = createFillStyle(ctx, fillSpec, x, y, scaledCell, scaledCell) || fillSpec;
-            ctx.fillStyle = fillStyle;
-            ctx.fill();
+      if (scaledCell <= SIMPLE_GRID_THRESHOLD) {
+        const topLeft = camera.worldToScreen(GAP, GAP);
+        const bottomRight = camera.worldToScreen(
+          GAP + (cols - 1) * PITCH + CELL,
+          GAP + (rows - 1) * PITCH + CELL
+        );
+        drawSimpleGridLines(ctx, {
+          panelWidth,
+          canvasWidth: width,
+          canvasHeight: height,
+          minX: Math.max(panelWidth, Math.min(topLeft.x, bottomRight.x)),
+          maxX: Math.max(panelWidth, topLeft.x, bottomRight.x),
+          minY: Math.min(topLeft.y, bottomRight.y),
+          maxY: Math.max(topLeft.y, bottomRight.y),
+          startCol,
+          endCol,
+          startRow,
+          endRow,
+          originX,
+          originY,
+          scale,
+          stroke: gridStroke,
+          lineWidth: gridLineWidth
+        });
+      } else {
+        for (let r = startRow; r <= endRow; r++) {
+          for (let c = startCol; c <= endCol; c++) {
+            const topLeftCell = camera.cellToScreenCell({ r, c });
+            const { x, y } = topLeftCell;
+            if (x + scaledCell <= panelWidth) continue;
+            const hasChecker = gridFillA != null || gridFillB != null;
+            const fillSpec = hasChecker
+              ? gridFillA && gridFillB
+                ? (r + c) % 2 === 0
+                  ? gridFillA
+                  : gridFillB
+                : gridFillA || gridFillB
+              : null;
+            const scaledRadius = Math.max(0, cellRadius * scale);
+            roundRect(ctx, x, y, scaledCell, scaledCell, scaledRadius);
+            if (fillSpec) {
+              const fillStyle =
+                createFillStyle(ctx, fillSpec, x, y, scaledCell, scaledCell) || fillSpec;
+              ctx.fillStyle = fillStyle;
+              ctx.fill();
+            }
+            ctx.strokeStyle = gridStroke;
+            ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
+            ctx.stroke();
           }
-          ctx.strokeStyle = gridStroke;
-          ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
-          ctx.stroke();
         }
       }
     }
