@@ -3539,6 +3539,8 @@ body.lab-mode-active {
 
 #settingsModal .settings-modal {
   width: min(620px, 90vw);
+  overflow: auto;
+  height: 80vh;
 }
 
 #settingsModal .settings-section {
