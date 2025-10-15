@@ -1991,6 +1991,15 @@ html, body {
   .problem-item.solved {
     border-color: rgba(34, 197, 94, 0.55);
     box-shadow: 0 20px 42px rgba(34, 197, 94, 0.18);
+    background: linear-gradient(
+      155deg,
+      rgba(240, 253, 244, 0.97),
+      rgba(220, 252, 231, 0.94)
+    );
+  }
+
+  .problem-item.solved .problem-item-title {
+    color: #15803d;
   }
 
   .problem-item-header,
