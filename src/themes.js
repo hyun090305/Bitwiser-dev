@@ -83,54 +83,24 @@ const THEMES = [
       hoverFill: ['#c7cffb', '#a3b1ff'],
       textColor: '#111827',
       activeFill: {
-        type: 'radial',
-        radius: 0.95,
-        colors: [
-          { offset: 0, color: 'rgba(255,255,245,0.58)' },
-          { offset: 0.35, color: 'rgba(255,244,210,0.32)' },
-          { offset: 0.72, color: 'rgba(255,226,155,0.14)' },
-          { offset: 1, color: 'rgba(255,208,120,0)' }
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef3c7' },
+          { offset: 0.55, color: '#fde047' },
+          { offset: 1, color: '#facc15' }
         ]
       },
       activeHoverFill: {
-        type: 'radial',
-        radius: 0.95,
-        colors: [
-          { offset: 0, color: 'rgba(255,255,248,0.65)' },
-          { offset: 0.32, color: 'rgba(255,243,205,0.36)' },
-          { offset: 0.7, color: 'rgba(255,228,160,0.18)' },
-          { offset: 1, color: 'rgba(255,216,140,0)' }
+        type: 'linear',
+        angle: 90,
+        stops: [
+          { offset: 0, color: '#fef9c3' },
+          { offset: 0.5, color: '#fde68a' },
+          { offset: 1, color: '#fbbf24' }
         ]
       },
-      activeTextColor: 'hsl(180, 20%, 20%)',
-      activeGlowFill: {
-        type: 'radial',
-        radius: 1.05,
-        colors: [
-          { offset: 0, color: 'rgba(255,252,236,0.24)' },
-          { offset: 0.45, color: 'rgba(255,238,205,0.19)' },
-          { offset: 0.85, color: 'rgba(255,226,165,0.08)' },
-          { offset: 1, color: 'rgba(255,214,150,0)' }
-        ]
-      },
-      activeAmbientFill: {
-        type: 'radial',
-        radius: 1.5,
-        colors: [
-          { offset: 0, color: 'rgba(255,249,210,0.12)' },
-          { offset: 0.45, color: 'rgba(255,235,188,0.06)' },
-          { offset: 1, color: 'rgba(255,220,160,0)' }
-        ]
-      },
-      activeAmbientSpread: 0.8,
-      activeGlow: {
-        color: 'rgba(255, 232, 170, 0.5)',
-        blur: 24,
-        offsetX: 0,
-        offsetY: 0
-      },
-      activeStrokeColor: 'rgba(255, 240, 200, 0.3)',
-      activeStrokeWidth: 1,
+      activeTextColor: '#422006',
       radius: 12,
       shadow: {
         color: 'rgba(79, 70, 229, 0.18)',
