@@ -6,6 +6,49 @@ export const CELL_CORNER_RADIUS = 3;
 const PITCH = CELL + GAP;
 const SIMPLE_GRID_THRESHOLD = 12;
 
+const DEFAULT_ACTIVE_FILL = {
+  type: 'radial',
+  radius: 0.95,
+  colors: [
+    { offset: 0, color: 'rgba(255,255,245,0.55)' },
+    { offset: 0.35, color: 'rgba(255,244,210,0.3)' },
+    { offset: 0.7, color: 'rgba(255,228,150,0.14)' },
+    { offset: 1, color: 'rgba(255,210,120,0)' }
+  ]
+};
+
+const DEFAULT_ACTIVE_GLOW_FILL = {
+  type: 'radial',
+  radius: 1.05,
+  colors: [
+    { offset: 0, color: 'rgba(255,252,235,0.22)' },
+    { offset: 0.45, color: 'rgba(255,238,200,0.18)' },
+    { offset: 0.85, color: 'rgba(255,224,160,0.08)' },
+    { offset: 1, color: 'rgba(255,210,140,0)' }
+  ]
+};
+
+const DEFAULT_ACTIVE_AMBIENT_FILL = {
+  type: 'radial',
+  radius: 1.5,
+  colors: [
+    { offset: 0, color: 'rgba(255,250,210,0.12)' },
+    { offset: 0.45, color: 'rgba(255,236,185,0.06)' },
+    { offset: 1, color: 'rgba(255,220,160,0)' }
+  ]
+};
+
+const DEFAULT_ACTIVE_GLOW = {
+  color: 'rgba(255, 232, 170, 0.5)',
+  blur: 24,
+  offsetX: 0,
+  offsetY: 0
+};
+
+const DEFAULT_ACTIVE_STROKE_COLOR = 'rgba(255, 240, 200, 0.3)';
+const DEFAULT_ACTIVE_TEXT_COLOR = 'hsl(180, 20%, 20%)';
+const DEFAULT_ACTIVE_AMBIENT_SPREAD = 0.8;
+
 const BASE_GRID_STYLE = {
   background: '#ffffff',
   panelFill: null,
@@ -154,6 +197,36 @@ function createFillStyle(ctx, fill, x, y, w, h) {
     });
     return gradient;
   }
+  if (typeof fill === 'object' && fill.type === 'radial') {
+    const halfW = w / 2;
+    const halfH = h / 2;
+    const diagRadius = Math.sqrt(halfW * halfW + halfH * halfH) || 1;
+    const centerX = x + (fill.cx != null ? fill.cx * w : halfW);
+    const centerY = y + (fill.cy != null ? fill.cy * h : halfH);
+    const normalize = fill.absolute === true ? false : true;
+    let outerRadius = fill.outerRadius ?? fill.radius ?? diagRadius;
+    if (normalize && outerRadius != null && outerRadius <= 1) {
+      outerRadius = Math.max(outerRadius, 0) * diagRadius;
+    }
+    if (!Number.isFinite(outerRadius) || outerRadius <= 0) {
+      outerRadius = diagRadius;
+    }
+    let innerRadius = fill.innerRadius ?? 0;
+    if (normalize && innerRadius != null && innerRadius <= 1) {
+      innerRadius = Math.max(innerRadius, 0) * outerRadius;
+    }
+    if (!Number.isFinite(innerRadius) || innerRadius < 0) {
+      innerRadius = 0;
+    }
+    const gradient = ctx.createRadialGradient(centerX, centerY, innerRadius, centerX, centerY, outerRadius);
+    const stops = fill.colors || fill.stops || [];
+    stops.forEach(stop => {
+      if (!stop) return;
+      const offset = Math.min(1, Math.max(0, stop.offset ?? 0));
+      gradient.addColorStop(offset, stop.color);
+    });
+    return gradient;
+  }
   return fill;
 }
 
@@ -217,9 +290,18 @@ function resolveBlockStyle(options = {}) {
   style.hoverShadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.hoverShadow, themeBlock.hoverShadow), hoverShadow);
   style.radius = CELL_CORNER_RADIUS;
   style.font = style.font || base.font || null;
-  style.activeFill = style.activeFill || getThemeAccent(theme);
-  style.activeHoverFill = style.activeHoverFill || style.hoverFill;
-  style.activeTextColor = style.activeTextColor || '#ffffff';
+  const accent = getThemeAccent(theme);
+  style.activeFill = style.activeFill || (typeof accent === 'string' ? DEFAULT_ACTIVE_FILL : accent) || DEFAULT_ACTIVE_FILL;
+  style.activeHoverFill = style.activeHoverFill || style.activeFill;
+  style.activeTextColor = style.activeTextColor || DEFAULT_ACTIVE_TEXT_COLOR;
+  style.activeGlowFill = style.activeGlowFill || DEFAULT_ACTIVE_GLOW_FILL;
+  style.activeAmbientFill = style.activeAmbientFill || DEFAULT_ACTIVE_AMBIENT_FILL;
+  style.activeAmbientSpread =
+    style.activeAmbientSpread != null ? style.activeAmbientSpread : DEFAULT_ACTIVE_AMBIENT_SPREAD;
+  style.activeGlow = style.activeGlow || DEFAULT_ACTIVE_GLOW;
+  style.activeStrokeColor =
+    style.activeStrokeColor != null ? style.activeStrokeColor : DEFAULT_ACTIVE_STROKE_COLOR;
+  style.activeStrokeWidth = style.activeStrokeWidth != null ? style.activeStrokeWidth : 1;
   return style;
 }
 
@@ -647,21 +729,57 @@ export function drawBlock(
     : hovered && style.hoverFill
     ? style.hoverFill
     : style.fill;
-  applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
+  const shadowSpec = isActive ? style.activeGlow : hovered ? style.hoverShadow : style.shadow;
+  applyScaledShadow(ctx, shadowSpec, scale);
   const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
   ctx.fillStyle = fillStyle;
   roundRect(ctx, x, y, size, size, blockRadius);
   ctx.fill();
 
-  if (style.strokeColor && style.strokeWidth > 0) {
+  const strokeColor = isActive
+    ? style.activeStrokeColor ?? style.strokeColor
+    : style.strokeColor;
+  const strokeWidth = isActive
+    ? style.activeStrokeWidth ?? style.strokeWidth
+    : style.strokeWidth;
+  if (strokeColor && strokeWidth > 0) {
     ctx.shadowColor = 'transparent';
-    ctx.lineWidth = Math.max(style.strokeWidth * scale, 0.6);
-    ctx.strokeStyle = style.strokeColor;
+    ctx.lineWidth = Math.max(strokeWidth * scale, 0.6);
+    ctx.strokeStyle = strokeColor;
     roundRect(ctx, x, y, size, size, blockRadius);
     ctx.stroke();
   }
 
-  ctx.shadowColor = 'transparent';
+  applyShadow(ctx, null);
+
+  if (isActive) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    const glowFill =
+      createFillStyle(ctx, style.activeGlowFill, x, y, size, size) || style.activeGlowFill;
+    if (glowFill) {
+      ctx.fillStyle = glowFill;
+      roundRect(ctx, x, y, size, size, blockRadius);
+      ctx.fill();
+    }
+    const ambientSpread = Math.max(0, Number(style.activeAmbientSpread) || 0);
+    if (style.activeAmbientFill && ambientSpread > 0) {
+      const margin = ambientSpread * size;
+      const ambientX = x - margin;
+      const ambientY = y - margin;
+      const ambientSize = size + margin * 2;
+      const ambientRadius = Math.max(0, blockRadius + margin);
+      const ambientFill =
+        createFillStyle(ctx, style.activeAmbientFill, ambientX, ambientY, ambientSize, ambientSize) ||
+        style.activeAmbientFill;
+      if (ambientFill) {
+        ctx.fillStyle = ambientFill;
+        roundRect(ctx, ambientX, ambientY, ambientSize, ambientSize, ambientRadius);
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
 
   const baseFont = style.font || `bold 16px "Noto Sans KR", sans-serif`;
   const fontMatch = baseFont.match(/(\d+(?:\.\d+)?)px/);
