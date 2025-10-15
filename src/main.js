@@ -663,7 +663,7 @@ const gradeButton = document.getElementById('gradeButton');
 if (gradeButton) {
   gradeButton.addEventListener('click', () => {
     if (circuitHasError) {
-      alert('회로에 오류가 존재합니다');
+      alert(translate('circuitErrorAlert'));
       return;
     }
     gradingController.gradeCurrentSelection();
@@ -1127,7 +1127,8 @@ async function startCustomProblem(key, problem) {
   const nextMenuBtn = document.getElementById('nextStageBtnMenu');
   prevMenuBtn.disabled = true;
   nextMenuBtn.disabled = true;
-  document.getElementById('gameTitle').textContent = problem.title || '사용자 문제';
+  document.getElementById('gameTitle').textContent = problem.title
+    || translate('userProblemFallbackTitle');
   if (userProblemsScreen) userProblemsScreen.style.display = 'none';
   document.getElementById('gameScreen').style.display = 'flex';
   const rp = document.getElementById('rightPanel');

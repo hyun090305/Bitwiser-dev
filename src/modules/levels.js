@@ -2,6 +2,11 @@ import { setupGrid, setGridDimensions, destroyPlayContext } from './grid.js';
 import { getUsername } from './storage.js';
 import { fetchOverallStats } from './rank.js';
 
+const translate =
+  typeof window !== 'undefined' && typeof window.t === 'function'
+    ? window.t
+    : key => key;
+
 const DEFAULT_GRID_SIZE = 6;
 const STAGE_GRID_COLUMNS = 3;
 const STAGE_CARD_WIDTH = 200;
@@ -328,7 +333,11 @@ export async function renderChapterList() {
       item.classList.add('locked');
       item.textContent = `${chapter.name} 🔒`;
       item.onclick = () => {
-        alert(`챕터 ${idx}의 스테이지를 모두 완료해야 다음 챕터가 열립니다.`);
+        const template = translate('levelsChapterLocked');
+        const message = typeof template === 'string' && template !== 'levelsChapterLocked'
+          ? template
+          : '챕터 {chapter}의 스테이지를 모두 완료해야 다음 챕터가 열립니다.';
+        alert(message.replace('{chapter}', idx));
       };
     } else {
       item.textContent = chapter.name;

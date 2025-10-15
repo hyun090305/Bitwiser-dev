@@ -22,6 +22,11 @@ let showOverallRanking = () => {};
 let fetchOverallStats = () => Promise.resolve({ rank: '-', cleared: 0 });
 let fetchProgressSummary = () => Promise.resolve({ cleared: 0, blocks: 0, wires: 0 });
 
+function translateText(key, fallback) {
+  const value = translate(key);
+  return typeof value === 'string' && value !== key ? value : fallback;
+}
+
 const state = {
   loginFromMainScreen: false
 };
@@ -247,7 +252,7 @@ async function onInitialUsernameSubmit() {
   }
   const name = elements.usernameInput.value.trim();
   if (!name) {
-    setUsernameError('닉네임을 입력해주세요.');
+    setUsernameError(translateText('loginNicknameRequired', '닉네임을 입력해주세요.'));
     return;
   }
 
@@ -256,7 +261,7 @@ async function onInitialUsernameSubmit() {
     if (usernamesRef && typeof usernamesRef.orderByValue === 'function') {
       const snapshot = await usernamesRef.orderByValue().equalTo(name).once('value');
       if (snapshot.exists()) {
-        setUsernameError('이미 사용 중인 닉네임입니다.');
+        setUsernameError(translateText('loginNicknameTaken', '이미 사용 중인 닉네임입니다.'));
         return;
       }
     }
@@ -269,7 +274,7 @@ async function onInitialUsernameSubmit() {
     maybeStartTutorial();
   } catch (err) {
     console.error('Failed to register guest nickname', err);
-    setUsernameError('닉네임 등록 중 오류가 발생했습니다.');
+    setUsernameError(translateText('loginNicknameRegisterError', '닉네임 등록 중 오류가 발생했습니다.'));
   }
 }
 
@@ -281,11 +286,11 @@ function promptForGoogleNickname(oldName, uid) {
     elements.modalGoogleLoginBtn.style.display = 'none';
   }
   if (elements.usernameSubmitBtn) {
-    elements.usernameSubmitBtn.textContent = '닉네임 등록';
+    elements.usernameSubmitBtn.textContent = translateText('loginRegisterButton', '닉네임 등록');
     elements.usernameSubmitBtn.onclick = () => onGoogleUsernameSubmit(oldName, uid);
   }
   if (elements.usernameModalHeading) {
-    elements.usernameModalHeading.textContent = 'Google 닉네임 등록';
+    elements.usernameModalHeading.textContent = translateText('loginModalTitleGoogle', 'Google 닉네임 등록');
   }
   if (elements.loginInfo) {
     elements.loginInfo.innerHTML = translate('loginInfoGoogle');
@@ -299,7 +304,7 @@ async function onGoogleUsernameSubmit(oldName, uid) {
   }
   const name = elements.usernameInput.value.trim();
   if (!name) {
-    setUsernameError('닉네임을 입력해주세요.');
+    setUsernameError(translateText('loginNicknameRequired', '닉네임을 입력해주세요.'));
     return;
   }
 
@@ -308,7 +313,7 @@ async function onGoogleUsernameSubmit(oldName, uid) {
     if (googleRef && typeof googleRef.orderByChild === 'function') {
       const googleSnap = await googleRef.orderByChild('nickname').equalTo(name).once('value');
       if (googleSnap.exists()) {
-        setUsernameError('이미 있는 닉네임입니다.');
+        setUsernameError(translateText('loginNicknameExists', '이미 있는 닉네임입니다.'));
         return;
       }
     }
@@ -376,7 +381,7 @@ async function onGoogleUsernameSubmit(oldName, uid) {
     maybeStartTutorial();
   } catch (err) {
     console.error('Failed to submit Google nickname', err);
-    setUsernameError('닉네임 등록 중 오류가 발생했습니다.');
+    setUsernameError(translateText('loginNicknameRegisterError', '닉네임 등록 중 오류가 발생했습니다.'));
   }
 }
 
@@ -447,9 +452,13 @@ function showMergeModal(oldName, newName) {
   if (!elements.mergeModal || !elements.mergeDetails || !elements.mergeConfirmBtn || !elements.mergeCancelBtn) {
     return;
   }
-  elements.mergeDetails.innerHTML = '<p>현재 로컬 진행 상황을 Google 계정과 병합하시겠습니까?</p>';
-  elements.mergeConfirmBtn.textContent = '네';
-  elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
+  const mergeMessage = translateText(
+    'mergeMessage',
+    '현재 로컬 진행 상황을 Google 계정과 병합하시겠습니까?'
+  );
+  elements.mergeDetails.innerHTML = `<p>${mergeMessage}</p>`;
+  elements.mergeConfirmBtn.textContent = translateText('loginConfirm', '네');
+  elements.mergeCancelBtn.textContent = translateText('loginCancel', '제 계정이 아닙니다');
   elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
   elements.mergeModal.style.display = 'flex';
   elements.mergeConfirmBtn.onclick = async () => {
@@ -486,17 +495,28 @@ function showAccountClaimModal(targetName, oldName, uid) {
     if (!elements.mergeModal || !elements.mergeDetails || !elements.mergeConfirmBtn || !elements.mergeCancelBtn) {
       return;
     }
+    const titleHtml = translateText(
+      'loginMergePromptTitle',
+      `<p><b>${targetName}</b> 닉네임의 진행 상황</p>`
+    ).replace('{targetName}', targetName);
+    const summaryHtml = translateText(
+      'loginMergePromptSummary',
+      `<li>클리어 레벨 수: ${prog.cleared}</li><li>사용 블록 수: ${prog.blocks}</li><li>사용 도선 수: ${prog.wires}</li>`
+    )
+      .replace('{cleared}', prog.cleared)
+      .replace('{blocks}', prog.blocks)
+      .replace('{wires}', prog.wires);
+    const questionText = translateText(
+      'loginMergePromptQuestion',
+      '이 계정과 진행 상황을 합치겠습니까?'
+    );
     elements.mergeDetails.innerHTML = `
-      <p><b>${targetName}</b> 닉네임의 진행 상황</p>
-      <ul>
-        <li>클리어 레벨 수: ${prog.cleared}</li>
-        <li>사용 블록 수: ${prog.blocks}</li>
-        <li>사용 도선 수: ${prog.wires}</li>
-      </ul>
-      <p>이 계정과 진행 상황을 합치겠습니까?</p>
+      ${titleHtml}
+      <ul>${summaryHtml}</ul>
+      <p>${questionText}</p>
     `;
-    elements.mergeConfirmBtn.textContent = '네';
-    elements.mergeCancelBtn.textContent = '제 계정이 아닙니다';
+    elements.mergeConfirmBtn.textContent = translateText('loginConfirm', '네');
+    elements.mergeCancelBtn.textContent = translateText('loginCancel', '제 계정이 아닙니다');
     elements.mergeCancelBtn.style.display = state.loginFromMainScreen ? 'none' : '';
     elements.mergeModal.style.display = 'flex';
     elements.mergeConfirmBtn.onclick = async () => {

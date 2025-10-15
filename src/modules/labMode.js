@@ -311,5 +311,6 @@ export function initializeLabMode() {
     getCircuit: () => labCircuit,
     applyCircuit: circuitData => applyCircuitToLabData(circuitData),
     ensureLabVisible: () => showLabScreen(),
+    translate: typeof t === 'function' ? t : undefined,
   });
 }

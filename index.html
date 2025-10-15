@@ -66,10 +66,10 @@
         </div>
     <div id="orientationModal" class="modal" style="display:none;">
       <div class="modal-content">
-        <p>⚠️Bitwiser는 가로 모드를 권장합니다</p>
-        <p>Tip: [홈 화면에 추가 -> 설치]를 통해 Bitwiser 앱을 설치할 수 있어요!</p>
+        <p id="orientationWarningText"></p>
+        <p id="orientationTipText"></p>
         <div class="modal-buttons">
-          <button id="closeOrientationBtn">닫기</button>
+          <button id="closeOrientationBtn"></button>
         </div>
       </div>
     </div>
@@ -113,7 +113,7 @@
       <div id="mainArea" class="tab-screen active">
         <div id="mainScreen">
         <h1>🧠 Bitwiser</h1>
-        <p class="tagline">Play bitwise. Become bit wiser.</p>
+        <p class="tagline" id="mainTagline"></p>
         <div class="button-row">
           <button id="labBtn" class="main-button icon-button" type="button" aria-label="실험실" title="실험실">🔬</button>
           <button id="chapterNavBtn" class="main-button icon-button" type="button" aria-label="스테이지 선택" title="스테이지 선택">▶</button>
@@ -169,16 +169,16 @@
       </div>
       <div id="mobileNav" role="tablist">
         <div class="nav-item" data-target="overallRankingArea" role="tab" aria-selected="false">
-          <img src="assets/trophy-icon.png" alt="랭킹" class="nav-icon">
-          <span class="nav-text">랭킹</span>
+          <img id="mobileNavRankingIcon" src="assets/trophy-icon.png" alt="" class="nav-icon">
+          <span class="nav-text" id="mobileNavRankingText"></span>
         </div>
         <div class="nav-item active" data-target="mainArea" role="tab" aria-selected="true">
-          <img src="assets/home-icon.png" alt="메인" class="nav-icon">
-          <span class="nav-text">메인</span>
+          <img id="mobileNavHomeIcon" src="assets/home-icon.png" alt="" class="nav-icon">
+          <span class="nav-text" id="mobileNavHomeText"></span>
         </div>
         <div class="nav-item" data-target="guestbookArea" role="tab" aria-selected="false">
-          <img src="assets/message-icon.png" alt="방명록" class="nav-icon">
-          <span class="nav-text">방명록</span>
+          <img id="mobileNavGuestbookIcon" src="assets/message-icon.png" alt="" class="nav-icon">
+          <span class="nav-text" id="mobileNavGuestbookText"></span>
         </div>
       </div>
     </div>
@@ -189,7 +189,7 @@
         <canvas id="labContentCanvas"></canvas>
         <canvas id="labOverlayCanvas"></canvas>
       </div>
-      <button id="labExitBtn" class="lab-exit-btn" type="button" aria-label="메인으로 돌아가기">⟲ 메인으로</button>
+      <button id="labExitBtn" class="lab-exit-btn" type="button" aria-label=""></button>
     </div>
 
     <div
@@ -201,33 +201,33 @@
       data-open="false"
     >
       <div class="community-overlay__panel community-share">
-        <button id="communityShareClose" class="community-overlay__close" type="button" aria-label="닫기">×</button>
-        <h2 id="communityShareTitleLabel" class="community-share__title">회로 커뮤니티에 올리기</h2>
-        <p class="community-share__intro">현재 실험실 회로를 커뮤니티에 공유합니다.</p>
+        <button id="communityShareClose" class="community-overlay__close" type="button" aria-label="">×</button>
+        <h2 id="communityShareTitleLabel" class="community-share__title"></h2>
+        <p class="community-share__intro" id="communityShareIntro"></p>
         <p id="communityShareStats" class="community-share__stats"></p>
         <form id="communityShareForm" class="community-share__form">
-          <label for="communityShareTitle" class="community-share__label">회로 제목</label>
+          <label for="communityShareTitle" id="communityShareTitleFieldLabel" class="community-share__label"></label>
           <input
             id="communityShareTitle"
             name="communityShareTitle"
             type="text"
             maxlength="80"
-            placeholder="예: 4비트 패리티 생성기"
+            placeholder=""
             class="community-share__input"
           >
-          <label for="communityShareDescription" class="community-share__label">설명 (선택)</label>
+          <label for="communityShareDescription" id="communityShareDescriptionLabel" class="community-share__label"></label>
           <textarea
             id="communityShareDescription"
             name="communityShareDescription"
             rows="3"
             maxlength="300"
-            placeholder="회로 동작 방식이나 사용 팁을 간단히 남겨주세요."
+            placeholder=""
             class="community-share__textarea"
           ></textarea>
           <p id="communityShareStatus" class="community-share__status" role="status" aria-live="polite"></p>
           <div class="community-share__actions">
-            <button id="communityShareCancel" type="button" class="community-button community-button--ghost">취소</button>
-            <button id="communityShareSubmit" type="submit" class="community-button community-button--primary">공유하기</button>
+            <button id="communityShareCancel" type="button" class="community-button community-button--ghost"></button>
+            <button id="communityShareSubmit" type="submit" class="community-button community-button--primary"></button>
           </div>
         </form>
       </div>
@@ -243,12 +243,12 @@
     >
       <div class="community-overlay__panel community-browser">
         <div class="community-browser__header">
-          <h2 id="communityBrowserTitle">회로 커뮤니티</h2>
-          <button id="communityBrowserClose" class="community-overlay__close" type="button" aria-label="닫기">×</button>
+          <h2 id="communityBrowserTitle"></h2>
+          <button id="communityBrowserClose" class="community-overlay__close" type="button" aria-label="">×</button>
         </div>
         <p id="communityBrowserStatus" class="community-browser__status" role="status" aria-live="polite"></p>
-        <div id="communityLoading" class="community-browser__loading" hidden>회로 목록을 불러오는 중...</div>
-        <div id="communityEmptyState" class="community-browser__empty" hidden>아직 등록된 회로가 없습니다.</div>
+        <div id="communityLoading" class="community-browser__loading" hidden></div>
+        <div id="communityEmptyState" class="community-browser__empty" hidden></div>
         <div id="communityList" class="community-browser__list"></div>
       </div>
     </div>
@@ -458,7 +458,7 @@
         <div class="user-problems-content">
           <div class="user-problems-sidebar">
             <h1 id="userProblemsTitle">📝 사용자 문제</h1>
-            <p id="userProblemsSubtitle" class="user-problems-subtitle">커뮤니티가 만든 회로 퍼즐을 검색하고 정렬해보세요.</p>
+            <p id="userProblemsSubtitle" class="user-problems-subtitle"></p>
             <div class="user-problems-toolbar" role="region" aria-labelledby="userProblemsTitle">
               <div class="user-problems-toolbar-row">
                 <label id="userProblemSearchLabel" class="sr-only" for="userProblemSearch">검색</label>
@@ -648,18 +648,18 @@
             </table>
           </div>
           <div id="labCommunityControls" class="lab-community-controls" style="display:none;">
-            <h2 class="lab-community-title">🌐 회로 커뮤니티</h2>
-            <button id="labShareCommunityBtn" class="main-button" type="button">회로 커뮤니티에 올리기</button>
-            <button id="labOpenCommunityBtn" class="main-button" type="button">회로 커뮤니티 보기</button>
+            <h2 class="lab-community-title" id="labCommunityTitle"></h2>
+            <button id="labShareCommunityBtn" class="main-button" type="button"></button>
+            <button id="labOpenCommunityBtn" class="main-button" type="button"></button>
             <p id="labCommunityStatus" class="lab-community-status" role="status" aria-live="polite"></p>
-            <p id="labCommunityLoginHint" class="lab-community-hint" hidden>Google 로그인 후 이용할 수 있습니다.</p>
+            <p id="labCommunityLoginHint" class="lab-community-hint" hidden></p>
           </div>
         </div>
         <div id="gradingArea" style="display:none">
           <button id="returnToEditBtn">🛠 편집으로 돌아가기</button>
         </div>
       </div>
-      <div id="circuitError">회로에 오류가 존재합니다</div>
+      <div id="circuitError"></div>
       </div>
       <!-- 메뉴바 -->
       <div id="menuBar">

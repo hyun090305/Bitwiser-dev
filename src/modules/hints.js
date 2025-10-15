@@ -133,7 +133,7 @@ export function openHintModal(stage) {
   const modal = document.getElementById('hintModal');
   if (modal) modal.style.display = 'flex';
   const adBtn = document.getElementById('adHintBtn');
-  if (adBtn) adBtn.onclick = () => alert('준비중인 기능입니다.');
+  if (adBtn) adBtn.onclick = () => alert(t('featureComingSoon'));
   loadHintProgress(stage, progress => {
     currentHintProgress = progress;
     checkHintCooldown(until => {
