@@ -219,7 +219,7 @@ function resolveBlockStyle(options = {}) {
   style.font = style.font || base.font || null;
   style.activeFill = style.activeFill || getThemeAccent(theme);
   style.activeHoverFill = style.activeHoverFill || style.hoverFill;
-  style.activeTextColor = style.activeTextColor || '#ffffff';
+  style.activeTextColor = style.activeTextColor || 'hsl(170, 25%, 20%)';
   return style;
 }
 
@@ -642,16 +642,41 @@ export function drawBlock(
     block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)
   );
   const blockRadius = Math.max(0, style.radius * scale);
-  const fillSpec = isActive
-    ? (hovered && (style.activeHoverFill || style.hoverFill)) || style.activeFill
-    : hovered && style.hoverFill
-    ? style.hoverFill
-    : style.fill;
-  applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
-  const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
-  ctx.fillStyle = fillStyle;
-  roundRect(ctx, x, y, size, size, blockRadius);
-  ctx.fill();
+  if (isActive) {
+    const haloShadow = {
+      color: 'rgba(255, 220, 180, 0.28)',
+      blur: 26,
+      offsetX: 0,
+      offsetY: 6
+    };
+    applyScaledShadow(ctx, haloShadow, scale);
+    const baseGlowColor = 'rgba(255, 246, 225, 0.96)';
+    ctx.fillStyle = baseGlowColor;
+    roundRect(ctx, x, y, size, size, blockRadius);
+    ctx.fill();
+
+    ctx.shadowColor = 'transparent';
+    const cx = x + size * 0.42;
+    const cy = y + size * 0.38;
+    const innerRadius = Math.max(size * 0.06, 0);
+    const outerRadius = Math.max(size * 0.9, innerRadius + 0.1);
+    const glowGradient = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
+    glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
+    glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
+    glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = glowGradient;
+    roundRect(ctx, x, y, size, size, blockRadius);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+  } else {
+    const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
+    applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
+    const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
+    ctx.fillStyle = fillStyle;
+    roundRect(ctx, x, y, size, size, blockRadius);
+    ctx.fill();
+  }
 
   if (style.strokeColor && style.strokeWidth > 0) {
     ctx.shadowColor = 'transparent';
