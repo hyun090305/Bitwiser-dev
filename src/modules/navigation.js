@@ -164,61 +164,73 @@ export function setupNavigation({
       return;
     }
 
+    screenEl.classList.remove('stage-screen-enter');
     screenEl.classList.add('stage-screen-exit');
-    screenEl.addEventListener(
-      'animationend',
-      event => {
-        if (event.target !== screenEl) return;
-        screenEl.classList.remove('stage-screen-exit');
-        screenEl.style.display = 'none';
+    let completed = false;
+    const exitDurationMs = 220;
 
-        if (firstScreenEl) {
-          firstScreenEl.style.display = '';
-        }
-        if (!isMobileDevice()) {
-          if (overallRankingAreaEl) {
-            overallRankingAreaEl.classList.add('slide-in-left');
-            overallRankingAreaEl.addEventListener(
-              'animationend',
-              () => {
-                overallRankingAreaEl.classList.remove('slide-in-left');
-                window.dispatchEvent(new Event('resize'));
-              },
-              { once: true }
-            );
-          }
-          if (guestbookAreaEl) {
-            guestbookAreaEl.classList.add('slide-in-right');
-            guestbookAreaEl.addEventListener(
-              'animationend',
-              () => {
-                guestbookAreaEl.classList.remove('slide-in-right');
-                window.dispatchEvent(new Event('resize'));
-              },
-              { once: true }
-            );
-          }
-          if (mainScreen) {
-            mainScreen.classList.add('fade-scale-in');
-            mainScreen.addEventListener(
-              'animationend',
-              () => {
-                mainScreen.classList.remove('fade-scale-in');
-                window.dispatchEvent(new Event('resize'));
-              },
-              { once: true }
-            );
-          }
-        } else {
-          window.dispatchEvent(new Event('resize'));
-        }
+    const finalizeReturn = () => {
+      if (completed) return;
+      completed = true;
+      screenEl.classList.remove('stage-screen-exit');
+      screenEl.classList.remove('stage-screen-enter');
+      screenEl.style.display = 'none';
 
-        if (typeof refreshUserData === 'function') {
-          refreshUserData();
+      if (firstScreenEl) {
+        firstScreenEl.style.display = '';
+      }
+      if (!isMobileDevice()) {
+        if (overallRankingAreaEl) {
+          overallRankingAreaEl.classList.add('slide-in-left');
+          overallRankingAreaEl.addEventListener(
+            'animationend',
+            () => {
+              overallRankingAreaEl.classList.remove('slide-in-left');
+              window.dispatchEvent(new Event('resize'));
+            },
+            { once: true }
+          );
         }
-      },
-      { once: true }
-    );
+        if (guestbookAreaEl) {
+          guestbookAreaEl.classList.add('slide-in-right');
+          guestbookAreaEl.addEventListener(
+            'animationend',
+            () => {
+              guestbookAreaEl.classList.remove('slide-in-right');
+              window.dispatchEvent(new Event('resize'));
+            },
+            { once: true }
+          );
+        }
+        if (mainScreen) {
+          mainScreen.classList.add('fade-scale-in');
+          mainScreen.addEventListener(
+            'animationend',
+            () => {
+              mainScreen.classList.remove('fade-scale-in');
+              window.dispatchEvent(new Event('resize'));
+            },
+            { once: true }
+          );
+        }
+      } else {
+        window.dispatchEvent(new Event('resize'));
+      }
+
+      if (typeof refreshUserData === 'function') {
+        refreshUserData();
+      }
+    };
+
+    const fallbackTimer = setTimeout(finalizeReturn, exitDurationMs);
+
+    const onAnimationEnd = event => {
+      if (event.target !== screenEl) return;
+      clearTimeout(fallbackTimer);
+      finalizeReturn();
+    };
+
+    screenEl.addEventListener('animationend', onAnimationEnd, { once: true });
   }
 
   if (backBtn && chapterStageScreen) {
