@@ -670,6 +670,27 @@ async function handleGoogleLogin(user) {
 }
 
 function handleAuthStateChange(buttons, user) {
+  if (user && !hasStoredDriveRefreshToken()) {
+    console.warn('User is logged in without a stored Drive refresh token; reverting to logged-out state.');
+    updateLoginButtonLabels(buttons, null);
+    setLoginUsernameText(getUsername() || '');
+    restoreUsernameModalDefaults();
+    hideRankSection();
+    showGuestPrompt();
+    if (!getUsername()) {
+      assignGuestNickname();
+    }
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+      firebase
+        .auth()
+        .signOut()
+        .catch(err => {
+          console.warn('Failed to sign out after missing refresh token detection', err);
+        });
+    }
+    return;
+  }
+
   updateLoginButtonLabels(buttons, user);
   const nickname = getUsername() || '';
   setLoginUsernameText(nickname);
