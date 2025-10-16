@@ -1,5 +1,26 @@
 import { getGoogleNickname, getUsername } from './storage.js';
 
+const globalTranslate =
+  typeof window !== 'undefined' && typeof window.t === 'function'
+    ? window.t
+    : key => key;
+
+let translate = globalTranslate;
+
+function translateWithFallback(key, fallback) {
+  const value = translate(key);
+  return typeof value === 'string' && value !== key ? value : fallback;
+}
+
+function formatTranslation(key, fallback, params = {}) {
+  let template = translateWithFallback(key, fallback);
+  Object.entries(params).forEach(([paramKey, value]) => {
+    const pattern = new RegExp(`\\{${paramKey}\\}`, 'g');
+    template = template.replace(pattern, value);
+  });
+  return template;
+}
+
 function getAuth() {
   if (typeof firebase === 'undefined' || !firebase?.auth) return null;
   try {
@@ -54,11 +75,15 @@ function countWireCells(wires = {}) {
 }
 
 function resolveAuthorName(user) {
-  if (!user) return '알 수 없는 사용자';
+  if (!user) return translateWithFallback('communityUnknownUser', '알 수 없는 사용자');
   const { uid, displayName, email } = user;
   const nickname = uid ? getGoogleNickname(uid) : null;
   const guestName = getUsername();
-  return displayName || nickname || email || guestName || '익명';
+  return displayName
+    || nickname
+    || email
+    || guestName
+    || translateWithFallback('anonymousUser', '익명');
 }
 
 function formatDate(timestamp) {
@@ -100,7 +125,9 @@ let initialized = false;
 export function initializeCircuitCommunity(options = {}) {
   if (initialized) return;
   initialized = true;
+  translate = typeof options.translate === 'function' ? options.translate : globalTranslate;
   const config = { ...defaultConfig, ...options };
+  delete config.translate;
 
   const shareBtn = document.getElementById(config.shareButtonId);
   const browseBtn = document.getElementById(config.browseButtonId);
@@ -158,8 +185,8 @@ export function initializeCircuitCommunity(options = {}) {
       if (!loggedIn || !firestore) {
         btn.setAttribute('aria-disabled', 'true');
         btn.title = firestore
-          ? 'Google 로그인이 필요합니다.'
-          : 'Firestore 연결을 확인해주세요.';
+          ? translateWithFallback('communityLoginRequired', 'Google 로그인 후 이용해주세요.')
+          : translateWithFallback('communityFirestoreUnavailable', 'Firestore 연결을 확인해주세요.');
       } else {
         btn.removeAttribute('aria-disabled');
         btn.removeAttribute('title');
@@ -185,12 +212,16 @@ export function initializeCircuitCommunity(options = {}) {
     const circuit = getCircuit();
     const sanitized = sanitizeCircuit(circuit);
     if (!sanitized) {
-      shareStats.textContent = '회로 정보를 불러올 수 없습니다.';
+      shareStats.textContent = translateWithFallback('communityStatsUnavailable', '회로 정보를 불러올 수 없습니다.');
       return;
     }
     const blockCount = Object.keys(sanitized.blocks || {}).length;
     const wireCount = countWireCells(sanitized.wires);
-    shareStats.textContent = `블록 ${blockCount}개 · 도선 ${wireCount}개`;
+    shareStats.textContent = formatTranslation(
+      'communityStatsTemplate',
+      '블록 {blocks}개 · 도선 {wires}개',
+      { blocks: blockCount, wires: wireCount }
+    );
   }
 
   function resetShareForm() {
@@ -220,16 +251,16 @@ export function initializeCircuitCommunity(options = {}) {
   async function handleShareSubmit(event) {
     event?.preventDefault?.();
     if (!firestore) {
-      setShareStatus('Firestore 초기화에 실패했습니다.', 'error');
+      setShareStatus(translateWithFallback('communityFirestoreInitFailed', 'Firestore 초기화에 실패했습니다.'), 'error');
       return;
     }
     if (!currentUser) {
-      setShareStatus('Google 로그인 후 이용해주세요.', 'error');
+      setShareStatus(translateWithFallback('communityLoginRequired', 'Google 로그인 후 이용해주세요.'), 'error');
       return;
     }
     const circuit = sanitizeCircuit(getCircuit());
     if (!circuit || circuit.rows <= 0 || circuit.cols <= 0) {
-      setShareStatus('회로를 찾을 수 없어요.', 'error');
+      setShareStatus(translateWithFallback('communityCircuitNotFound', '회로를 찾을 수 없어요.'), 'error');
       return;
     }
     const title = (titleInput?.value || '').trim();
@@ -240,10 +271,10 @@ export function initializeCircuitCommunity(options = {}) {
     if (shareSubmit) {
       shareSubmit.disabled = true;
     }
-    setShareStatus('회로를 업로드하는 중입니다...');
+    setShareStatus(translateWithFallback('communityUploadInProgress', '회로를 업로드하는 중입니다...'));
 
     const payload = {
-      title: title || '제목 없는 회로',
+      title: title || translateWithFallback('communityUntitledCircuit', '제목 없는 회로'),
       description,
       stats: {
         blocks: blockCount,
@@ -261,8 +292,8 @@ export function initializeCircuitCommunity(options = {}) {
 
     try {
       await firestore.collection('circuitCommunity').add(payload);
-      setShareStatus('커뮤니티에 회로를 공유했습니다!', 'success');
-      setStatusMessage('회로가 커뮤니티에 업로드되었습니다.', 'success');
+      setShareStatus(translateWithFallback('communityShareSuccess', '커뮤니티에 회로를 공유했습니다!'), 'success');
+      setStatusMessage(translateWithFallback('communityShareSuccessStatus', '회로가 커뮤니티에 업로드되었습니다.'), 'success');
       if (shareOverlay) {
         setTimeout(() => closeOverlay(shareOverlay), 800);
       }
@@ -270,7 +301,10 @@ export function initializeCircuitCommunity(options = {}) {
       descInput && (descInput.value = '');
     } catch (err) {
       console.error('Failed to upload circuit to community', err);
-      setShareStatus('업로드에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+      setShareStatus(
+        translateWithFallback('communityUploadFailed', '업로드에 실패했습니다. 잠시 후 다시 시도해주세요.'),
+        'error'
+      );
     } finally {
       if (shareSubmit) {
         shareSubmit.disabled = false;
@@ -315,15 +349,15 @@ export function initializeCircuitCommunity(options = {}) {
     card.className = 'community-card';
 
     const titleEl = document.createElement('h3');
-    titleEl.textContent = data.title || '제목 없는 회로';
+    titleEl.textContent = data.title || translateWithFallback('communityUntitledCircuit', '제목 없는 회로');
     card.appendChild(titleEl);
 
     const meta = document.createElement('p');
-    const authorName = data.author?.name || '익명';
+    const authorName = data.author?.name || translateWithFallback('anonymousUser', '익명');
     const createdText = formatDate(data.createdAt);
     meta.className = 'community-card__meta';
     meta.textContent = createdText
-      ? `${authorName} • ${createdText}`
+      ? formatTranslation('communityCardMetaTemplate', '{author} • {date}', { author: authorName, date: createdText })
       : authorName;
     card.appendChild(meta);
 
@@ -338,7 +372,11 @@ export function initializeCircuitCommunity(options = {}) {
     stats.className = 'community-card__stats';
     const blocks = data.stats?.blocks ?? 0;
     const wires = data.stats?.wires ?? 0;
-    stats.textContent = `블록 ${blocks}개 · 도선 ${wires}개`;
+    stats.textContent = formatTranslation(
+      'communityCardStatsTemplate',
+      '블록 {blocks}개 · 도선 {wires}개',
+      { blocks, wires }
+    );
     card.appendChild(stats);
 
     const actions = document.createElement('div');
@@ -346,22 +384,31 @@ export function initializeCircuitCommunity(options = {}) {
 
     const loadBtn = document.createElement('button');
     loadBtn.type = 'button';
-    loadBtn.textContent = '이 회로 불러오기';
+    loadBtn.textContent = translateWithFallback('communityLoadButton', '이 회로 불러오기');
     loadBtn.className = 'community-card__load';
     loadBtn.addEventListener('click', () => {
       const circuit = sanitizeCircuit(data.circuit);
       if (!circuit) {
-        setBrowserStatus('회로 데이터를 불러오지 못했습니다.', 'error');
+        setBrowserStatus(
+          translateWithFallback('communityLoadCircuitFailed', '회로 데이터를 불러오지 못했습니다.'),
+          'error'
+        );
         return;
       }
       const applied = applyCircuit(circuit);
       if (!applied) {
-        setBrowserStatus('회로를 불러오는 데 실패했습니다.', 'error');
+        setBrowserStatus(
+          translateWithFallback('communityApplyCircuitFailed', '회로를 불러오는 데 실패했습니다.'),
+          'error'
+        );
         return;
       }
       ensureLabVisible();
       closeOverlay(browserOverlay);
-      setStatusMessage('커뮤니티 회로를 불러왔습니다.', 'success');
+      setStatusMessage(
+        translateWithFallback('communityLoadCircuitSuccess', '커뮤니티 회로를 불러왔습니다.'),
+        'success'
+      );
       onCircuitLoaded({ id: doc.id, data });
     });
     actions.appendChild(loadBtn);
@@ -370,38 +417,61 @@ export function initializeCircuitCommunity(options = {}) {
     if (isOwner) {
       const deleteBtn = document.createElement('button');
       deleteBtn.type = 'button';
-      deleteBtn.textContent = '내 회로 삭제';
+      deleteBtn.textContent = translateWithFallback('communityDeleteButton', '내 회로 삭제');
       deleteBtn.className = 'community-card__delete';
       deleteBtn.addEventListener('click', async () => {
         if (!firestore) {
-          setBrowserStatus('Firestore 초기화에 실패했습니다.', 'error');
+          setBrowserStatus(
+            translateWithFallback('communityFirestoreInitFailed', 'Firestore 초기화에 실패했습니다.'),
+            'error'
+          );
           return;
         }
         if (!currentUser) {
-          setBrowserStatus('Google 로그인 후 이용해주세요.', 'error');
+          setBrowserStatus(
+            translateWithFallback('communityLoginRequired', 'Google 로그인 후 이용해주세요.'),
+            'error'
+          );
           return;
         }
         if (typeof window !== 'undefined' && window.confirm) {
-          const confirmed = window.confirm('정말로 이 회로를 삭제할까요? 되돌릴 수 없습니다.');
+          const confirmed = window.confirm(
+            translateWithFallback('communityDeleteConfirm', '정말로 이 회로를 삭제할까요? 되돌릴 수 없습니다.')
+          );
           if (!confirmed) return;
         }
 
         const originalText = deleteBtn.textContent;
         deleteBtn.disabled = true;
-        deleteBtn.textContent = '삭제 중...';
+        deleteBtn.textContent = translateWithFallback('communityDeleting', '삭제 중...');
 
         try {
           await firestore.collection('circuitCommunity').doc(doc.id).delete();
           card.remove();
-          setBrowserStatus('회로를 삭제했습니다.', 'success');
-          setStatusMessage('커뮤니티 회로를 삭제했습니다.', 'success');
+          setBrowserStatus(translateWithFallback('communityDeleteSuccess', '회로를 삭제했습니다.'), 'success');
+          setStatusMessage(
+            translateWithFallback('communityDeleteSuccessStatus', '커뮤니티 회로를 삭제했습니다.'),
+            'success'
+          );
           if (listContainer && !listContainer.querySelector('.community-card')) {
             renderEmptyState(true);
-            setBrowserStatus('회로를 삭제했습니다. 현재 등록된 회로가 없습니다.', 'success');
+            setBrowserStatus(
+              translateWithFallback(
+                'communityDeleteSuccessEmpty',
+                '회로를 삭제했습니다. 현재 등록된 회로가 없습니다.'
+              ),
+              'success'
+            );
           }
         } catch (err) {
           console.error('Failed to delete community circuit', err);
-          setBrowserStatus('회로 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.', 'error');
+          setBrowserStatus(
+            translateWithFallback(
+              'communityDeleteFailed',
+              '회로 삭제에 실패했습니다. 잠시 후 다시 시도해주세요.'
+            ),
+            'error'
+          );
           deleteBtn.disabled = false;
           deleteBtn.textContent = originalText;
         }
@@ -415,12 +485,15 @@ export function initializeCircuitCommunity(options = {}) {
 
   async function loadCommunityCircuits() {
     if (!firestore) {
-      setBrowserStatus('Firestore 초기화에 실패했습니다.', 'error');
+      setBrowserStatus(
+        translateWithFallback('communityFirestoreInitFailed', 'Firestore 초기화에 실패했습니다.'),
+        'error'
+      );
       return;
     }
     if (loadingList) return;
     loadingList = true;
-    setBrowserStatus('회로 목록을 불러오는 중입니다...');
+    setBrowserStatus(translateWithFallback('communityListLoading', '회로 목록을 불러오는 중입니다...'));
     setLoading(true);
     renderEmptyState(false);
     clearCommunityList();
@@ -435,10 +508,14 @@ export function initializeCircuitCommunity(options = {}) {
       const docs = snapshot.docs || [];
       if (!docs.length) {
         renderEmptyState(true);
-        setBrowserStatus('아직 등록된 회로가 없어요. 첫 번째로 공유해보세요!');
+        setBrowserStatus(
+          translateWithFallback('communityListEmpty', '아직 등록된 회로가 없어요. 첫 번째로 공유해보세요!')
+        );
         return;
       }
-      setBrowserStatus(`총 ${docs.length}개의 회로를 불러왔습니다.`);
+      setBrowserStatus(
+        formatTranslation('communityListLoaded', '총 {count}개의 회로를 불러왔습니다.', { count: docs.length })
+      );
       docs.forEach(doc => {
         const card = createCircuitCard(doc);
         listContainer?.appendChild(card);
@@ -447,7 +524,10 @@ export function initializeCircuitCommunity(options = {}) {
       console.error('Failed to load community circuits', err);
       setLoading(false);
       loadingList = false;
-      setBrowserStatus('회로 목록을 가져오지 못했습니다.', 'error');
+      setBrowserStatus(
+        translateWithFallback('communityListLoadFailed', '회로 목록을 가져오지 못했습니다.'),
+        'error'
+      );
     }
   }
 
@@ -458,7 +538,10 @@ export function initializeCircuitCommunity(options = {}) {
 
   shareBtn?.addEventListener('click', () => {
     if (!currentUser) {
-      setStatusMessage('Google 로그인 후 이용해주세요.', 'error');
+      setStatusMessage(
+        translateWithFallback('communityStatusLoginRequired', 'Google 로그인 후 이용해주세요.'),
+        'error'
+      );
       return;
     }
     resetShareForm();
@@ -467,7 +550,10 @@ export function initializeCircuitCommunity(options = {}) {
 
   browseBtn?.addEventListener('click', () => {
     if (!currentUser) {
-      setStatusMessage('Google 로그인 후 이용해주세요.', 'error');
+      setStatusMessage(
+        translateWithFallback('communityStatusLoginRequired', 'Google 로그인 후 이용해주세요.'),
+        'error'
+      );
       return;
     }
     openOverlay(browserOverlay);

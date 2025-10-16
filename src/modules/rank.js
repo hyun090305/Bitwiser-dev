@@ -9,6 +9,11 @@ function resolveTranslator(translate) {
   return fallbackTranslate;
 }
 
+function translateText(tr, key, fallback) {
+  const value = tr(key);
+  return typeof value === 'string' && value !== key ? value : fallback;
+}
+
 const getBlockCountSum = entry =>
   Object.values(entry.blockCounts || {}).reduce((total, count) => total + count, 0);
 
@@ -62,12 +67,13 @@ export function fetchProgressSummary(nickname) {
 }
 
 export function fetchOverallStats(nickname) {
+  const tr = resolveTranslator();
   return db.ref('rankings').once('value').then(snap => {
     const data = {};
     snap.forEach(levelSnap => {
       levelSnap.forEach(recSnap => {
         const v = recSnap.val();
-        const name = v.nickname || '익명';
+        const name = v.nickname || translateText(tr, 'anonymousUser', '익명');
         if (!data[name]) {
           data[name] = {
             stages: new Set(),
@@ -102,15 +108,15 @@ export function showOverallRanking(options = {}) {
   const { listSelector = '#overallRankingList', translate } = options;
   const listEl = document.querySelector(listSelector);
   if (!listEl) return Promise.resolve();
-  listEl.innerHTML = '로딩 중…';
   const tr = resolveTranslator(translate);
+  listEl.innerHTML = translateText(tr, 'rankingLoading', '로딩 중…');
 
   return db.ref('rankings').once('value').then(snap => {
     const data = {};
     snap.forEach(levelSnap => {
       levelSnap.forEach(recSnap => {
         const entry = recSnap.val();
-        const name = entry.nickname || '익명';
+        const name = entry.nickname || translateText(tr, 'anonymousUser', '익명');
         if (!data[name]) {
           data[name] = {
             stages: new Set(),
@@ -164,7 +170,9 @@ export function showOverallRanking(options = {}) {
 }
 
 export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
-  let nickname = getUsername() || '익명';
+  const tr = resolveTranslator();
+  const anonymousLabel = translateText(tr, 'anonymousUser', '익명');
+  let nickname = getUsername() || anonymousLabel;
   try {
     const ensuredName = await ensureUsernameRegistered(nickname);
     nickname = ensuredName || getUsername() || nickname;
@@ -184,7 +192,9 @@ export async function saveRanking(levelId, blockCounts, usedWires, hintsUsed) {
 }
 
 export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed) {
-  let nickname = getUsername() || '익명';
+  const tr = resolveTranslator();
+  const anonymousLabel = translateText(tr, 'anonymousUser', '익명');
+  let nickname = getUsername() || anonymousLabel;
   const rankingRef = db.ref(`problems/${problemKey}/ranking`);
 
   const isBetter = (a, b) => {
@@ -266,7 +276,7 @@ export function showRanking(levelId, options = {}) {
 
   const tr = resolveTranslator(translate);
 
-  listEl.innerHTML = '로딩 중…';
+  listEl.innerHTML = translateText(tr, 'rankingLoading', '로딩 중…');
 
   const blockSet = typeof getLevelBlockSet === 'function' ? getLevelBlockSet(levelId) : [];
   let allowedTypes = Array.from(new Set((blockSet || []).map(b => b.type))).filter(Boolean);
@@ -281,11 +291,14 @@ export function showRanking(levelId, options = {}) {
       });
 
       if (entries.length === 0) {
+        const noRankingText = translateText(tr, 'noRanking', '랭킹이 없습니다.');
+        const refreshLabel = translateText(tr, 'refreshRankingBtn', '🔄 새로고침');
+        const closeLabel = translateText(tr, 'closeRankingBtn', '닫기');
         listEl.innerHTML = `
-        <p>랭킹이 없습니다.</p>
+        <p>${noRankingText}</p>
         <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
+          <button id="refreshRankingBtn">${refreshLabel}</button>
+          <button id="closeRankingBtn">${closeLabel}</button>
         </div>
       `;
 
@@ -337,6 +350,8 @@ export function showRanking(levelId, options = {}) {
         })
         .join('');
 
+      const refreshLabel = translateText(tr, 'refreshRankingBtn', '🔄 새로고침');
+      const closeLabel = translateText(tr, 'closeRankingBtn', '닫기');
       listEl.innerHTML = `
         <div class="rankingTableWrapper">
           <table>
@@ -345,8 +360,8 @@ export function showRanking(levelId, options = {}) {
           </table>
         </div>
         <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
+          <button id="refreshRankingBtn">${refreshLabel}</button>
+          <button id="closeRankingBtn">${closeLabel}</button>
         </div>
       `;
 
@@ -372,7 +387,7 @@ export function showProblemRanking(problemKey, options = {}) {
 
   const tr = resolveTranslator(translate);
 
-  listEl.innerHTML = '로딩 중…';
+  listEl.innerHTML = translateText(tr, 'rankingLoading', '로딩 중…');
   const allowedTypes = ['INPUT', 'OUTPUT', 'AND', 'OR', 'NOT', 'JUNCTION'];
 
   db.ref(`problems/${problemKey}/ranking`)
@@ -385,11 +400,14 @@ export function showProblemRanking(problemKey, options = {}) {
       });
 
       if (entries.length === 0) {
+        const noRankingText = translateText(tr, 'noRanking', '랭킹이 없습니다.');
+        const refreshLabel = translateText(tr, 'refreshRankingBtn', '🔄 새로고침');
+        const closeLabel = translateText(tr, 'closeRankingBtn', '닫기');
         listEl.innerHTML = `
-        <p>랭킹이 없습니다.</p>
+        <p>${noRankingText}</p>
         <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
+          <button id="refreshRankingBtn">${refreshLabel}</button>
+          <button id="closeRankingBtn">${closeLabel}</button>
         </div>`;
         modal.querySelector('#refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey, options));
         modal.querySelector('#closeRankingBtn')?.addEventListener('click', () => modal.classList.remove('active'));
@@ -458,6 +476,8 @@ export function showProblemRanking(problemKey, options = {}) {
         })
         .join('');
 
+      const refreshLabel = translateText(tr, 'refreshRankingBtn', '🔄 새로고침');
+      const closeLabel = translateText(tr, 'closeRankingBtn', '닫기');
       listEl.innerHTML = `
         <div class="rankingTableWrapper">
           <table>
@@ -466,8 +486,8 @@ export function showProblemRanking(problemKey, options = {}) {
           </table>
         </div>
         <div class="modal-buttons">
-          <button id="refreshRankingBtn">🔄 새로고침</button>
-          <button id="closeRankingBtn">닫기</button>
+          <button id="refreshRankingBtn">${refreshLabel}</button>
+          <button id="closeRankingBtn">${closeLabel}</button>
         </div>`;
 
       modal.querySelector('#refreshRankingBtn')?.addEventListener('click', () => showProblemRanking(problemKey, options));
@@ -522,9 +542,9 @@ export async function showClearedModal(level, options = {}) {
     .once('value')
     .then(snapshot => {
       if (!snapshot.exists()) {
-        const noRankingText = tr('noRanking');
+        const noRankingText = translateText(tr, 'noRanking', '랭킹이 없습니다.');
         container.innerHTML = `
-          <p>${noRankingText && noRankingText !== 'noRanking' ? noRankingText : '랭킹이 없습니다.'}</p>
+          <p>${noRankingText}</p>
         `;
       } else {
         const entries = [];
@@ -623,6 +643,6 @@ export function initializeRankingUI(options = {}) {
     }
 
     const handler = alertFn ?? (typeof alert === 'function' ? alert : console.warn);
-    handler('먼저 레벨을 선택해주요.');
+    handler(translateText(tr, 'rankingSelectLevelFirst', '먼저 레벨을 선택해주세요.'));
   });
 }

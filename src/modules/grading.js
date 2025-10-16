@@ -18,13 +18,17 @@ function collectWires(circuit) {
   return Object.values(circuit?.wires || {});
 }
 
-function validateConnections(circuit, alertFn) {
+function validateConnections(circuit, alertFn, t = key => key) {
   const blocks = collectBlocks(circuit);
   for (const block of blocks) {
     if (block.type === 'JUNCTION' || block.type === 'OUTPUT') {
       const incoming = collectWires(circuit).filter(w => w.endBlockId === block.id);
       if (incoming.length > 1) {
-        alertFn(`❌ ${block.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`);
+        const template = t('gradingMultipleInputs');
+        const message = typeof template === 'string' && template !== 'gradingMultipleInputs'
+          ? template
+          : `❌ ${block.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`;
+        alertFn(message.replace('{blockType}', block.type));
         return false;
       }
     }
@@ -54,11 +58,14 @@ function showElement(el, displayValue = 'block') {
   if (el) el.style.display = displayValue;
 }
 
-function prepareGradingArea({ rightPanel, gradingArea }) {
+function prepareGradingArea({ rightPanel, gradingArea, t }) {
   hideElement(rightPanel);
   if (gradingArea) {
     showElement(gradingArea, 'block');
-    gradingArea.innerHTML = '<b>채점 결과:</b><br><br>';
+    const heading = typeof t === 'function' ? t('gradingResultsHeading') : null;
+    gradingArea.innerHTML = typeof heading === 'string' && heading !== 'gradingResultsHeading'
+      ? heading
+      : '<b>채점 결과:</b><br><br>';
   }
 }
 
@@ -88,7 +95,8 @@ function appendTestResultRow({
   inputText,
   expectedText,
   actualText,
-  correct
+  correct,
+  t
 }) {
   if (!tbody) return;
   const tr = document.createElement('tr');
@@ -103,19 +111,31 @@ function appendTestResultRow({
   const tdResult = document.createElement('td');
   tdResult.style.fontWeight = 'bold';
   tdResult.style.color = correct ? 'green' : 'red';
-  tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
+  if (typeof t === 'function') {
+    tdResult.textContent = correct
+      ? t('gradingCorrect')
+      : t('gradingIncorrect');
+  } else {
+    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
+  }
 
   tr.append(tdInput, tdExpected, tdActual, tdResult);
   tbody.appendChild(tr);
 }
 
-function appendSummary(gradingArea, allCorrect) {
+function appendSummary(gradingArea, allCorrect, t) {
   if (!gradingArea) return;
   const summary = document.createElement('div');
   summary.id = 'gradeResultSummary';
-  summary.textContent = allCorrect
-    ? '🎉 모든 테스트를 통과했습니다!'
-    : '😢 일부 테스트에 실패했습니다.';
+  if (typeof t === 'function') {
+    summary.textContent = allCorrect
+      ? t('gradingAllPassed')
+      : t('gradingSomeFailed');
+  } else {
+    summary.textContent = allCorrect
+      ? '🎉 모든 테스트를 통과했습니다!'
+      : '😢 일부 테스트에 실패했습니다.';
+  }
   gradingArea.appendChild(summary);
 }
 
@@ -248,7 +268,8 @@ async function runTestCases({
       inputText,
       expectedText,
       actualText,
-      correct
+      correct,
+      t
     });
 
     if (!correct) {
@@ -256,7 +277,7 @@ async function runTestCases({
     }
   }
 
-  appendSummary(gradingArea, allCorrect);
+  appendSummary(gradingArea, allCorrect, t);
   return allCorrect;
 }
 
@@ -318,7 +339,7 @@ export function createGradingController(config = {}) {
     const circuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
     if (!testCases || !circuit) return;
 
-    if (!validateConnections(circuit, alertSafe)) {
+    if (!validateConnections(circuit, alertSafe, translate)) {
       return;
     }
 
@@ -341,7 +362,8 @@ export function createGradingController(config = {}) {
 
     prepareGradingArea({
       rightPanel: elements.rightPanel,
-      gradingArea: elements.gradingArea
+      gradingArea: elements.gradingArea,
+      t: translate
     });
 
     const { evaluateCircuit } = await import('../canvas/engine.js');
@@ -373,7 +395,13 @@ export function createGradingController(config = {}) {
 
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = typeof getHintProgress === 'function' ? getHintProgress(level) : 0;
-    const nickname = typeof getUsername === 'function' ? getUsername() || '익명' : '익명';
+    const anonymousLabel = (() => {
+      const value = translate('anonymousUser');
+      return typeof value === 'string' && value !== 'anonymousUser' ? value : '익명';
+    })();
+    const nickname = typeof getUsername === 'function'
+      ? getUsername() || anonymousLabel
+      : anonymousLabel;
 
     const rankingsRef = db && typeof db.ref === 'function' ? db.ref(`rankings/${level}`) : null;
     pendingClearedLevel = null;
@@ -449,7 +477,7 @@ export function createGradingController(config = {}) {
     const circuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
     if (!circuit) return;
 
-    if (!validateConnections(circuit, alertSafe)) {
+    if (!validateConnections(circuit, alertSafe, translate)) {
       return;
     }
 
@@ -472,7 +500,8 @@ export function createGradingController(config = {}) {
 
     prepareGradingArea({
       rightPanel: elements.rightPanel,
-      gradingArea: elements.gradingArea
+      gradingArea: elements.gradingArea,
+      t: translate
     });
 
     const testCases = problem.table.map(row => ({

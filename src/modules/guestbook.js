@@ -1,3 +1,13 @@
+const translate =
+  typeof window !== 'undefined' && typeof window.t === 'function'
+    ? window.t
+    : key => key;
+
+function translateText(key, fallback) {
+  const value = translate(key);
+  return typeof value === 'string' && value !== key ? value : fallback;
+}
+
 let activeSubmitGuestEntry = () => {};
 
 /**
@@ -35,14 +45,14 @@ export function initializeGuestbook({
     const message = messageInput.value.trim();
     if (!message) {
       if (typeof alert === 'function') {
-        alert('내용을 입력해주세요!');
+        alert(translateText('guestbookMessageRequired', '내용을 입력해주세요!'));
       }
       return;
     }
 
     const nameProvider = typeof getUsername === 'function' ? getUsername : undefined;
     const entry = {
-      name: (nameProvider && nameProvider()) || '익명',
+      name: (nameProvider && nameProvider()) || translateText('anonymousUser', '익명'),
       message,
       time: Date.now()
     };
@@ -55,7 +65,7 @@ export function initializeGuestbook({
     db.ref('guestbook').push(entry, err => {
       if (err) {
         if (typeof alert === 'function') {
-          alert('전송에 실패했습니다.');
+          alert(translateText('guestbookSubmitFailed', '전송에 실패했습니다.'));
         }
       } else {
         messageInput.value = '';
@@ -93,7 +103,9 @@ export function initializeGuestbook({
         if (!item) return;
 
         item.style.margin = '10px 0';
-        const name = entry && typeof entry.name === 'string' ? entry.name : '익명';
+        const name = entry && typeof entry.name === 'string'
+          ? entry.name
+          : translateText('anonymousUser', '익명');
         const safeMessage = entry && typeof entry.message === 'string' ? entry.message : '';
         const time = entry && entry.time ? new Date(entry.time).toLocaleString() : '';
         const displayName = name.length > 20 ? `${name.slice(0, 20)}...` : name;
