@@ -201,7 +201,7 @@ const translations = {
     orientationWarningText: {text: "⚠️ Bitwiser는 가로 모드를 권장합니다."},
     orientationTipText: {text: "Tip: [홈 화면에 추가 → 설치]를 통해 Bitwiser 앱을 설치할 수 있어요!"},
     closeOrientationBtn: {text: "닫기"},
-    mainTagline: {text: "비트로 플레이하고, 더 똑똑해지세요."},
+    mainTagline: {text: "Play bitwise. Become bit wiser."},
     mobileNavRankingText: {text: "랭킹"},
     mobileNavRankingIcon: {alt: "랭킹"},
     mobileNavHomeText: {text: "메인"},
