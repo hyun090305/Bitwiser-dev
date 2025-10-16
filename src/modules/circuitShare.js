@@ -52,6 +52,33 @@ let statusShareConfig = {
 let currentGifBlob = null;
 let currentGifUrl = null;
 
+let driveAuthPromise = null;
+
+async function ensureDriveAccess() {
+  if (!driveAuthPromise) {
+    const pending = ensureDriveAuth();
+    driveAuthPromise = pending.catch(err => {
+      if (driveAuthPromise === pending) {
+        driveAuthPromise = null;
+      }
+      throw err;
+    });
+  }
+  const currentPromise = driveAuthPromise;
+  try {
+    await currentPromise;
+  } finally {
+    if (driveAuthPromise === currentPromise) {
+      driveAuthPromise = null;
+    }
+  }
+}
+
+async function withDriveAuth(action) {
+  await ensureDriveAccess();
+  return action();
+}
+
 function getTranslation(key) {
   if (typeof translate !== 'function') return null;
   const result = translate(key);
@@ -362,48 +389,51 @@ function getSavePrefix() {
 }
 
 async function uploadFileToAppData(name, blob, mimeType) {
-  await ensureDriveAuth();
-  const token = gapi.client.getToken().access_token;
-  const metadata = {
-    name,
-    parents: ['appDataFolder'],
-    mimeType
-  };
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-  form.append('file', blob);
-  await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-    method: 'POST',
-    headers: new Headers({ 'Authorization': 'Bearer ' + token }),
-    body: form
+  return withDriveAuth(async () => {
+    const token = gapi.client.getToken().access_token;
+    const metadata = {
+      name,
+      parents: ['appDataFolder'],
+      mimeType
+    };
+    const form = new FormData();
+    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+    form.append('file', blob);
+    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+      method: 'POST',
+      headers: new Headers({ 'Authorization': 'Bearer ' + token }),
+      body: form
+    });
   });
 }
 
 async function downloadFileFromAppData(name) {
-  await ensureDriveAuth();
-  const list = await gapi.client.drive.files.list({
-    spaces: 'appDataFolder',
-    fields: 'files(id, name)',
-    q: `name='${name}'`
+  return withDriveAuth(async () => {
+    const list = await gapi.client.drive.files.list({
+      spaces: 'appDataFolder',
+      fields: 'files(id, name)',
+      q: `name='${name}'`
+    });
+    const file = list.result.files[0];
+    if (!file) return null;
+    const token = gapi.client.getToken().access_token;
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
+      headers: new Headers({ 'Authorization': 'Bearer ' + token })
+    });
+    return await res.blob();
   });
-  const file = list.result.files[0];
-  if (!file) return null;
-  const token = gapi.client.getToken().access_token;
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
-    headers: new Headers({ 'Authorization': 'Bearer ' + token })
-  });
-  return await res.blob();
 }
 
 async function deleteFileFromAppData(name) {
-  await ensureDriveAuth();
-  const list = await gapi.client.drive.files.list({
-    spaces: 'appDataFolder',
-    fields: 'files(id, name)',
-    q: `name='${name}'`
+  return withDriveAuth(async () => {
+    const list = await gapi.client.drive.files.list({
+      spaces: 'appDataFolder',
+      fields: 'files(id, name)',
+      q: `name='${name}'`
+    });
+    const file = list.result.files[0];
+    if (file) await gapi.client.drive.files.delete({ fileId: file.id });
   });
-  const file = list.result.files[0];
-  if (file) await gapi.client.drive.files.delete({ fileId: file.id });
 }
 
 async function saveGifToDB(key, blob) {
@@ -419,13 +449,14 @@ async function deleteGifFromDB(key) {
 }
 
 async function listCircuitJsonFiles() {
-  await ensureDriveAuth();
-  const res = await gapi.client.drive.files.list({
-    spaces: 'appDataFolder',
-    fields: 'files(id, name, createdTime)',
-    q: "name contains '.json'"
+  return withDriveAuth(async () => {
+    const res = await gapi.client.drive.files.list({
+      spaces: 'appDataFolder',
+      fields: 'files(id, name, createdTime)',
+      q: "name contains '.json'"
+    });
+    return res.result.files || [];
   });
-  return res.result.files || [];
 }
 
 function applyCircuitData(data, key) {
@@ -450,7 +481,7 @@ export async function saveCircuit(progressCallback) {
   const circuit = getActiveCircuit();
   if (!circuit) throw new Error('No circuit to save');
 
-  await ensureDriveAuth();
+  await ensureDriveAccess();
 
   const wireCells = new Set();
   Object.values(circuit.wires).forEach(w => {
@@ -494,7 +525,7 @@ export async function saveCircuit(progressCallback) {
 
 export async function loadCircuit(key) {
   try {
-    await ensureDriveAuth();
+    await ensureDriveAccess();
   } catch (e) {
     alertFn(translate('loginRequired'));
     return;
@@ -513,7 +544,7 @@ export async function renderSavedList() {
   if (!elements.savedList) return;
   elements.savedList.innerHTML = `<p>${translate('loadingText')}</p>`;
   try {
-    await ensureDriveAuth();
+    await ensureDriveAccess();
   } catch (e) {
     elements.savedList.innerHTML = `<p>${translate('loginRequired')}</p>`;
     return;
@@ -590,7 +621,7 @@ export function closeSavedModal() {
 
 export async function handleSaveCircuitClick() {
   try {
-    await ensureDriveAuth();
+    await ensureDriveAccess();
   } catch (e) {
     alertFn(e.message);
     return;
