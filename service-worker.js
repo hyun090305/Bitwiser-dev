@@ -17,7 +17,6 @@ const urlsToCache = [
   '/assets/tutorial-delete-wire.gif',
   '/assets/tutorial-place-blocks.gif',
   '/assets/tutorial-draw-wire.gif',
-  '/assets/tutorial-see-info.gif',
   '/assets/tutorial-evaluate.gif'
 ];
 

@@ -17,13 +17,8 @@ const tutorialStepsData = {
     },
     {
       title: "회로 채점하기",
-      desc: "오른쪽 ‘채점하기’ 버튼을 누르면 테스트 케이스별 결과가 표시됩니다.\n정확한 회로를 설계해 보세요!",
+      desc: "오른쪽 ‘채점하기’ 버튼을 누르면 테스트 케이스별 결과가 표시됩니다.\n정확한 회로를 설계해 보세요!\n튜토리얼이 끝났다면 ‘튜토리얼 마치기’를 눌러주세요.",
       img: "assets/tutorial-evaluate.gif"
-    },
-    {
-      title: "스테이지 안내 보기",
-      desc: "하단 메뉴의 ℹ️ 버튼을 눌러 스테이지별 진리표와 설명을 확인할 수 있습니다.",
-      img: "assets/tutorial-see-info.gif"
     }
   ],
   en: [
@@ -44,13 +39,8 @@ const tutorialStepsData = {
     },
     {
       title: "Grading Circuits",
-      desc: "Press the 'Grade' button on the right to see results for each test case.\nDesign the correct circuit!",
+      desc: "Press the 'Grade' button on the right to see results for each test case.\nDesign the correct circuit!\nWhen you're ready, tap 'Finish Tutorial.'",
       img: "assets/tutorial-evaluate.gif"
-    },
-    {
-      title: "Viewing Stage Info",
-      desc: "Use the ℹ️ button in the menu to see each stage's truth table and description.",
-      img: "assets/tutorial-see-info.gif"
     }
   ]
 };
@@ -60,7 +50,6 @@ const stageTutorialsData = {
     1: [{ img: 'assets/not-gate-tutorial.gif', desc: 'NOT 게이트는 입력 신호와 반대되는 신호를 전달합니다.' }],
     2: [{ img: 'assets/or-gate-tutorial.gif', desc: 'OR 게이트는 여러 개의 입력 신호 중 하나라도 1이 있으면 1을 전달하고, 모두 0이면 0을 전달합니다.' }],
     3: [{ img: 'assets/and-gate-tutorial.gif', desc: 'AND 게이트는 여러 개의 입력 신호가 모두 1이면 1을 전달하고, 모두 0이면 0을 전달합니다.' }],
-    6: [{ img: 'assets/hint-tutorial.gif', desc: '이제부터 힌트 기능을 사용할 수 있습니다.' }],
     7: [
       { img: 'assets/junction-tutorial.gif', desc: 'JUNC 블록은 하나의 입력 신호를 그대로 전달합니다.' },
       { img: 'assets/multi-input-tutorial.gif', desc: 'OR, AND 게이트는 최대 3개의 입력 신호를 받을 수 있습니다.' }
@@ -70,7 +59,6 @@ const stageTutorialsData = {
     1: [{ img: 'assets/not-gate-tutorial.gif', desc: 'The NOT gate outputs the opposite of its input.' }],
     2: [{ img: 'assets/or-gate-tutorial.gif', desc: 'The OR gate outputs 1 if any input is 1, otherwise 0.' }],
     3: [{ img: 'assets/and-gate-tutorial.gif', desc: 'The AND gate outputs 1 only when all inputs are 1.' }],
-    6: [{ img: 'assets/hint-tutorial.gif', desc: 'You can now use the hint feature.' }],
     7: [
       { img: 'assets/junction-tutorial.gif', desc: 'The JUNC block passes a single input signal unchanged.' },
       { img: 'assets/multi-input-tutorial.gif', desc: 'OR and AND gates can accept up to three input signals.' }
