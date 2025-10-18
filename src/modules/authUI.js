@@ -28,8 +28,7 @@ function translateText(key, fallback) {
 }
 
 const state = {
-  loginFromMainScreen: false,
-  deferRefreshTokenCheck: false
+  loginFromMainScreen: false
 };
 
 const elements = {
@@ -199,25 +198,6 @@ function hideGuestPrompt() {
   if (elements.loginGuestPrompt) {
     elements.loginGuestPrompt.style.display = 'none';
   }
-}
-
-function enforceRefreshTokenRequirement() {
-  if (state.deferRefreshTokenCheck) {
-    return;
-  }
-  if (typeof firebase === 'undefined' || !firebase.auth || !firebase.auth().currentUser) {
-    return;
-  }
-  if (hasStoredDriveRefreshToken()) {
-    return;
-  }
-  console.warn('Missing Drive refresh token after login; signing out to maintain logout state.');
-  firebase
-    .auth()
-    .signOut()
-    .catch(err => {
-      console.error('Failed to sign out after missing Drive refresh token', err);
-    });
 }
 
 function setUsernameInputValue(value) {
@@ -716,7 +696,6 @@ function handleAuthStateChange(buttons, user) {
       assignGuestNickname();
     }
   }
-  enforceRefreshTokenRequirement();
 }
 
 function setupLoginButtonHandlers(buttons, ids = {}) {
@@ -731,7 +710,6 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
       if (user) {
         firebase.auth().signOut();
       } else {
-        state.deferRefreshTokenCheck = true;
         const provider = new firebase.auth.GoogleAuthProvider();
         const needsConsent = !hasStoredDriveRefreshToken();
         configureGoogleProviderForDrive(provider, { forceConsent: needsConsent });
@@ -750,10 +728,6 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
           .catch(err => {
             alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
             console.error(err);
-          })
-          .finally(() => {
-            state.deferRefreshTokenCheck = false;
-            enforceRefreshTokenRequirement();
           });
       }
     });
