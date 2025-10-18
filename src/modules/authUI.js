@@ -716,16 +716,9 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
         firebase
           .auth()
           .signInWithPopup(provider)
-          .then(async result => {
+          .then(result => {
             try {
-              const persisted = await persistDriveTokensFromFirebaseResult(result, {
-                needsConsent,
-                emailHint:
-                  (result && result.user && result.user.email) ||
-                  (result && result.additionalUserInfo && result.additionalUserInfo.profile && result.additionalUserInfo.profile.email) ||
-                  null
-              });
-              if (!persisted && needsConsent) {
+              if (!persistDriveTokensFromFirebaseResult(result) && needsConsent) {
                 console.warn('Drive tokens were not returned by Google sign-in; offline access may require manual consent.');
               }
             } catch (err) {
