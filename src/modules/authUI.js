@@ -28,7 +28,8 @@ function translateText(key, fallback) {
 }
 
 const state = {
-  loginFromMainScreen: false
+  loginFromMainScreen: false,
+  awaitingDriveRefreshToken: false
 };
 
 const elements = {
@@ -117,6 +118,26 @@ function captureElements(ids = {}) {
   if (elements.usernameSubmitBtn) {
     elements.usernameSubmitBtn.onclick = onInitialUsernameSubmit;
   }
+}
+
+function maybeForceLogoutForMissingRefreshToken(user) {
+  if (!user || state.awaitingDriveRefreshToken) {
+    return false;
+  }
+  if (hasStoredDriveRefreshToken()) {
+    return false;
+  }
+  if (typeof firebase === 'undefined' || !firebase.auth) {
+    return false;
+  }
+  console.warn('Logged in user is missing Drive refresh token. Signing out.');
+  firebase
+    .auth()
+    .signOut()
+    .catch(err => {
+      console.error('Failed to sign out user without Drive refresh token', err);
+    });
+  return true;
 }
 
 function updateLoginButtonLabels(buttons, user) {
@@ -670,6 +691,9 @@ async function handleGoogleLogin(user) {
 }
 
 function handleAuthStateChange(buttons, user) {
+  if (maybeForceLogoutForMissingRefreshToken(user)) {
+    return;
+  }
   updateLoginButtonLabels(buttons, user);
   const nickname = getUsername() || '';
   setLoginUsernameText(nickname);
@@ -708,11 +732,13 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
       }
       const user = firebase.auth().currentUser;
       if (user) {
+        state.awaitingDriveRefreshToken = false;
         firebase.auth().signOut();
       } else {
         const provider = new firebase.auth.GoogleAuthProvider();
         const needsConsent = !hasStoredDriveRefreshToken();
         configureGoogleProviderForDrive(provider, { forceConsent: needsConsent });
+        state.awaitingDriveRefreshToken = true;
         firebase
           .auth()
           .signInWithPopup(provider)
@@ -728,6 +754,13 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
           .catch(err => {
             alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
             console.error(err);
+          })
+          .finally(() => {
+            state.awaitingDriveRefreshToken = false;
+            const currentUser = firebase.auth().currentUser;
+            if (currentUser) {
+              maybeForceLogoutForMissingRefreshToken(currentUser);
+            }
           });
       }
     });
