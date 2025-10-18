@@ -28,49 +28,8 @@ function translateText(key, fallback) {
 }
 
 const state = {
-  loginFromMainScreen: false,
-  suppressRefreshTokenCheck: false,
-  pendingRefreshTokenEnforcement: false
+  loginFromMainScreen: false
 };
-
-function enforceRefreshTokenPresence() {
-  if (!hasStoredDriveRefreshToken()) {
-    if (typeof firebase === 'undefined' || typeof firebase.auth !== 'function') {
-      return;
-    }
-    try {
-      const auth = firebase.auth();
-      if (auth && auth.currentUser) {
-        auth
-          .signOut()
-          .catch(err => {
-            console.warn('Failed to sign out after detecting missing Drive refresh token', err);
-          });
-      }
-    } catch (err) {
-      console.warn('Failed to access Firebase auth instance for sign-out', err);
-    }
-  }
-}
-
-function scheduleRefreshTokenEnforcement() {
-  if (state.pendingRefreshTokenEnforcement) return;
-  state.pendingRefreshTokenEnforcement = true;
-  setTimeout(() => {
-    state.pendingRefreshTokenEnforcement = false;
-    if (state.suppressRefreshTokenCheck) return;
-    enforceRefreshTokenPresence();
-  }, 0);
-}
-
-function suppressRefreshTokenEnforcement() {
-  state.suppressRefreshTokenCheck = true;
-}
-
-function releaseRefreshTokenEnforcement() {
-  state.suppressRefreshTokenCheck = false;
-  scheduleRefreshTokenEnforcement();
-}
 
 const elements = {
   googleLoginBtn: null,
@@ -715,14 +674,6 @@ function handleAuthStateChange(buttons, user) {
   const nickname = getUsername() || '';
   setLoginUsernameText(nickname);
   if (user) {
-    if (!hasStoredDriveRefreshToken()) {
-      if (state.suppressRefreshTokenCheck) {
-        scheduleRefreshTokenEnforcement();
-      } else {
-        enforceRefreshTokenPresence();
-        return;
-      }
-    }
     handleGoogleLogin(user).catch(err => {
       console.error('Failed to handle Google login', err);
     });
@@ -762,32 +713,22 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
         const provider = new firebase.auth.GoogleAuthProvider();
         const needsConsent = !hasStoredDriveRefreshToken();
         configureGoogleProviderForDrive(provider, { forceConsent: needsConsent });
-        suppressRefreshTokenEnforcement();
-        try {
-          firebase
-            .auth()
-            .signInWithPopup(provider)
-            .then(result => {
-              try {
-                if (!persistDriveTokensFromFirebaseResult(result) && needsConsent) {
-                  console.warn('Drive tokens were not returned by Google sign-in; offline access may require manual consent.');
-                }
-              } catch (err) {
-                console.warn('Failed to persist Drive tokens from Google sign-in result', err);
-              } finally {
-                releaseRefreshTokenEnforcement();
+        firebase
+          .auth()
+          .signInWithPopup(provider)
+          .then(result => {
+            try {
+              if (!persistDriveTokensFromFirebaseResult(result) && needsConsent) {
+                console.warn('Drive tokens were not returned by Google sign-in; offline access may require manual consent.');
               }
-            })
-            .catch(err => {
-              releaseRefreshTokenEnforcement();
-              alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
-              console.error(err);
-            });
-        } catch (err) {
-          releaseRefreshTokenEnforcement();
-          alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
-          console.error(err);
-        }
+            } catch (err) {
+              console.warn('Failed to persist Drive tokens from Google sign-in result', err);
+            }
+          })
+          .catch(err => {
+            alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
+            console.error(err);
+          });
       }
     });
   });
