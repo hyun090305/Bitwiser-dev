@@ -160,135 +160,36 @@ function normalizeExpiresInSeconds(tokenResponse, credential = null) {
   return undefined;
 }
 
-function findTokenLikeValue(source, keys, { depth = 0, maxDepth = 3 } = {}) {
-  if (!source || typeof source !== 'object' || depth > maxDepth) {
-    return null;
-  }
-  for (const key of keys) {
-    const value = source[key];
-    if (typeof value === 'string' && value) {
-      return value;
-    }
-  }
-  if (Array.isArray(source)) {
-    for (const item of source) {
-      const candidate = findTokenLikeValue(item, keys, { depth: depth + 1, maxDepth });
-      if (candidate) return candidate;
-    }
-    return null;
-  }
-  for (const value of Object.values(source)) {
-    if (!value || typeof value !== 'object') continue;
-    const candidate = findTokenLikeValue(value, keys, { depth: depth + 1, maxDepth });
-    if (candidate) return candidate;
-  }
-  if (typeof source.toJSON === 'function') {
-    try {
-      const json = source.toJSON();
-      if (json && typeof json === 'object') {
-        return findTokenLikeValue(json, keys, { depth: depth + 1, maxDepth });
-      }
-    } catch (err) {
-      console.warn('Failed to serialise credential while searching for Drive token data', err);
-    }
-  }
-  return null;
-}
-
-export async function persistDriveTokensFromFirebaseResult(result, options = {}) {
+export function persistDriveTokensFromFirebaseResult(result) {
   if (!result) return false;
   const tokenResponse = result._tokenResponse || {};
   const credential = result.credential || {};
-  const potentialSources = [
-    tokenResponse,
-    credential,
-    tokenResponse && tokenResponse.firstOAuthCredentialFromLinking,
-    tokenResponse && tokenResponse.pendingCredential,
-    credential && credential._tokenResponse,
-    credential && credential._credential,
-    credential && credential.oauthCredential,
-    credential && credential.idTokenResponse,
-    typeof credential.toJSON === 'function' ? (() => {
-      try {
-        const json = credential.toJSON();
-        return json && typeof json === 'object' ? json : null;
-      } catch (err) {
-        console.warn('Failed to serialise credential while preparing Drive token sources', err);
-        return null;
-      }
-    })() : null
-  ].filter(Boolean);
-
-  const refreshKeys = ['oauthRefreshToken', 'refreshToken', 'refresh_token', 'oauth_refresh_token'];
-  let refreshToken = null;
-  for (const src of potentialSources) {
-    refreshToken = findTokenLikeValue(src, refreshKeys);
-    if (refreshToken) break;
-  }
-
-  const accessKeys = ['oauthAccessToken', 'accessToken', 'access_token', 'oauth_access_token'];
-  let accessToken = null;
-  for (const src of potentialSources) {
-    accessToken = findTokenLikeValue(src, accessKeys);
-    if (accessToken) break;
-  }
-
-  let expiresIn = normalizeExpiresInSeconds(tokenResponse, credential);
-  let scopeRaw = tokenResponse.oauthScopes || credential.scope || credential.scopes;
-  let oauthFallbackTokens = null;
-
-  const shouldAttemptOAuthFallback =
-    !refreshToken && options && options.needsConsent && typeof window !== 'undefined';
-  if (shouldAttemptOAuthFallback) {
-    const hint = options.emailHint ||
-      (result.user && result.user.email) ||
-      (result.additionalUserInfo && result.additionalUserInfo.profile && result.additionalUserInfo.profile.email) ||
-      tokenResponse.email ||
-      null;
-    try {
-      oauthFallbackTokens = await obtainDriveTokensViaOAuth({ prompt: 'consent', ...(hint ? { hint } : {}) });
-      if (oauthFallbackTokens && oauthFallbackTokens.refresh_token) {
-        refreshToken = oauthFallbackTokens.refresh_token;
-      } else if (oauthFallbackTokens && oauthFallbackTokens.refreshToken) {
-        refreshToken = oauthFallbackTokens.refreshToken;
-      }
-      if (!accessToken && oauthFallbackTokens) {
-        accessToken = oauthFallbackTokens.access_token || oauthFallbackTokens.accessToken || null;
-      }
-      if (oauthFallbackTokens) {
-        const fallbackScope = oauthFallbackTokens.scope || oauthFallbackTokens.scopes;
-        if (!scopeRaw && fallbackScope) {
-          scopeRaw = fallbackScope;
-        }
-        if (!expiresIn) {
-          expiresIn = normalizeExpiresInSeconds(oauthFallbackTokens, oauthFallbackTokens);
-        }
-      }
-    } catch (err) {
-      console.warn('Failed to obtain Drive refresh token via OAuth fallback', err);
-    }
-  }
-
+  const refreshToken =
+    tokenResponse.oauthRefreshToken ||
+    tokenResponse.refreshToken ||
+    credential.refreshToken ||
+    credential.refresh_token ||
+    null;
   if (refreshToken) {
     setSecureCookie(DRIVE_REFRESH_COOKIE, refreshToken, DRIVE_REFRESH_COOKIE_MAX_AGE);
   }
-
-  if (oauthFallbackTokens && !expiresIn) {
-    expiresIn = normalizeExpiresInSeconds(oauthFallbackTokens, oauthFallbackTokens);
-  }
-
-  const scope = Array.isArray(scopeRaw)
-    ? scopeRaw.join(' ')
-    : (typeof scopeRaw === 'string' ? scopeRaw : DRIVE_SCOPE);
-
+  const accessToken =
+    tokenResponse.oauthAccessToken ||
+    credential.accessToken ||
+    credential.access_token ||
+    null;
+  const expiresIn = normalizeExpiresInSeconds(tokenResponse, credential);
   if (accessToken) {
+    const scopeRaw = tokenResponse.oauthScopes || credential.scope || credential.scopes;
+    const scope = Array.isArray(scopeRaw)
+      ? scopeRaw.join(' ')
+      : (typeof scopeRaw === 'string' ? scopeRaw : DRIVE_SCOPE);
     try {
       applyDriveAccessToken({ access_token: accessToken, expires_in: expiresIn, scope });
     } catch (err) {
       console.warn('Failed to apply Drive tokens from Firebase sign-in result', err);
     }
   }
-
   return Boolean(refreshToken || accessToken);
 }
 
