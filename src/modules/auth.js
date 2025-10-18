@@ -162,34 +162,82 @@ function normalizeExpiresInSeconds(tokenResponse, credential = null) {
 
 export function persistDriveTokensFromFirebaseResult(result) {
   if (!result) return false;
-  const tokenResponse = result._tokenResponse || {};
-  const credential = result.credential || {};
-  const refreshToken =
-    tokenResponse.oauthRefreshToken ||
-    tokenResponse.refreshToken ||
-    credential.refreshToken ||
-    credential.refresh_token ||
-    null;
+
+  const tokenResponse = result._tokenResponse || result.tokenResponse || {};
+
+  let credential = result.credential || null;
+  if (!credential && typeof firebase !== 'undefined' && firebase.auth && firebase.auth.GoogleAuthProvider) {
+    const { GoogleAuthProvider } = firebase.auth;
+    if (GoogleAuthProvider && typeof GoogleAuthProvider.credentialFromResult === 'function') {
+      try {
+        credential = GoogleAuthProvider.credentialFromResult(result) || null;
+      } catch (err) {
+        console.warn('Failed to derive OAuth credential from Firebase result', err);
+      }
+    }
+  }
+  const credentialObj = credential && typeof credential === 'object' ? credential : {};
+  const credentialResponse =
+    credentialObj._tokenResponse ||
+    credentialObj.tokenResponse ||
+    credentialObj.response ||
+    credentialObj.oauthResponse ||
+    credentialObj.serverResponse ||
+    {};
+
+  const refreshTokenCandidates = [
+    tokenResponse.oauthRefreshToken,
+    tokenResponse.refreshToken,
+    tokenResponse.refresh_token,
+    tokenResponse.firstRefreshToken,
+    tokenResponse.oauth_refresh_token,
+    credentialObj.refreshToken,
+    credentialObj.refresh_token,
+    credentialResponse.oauthRefreshToken,
+    credentialResponse.refreshToken,
+    credentialResponse.refresh_token
+  ];
+  const refreshToken = refreshTokenCandidates.find(token => typeof token === 'string' && token.length > 0) || null;
+
   if (refreshToken) {
     setSecureCookie(DRIVE_REFRESH_COOKIE, refreshToken, DRIVE_REFRESH_COOKIE_MAX_AGE);
   }
-  const accessToken =
-    tokenResponse.oauthAccessToken ||
-    credential.accessToken ||
-    credential.access_token ||
-    null;
-  const expiresIn = normalizeExpiresInSeconds(tokenResponse, credential);
+
+  const accessTokenCandidates = [
+    tokenResponse.oauthAccessToken,
+    tokenResponse.accessToken,
+    tokenResponse.access_token,
+    credentialObj.accessToken,
+    credentialObj.access_token,
+    credentialResponse.oauthAccessToken,
+    credentialResponse.accessToken,
+    credentialResponse.access_token
+  ];
+  const accessToken = accessTokenCandidates.find(token => typeof token === 'string' && token.length > 0) || null;
+
+  const scopeCandidates = [
+    tokenResponse.oauthScopes,
+    tokenResponse.scopes,
+    credentialObj.scope,
+    credentialObj.scopes,
+    credentialResponse.oauthScopes,
+    credentialResponse.scope,
+    credentialResponse.scopes
+  ];
+  const scopeRaw = scopeCandidates.find(value => Array.isArray(value) ? value.length > 0 : typeof value === 'string');
+  const scope = Array.isArray(scopeRaw)
+    ? scopeRaw.join(' ')
+    : (typeof scopeRaw === 'string' && scopeRaw.length > 0 ? scopeRaw : DRIVE_SCOPE);
+
+  const expiresIn = normalizeExpiresInSeconds(tokenResponse, credentialObj);
   if (accessToken) {
-    const scopeRaw = tokenResponse.oauthScopes || credential.scope || credential.scopes;
-    const scope = Array.isArray(scopeRaw)
-      ? scopeRaw.join(' ')
-      : (typeof scopeRaw === 'string' ? scopeRaw : DRIVE_SCOPE);
     try {
       applyDriveAccessToken({ access_token: accessToken, expires_in: expiresIn, scope });
     } catch (err) {
       console.warn('Failed to apply Drive tokens from Firebase sign-in result', err);
     }
   }
+
   return Boolean(refreshToken || accessToken);
 }
 
