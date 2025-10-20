@@ -1073,6 +1073,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return true;
   }
 
+  function isConnectorType(type) {
+    return type === 'INPUT' || type === 'OUTPUT' || type === 'JUNCTION';
+  }
+
   function canPasteClipboardAt(anchor, clipboard) {
     if (!clipboard) return false;
     const blockTargets = new Set();
@@ -1081,7 +1085,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const targetR = anchor.r + block.offset.r;
       const targetC = anchor.c + block.offset.c;
       if (!withinBounds(targetR, targetC)) return false;
-      if (blockAt({ r: targetR, c: targetC })) return false;
+      const existingBlock = blockAt({ r: targetR, c: targetC });
+      if (existingBlock) {
+        const canShare =
+          isConnectorType(existingBlock.type) && isConnectorType(block.type);
+        if (!canShare) return false;
+      }
       if (cellHasWire({ r: targetR, c: targetC })) return false;
       blockTargets.add(`${targetR},${targetC}`);
     }
@@ -1095,8 +1104,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (!withinBounds(targetR, targetC)) return false;
         const key = `${targetR},${targetC}`;
         const isEndpoint = i === 0 || i === path.length - 1;
-        if (!isEndpoint || !blockTargets.has(key)) {
-          if (blockAt({ r: targetR, c: targetC })) return false;
+        const existingBlock = blockAt({ r: targetR, c: targetC });
+        if (existingBlock) {
+          if (!isEndpoint) return false;
+          if (!blockTargets.has(key)) return false;
+          if (!isConnectorType(existingBlock.type)) return false;
+        } else if (!isEndpoint || !blockTargets.has(key)) {
+          return false;
         }
         if (cellHasWire({ r: targetR, c: targetC })) return false;
       }
@@ -1141,11 +1155,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const newWireIds = new Set();
 
     clipboard.blocks.forEach((block, index) => {
-      const id = nextUniqueId('b');
       const target = {
         r: anchor.r + block.offset.r,
         c: anchor.c + block.offset.c,
       };
+      const existingBlock = blockAt(target);
+      const canShareExisting =
+        existingBlock && isConnectorType(existingBlock.type) && isConnectorType(block.type);
+      if (canShareExisting) {
+        blockIdMap.set(index, existingBlock.id);
+        return;
+      }
+      const id = nextUniqueId('b');
       const shouldConvert = block.type === 'INPUT' || block.type === 'OUTPUT';
       const type = shouldConvert ? 'JUNCTION' : block.type;
       const name = type === 'JUNCTION' ? 'JUNC' : block.name;
