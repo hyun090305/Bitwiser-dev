@@ -486,8 +486,25 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
   }
 
+  function normalizePaletteLabel(type, label) {
+    if (typeof label === 'string' && label.length) {
+      return label;
+    }
+    if (type === 'JUNCTION') {
+      return 'JUNC';
+    }
+    return type;
+  }
+
+  function findPaletteItem(type, label, predicate = () => true) {
+    const resolvedLabel = normalizePaletteLabel(type, label);
+    return paletteItems.find(
+      it => it.type === type && it.label === resolvedLabel && predicate(it)
+    );
+  }
+
   function hidePaletteItem(type, label) {
-    const item = paletteItems.find(it => it.type === type && it.label === label);
+    const item = findPaletteItem(type, label, it => !it.hidden);
     if (item) {
       item.hidden = true;
       redrawPanel();
@@ -495,12 +512,34 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function showPaletteItem(type, label) {
-    const item = paletteItems.find(it => it.type === type && it.label === label);
+    const item = findPaletteItem(type, label, it => it.hidden);
     if (item) {
       if (forceHideInOut && (type === 'INPUT' || type === 'OUTPUT')) return;
       item.hidden = false;
       redrawPanel();
     }
+  }
+
+  function returnBlockToPalette(type, label) {
+    if (!type) return;
+    showPaletteItem(type, label);
+  }
+
+  function replaceExistingBlock(existingBlock, nextBlock) {
+    if (!existingBlock || existingBlock.fixed || !nextBlock?.type) return false;
+
+    returnBlockToPalette(existingBlock.type, existingBlock.name);
+
+    existingBlock.type = nextBlock.type;
+    existingBlock.name = nextBlock.name;
+    if (nextBlock.type === 'INPUT') {
+      existingBlock.value = Boolean(nextBlock.value);
+    } else if (typeof nextBlock.value === 'boolean') {
+      existingBlock.value = nextBlock.value;
+    }
+    existingBlock.fixed = false;
+
+    return true;
   }
 
   const moveBtn = ui.wireMoveInfo;
@@ -1671,7 +1710,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             it.type && x >= it.x && x <= it.x + it.w && y >= it.y && y <= it.y + it.h
         );
         if (item) {
-          state.draggingBlock = { type: item.type, name: item.label };
+          state.draggingBlock = { type: item.type, name: item.label, value: false };
           handled = true;
         }
       } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
@@ -1963,26 +2002,40 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             );
           }
         } else if (state.draggingBlock.id) {
-          const collision = blockAt(cell) || cellHasWire(cell);
-          const target = collision ? state.draggingBlock.origPos : cell;
-          const id = state.draggingBlock.id;
-          circuit.blocks[id] = newBlock({
-            id,
-            type: state.draggingBlock.type,
-            name: state.draggingBlock.name,
-            pos: target,
-          });
-          placed = true;
-          if (
-            target.r === state.draggingBlock.origPos.r &&
-            target.c === state.draggingBlock.origPos.c &&
-            state.draggingBlock.wires
-          ) {
-            state.draggingBlock.wires.forEach(w => {
-              circuit.wires[w.id] = w;
-              const endB = circuit.blocks[w.endBlockId];
-              if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
+          const existingBlock = blockAt(cell);
+          const occupiedByWire = cellHasWire(cell);
+          if (existingBlock && !occupiedByWire) {
+            const replaced = replaceExistingBlock(existingBlock, {
+              type: state.draggingBlock.type,
+              name: state.draggingBlock.name,
+              value: state.draggingBlock.value,
             });
+            if (replaced) {
+              placed = true;
+            }
+          }
+          if (!placed) {
+            const collision = Boolean(existingBlock) || occupiedByWire;
+            const target = collision ? state.draggingBlock.origPos : cell;
+            const id = state.draggingBlock.id;
+            circuit.blocks[id] = newBlock({
+              id,
+              type: state.draggingBlock.type,
+              name: state.draggingBlock.name,
+              pos: target,
+            });
+            placed = true;
+            if (
+              target.r === state.draggingBlock.origPos.r &&
+              target.c === state.draggingBlock.origPos.c &&
+              state.draggingBlock.wires
+            ) {
+              state.draggingBlock.wires.forEach(w => {
+                circuit.wires[w.id] = w;
+                const endB = circuit.blocks[w.endBlockId];
+                if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
+              });
+            }
           }
         } else {
           const existingBlock = blockAt(cell);
@@ -1996,26 +2049,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               pos: cell,
             });
             placed = true;
-          } else if (
-            existingBlock &&
-            !existingBlock.fixed &&
-            !occupiedByWire
-          ) {
-            const previousType = existingBlock.type;
-            const previousName = existingBlock.name;
-
-            if (previousType === 'INPUT' || previousType === 'OUTPUT') {
-              showPaletteItem(previousType, previousName);
-            }
-
-            existingBlock.type = state.draggingBlock.type;
-            existingBlock.name = state.draggingBlock.name;
-            existingBlock.value =
-              state.draggingBlock.type === 'INPUT'
-                ? false
-                : existingBlock.value;
-            existingBlock.fixed = false;
-            placed = true;
+          } else if (!occupiedByWire) {
+            const replaced = replaceExistingBlock(existingBlock, {
+              type: state.draggingBlock.type,
+              name: state.draggingBlock.name,
+            });
+            placed = replaced;
           }
           if (
             placed &&
@@ -2042,9 +2081,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
         renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
-        updateUsageCounts();
+        syncPaletteWithCircuit();
         snapshot();
       } else if (removedExistingBlock) {
+        syncPaletteWithCircuit();
         snapshot();
       }
       if (placed || state.draggingBlock.id) clearSelection();
@@ -2219,6 +2259,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               id: state.dragCandidate.id,
               type: b.type,
               name: b.name,
+              value: b.value,
               origPos: b.pos,
               wires: removedWires
             };
@@ -2358,7 +2399,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   bindEvent(document, 'touchend', handleDocUp);
 
   function startBlockDrag(type, name) {
-    state.draggingBlock = { type, name };
+    state.draggingBlock = { type, name, value: false };
   }
 
   function moveCircuit(dx, dy) {
