@@ -582,6 +582,66 @@ html, body {
     pointer-events: none;
   }
 
+  .has-tooltip {
+    position: relative;
+  }
+
+  .has-tooltip::after,
+  .has-tooltip::before {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+    z-index: 20;
+  }
+
+  .has-tooltip::after {
+    content: attr(data-tooltip);
+    bottom: 100%;
+    left: 50%;
+    transform: translate(-50%, -6px);
+    background: rgba(30, 41, 59, 0.92);
+    color: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    box-shadow: 0 8px 16px rgba(15, 23, 42, 0.18);
+  }
+
+  .has-tooltip::before {
+    content: '';
+    bottom: 100%;
+    left: 50%;
+    transform: translate(-50%, -2px) scale(0.8);
+    border-width: 6px;
+    border-style: solid;
+    border-color: rgba(30, 41, 59, 0.92) transparent transparent transparent;
+  }
+
+  .has-tooltip:hover::after,
+  .has-tooltip:focus-visible::after {
+    opacity: 1;
+    transform: translate(-50%, -12px);
+  }
+
+  .has-tooltip:hover::before,
+  .has-tooltip:focus-visible::before {
+    opacity: 1;
+    transform: translate(-50%, -4px) scale(1);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .has-tooltip::after,
+    .has-tooltip::before,
+    .has-tooltip:hover::after,
+    .has-tooltip:hover::before,
+    .has-tooltip:focus-visible::after,
+    .has-tooltip:focus-visible::before {
+      transition: none;
+    }
+  }
+
   #wireMoveInfo,
   #problemWireMoveInfo {
     cursor: default;
