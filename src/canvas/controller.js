@@ -1366,6 +1366,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       const active = document.activeElement;
       if (active && (active.tagName === 'INPUT' || active.tagName === 'TEXTAREA')) return;
+      if (key === 'c') {
+        if (state.copyPasteEnabled && state.selection) {
+          const copied = copySelection();
+          if (copied) {
+            e.preventDefault();
+            return;
+          }
+        }
+      }
+      if (key === 'v') {
+        if (state.copyPasteEnabled && state.clipboard) {
+          e.preventDefault();
+          togglePasteMode();
+          return;
+        }
+      }
       if (key === 'z') {
         e.preventDefault();
         undo();

@@ -265,10 +265,10 @@
           <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
             <button
               id="problemCopySelectionBtn"
-              class="toolbar__button"
+              class="toolbar__button has-tooltip"
               type="button"
-              title="선택 영역 복사"
-              aria-label="선택 영역 복사"
+              data-tooltip="선택 영역 복사 (C)"
+              aria-label="선택 영역 복사 (C)"
               hidden
               disabled
             >
@@ -276,10 +276,10 @@
             </button>
             <button
               id="problemPasteSelectionBtn"
-              class="toolbar__button"
+              class="toolbar__button has-tooltip"
               type="button"
-              title="선택 영역 붙여넣기"
-              aria-label="선택 영역 붙여넣기"
+              data-tooltip="선택 영역 붙여넣기 (V)"
+              aria-label="선택 영역 붙여넣기 (V)"
               hidden
               disabled
             >
@@ -369,44 +369,44 @@
           <div style="display:flex; justify-content:space-between; gap:1rem;">
             <div style="display:flex; flex-direction:column; align-items:center; gap:0.5rem; margin:auto;">
               <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
-                <button id="problemWireMoveInfo" class="status-toolbar__button" type="button"
-                  title="기본 상태" aria-label="기본 상태">
+                <button id="problemWireMoveInfo" class="status-toolbar__button has-tooltip" type="button"
+                  data-tooltip="기본 상태" aria-label="기본 상태">
                   <img src="assets/icon_move.svg" alt="" class="status-toolbar__icon">
                 </button>
-                <button id="problemWireStatusInfo" class="status-toolbar__button" type="button"
-                  title="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
+                <button id="problemWireStatusInfo" class="status-toolbar__button has-tooltip" type="button"
+                  data-tooltip="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
                   <img src="assets/icon_draw.svg" alt="" class="status-toolbar__icon">
                 </button>
-                <button id="problemWireDeleteInfo" class="status-toolbar__button" type="button"
-                  title="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
+                <button id="problemWireDeleteInfo" class="status-toolbar__button has-tooltip" type="button"
+                  data-tooltip="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
                   <img src="assets/icon_delete.svg" alt="" class="status-toolbar__icon">
                 </button>
-                <button id="problemWireSelectInfo" class="status-toolbar__button" type="button"
-                  title="마우스 오른쪽 - 선택" aria-label="마우스 오른쪽 - 선택">
+                <button id="problemWireSelectInfo" class="status-toolbar__button has-tooltip" type="button"
+                  data-tooltip="마우스 오른쪽 - 선택" aria-label="마우스 오른쪽 - 선택">
                   <img src="assets/icon_select.svg" alt="" class="status-toolbar__icon">
                 </button>
-                <button id="problemDeleteAllInfo" class="status-toolbar__button" type="button"
-                  title="R - 회로 초기화" aria-label="R - 회로 초기화">
+                <button id="problemDeleteAllInfo" class="status-toolbar__button has-tooltip" type="button"
+                  data-tooltip="R - 회로 초기화" aria-label="R - 회로 초기화">
                   <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
                 </button>
               </div>
               <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
                 <button
                   id="problemUndoBtn"
-                  class="status-toolbar__button"
+                  class="status-toolbar__button has-tooltip"
                   type="button"
-                  title="되돌리기 (Z)"
-                  aria-label="되돌리기"
+                  data-tooltip="되돌리기 (Z)"
+                  aria-label="되돌리기 (Z)"
                   disabled
                 >
                   <img src="assets/icon_undo.svg" alt="" class="status-toolbar__icon">
                 </button>
                 <button
                   id="problemRedoBtn"
-                  class="status-toolbar__button"
+                  class="status-toolbar__button has-tooltip"
                   type="button"
-                  title="다시 실행 (Y)"
-                  aria-label="다시 실행"
+                  data-tooltip="다시 실행 (Y)"
+                  aria-label="다시 실행 (Y)"
                   disabled
                 >
                   <img src="assets/icon_redo.svg" alt="" class="status-toolbar__icon">
@@ -616,10 +616,10 @@
           <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
             <button
               id="copySelectionBtn"
-              class="toolbar__button"
+              class="toolbar__button has-tooltip"
               type="button"
-              title="선택 영역 복사"
-              aria-label="선택 영역 복사"
+              data-tooltip="선택 영역 복사 (C)"
+              aria-label="선택 영역 복사 (C)"
               hidden
               disabled
             >
@@ -627,10 +627,10 @@
             </button>
             <button
               id="pasteSelectionBtn"
-              class="toolbar__button"
+              class="toolbar__button has-tooltip"
               type="button"
-              title="선택 영역 붙여넣기"
-              aria-label="선택 영역 붙여넣기"
+              data-tooltip="선택 영역 붙여넣기 (V)"
+              aria-label="선택 영역 붙여넣기 (V)"
               hidden
               disabled
             >
@@ -638,44 +638,44 @@
             </button>
           </div>
           <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
-            <button id="wireMoveInfo" class="status-toolbar__button" type="button"
-              title="기본 상태" aria-label="기본 상태">
+            <button id="wireMoveInfo" class="status-toolbar__button has-tooltip" type="button"
+              data-tooltip="기본 상태" aria-label="기본 상태">
               <img src="assets/icon_move.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="wireStatusInfo" class="status-toolbar__button" type="button"
-              title="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
+            <button id="wireStatusInfo" class="status-toolbar__button has-tooltip" type="button"
+              data-tooltip="Ctrl / Cmd - 도선 그리기" aria-label="Ctrl / Cmd - 도선 그리기">
               <img src="assets/icon_draw.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="wireDeleteInfo" class="status-toolbar__button" type="button"
-              title="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
+            <button id="wireDeleteInfo" class="status-toolbar__button has-tooltip" type="button"
+              data-tooltip="Shift - 도선/블록 삭제" aria-label="Shift - 도선/블록 삭제">
               <img src="assets/icon_delete.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="wireSelectInfo" class="status-toolbar__button" type="button"
-              title="마우스 오른쪽 - 선택" aria-label="마우스 오른쪽 - 선택">
+            <button id="wireSelectInfo" class="status-toolbar__button has-tooltip" type="button"
+              data-tooltip="마우스 오른쪽 - 선택" aria-label="마우스 오른쪽 - 선택">
               <img src="assets/icon_select.svg" alt="" class="status-toolbar__icon">
             </button>
-            <button id="DeleteAllInfo" class="status-toolbar__button" type="button"
-              title="R - 회로 초기화" aria-label="R - 회로 초기화">
+            <button id="DeleteAllInfo" class="status-toolbar__button has-tooltip" type="button"
+              data-tooltip="R - 회로 초기화" aria-label="R - 회로 초기화">
               <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
             </button>
           </div>
           <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
             <button
               id="undoBtn"
-              class="status-toolbar__button"
+              class="status-toolbar__button has-tooltip"
               type="button"
-              title="되돌리기 (Z)"
-              aria-label="되돌리기"
+              data-tooltip="되돌리기 (Z)"
+              aria-label="되돌리기 (Z)"
               disabled
             >
               <img src="assets/icon_undo.svg" alt="" class="status-toolbar__icon">
             </button>
             <button
               id="redoBtn"
-              class="status-toolbar__button"
+              class="status-toolbar__button has-tooltip"
               type="button"
-              title="다시 실행 (Y)"
-              aria-label="다시 실행"
+              data-tooltip="다시 실행 (Y)"
+              aria-label="다시 실행 (Y)"
               disabled
             >
               <img src="assets/icon_redo.svg" alt="" class="status-toolbar__icon">
