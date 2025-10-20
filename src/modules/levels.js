@@ -230,7 +230,13 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
   }
 
-  await setupGrid('canvasContainer', rows, cols, createPaletteForLevel(level));
+  await setupGrid(
+    'canvasContainer',
+    rows,
+    cols,
+    createPaletteForLevel(level),
+    { enableCopyPaste: level >= 7 }
+  );
 
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {

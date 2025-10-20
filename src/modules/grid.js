@@ -372,6 +372,12 @@ export function setupGrid(
           wireSelectInfo: document.getElementById(
             prefix ? `${prefix}WireSelectInfo` : 'wireSelectInfo'
           ),
+          copyButton: document.getElementById(
+            prefix ? `${prefix}CopySelectionBtn` : 'copySelectionBtn'
+          ),
+          pasteButton: document.getElementById(
+            prefix ? `${prefix}PasteSelectionBtn` : 'pasteSelectionBtn'
+          ),
           undoButton: document.getElementById(
             prefix ? `${prefix}UndoBtn` : 'undoBtn'
           ),

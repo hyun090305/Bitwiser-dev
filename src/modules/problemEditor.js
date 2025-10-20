@@ -424,7 +424,13 @@ export function initializeProblemEditorUI() {
   const cols = DEFAULT_GRID_COLS;
   const palette = createPaletteForProblem();
 
-  setupGrid('problemCanvasContainer', rows, cols, palette).then(() => {
+  setupGrid(
+    'problemCanvasContainer',
+    rows,
+    cols,
+    palette,
+    { enableCopyPaste: true }
+  ).then(() => {
     clearGrid();
     clearWires();
     setGridDimensions(rows, cols);

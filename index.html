@@ -262,6 +262,30 @@
         </div>
         <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
           <h1 id="problemCreatorTitle">📝 문제 출제</h1>
+          <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
+            <button
+              id="problemCopySelectionBtn"
+              class="toolbar__button"
+              type="button"
+              title="선택 영역 복사"
+              aria-label="선택 영역 복사"
+              hidden
+              disabled
+            >
+              <img src="assets/icon_copy.svg" alt="" class="toolbar__icon" />
+            </button>
+            <button
+              id="problemPasteSelectionBtn"
+              class="toolbar__button"
+              type="button"
+              title="선택 영역 붙여넣기"
+              aria-label="선택 영역 붙여넣기"
+              hidden
+              disabled
+            >
+              <img src="assets/icon_paste.svg" alt="" class="toolbar__icon" />
+            </button>
+          </div>
           <section class="panel-section" aria-labelledby="gridSizeControllerLabel">
             <h2 id="gridSizeControllerLabel" class="panel-section__title">🧭 Grid Size</h2>
             <div class="grid-size-controller" id="problemGridSizeController">
@@ -589,6 +613,30 @@
           style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
           <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
           <button id="gradeButton" class="main-button">채점하기</button>
+          <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
+            <button
+              id="copySelectionBtn"
+              class="toolbar__button"
+              type="button"
+              title="선택 영역 복사"
+              aria-label="선택 영역 복사"
+              hidden
+              disabled
+            >
+              <img src="assets/icon_copy.svg" alt="" class="toolbar__icon" />
+            </button>
+            <button
+              id="pasteSelectionBtn"
+              class="toolbar__button"
+              type="button"
+              title="선택 영역 붙여넣기"
+              aria-label="선택 영역 붙여넣기"
+              hidden
+              disabled
+            >
+              <img src="assets/icon_paste.svg" alt="" class="toolbar__icon" />
+            </button>
+          </div>
           <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
             <button id="wireMoveInfo" class="status-toolbar__button" type="button"
               title="기본 상태" aria-label="기본 상태">
