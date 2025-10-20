@@ -1899,18 +1899,43 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
             });
           }
-        } else if (!blockAt(cell) && !cellHasWire(cell)) {
-          const id = 'b' + Date.now();
-          circuit.blocks[id] = newBlock({
-            id,
-            type: state.draggingBlock.type,
-            name: state.draggingBlock.name,
-            pos: cell,
-          });
-          placed = true;
+        } else {
+          const existingBlock = blockAt(cell);
+          const occupiedByWire = cellHasWire(cell);
+          if (!existingBlock && !occupiedByWire) {
+            const id = 'b' + Date.now();
+            circuit.blocks[id] = newBlock({
+              id,
+              type: state.draggingBlock.type,
+              name: state.draggingBlock.name,
+              pos: cell,
+            });
+            placed = true;
+          } else if (
+            existingBlock &&
+            !existingBlock.fixed &&
+            !occupiedByWire
+          ) {
+            const previousType = existingBlock.type;
+            const previousName = existingBlock.name;
+
+            if (previousType === 'INPUT' || previousType === 'OUTPUT') {
+              showPaletteItem(previousType, previousName);
+            }
+
+            existingBlock.type = state.draggingBlock.type;
+            existingBlock.name = state.draggingBlock.name;
+            existingBlock.value =
+              state.draggingBlock.type === 'INPUT'
+                ? false
+                : existingBlock.value;
+            existingBlock.fixed = false;
+            placed = true;
+          }
           if (
-            state.draggingBlock.type === 'INPUT' ||
-            state.draggingBlock.type === 'OUTPUT'
+            placed &&
+            (state.draggingBlock.type === 'INPUT' ||
+              state.draggingBlock.type === 'OUTPUT')
           ) {
             hidePaletteItem(
               state.draggingBlock.type,
