@@ -1899,65 +1899,23 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               if (endB) endB.inputs = [...(endB.inputs || []), w.startBlockId];
             });
           }
-        } else {
-          const occupyingBlock = blockAt(cell);
-          if (!occupyingBlock && !cellHasWire(cell)) {
-            const id = 'b' + Date.now();
-            circuit.blocks[id] = newBlock({
-              id,
-              type: state.draggingBlock.type,
-              name: state.draggingBlock.name,
-              pos: cell,
-            });
-            placed = true;
-            if (
-              state.draggingBlock.type === 'INPUT' ||
-              state.draggingBlock.type === 'OUTPUT'
-            ) {
-              hidePaletteItem(
-                state.draggingBlock.type,
-                state.draggingBlock.name
-              );
-            }
-          } else if (occupyingBlock && !occupyingBlock.fixed) {
-            if (
-              occupyingBlock.type === 'INPUT' ||
-              occupyingBlock.type === 'OUTPUT'
-            ) {
-              showPaletteItem(occupyingBlock.type, occupyingBlock.name);
-            }
-
-            const preservedInputs = Array.isArray(occupyingBlock.inputs)
-              ? [...occupyingBlock.inputs]
-              : undefined;
-            const replacement = newBlock({
-              id: occupyingBlock.id,
-              type: state.draggingBlock.type,
-              name: state.draggingBlock.name,
-              pos: { ...occupyingBlock.pos },
-              value:
-                state.draggingBlock.type === 'INPUT'
-                  ? Boolean(occupyingBlock.value)
-                  : false,
-              fixed: false,
-            });
-
-            if (preservedInputs) {
-              replacement.inputs = preservedInputs;
-            }
-
-            circuit.blocks[occupyingBlock.id] = replacement;
-            placed = true;
-
-            if (
-              state.draggingBlock.type === 'INPUT' ||
-              state.draggingBlock.type === 'OUTPUT'
-            ) {
-              hidePaletteItem(
-                state.draggingBlock.type,
-                state.draggingBlock.name
-              );
-            }
+        } else if (!blockAt(cell) && !cellHasWire(cell)) {
+          const id = 'b' + Date.now();
+          circuit.blocks[id] = newBlock({
+            id,
+            type: state.draggingBlock.type,
+            name: state.draggingBlock.name,
+            pos: cell,
+          });
+          placed = true;
+          if (
+            state.draggingBlock.type === 'INPUT' ||
+            state.draggingBlock.type === 'OUTPUT'
+          ) {
+            hidePaletteItem(
+              state.draggingBlock.type,
+              state.draggingBlock.name
+            );
           }
         }
       } else if (
