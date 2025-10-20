@@ -13,6 +13,62 @@ import { evaluateCircuit, startEngine } from './engine.js';
 let keydownHandler = null;
 let keyupHandler = null;
 
+let sharedClipboard = null;
+const sharedClipboardListeners = new Set();
+
+function cloneClipboard(data) {
+  if (!data) return null;
+  const blocks = Array.isArray(data.blocks)
+    ? data.blocks.map(block => ({
+        offset: {
+          r: Number.isFinite(block?.offset?.r) ? block.offset.r : 0,
+          c: Number.isFinite(block?.offset?.c) ? block.offset.c : 0,
+        },
+        type: block?.type,
+        name: block?.name,
+        value: Boolean(block?.value),
+      }))
+    : [];
+  const wires = Array.isArray(data.wires)
+    ? data.wires.map(wire => ({
+        path: Array.isArray(wire?.path)
+          ? wire.path.map(step => ({
+              r: Number.isFinite(step?.r) ? step.r : 0,
+              c: Number.isFinite(step?.c) ? step.c : 0,
+            }))
+          : [],
+        startBlock: wire?.startBlock,
+        endBlock: wire?.endBlock,
+      }))
+    : [];
+  return { blocks, wires };
+}
+
+function getSharedClipboard() {
+  return cloneClipboard(sharedClipboard);
+}
+
+function setSharedClipboard(nextClipboard) {
+  sharedClipboard = nextClipboard ? cloneClipboard(nextClipboard) : null;
+  sharedClipboardListeners.forEach(listener => {
+    try {
+      listener(sharedClipboard);
+    } catch (err) {
+      console.error('Error notifying clipboard listeners', err);
+    }
+  });
+}
+
+function subscribeSharedClipboard(listener) {
+  if (typeof listener !== 'function') {
+    return () => {};
+  }
+  sharedClipboardListeners.add(listener);
+  return () => {
+    sharedClipboardListeners.delete(listener);
+  };
+}
+
 // Convert pixel coordinates to cell indices (clamped to grid)
 export function pxToCell(x, y, circuit, offsetX = 0) {
   const r = Math.min(
@@ -182,7 +238,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     panning: false,
     panLast: null,
     pinch: null,
-    clipboard: null,
+    clipboard: getSharedClipboard(),
     pastePreview: null,
     copyPasteEnabled: Boolean(options.enableCopyPaste),
   };
@@ -509,6 +565,28 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       pasteBtn.classList.toggle('active', state.mode === 'pasting');
     }
   }
+
+  const unsubscribeSharedClipboard = subscribeSharedClipboard(nextClipboard => {
+    const incomingClipboard = nextClipboard ? cloneClipboard(nextClipboard) : null;
+    const hadClipboard = Boolean(state.clipboard);
+    state.clipboard = incomingClipboard;
+    if (state.mode === 'pasting') {
+      if (!state.clipboard) {
+        setMode('idle');
+        return;
+      }
+      const previewCell = state.pastePreview?.cell;
+      if (previewCell) {
+        const valid = canPasteClipboardAt(previewCell, state.clipboard);
+        overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+        drawClipboardPreview(previewCell, valid);
+        state.pastePreview = { cell: previewCell, valid };
+      }
+    }
+    if (hadClipboard !== Boolean(state.clipboard)) {
+      updateCopyPasteButtons();
+    }
+  });
 
   function setCopyPasteEnabled(enabled) {
     const normalized = Boolean(enabled);
@@ -949,7 +1027,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (!state.copyPasteEnabled) return false;
     const clipboard = buildClipboardFromSelection();
     if (!clipboard) return false;
-    state.clipboard = clipboard;
+    const normalized = cloneClipboard(clipboard);
+    state.clipboard = normalized;
+    setSharedClipboard(normalized);
     updateCopyPasteButtons();
     return true;
   }
@@ -1457,6 +1537,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function destroy() {
     stopEngine();
     removeBoundEvents();
+    try {
+      unsubscribeSharedClipboard();
+    } catch (err) {
+      console.error('Error unsubscribing shared clipboard listener', err);
+    }
     if (keydownHandler) {
       document.removeEventListener('keydown', keydownHandler);
       keydownHandler = null;
