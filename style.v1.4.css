@@ -464,7 +464,8 @@ html, body {
   }
 
   .status-toolbar,
-  .history-toolbar {
+  .history-toolbar,
+  .edit-toolbar {
     display: flex;
     gap: 0.5rem;
     align-items: center;
@@ -475,6 +476,10 @@ html, body {
 
   .history-toolbar {
     margin-bottom: 0.25rem;
+  }
+
+  .edit-toolbar[hidden] {
+    display: none;
   }
 
   .status-toolbar__button {
@@ -519,6 +524,56 @@ html, body {
   .status-toolbar__button:disabled:focus-visible {
     border-color: #e5e7eb;
     box-shadow: none;
+  }
+
+  .toolbar__button {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    border: 1px solid #d4d4d8;
+    background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+
+  .toolbar__button:hover,
+  .toolbar__button:focus-visible {
+    border-color: #6366f1;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+    outline: none;
+  }
+
+  .toolbar__button.active {
+    border-color: #2563eb;
+    background: linear-gradient(180deg, #e0ecff 0%, #d0e2ff 100%);
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25);
+  }
+
+  .toolbar__button:active {
+    transform: translateY(1px);
+  }
+
+  .toolbar__button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    box-shadow: none;
+    border-color: #e5e7eb;
+  }
+
+  .toolbar__button:disabled:hover,
+  .toolbar__button:disabled:focus-visible {
+    border-color: #e5e7eb;
+    box-shadow: none;
+  }
+
+  .toolbar__icon {
+    width: 24px;
+    height: 24px;
+    pointer-events: none;
   }
 
   .status-toolbar__icon {

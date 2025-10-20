@@ -156,6 +156,7 @@ function createLabController({ preserveCircuit = false } = {}) {
     labController.setIOPaletteNames?.(inputs, outputs);
     labController.resizeCanvas?.(innerWidth, innerHeight);
     labController.attachKeyboardHandlers?.();
+    labController.setCopyPasteEnabled?.(true);
     return;
   }
 
@@ -183,6 +184,8 @@ function createLabController({ preserveCircuit = false } = {}) {
       wireStatusInfo: document.getElementById('wireStatusInfo'),
       wireDeleteInfo: document.getElementById('wireDeleteInfo'),
       wireSelectInfo: document.getElementById('wireSelectInfo'),
+      copyButton: document.getElementById('copySelectionBtn'),
+      pasteButton: document.getElementById('pasteSelectionBtn'),
       undoButton: document.getElementById('undoBtn'),
       redoButton: document.getElementById('redoBtn'),
       usedBlocksEl: document.getElementById('usedBlocks'),
@@ -195,6 +198,7 @@ function createLabController({ preserveCircuit = false } = {}) {
       unboundedGrid: true,
       canvasSize: { width: innerWidth, height: innerHeight },
       onCircuitModified: applyDynamicIOPalette,
+      enableCopyPaste: true,
     }
   );
 

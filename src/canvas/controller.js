@@ -182,10 +182,20 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     panning: false,
     panLast: null,
     pinch: null,
+    clipboard: null,
+    pastePreview: null,
+    copyPasteEnabled: Boolean(options.enableCopyPaste),
   };
 
   const eventBindings = [];
   const passiveFalseOption = { passive: false };
+
+  let uniqueIdCounter = 0;
+
+  function nextUniqueId(prefix) {
+    uniqueIdCounter = (uniqueIdCounter + 1) % Number.MAX_SAFE_INTEGER;
+    return `${prefix}${Date.now().toString(36)}_${uniqueIdCounter.toString(36)}`;
+  }
 
   function bindEvent(target, type, handler, options) {
     if (!target || typeof target.addEventListener !== 'function') return;
@@ -338,6 +348,26 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
+  function setMode(nextMode) {
+    const previousMode = state.mode;
+    if (previousMode === nextMode) {
+      updateButtons();
+      return;
+    }
+    state.mode = nextMode;
+    if (previousMode === 'pasting' && nextMode !== 'pasting') {
+      state.pastePreview = null;
+      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      if (state.selection) {
+        drawSelection();
+      }
+    }
+    if (nextMode !== 'pasting') {
+      state.pastePreview = null;
+    }
+    updateButtons();
+  }
+
   function snapshot() {
     undoStack.push(JSON.stringify(circuit));
     if (undoStack.length > 100) undoStack.shift();
@@ -356,16 +386,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     circuit.cols = data.cols;
     circuit.blocks = data.blocks || {};
     circuit.wires = data.wires || {};
-    state.mode = 'idle';
+    state.selection = null;
+    state.selectionDrag = null;
+    setMode('idle');
     state.wireTrace = [];
     state.draggingBlock = null;
-    state.selection = null;
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     syncPaletteWithCircuit();
     refreshBackground();
     renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
     updateUsageCounts();
-    updateButtons();
     notifyCircuitModified();
   }
 
@@ -421,6 +451,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const wireBtn = ui.wireStatusInfo;
   const delBtn = ui.wireDeleteInfo;
   const selectBtn = ui.wireSelectInfo;
+  const copyBtn = ui.copyButton;
+  const pasteBtn = ui.pasteButton;
   const undoBtn = ui.undoButton;
   const redoBtn = ui.redoButton;
   const usedBlocksEl = ui.usedBlocksEl;
@@ -436,6 +468,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     redo();
   });
 
+  bindEvent(copyBtn, 'click', e => {
+    e.preventDefault();
+    copySelection();
+  });
+
+  bindEvent(pasteBtn, 'click', e => {
+    e.preventDefault();
+    togglePasteMode();
+  });
+
   function updateUsageCounts() {
     const blockCount = Object.keys(circuit.blocks).length;
     const wireCells = new Set();
@@ -444,6 +486,38 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
     if (usedBlocksEl) usedBlocksEl.textContent = blockCount;
     if (usedWiresEl) usedWiresEl.textContent = wireCells.size;
+  }
+
+  function updateCopyPasteButtons() {
+    const enabled = Boolean(state.copyPasteEnabled);
+    const hasSelection = Boolean(state.selection && state.selection.blocks?.size);
+    const hasClipboard = Boolean(state.clipboard);
+
+    const toolbar = copyBtn?.parentElement;
+    if (toolbar && typeof toolbar.hidden === 'boolean') {
+      toolbar.hidden = !enabled;
+    }
+
+    if (copyBtn) {
+      copyBtn.hidden = !enabled;
+      copyBtn.disabled = !enabled || !hasSelection;
+    }
+
+    if (pasteBtn) {
+      pasteBtn.hidden = !enabled;
+      pasteBtn.disabled = !enabled || !hasClipboard;
+      pasteBtn.classList.toggle('active', state.mode === 'pasting');
+    }
+  }
+
+  function setCopyPasteEnabled(enabled) {
+    const normalized = Boolean(enabled);
+    state.copyPasteEnabled = normalized;
+    if (!normalized && state.mode === 'pasting') {
+      setMode('idle');
+      return;
+    }
+    updateButtons();
   }
 
   function syncPaletteWithCircuit() {
@@ -648,6 +722,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.selection = null;
     state.selectionDrag = null;
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    updateCopyPasteButtons();
   }
 
   function canDeleteSelection() {
@@ -826,6 +901,216 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCtx.restore();
   }
 
+  function buildClipboardFromSelection() {
+    const sel = state.selection;
+    if (!sel) return null;
+    const origin = { r: sel.r1, c: sel.c1 };
+    const blocks = [];
+    const blockIndexMap = new Map();
+
+    Array.from(sel.blocks || []).forEach(id => {
+      const block = circuit.blocks[id];
+      if (!block) return;
+      const offset = {
+        r: block.pos.r - origin.r,
+        c: block.pos.c - origin.c,
+      };
+      blockIndexMap.set(id, blocks.length);
+      blocks.push({
+        offset,
+        type: block.type,
+        name: block.name,
+        value: Boolean(block.value),
+      });
+    });
+
+    const wires = [];
+    Array.from(sel.wires || []).forEach(id => {
+      const wire = circuit.wires[id];
+      if (!wire || !Array.isArray(wire.path)) return;
+      const startIdx = blockIndexMap.get(wire.startBlockId);
+      const endIdx = blockIndexMap.get(wire.endBlockId);
+      if (!Number.isInteger(startIdx) || !Number.isInteger(endIdx)) return;
+      wires.push({
+        path: wire.path.map(p => ({ r: p.r - origin.r, c: p.c - origin.c })),
+        startBlock: startIdx,
+        endBlock: endIdx,
+      });
+    });
+
+    if (!blocks.length && !wires.length) {
+      return null;
+    }
+
+    return { blocks, wires };
+  }
+
+  function copySelection() {
+    if (!state.copyPasteEnabled) return false;
+    const clipboard = buildClipboardFromSelection();
+    if (!clipboard) return false;
+    state.clipboard = clipboard;
+    updateCopyPasteButtons();
+    return true;
+  }
+
+  function canPasteClipboardAt(anchor, clipboard) {
+    if (!clipboard) return false;
+    const blockTargets = new Set();
+
+    for (const block of clipboard.blocks || []) {
+      const targetR = anchor.r + block.offset.r;
+      const targetC = anchor.c + block.offset.c;
+      if (!withinBounds(targetR, targetC)) return false;
+      if (blockAt({ r: targetR, c: targetC })) return false;
+      if (cellHasWire({ r: targetR, c: targetC })) return false;
+      blockTargets.add(`${targetR},${targetC}`);
+    }
+
+    for (const wire of clipboard.wires || []) {
+      const path = wire.path || [];
+      for (let i = 0; i < path.length; i += 1) {
+        const step = path[i];
+        const targetR = anchor.r + step.r;
+        const targetC = anchor.c + step.c;
+        if (!withinBounds(targetR, targetC)) return false;
+        const key = `${targetR},${targetC}`;
+        const isEndpoint = i === 0 || i === path.length - 1;
+        if (!isEndpoint || !blockTargets.has(key)) {
+          if (blockAt({ r: targetR, c: targetC })) return false;
+        }
+        if (cellHasWire({ r: targetR, c: targetC })) return false;
+      }
+    }
+
+    return true;
+  }
+
+  function drawClipboardPreview(anchor, invalid = false) {
+    const clipboard = state.clipboard;
+    if (!clipboard) return;
+    overlayCtx.save();
+    overlayCtx.fillStyle = invalid ? 'rgba(255,0,0,0.35)' : 'rgba(0,128,255,0.3)';
+    const radius = Math.max(0, CELL_CORNER_RADIUS * getScale());
+    const fillRoundedCell = rect => {
+      overlayCtx.beginPath();
+      roundRect(overlayCtx, rect.x, rect.y, rect.w, rect.h, radius);
+      overlayCtx.fill();
+    };
+
+    (clipboard.blocks || []).forEach(block => {
+      const rect = cellRect(anchor.r + block.offset.r, anchor.c + block.offset.c);
+      fillRoundedCell(rect);
+    });
+
+    (clipboard.wires || []).forEach(wire => {
+      (wire.path || []).forEach(step => {
+        const rect = cellRect(anchor.r + step.r, anchor.c + step.c);
+        fillRoundedCell(rect);
+      });
+    });
+
+    overlayCtx.restore();
+  }
+
+  function applyClipboardAt(anchor) {
+    const clipboard = state.clipboard;
+    if (!clipboard || !canPasteClipboardAt(anchor, clipboard)) return false;
+
+    const blockIdMap = new Map();
+    const newBlockIds = new Set();
+    const newWireIds = new Set();
+
+    clipboard.blocks.forEach((block, index) => {
+      const id = nextUniqueId('b');
+      const target = {
+        r: anchor.r + block.offset.r,
+        c: anchor.c + block.offset.c,
+      };
+      const shouldConvert = block.type === 'INPUT' || block.type === 'OUTPUT';
+      const type = shouldConvert ? 'JUNCTION' : block.type;
+      const name = type === 'JUNCTION' ? 'JUNC' : block.name;
+      const value = shouldConvert ? false : Boolean(block.value);
+      circuit.blocks[id] = newBlock({
+        id,
+        type,
+        name,
+        pos: target,
+        value,
+        fixed: false,
+      });
+      blockIdMap.set(index, id);
+      newBlockIds.add(id);
+    });
+
+    clipboard.wires.forEach(wire => {
+      const startId = blockIdMap.get(wire.startBlock);
+      const endId = blockIdMap.get(wire.endBlock);
+      if (!startId || !endId) return;
+      const id = nextUniqueId('w');
+      const path = (wire.path || []).map(step => ({
+        r: anchor.r + step.r,
+        c: anchor.c + step.c,
+      }));
+      circuit.wires[id] = newWire({
+        id,
+        path,
+        startBlockId: startId,
+        endBlockId: endId,
+      });
+      const endBlock = circuit.blocks[endId];
+      if (endBlock) {
+        const existing = Array.isArray(endBlock.inputs) ? endBlock.inputs : [];
+        if (!existing.includes(startId)) {
+          endBlock.inputs = [...existing, startId];
+        }
+      }
+      newWireIds.add(id);
+    });
+
+    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    updateUsageCounts();
+
+    const selectionBlocks = newBlockIds;
+    const selectionWires = newWireIds;
+    const bounds = computeSelectionBounds(selectionBlocks, selectionWires);
+    if (bounds) {
+      state.selection = {
+        ...bounds,
+        blocks: new Set(selectionBlocks),
+        wires: new Set(selectionWires),
+        cross: false,
+      };
+    } else {
+      state.selection = null;
+    }
+
+    overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+    if (state.selection) {
+      drawSelection();
+    }
+
+    state.pastePreview = null;
+    setMode('idle');
+    state.pointerDown = null;
+    state.pointerMoved = false;
+    snapshot();
+    updateCopyPasteButtons();
+    return true;
+  }
+
+  function togglePasteMode() {
+    if (!state.copyPasteEnabled || !state.clipboard) {
+      return;
+    }
+    if (state.mode === 'pasting') {
+      setMode('idle');
+      return;
+    }
+    state.pastePreview = null;
+    setMode('pasting');
+  }
+
   function canMoveSelection(dr, dc) {
     const sel = state.selection;
     if (!sel || sel.cross) return false;
@@ -945,10 +1230,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const isWireMode = state.mode === 'wireDrawing';
     const isDeleteMode = state.mode === 'deleting';
     const isSelectMode = state.mode === 'selecting';
-    moveBtn?.classList.toggle('active', !isWireMode && !isDeleteMode && !isSelectMode);
+    const isPasteMode = state.mode === 'pasting';
+    moveBtn?.classList.toggle(
+      'active',
+      !isWireMode && !isDeleteMode && !isSelectMode && !isPasteMode
+    );
     wireBtn?.classList.toggle('active', isWireMode);
     delBtn?.classList.toggle('active', isDeleteMode);
     selectBtn?.classList.toggle('active', isSelectMode);
+    pasteBtn?.classList.toggle('active', isPasteMode);
     const canUndo = undoStack.length > 1;
     const canRedo = redoStack.length > 0;
     if (undoBtn) {
@@ -957,6 +1247,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (redoBtn) {
       redoBtn.disabled = !canRedo;
     }
+    updateCopyPasteButtons();
   }
 
   // 공통 포인터 좌표 계산 (마우스/터치)
@@ -1086,11 +1377,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         return;
       }
       if (isControlLikeKey(e)) {
-        state.mode = 'wireDrawing';
-        updateButtons();
+        setMode('wireDrawing');
       } else if (e.key === 'Shift') {
-        state.mode = 'deleting';
-        updateButtons();
+        setMode('deleting');
       } else if (e.key === ' ') {
         e.preventDefault();
         state.spaceHeld = true;
@@ -1115,13 +1404,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function createKeyupHandler() {
     return e => {
       if (isControlLikeKey(e) && state.mode === 'wireDrawing') {
-        state.mode = 'idle';
         state.wireTrace = [];
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-        updateButtons();
+        setMode('idle');
       } else if (e.key === 'Shift' && state.mode === 'deleting') {
-        state.mode = 'idle';
-        updateButtons();
+        setMode('idle');
       } else if (e.key === ' ') {
         state.spaceHeld = false;
         if (state.panning) {
@@ -1165,41 +1452,66 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   moveBtn?.addEventListener('click', () => {
-    state.mode = 'idle';
-    updateButtons();
+    setMode('idle');
   });
 
   wireBtn?.addEventListener('click', () => {
-    state.mode = state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing';
-    updateButtons();
+    setMode(state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing');
   });
 
   delBtn?.addEventListener('click', () => {
-    state.mode = state.mode === 'deleting' ? 'idle' : 'deleting';
-    updateButtons();
+    setMode(state.mode === 'deleting' ? 'idle' : 'deleting');
   });
 
   selectBtn?.addEventListener('click', () => {
-    state.mode = state.mode === 'selecting' ? 'idle' : 'selecting';
-    updateButtons();
+    setMode(state.mode === 'selecting' ? 'idle' : 'selecting');
   });
+
+  setCopyPasteEnabled(state.copyPasteEnabled);
 
   function handlePointerDown(e) {
     if (state.pinch) return true;
     const { x, y } = getPointerPos(e);
-    state.pointerDown = { x, y };
-    state.pointerMoved = false;
-    let handled = false;
     const isMiddleButton = e.button === 1;
     const isPrimary = e.button === 0 || e.button === undefined;
+    const isSecondary = e.button === 2;
     if (useCamera && (isMiddleButton || (state.spaceHeld && isPrimary))) {
       state.panning = true;
       state.panLast = { x, y };
       state.pointerDown = null;
-      handled = true;
+      state.pointerMoved = false;
       e.preventDefault();
-      return handled;
+      return true;
     }
+    if (state.mode === 'pasting') {
+      state.pointerDown = null;
+      state.pointerMoved = false;
+      if (isSecondary) {
+        e.preventDefault();
+        setMode('idle');
+        return true;
+      }
+      if (isPrimary && state.clipboard) {
+        if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+          const cell = pointerToBoundedCell(x, y);
+          if (cell) {
+            const valid = canPasteClipboardAt(cell, state.clipboard);
+            if (valid) {
+              applyClipboardAt(cell);
+            } else {
+              overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+              drawClipboardPreview(cell, true);
+              state.pastePreview = { cell, valid: false };
+            }
+          }
+        }
+        e.preventDefault();
+      }
+      return true;
+    }
+    state.pointerDown = { x, y };
+    state.pointerMoved = false;
+    let handled = false;
     const isSelectionTrigger = e.button === 2 || (state.mode === 'selecting' && isPrimary);
     if (isSelectionTrigger) {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
@@ -1209,12 +1521,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           state.selectStart = cell;
           state.selection = null;
           overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+          updateCopyPasteButtons();
           handled = true;
         }
       }
       if (e.button === 2 && state.mode !== 'selecting') {
-        state.mode = 'selecting';
-        updateButtons();
+        setMode('selecting');
       }
       e.preventDefault();
     } else {
@@ -1433,6 +1745,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.pointerDown = null;
       return;
     }
+    if (state.mode === 'pasting') {
+      state.pointerDown = null;
+      state.pointerMoved = false;
+      return;
+    }
     if (state.selectionDrag) {
       finishSelectionDrag(x, y);
       return;
@@ -1481,9 +1798,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       if (state.selection) drawSelection();
       state.selectStart = null;
+      updateCopyPasteButtons();
       if (state.mode === 'selecting') {
-        state.mode = 'idle';
-        updateButtons();
+        setMode('idle');
       }
       return;
     }
@@ -1633,6 +1950,28 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return false;
     }
+    if (state.mode === 'pasting' && state.clipboard) {
+      let previewCell = null;
+      let valid = false;
+      if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
+        const cell = pointerToBoundedCell(x, y);
+        if (cell) {
+          previewCell = cell;
+          valid = canPasteClipboardAt(cell, state.clipboard);
+        }
+      }
+      overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
+      if (previewCell) {
+        drawClipboardPreview(previewCell, !valid);
+        state.pastePreview = { cell: previewCell, valid };
+      } else {
+        state.pastePreview = null;
+        if (state.selection) {
+          drawSelection();
+        }
+      }
+      return true;
+    }
     if (state.selectionDrag && state.selection) {
       let offset = state.selectionDrag.currentOffset || { dr: 0, dc: 0 };
       let valid = true;
@@ -1703,8 +2042,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (!isValidWireTrace(state.wireTrace)) {
           state.wireTrace = [];
           overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-          state.mode = 'idle';
-          updateButtons();
+          setMode('idle');
           return false;
         }
       }
@@ -1967,6 +2305,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     undo,
     redo,
     stopEngine,
+    setCopyPasteEnabled,
     destroy,
     attachKeyboardHandlers,
     resizeCanvas,

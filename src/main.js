@@ -1118,7 +1118,10 @@ async function startCustomProblem(key, problem) {
     rows,
     cols,
     createCustomProblemPalette(problem),
-    { forceHideInOut: Boolean(problem?.fixIO) }
+    {
+      forceHideInOut: Boolean(problem?.fixIO),
+      enableCopyPaste: true,
+    }
   );
   clearGrid();
   placeFixedIO(problem);
