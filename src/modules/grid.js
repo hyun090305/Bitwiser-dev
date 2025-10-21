@@ -1,4 +1,5 @@
 import { createCamera } from '../canvas/camera.js';
+import { markCircuitDirty } from '../canvas/engine.js';
 import { onThemeChange } from '../themes.js';
 
 const DEFAULT_GRID_SIZE = 6;
@@ -454,6 +455,22 @@ export function clearWires() {
 
 export function markCircuitModified(context) {
   const resolvedContext = resolveCircuitContext(context);
+  if (resolvedContext === CIRCUIT_CONTEXT.PLAY) {
+    if (playCircuit) {
+      markCircuitDirty(playCircuit);
+    }
+  } else if (resolvedContext === CIRCUIT_CONTEXT.PROBLEM) {
+    if (problemCircuit) {
+      markCircuitDirty(problemCircuit);
+    }
+  } else {
+    if (playCircuit) {
+      markCircuitDirty(playCircuit);
+    }
+    if (problemCircuit) {
+      markCircuitDirty(problemCircuit);
+    }
+  }
   notifyCircuitModified(resolvedContext);
   playController?.syncPaletteWithCircuit?.();
   problemController?.syncPaletteWithCircuit?.();

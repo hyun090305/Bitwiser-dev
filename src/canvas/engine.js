@@ -1,3 +1,22 @@
+const dirtyCircuits = new WeakSet();
+
+export function markCircuitDirty(circuit) {
+  if (circuit && typeof circuit === 'object') {
+    dirtyCircuits.add(circuit);
+  }
+}
+
+function consumeCircuitDirty(circuit) {
+  if (!circuit || typeof circuit !== 'object') {
+    return false;
+  }
+  if (!dirtyCircuits.has(circuit)) {
+    return false;
+  }
+  dirtyCircuits.delete(circuit);
+  return true;
+}
+
 function buildBlockAdjacency(circuit) {
   const incoming = new Map();
   const outgoing = new Map();
@@ -93,6 +112,8 @@ export function evaluateCircuit(circuit) {
     b.value = values.get(b.id) || false;
   });
 
+  dirtyCircuits.delete(circuit);
+
   return circuit.blocks;
 }
 
@@ -128,10 +149,12 @@ export function startEngine(ctx, circuit, renderer) {
   function tick(time) {
     if (!running) return;
     rafId = null;
-    // Recompute circuit values every frame based solely on the
-    // in-memory circuit model so block states stay in sync with
-    // current connections and input values.
-    evaluateCircuit(circuit);
+    // Only recompute block states when another part of the system flagged
+    // the circuit as dirty. This avoids unnecessary work for interactions
+    // like panning that do not alter the circuit topology or inputs.
+    if (consumeCircuitDirty(circuit)) {
+      evaluateCircuit(circuit);
+    }
     if (lastTime === null) {
       lastTime = time;
     }
@@ -155,6 +178,7 @@ export function startEngine(ctx, circuit, renderer) {
     }
   }
 
+  evaluateCircuit(circuit);
   scheduleNext();
 
   return {

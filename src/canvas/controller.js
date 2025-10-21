@@ -8,7 +8,7 @@ import {
   roundRect,
   CELL_CORNER_RADIUS
 } from './renderer.js';
-import { evaluateCircuit, startEngine } from './engine.js';
+import { evaluateCircuit, markCircuitDirty, startEngine } from './engine.js';
 
 let keydownHandler = null;
 let keyupHandler = null;
@@ -395,6 +395,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function notifyCircuitModified() {
+    markCircuitDirty(circuit);
     if (typeof onCircuitModified === 'function') {
       try {
         onCircuitModified();
