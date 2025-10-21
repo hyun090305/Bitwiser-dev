@@ -115,7 +115,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     ? externalCamera
     : null;
   const useCamera = Boolean(camera);
-  const MIN_CAMERA_SCALE = 0.2;
+  const MIN_CAMERA_SCALE = unboundedGrid ? 0.05 : 0.2;
   const MAX_CAMERA_SCALE = 3;
   const ZOOM_SENSITIVITY = 0.0015;
   const gap = 10;
