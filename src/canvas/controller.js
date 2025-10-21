@@ -697,6 +697,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return Object.values(circuit.blocks).find(b => b.pos.r === cell.r && b.pos.c === cell.c);
   }
 
+  function isConnectorType(type) {
+    return type === 'INPUT' || type === 'OUTPUT' || type === 'JUNCTION';
+  }
+
   function cellHasWire(cell) {
     return Object.values(circuit.wires).some(w => w.path.some(p => p.r === cell.r && p.c === cell.c));
   }
@@ -1075,15 +1079,22 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function canPasteClipboardAt(anchor, clipboard) {
     if (!clipboard) return false;
-    const blockTargets = new Set();
+    const blockTargets = new Map();
 
     for (const block of clipboard.blocks || []) {
       const targetR = anchor.r + block.offset.r;
       const targetC = anchor.c + block.offset.c;
       if (!withinBounds(targetR, targetC)) return false;
-      if (blockAt({ r: targetR, c: targetC })) return false;
-      if (cellHasWire({ r: targetR, c: targetC })) return false;
-      blockTargets.add(`${targetR},${targetC}`);
+      const targetCell = { r: targetR, c: targetC };
+      const existing = blockAt(targetCell);
+      if (existing) {
+        if (!isConnectorType(existing.type) || !isConnectorType(block.type)) return false;
+      } else {
+        if (cellHasWire(targetCell)) return false;
+      }
+      blockTargets.set(`${targetR},${targetC}`, {
+        existing: Boolean(existing),
+      });
     }
 
     for (const wire of clipboard.wires || []) {
@@ -1095,10 +1106,16 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         if (!withinBounds(targetR, targetC)) return false;
         const key = `${targetR},${targetC}`;
         const isEndpoint = i === 0 || i === path.length - 1;
-        if (!isEndpoint || !blockTargets.has(key)) {
-          if (blockAt({ r: targetR, c: targetC })) return false;
+        const targetInfo = blockTargets.get(key);
+        const targetCell = { r: targetR, c: targetC };
+        if (!isEndpoint || !targetInfo) {
+          if (blockAt(targetCell)) return false;
         }
-        if (cellHasWire({ r: targetR, c: targetC })) return false;
+        if (cellHasWire(targetCell)) {
+          if (!(isEndpoint && targetInfo && targetInfo.existing)) {
+            return false;
+          }
+        }
       }
     }
 
@@ -1140,12 +1157,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     const newBlockIds = new Set();
     const newWireIds = new Set();
 
-    clipboard.blocks.forEach((block, index) => {
-      const id = nextUniqueId('b');
+    (clipboard.blocks || []).forEach((block, index) => {
       const target = {
         r: anchor.r + block.offset.r,
         c: anchor.c + block.offset.c,
       };
+      const existing = blockAt(target);
+      if (existing && isConnectorType(existing.type) && isConnectorType(block.type)) {
+        blockIdMap.set(index, existing.id);
+        return;
+      }
+      const id = nextUniqueId('b');
       const shouldConvert = block.type === 'INPUT' || block.type === 'OUTPUT';
       const type = shouldConvert ? 'JUNCTION' : block.type;
       const name = type === 'JUNCTION' ? 'JUNC' : block.name;
