@@ -222,7 +222,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   const camera = isProblemContainer ? problemCamera : playCamera;
 
   if (camera && typeof controller?.resizeCanvas === 'function') {
-    const MIN_CAMERA_SCALE = 0.2;
+    const MIN_CAMERA_SCALE = 0.1;
     const resolvedPanelWidth = Number.isFinite(panelWidth)
       ? panelWidth
       : Math.max(0, baseWidth - (Number.isFinite(baseGridWidth) ? baseGridWidth : 0));
