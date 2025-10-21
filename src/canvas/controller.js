@@ -1154,9 +1154,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     if (!clipboard || !canPasteClipboardAt(anchor, clipboard)) return false;
 
     const blockIdMap = new Map();
-    const newBlockIds = new Set();
-    const newWireIds = new Set();
-
     (clipboard.blocks || []).forEach((block, index) => {
       const target = {
         r: anchor.r + block.offset.r,
@@ -1181,7 +1178,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         fixed: false,
       });
       blockIdMap.set(index, id);
-      newBlockIds.add(id);
     });
 
     clipboard.wires.forEach(wire => {
@@ -1206,30 +1202,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           endBlock.inputs = [...existing, startId];
         }
       }
-      newWireIds.add(id);
     });
 
     renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
     updateUsageCounts();
 
-    const selectionBlocks = newBlockIds;
-    const selectionWires = newWireIds;
-    const bounds = computeSelectionBounds(selectionBlocks, selectionWires);
-    if (bounds) {
-      state.selection = {
-        ...bounds,
-        blocks: new Set(selectionBlocks),
-        wires: new Set(selectionWires),
-        cross: false,
-      };
-    } else {
-      state.selection = null;
-    }
-
-    overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    if (state.selection) {
-      drawSelection();
-    }
+    clearSelection();
 
     state.pastePreview = null;
     setMode('idle');
@@ -2026,7 +2004,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         } else if (state.draggingBlock.id) {
           const existingBlock = blockAt(cell);
           const occupiedByWire = cellHasWire(cell);
-          if (existingBlock && !occupiedByWire) {
+          if (existingBlock) {
             const replaced = replaceExistingBlock(existingBlock, {
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
@@ -2071,10 +2049,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               pos: cell,
             });
             placed = true;
-          } else if (!occupiedByWire) {
+          } else if (existingBlock) {
             const replaced = replaceExistingBlock(existingBlock, {
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
+              value: state.draggingBlock.value,
             });
             placed = replaced;
           }
