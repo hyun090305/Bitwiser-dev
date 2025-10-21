@@ -62,7 +62,7 @@ export function evaluateCircuit(circuit) {
 
   const queue = [...blocks];
   const enqueued = new Set(queue.map(b => b.id));
-  const maxIterations = Math.max(1, blocks.length * 10);
+  const maxIterations = Math.max(1, blocks.length * blocks.length);
   let iterations = 0;
 
   while (queue.length && iterations < maxIterations) {
