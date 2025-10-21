@@ -267,8 +267,8 @@ const THEMES = [
       itemBorderColor: 'rgba(6, 182, 212, 0.55)'
     },
     block: {
-      fill: ['#0ea5e9', '#38bdf8'],
-      hoverFill: ['#38bdf8', '#67e8f9'],
+      fill: ['#29586e', '#2b6680'],
+      hoverFill: ['#367591', '#2e7594'],
       textColor: '#f8fafc',
       activeFill: {
         type: 'linear',
