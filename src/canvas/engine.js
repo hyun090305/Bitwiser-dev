@@ -1,28 +1,35 @@
-// Return the upstream block connected by a wire, if any.
-// In the canvas model wires directly store start/end block ids so we can
-// simply look up the block.  excludeBlock can be provided to avoid
-// returning the same node when evaluating.
-export function getBlockNodeFlow(circuit, wire, excludeBlock) {
-  if (!wire || !wire.startBlockId) return null;
-  if (excludeBlock && wire.startBlockId === excludeBlock.id) return null;
-  return circuit.blocks[wire.startBlockId] || null;
+function buildBlockAdjacency(circuit) {
+  const incoming = new Map();
+  const outgoing = new Map();
+
+  Object.values(circuit.wires).forEach(wire => {
+    const { startBlockId, endBlockId } = wire;
+    if (!startBlockId || !endBlockId) return;
+
+    if (!incoming.has(endBlockId)) {
+      incoming.set(endBlockId, []);
+    }
+    incoming.get(endBlockId).push(startBlockId);
+
+    if (!outgoing.has(startBlockId)) {
+      outgoing.set(startBlockId, []);
+    }
+    outgoing.get(startBlockId).push(endBlockId);
+  });
+
+  return { incoming, outgoing };
 }
 
 // Compute the logical output of a single block given current values.
-export function computeBlock(circuit, block, values) {
+export function computeBlock(block, values, incomingMap) {
   // INPUT blocks simply keep their assigned value
   if (block.type === 'INPUT') {
     return values.get(block.id);
   }
 
-  // gather incoming blocks via wires that end at this block
-  const incoming = Object.values(circuit.wires)
-    .filter(w => w.endBlockId === block.id)
-    .map(w => getBlockNodeFlow(circuit, w, block))
-    .filter(Boolean);
-
+  const incoming = incomingMap.get(block.id) || [];
   const readyVals = incoming
-    .map(b => values.get(b.id))
+    .map(id => values.get(id))
     .filter(v => v !== undefined);
 
   switch (block.type) {
@@ -45,26 +52,44 @@ export function computeBlock(circuit, block, values) {
 // instead of traversing DOM cells.
 export function evaluateCircuit(circuit) {
   const values = new Map();
-  Object.values(circuit.blocks)
+  const blocks = Object.values(circuit.blocks);
+
+  blocks
     .filter(b => b.type === 'INPUT')
     .forEach(b => values.set(b.id, !!b.value));
 
-  let changed = true;
-  let guard = 0;
-  while (changed && guard++ < 1000) {
-    changed = false;
-    Object.values(circuit.blocks).forEach(b => {
-      const oldVal = values.get(b.id);
-      const newVal = computeBlock(circuit, b, values);
-      if (newVal !== undefined && newVal !== oldVal) {
-        values.set(b.id, newVal);
-        changed = true;
-      }
+  const { incoming, outgoing } = buildBlockAdjacency(circuit);
+
+  const queue = [...blocks];
+  const enqueued = new Set(queue.map(b => b.id));
+  const maxIterations = Math.max(1, blocks.length * 10);
+  let iterations = 0;
+
+  while (queue.length && iterations < maxIterations) {
+    iterations += 1;
+    const block = queue.shift();
+    enqueued.delete(block.id);
+
+    const oldVal = values.get(block.id);
+    const newVal = computeBlock(block, values, incoming);
+
+    if (newVal === undefined || newVal === oldVal) {
+      continue;
+    }
+
+    values.set(block.id, newVal);
+
+    const downstream = outgoing.get(block.id) || [];
+    downstream.forEach(id => {
+      const next = circuit.blocks[id];
+      if (!next || enqueued.has(id)) return;
+      queue.push(next);
+      enqueued.add(id);
     });
   }
 
   // apply computed values back to blocks
-  Object.values(circuit.blocks).forEach(b => {
+  blocks.forEach(b => {
     b.value = values.get(b.id) || false;
   });
 
