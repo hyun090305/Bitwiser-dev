@@ -3611,7 +3611,7 @@ body.lab-mode-active {
 
 .community-card__actions {
   display: flex;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 0.5rem;
   flex-wrap: wrap;
 }
