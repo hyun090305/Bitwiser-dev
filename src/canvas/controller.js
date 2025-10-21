@@ -351,10 +351,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   if (useCamera) {
-    camera.setOnChange(() => {
+    let cameraRaf = null;
+    const requestFrame =
+      typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function'
+        ? window.requestAnimationFrame.bind(window)
+        : cb => setTimeout(cb, 16);
+    const cancelFrame =
+      typeof window !== 'undefined' && typeof window.cancelAnimationFrame === 'function'
+        ? window.cancelAnimationFrame.bind(window)
+        : clearTimeout;
+    const flushCameraRefresh = () => {
+      cameraRaf = null;
       refreshBackground();
       refreshContent();
+    };
+    camera.setOnChange(() => {
+      if (cameraRaf != null) return;
+      cameraRaf = requestFrame(flushCameraRefresh);
     });
+    const previousDestroy = destroy;
+    destroy = function destroyWithCameraCleanup() {
+      if (cameraRaf != null) {
+        cancelFrame(cameraRaf);
+        cameraRaf = null;
+      }
+      if (typeof camera.setOnChange === 'function') {
+        camera.setOnChange(null);
+      }
+      previousDestroy();
+    };
   }
 
   function resolveMinCanvasHeight(options) {
