@@ -272,6 +272,126 @@ function resetTransformAndClear(ctx) {
   ctx.restore();
 }
 
+function getCanvasViewportSize(ctx) {
+  const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
+  const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
+  const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
+  const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
+  const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
+  return { width, height };
+}
+
+function getVisibleWorldBounds(ctx, camera, viewportSize) {
+  if (!camera || typeof camera.getState !== 'function') {
+    return null;
+  }
+  const { width: fallbackWidth, height: fallbackHeight } = viewportSize || getCanvasViewportSize(ctx);
+  const state = camera.getState();
+  if (!state || !Number.isFinite(state.scale) || state.scale <= 0) {
+    return null;
+  }
+  const panelFromState = Number.isFinite(state.panelWidth) ? state.panelWidth : null;
+  const datasetPanel = Number.parseFloat(ctx.canvas.dataset?.panelWidth || '');
+  const panelWidth = Number.isFinite(panelFromState)
+    ? panelFromState
+    : Number.isFinite(datasetPanel)
+    ? datasetPanel
+    : 0;
+  const viewportWidth = Number.isFinite(state.viewportWidth) && state.viewportWidth > 0
+    ? state.viewportWidth
+    : fallbackWidth;
+  const viewportHeight = Number.isFinite(state.viewportHeight) && state.viewportHeight > 0
+    ? state.viewportHeight
+    : fallbackHeight;
+
+  const left = Math.min(panelWidth, viewportWidth);
+  const right = Math.max(panelWidth, viewportWidth);
+  const top = 0;
+  const bottom = viewportHeight;
+  const topLeft = camera.screenToWorld(left, top);
+  const bottomRight = camera.screenToWorld(right, bottom);
+
+  return {
+    minX: Math.min(topLeft.x, bottomRight.x),
+    minY: Math.min(topLeft.y, bottomRight.y),
+    maxX: Math.max(topLeft.x, bottomRight.x),
+    maxY: Math.max(topLeft.y, bottomRight.y),
+    panelWidth,
+    viewportWidth,
+    viewportHeight,
+    scale: state.scale,
+    originX: state.originX,
+    originY: state.originY
+  };
+}
+
+function expandBounds(bounds, padding) {
+  if (!bounds) return null;
+  const pad = Number.isFinite(padding) ? Math.max(0, padding) : 0;
+  return {
+    minX: bounds.minX - pad,
+    minY: bounds.minY - pad,
+    maxX: bounds.maxX + pad,
+    maxY: bounds.maxY + pad
+  };
+}
+
+function rectIntersects(bounds, rect) {
+  if (!bounds || !rect) return true;
+  const epsilon = 1e-3;
+  return !(
+    rect.maxX < bounds.minX - epsilon ||
+    rect.minX > bounds.maxX + epsilon ||
+    rect.maxY < bounds.minY - epsilon ||
+    rect.minY > bounds.maxY + epsilon
+  );
+}
+
+function blockWorldRect(block) {
+  if (!block || !block.pos) return null;
+  const { r, c } = block.pos;
+  if (!Number.isFinite(r) || !Number.isFinite(c)) return null;
+  const x = GAP + c * PITCH;
+  const y = GAP + r * PITCH;
+  return {
+    minX: x,
+    minY: y,
+    maxX: x + CELL,
+    maxY: y + CELL
+  };
+}
+
+function wireWorldBounds(wire) {
+  if (!wire || !Array.isArray(wire.path) || wire.path.length === 0) {
+    return null;
+  }
+  let minRow = Number.POSITIVE_INFINITY;
+  let minCol = Number.POSITIVE_INFINITY;
+  let maxRow = Number.NEGATIVE_INFINITY;
+  let maxCol = Number.NEGATIVE_INFINITY;
+  wire.path.forEach(step => {
+    if (!step) return;
+    const { r, c } = step;
+    if (Number.isFinite(r)) {
+      minRow = Math.min(minRow, r);
+      maxRow = Math.max(maxRow, r);
+    }
+    if (Number.isFinite(c)) {
+      minCol = Math.min(minCol, c);
+      maxCol = Math.max(maxCol, c);
+    }
+  });
+  if (!Number.isFinite(minRow) || !Number.isFinite(minCol) || !Number.isFinite(maxRow) || !Number.isFinite(maxCol)) {
+    return null;
+  }
+  return {
+    minX: GAP + minCol * PITCH,
+    minY: GAP + minRow * PITCH,
+    maxX: GAP + maxCol * PITCH + CELL,
+    maxY: GAP + maxRow * PITCH + CELL
+  };
+}
+
 function drawSimpleGridLines(ctx, config) {
   if (!config) return;
   const {
@@ -446,12 +566,12 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   resetTransformAndClear(ctx);
 
   if (camera) {
-    const { panelWidth, scale, originX, originY } = camera.getState();
-    const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
-    const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
-    const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
-    const width = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
-    const height = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
+    const viewportSize = getCanvasViewportSize(ctx);
+    const state = typeof camera.getState === 'function' ? camera.getState() : {};
+    const bounds = getVisibleWorldBounds(ctx, camera, viewportSize);
+    const { panelWidth = 0, scale = 1, originX = 0, originY = 0 } = state;
+    const width = viewportSize.width;
+    const height = viewportSize.height;
 
     ctx.save();
     if (background && rows > 0 && cols > 0) {
@@ -480,17 +600,17 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
       ctx.restore();
     }
 
-    const visibleWidth = (width - panelWidth) / scale;
-    const visibleHeight = height / scale;
-    const startWorldX = originX;
-    const endWorldX = originX + visibleWidth;
-    const startWorldY = originY;
-    const endWorldY = originY + visibleHeight;
-
-    const startCol = Math.max(0, Math.floor((startWorldX - GAP) / PITCH) - 1);
-    const endCol = Math.min(cols - 1, Math.ceil((endWorldX - GAP) / PITCH) + 1);
-    const startRow = Math.max(0, Math.floor((startWorldY - GAP) / PITCH) - 1);
-    const endRow = Math.min(rows - 1, Math.ceil((endWorldY - GAP) / PITCH) + 1);
+    const effectiveBounds = bounds || {
+      minX: originX,
+      minY: originY,
+      maxX: originX + Math.max(0, (width - panelWidth) / Math.max(scale, 1e-6)),
+      maxY: originY + Math.max(0, height / Math.max(scale, 1e-6))
+    };
+    const paddedBounds = expandBounds(effectiveBounds, PITCH);
+    const startCol = Math.max(0, Math.floor((paddedBounds.minX - GAP) / PITCH));
+    const endCol = Math.min(cols - 1, Math.ceil((paddedBounds.maxX - GAP) / PITCH));
+    const startRow = Math.max(0, Math.floor((paddedBounds.minY - GAP) / PITCH));
+    const endRow = Math.min(rows - 1, Math.ceil((paddedBounds.maxY - GAP) / PITCH));
 
     if (startCol <= endCol && startRow <= endRow) {
       const scaledCell = CELL * scale;
@@ -791,11 +911,7 @@ export function renderContent(
     resetTransformAndClear(ctx);
   }
   const panelClipWidth = offsetX;
-  const baseWidth = Number.parseFloat(ctx.canvas.dataset?.baseWidth || '');
-  const baseHeight = Number.parseFloat(ctx.canvas.dataset?.baseHeight || '');
-  const dpr = Number.parseFloat(ctx.canvas.dataset?.dpr || '') || window.devicePixelRatio || 1;
-  const clipWidth = Number.isFinite(baseWidth) ? baseWidth : ctx.canvas.width / dpr;
-  const clipHeight = Number.isFinite(baseHeight) ? baseHeight : ctx.canvas.height / dpr;
+  const { width: clipWidth, height: clipHeight } = getCanvasViewportSize(ctx);
   ctx.save();
   if (panelClipWidth > 0) {
     ctx.beginPath();
@@ -810,12 +926,16 @@ export function renderContent(
   if (camera) {
     offsetX = 0;
   }
-  Object.values(circuit.wires).forEach(w =>
-    drawWire(ctx, w, phase, offsetX, camera, styleOptions)
-  );
-  Object.values(circuit.blocks).forEach(b =>
-    drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions)
-  );
+  const rawBounds = camera ? getVisibleWorldBounds(ctx, camera, { width: clipWidth, height: clipHeight }) : null;
+  const contentBounds = expandBounds(rawBounds, PITCH);
+  const wires = contentBounds
+    ? Object.values(circuit.wires).filter(w => rectIntersects(contentBounds, wireWorldBounds(w)))
+    : Object.values(circuit.wires);
+  const blocks = contentBounds
+    ? Object.values(circuit.blocks).filter(b => rectIntersects(contentBounds, blockWorldRect(b)))
+    : Object.values(circuit.blocks);
+  wires.forEach(w => drawWire(ctx, w, phase, offsetX, camera, styleOptions));
+  blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
   ctx.restore();
 }
 
