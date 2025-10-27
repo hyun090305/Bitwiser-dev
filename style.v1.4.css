@@ -2855,7 +2855,8 @@ html, body {
 
 @media (max-width: 1024px) {
   :root {
-    --menuBarWidth: 34vh;
+    --menuBarWidth: clamp(160px, 42vw, 280px);
+    --menuBarCollapsedWidth: clamp(48px, 12vw, 72px);
   }
 
   #menuBar {
@@ -2880,8 +2881,8 @@ html, body {
   #menuBar button:not(#menuToggleBtn) {
     width: 100%;
     word-break: keep-all;
-    font-size: 1.6vw;
-    height: 4vw;
+    font-size: clamp(12px, 1.6vw, 16px);
+    height: clamp(36px, 4vw, 48px);
     margin: 0;
     padding: 0;
     box-sizing: border-box;
@@ -2926,7 +2927,7 @@ html, body {
   }
 
   #menuBar.collapsed {
-    width: 6vh;
+    width: var(--menuBarCollapsedWidth, 6vh);
     height: auto;
     padding: 5px;
   }
