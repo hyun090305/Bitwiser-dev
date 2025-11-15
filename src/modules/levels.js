@@ -35,6 +35,9 @@ let levelHints = {};
 let clearedLevelsFromDb = [];
 let stageDataPromise = Promise.resolve();
 let currentLevel = null;
+let worldStateManager = null;
+let navigationController = null;
+let activeWorldContext = null;
 
 function parseSpacingValue(primary, secondary, fallback) {
   const tryParse = value => {
@@ -122,6 +125,12 @@ const dependencies = {
 
 export function configureLevelModule(options = {}) {
   Object.assign(dependencies, options);
+  if (options.worldStateManager) {
+    worldStateManager = options.worldStateManager;
+  }
+  if (options.navigation) {
+    navigationController = options.navigation;
+  }
 }
 
 export function getStageDataPromise() {
@@ -209,13 +218,20 @@ export function loadStageData(currentLang) {
   return stageDataPromise;
 }
 
-export async function startLevel(level, { onIntroComplete } = {}) {
+export async function startLevel(level, { onIntroComplete, worldContext } = {}) {
   await stageDataPromise;
   await loadClearedLevelsFromDb();
   const [rows, cols] = levelGridSizes[level] || [DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE];
   setGridDimensions(rows, cols);
 
   currentLevel = parseInt(level, 10);
+  if (worldContext && worldContext.nodeId && worldStateManager) {
+    activeWorldContext = worldContext;
+    worldStateManager.setActiveNode(worldContext.nodeId);
+  } else if (worldStateManager) {
+    const node = worldStateManager.findNodeByLevel(level);
+    activeWorldContext = node ? worldStateManager.activateNode(node.id) : null;
+  }
   const title = document.getElementById('gameTitle');
   if (title) {
     title.textContent = levelTitles[level] ?? `Stage ${level}`;
@@ -237,6 +253,10 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     createPaletteForLevel(level),
     { enableCopyPaste: level >= 7 }
   );
+
+  if (navigationController?.goToPlay) {
+    navigationController.goToPlay();
+  }
 
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {
@@ -268,6 +288,12 @@ export function markLevelCleared(level) {
     refreshClearedUI();
     renderChapterList();
   }
+  if (worldStateManager) {
+    const node = worldStateManager.findNodeByLevel(level);
+    if (node) {
+      worldStateManager.markNodeCleared(node.id);
+    }
+  }
 }
 
 export async function returnToLevels({
@@ -276,6 +302,10 @@ export async function returnToLevels({
 } = {}) {
   destroyPlayContext();
   document.body.classList.remove('game-active');
+  if (worldStateManager && activeWorldContext?.nodeId) {
+    worldStateManager.setActiveNode(null);
+  }
+  activeWorldContext = null;
 
   const gameScreen = document.getElementById('gameScreen');
   if (gameScreen) {
@@ -311,6 +341,10 @@ export async function returnToLevels({
     );
   }
 
+  if (navigationController?.goToMap) {
+    navigationController.goToMap();
+  }
+
   await Promise.all([
     renderChapterList(),
     (async () => {
@@ -334,7 +368,15 @@ export async function renderChapterList() {
     item.className = 'chapterItem';
     const unlocked = idx === 0
       ? true
-      : chapterData[idx - 1].stages.every(s => cleared.includes(s));
+      : chapterData[idx - 1].stages.every(stageId => {
+        if (!worldStateManager) {
+          return cleared.includes(stageId);
+        }
+        const node = worldStateManager.findNodeByLevel(stageId);
+        if (!node) return cleared.includes(stageId);
+        const context = worldStateManager.buildContext(node.id);
+        return context ? context.cleared : cleared.includes(stageId);
+      });
     if (!unlocked) {
       item.classList.add('locked');
       item.textContent = `${chapter.name} 🔒`;
@@ -392,24 +434,31 @@ export async function renderStageList(stageList) {
       desc = parts.slice(1).join(':').trim();
     }
     card.innerHTML = `<h3>${name}</h3><p>${desc}</p>`;
-    const unlocked = isLevelUnlocked(level);
+    const worldNode = worldStateManager ? worldStateManager.findNodeByLevel(level) : null;
+    const worldContext = worldNode ? worldStateManager.buildContext(worldNode.id) : null;
+    const unlocked = worldContext ? worldContext.unlocked : isLevelUnlocked(level);
     if (!unlocked) {
       card.classList.add('locked');
     } else {
-      if (clearedLevelsFromDb.includes(level)) {
+      const isCleared = worldContext ? worldContext.cleared : clearedLevelsFromDb.includes(level);
+      if (isCleared) {
         card.classList.add('cleared');
         const check = createCheckmarkSvg();
         card.appendChild(check);
       }
       card.onclick = async () => {
         returnToEditScreen();
-        await startLevel(level);
+        const context = worldNode ? worldStateManager.activateNode(worldNode.id) : null;
+        await startLevel(level, { worldContext: context });
         const chapterStageScreen = document.getElementById('chapterStageScreen');
         const gameScreen = document.getElementById('gameScreen');
         if (chapterStageScreen) chapterStageScreen.style.display = 'none';
         if (gameScreen) gameScreen.style.display = 'flex';
         document.body.classList.add('game-active');
       };
+    }
+    if (worldNode && worldStateManager?.getActiveNode()?.id === worldNode.id) {
+      card.classList.add('active');
     }
     stageListEl.appendChild(card);
 
@@ -453,6 +502,14 @@ export function loadClearedLevelsFromDb() {
   return fetchClearedLevels(nickname).then(levels => {
     clearedLevelsFromDb = levels;
     refreshClearedUI();
+    if (worldStateManager) {
+      levels.forEach(level => {
+        const node = worldStateManager.findNodeByLevel(level);
+        if (node) {
+          worldStateManager.markNodeCleared(node.id);
+        }
+      });
+    }
     return levels;
   });
 }
@@ -476,6 +533,9 @@ export function fetchClearedLevels(nickname) {
 }
 
 export function isLevelUnlocked(level) {
+  if (worldStateManager) {
+    return worldStateManager.isLevelUnlocked(level);
+  }
   const cleared = clearedLevelsFromDb;
   for (let idx = 0; idx < chapterData.length; idx++) {
     const chap = chapterData[idx];
@@ -611,7 +671,10 @@ function refreshClearedUI() {
     const level = parseInt(card.dataset.stage, 10);
     card.classList.remove('cleared');
     const check = card.querySelector('.checkmark');
-    if (clearedLevelsFromDb.includes(level)) {
+    const worldNode = worldStateManager ? worldStateManager.findNodeByLevel(level) : null;
+    const worldContext = worldNode ? worldStateManager.buildContext(worldNode.id) : null;
+    const cleared = worldContext ? worldContext.cleared : clearedLevelsFromDb.includes(level);
+    if (cleared) {
       card.classList.add('cleared');
       if (!check) {
         const svg = createCheckmarkSvg(true);
