@@ -87,7 +87,6 @@ import {
 } from './themes.js';
 import { drawGrid, renderContent, setupCanvas } from './canvas/renderer.js';
 import { CELL, GAP } from './canvas/model.js';
-import { createWorldStateManager } from './modules/worldState.js';
 
 void uiModule;
 
@@ -96,7 +95,6 @@ const {
   loadStageData,
   getStageDataPromise,
   renderChapterList,
-  renderStageList,
   selectChapter,
   startLevel,
   returnToEditScreen,
@@ -115,13 +113,8 @@ const {
   getCurrentLevel,
   clearCurrentLevel,
   getClearedLevels,
-  getSelectedChapterIndex,
   buildPaletteGroups
 } = levelsModule;
-const worldStateManager = createWorldStateManager();
-worldStateManager.load();
-let navigationController = null;
-let stagePromise = Promise.resolve();
 
 initializeAuth();
 
@@ -261,86 +254,6 @@ const clearedModalOptions = {
   startLevel,
   returnToEditScreen
 };
-
-function buildWorldNodesFromChapters(chapters = []) {
-  const nodes = [];
-  let lastGlobalNodeId = null;
-  chapters.forEach((chapter, chapterIndex) => {
-    let previousChapterNode = null;
-    (chapter.stages || []).forEach((stageId, stageIndex) => {
-      const nodeId = `chapter:${chapter.id ?? chapterIndex}:stage:${stageId}`;
-      const requires = [];
-      if (previousChapterNode) {
-        requires.push(previousChapterNode);
-      } else if (lastGlobalNodeId) {
-        requires.push(lastGlobalNodeId);
-      }
-      nodes.push({
-        id: nodeId,
-        level: stageId,
-        chapterId: chapter.id ?? `chapter-${chapterIndex}`,
-        chapterIndex,
-        stageIndex,
-        requires
-      });
-      previousChapterNode = nodeId;
-      lastGlobalNodeId = nodeId;
-    });
-  });
-  return nodes;
-}
-
-async function renderWorldMapView() {
-  await renderChapterList();
-  const chapters = getChapterData();
-  if (!Array.isArray(chapters) || !chapters.length) return;
-  let selectedIndex = getSelectedChapterIndex();
-  if (!Number.isFinite(selectedIndex) || selectedIndex < 0) {
-    selectedIndex = 0;
-  }
-  if (selectedIndex >= chapters.length) {
-    selectedIndex = chapters.length - 1;
-  }
-  const chapter = chapters[selectedIndex];
-  if (chapter) {
-    await renderStageList(chapter.stages);
-  }
-}
-
-async function bootstrapWorldExperience() {
-  await stagePromise;
-  const chapters = getChapterData();
-  const nodes = buildWorldNodesFromChapters(chapters);
-  const initialUnlocked = nodes.length ? [nodes[0].id] : [];
-  worldStateManager.setNodes(nodes, { initialUnlocked });
-
-  const renderWorldMap = () => renderWorldMapView().catch(err => {
-    console.error('Failed to render world map', err);
-  });
-  const openLabFromNav = () => {
-    const labBtn = document.getElementById('labBtn');
-    if (labBtn) {
-      labBtn.click();
-    }
-  };
-
-  navigationController = setupNavigation({
-    worldState: worldStateManager,
-    renderWorldMap,
-    renderUserProblemList,
-    refreshUserData,
-    enterLab: openLabFromNav
-  });
-
-  configureLevelModule({
-    showOverallRanking,
-    renderUserProblemList,
-    worldStateManager,
-    navigation: navigationController
-  });
-
-  await renderWorldMapView();
-}
 
 // Preload heavy canvas modules so they are ready when a stage begins.
 // This reduces the delay caused by dynamic imports later in the game.
@@ -564,7 +477,7 @@ window.addEventListener("DOMContentLoaded", () => {
     submitButtonId: 'guestSubmitBtn'
   });
 
-  stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
+  const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
     const prevMenuBtn = document.getElementById('prevStageBtnMenu');
     const nextMenuBtn = document.getElementById('nextStageBtnMenu');
 
@@ -1139,14 +1052,21 @@ document.addEventListener("DOMContentLoaded", () => {
   syncGameAreaBackground(getThemeById(getActiveThemeId()));
   onThemeChange(syncGameAreaBackground);
   setupGameAreaPadding();
-  Promise.all(initialTasks)
-    .then(() => bootstrapWorldExperience())
-    .catch(err => {
-      console.error('Failed to initialize Bitwiser world', err);
-    })
-    .finally(() => {
-      hideLoadingScreen();
+  Promise.all(initialTasks).then(() => {
+    setupNavigation({
+      refreshUserData,
+      renderChapterList,
+      getClearedLevels,
+      renderUserProblemList,
+      selectChapter: index => {
+        const chapters = getChapterData();
+        if (chapters.length > index) {
+          selectChapter(index);
+        }
+      }
     });
+    hideLoadingScreen();
+  });
 });
 
 
@@ -1166,6 +1086,8 @@ if (closeSavedModalBtn) {
   closeSavedModalBtn.addEventListener('click', closeSavedModal);
 }
 
+configureLevelModule({ showOverallRanking });
+
 
 
 function getCurrentController() {
@@ -1176,6 +1098,8 @@ function getCurrentController() {
   return getPlayController();
 }
 const userProblemsScreen = document.getElementById('user-problems-screen');
+
+configureLevelModule({ renderUserProblemList });
 
 initializeHintUI();
 initializeLabMode();

@@ -224,8 +224,6 @@ function showLabScreen() {
   if (!labScreen) return;
   const firstScreen = document.getElementById('firstScreen');
   if (firstScreen) firstScreen.style.display = 'none';
-  const mapScreen = document.getElementById('chapterStageScreen');
-  if (mapScreen) mapScreen.style.display = 'none';
   moveRightPanelInto(labScreen);
   labScreen.style.display = 'block';
   document.body.classList.add('lab-mode-active');
@@ -245,11 +243,8 @@ function hideLabScreen() {
   if (!labScreen) return;
   labScreen.style.display = 'none';
   restoreRightPanel();
-  const mapScreen = document.getElementById('chapterStageScreen');
-  if (mapScreen) {
-    mapScreen.style.display = 'block';
-  }
-  document.dispatchEvent(new CustomEvent('world:showMap'));
+  const firstScreen = document.getElementById('firstScreen');
+  if (firstScreen) firstScreen.style.display = '';
   document.body.classList.remove('lab-mode-active');
   removeLabResizeHandler();
   labController?.destroy?.();
