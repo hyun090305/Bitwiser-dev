@@ -121,6 +121,28 @@
             <h1>🧠 Bitwiser</h1>
             <p class="tagline" id="mainTagline"></p>
           </div>
+          <div id="loginArea" class="stage-map-profile">
+            <h2 id="loginUsername"></h2>
+            <div id="rankSection" style="display:none;">
+              <table id="rankTable">
+                <tr>
+                  <td class="rank-cell">
+                    <p id="loginRankOverallLabel" class="rank-label"></p>
+                    <p id="overallRank" class="rank-value">#-</p>
+                  </td>
+                  <td class="rank-cell">
+                    <p id="loginRankClearedLabel" class="rank-label"></p>
+                    <p id="clearedCount" class="rank-value">0</p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            <div class="button-row">
+              <button id="googleLoginBtn" class="main-button"></button>
+              <button id="languageBtn" class="main-button"></button>
+            </div>
+            <p id="loginGuestPrompt" class="tagline"></p>
+          </div>
         </div>
         <div class="stage-detail-panel" id="stageDetailPanel">
           <p class="stage-detail-panel__chapter" id="stageDetailChapter"></p>
@@ -133,16 +155,6 @@
         </div>
       </div>
       <div class="stage-map-hud" aria-label="Stage map HUD">
-        <button
-          class="hud-button"
-          type="button"
-          data-panel-target="#loginPanel"
-          aria-controls="loginPanel"
-          aria-expanded="false"
-          aria-label="프로필"
-        >
-          👤
-        </button>
         <button class="hud-button" id="settingsBtn" type="button" aria-label="설정">
           ⚙️
         </button>
@@ -174,36 +186,6 @@
       </div>
       <div id="stagePanelBackdrop" class="stage-panel-backdrop" hidden></div>
       <div class="stage-map-panels">
-        <aside id="loginPanel" class="stage-panel" aria-hidden="true">
-          <div class="stage-panel__header">
-            <h2 id="loginPanelTitle">프로필 &amp; 로그인</h2>
-            <button class="stage-panel__close" type="button" data-panel-close aria-label="패널 닫기">×</button>
-          </div>
-          <div class="stage-panel__body">
-            <div id="loginArea">
-              <h2 id="loginUsername"></h2>
-              <div id="rankSection" style="display:none;">
-                <table id="rankTable">
-                  <tr>
-                    <td class="rank-cell">
-                      <p id="loginRankOverallLabel" class="rank-label"></p>
-                      <p id="overallRank" class="rank-value">#-</p>
-                    </td>
-                    <td class="rank-cell">
-                      <p id="loginRankClearedLabel" class="rank-label"></p>
-                      <p id="clearedCount" class="rank-value">0</p>
-                    </td>
-                  </tr>
-                </table>
-              </div>
-              <div class="button-row">
-                <button id="googleLoginBtn" class="main-button"></button>
-                <button id="languageBtn" class="main-button"></button>
-              </div>
-              <p id="loginGuestPrompt" class="tagline"></p>
-            </div>
-          </div>
-        </aside>
         <aside id="rankingPanel" class="stage-panel" aria-hidden="true">
           <div class="stage-panel__header">
             <h2 id="rankingPanelTitle">🏆 전체 랭킹</h2>
