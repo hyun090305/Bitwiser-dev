@@ -107,6 +107,7 @@ const {
   isLevelUnlocked,
   showIntroModal,
   getLevelDescription,
+  getLevelTitle,
   getLevelTitles,
   getLevelBlockSet,
   getLevelAnswer,
@@ -251,6 +252,7 @@ const clearedModalOptions = {
   closeButtonSelector: '.closeBtn',
   translate,
   loadClearedLevelsFromDb,
+  getLevelTitle,
   getLevelTitles,
   isLevelUnlocked,
   startLevel,
@@ -546,6 +548,7 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
   lockOrientationLandscape,
   getStageDataPromise,
   startLevel,
+  getLevelTitle,
   getLevelTitles,
   getClearedLevels,
   elements: {
