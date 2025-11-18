@@ -216,18 +216,24 @@ body.safe-mode .stage-map-connections path {
   box-shadow: 0 22px 50px rgba(34, 197, 94, 0.35);
 }
 
-.stage-node--active {
-  border-color: #0ea5e9;
-  box-shadow: 0 24px 55px rgba(14, 165, 233, 0.45);
-}
-
 .stage-node--preview {
   border-style: dashed;
   opacity: 0.85;
 }
 
-.stage-map-info,
-.stage-detail-panel {
+.stage-node--locked-feedback {
+  animation: stage-node-shake 0.4s ease;
+}
+
+@keyframes stage-node-shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  50% { transform: translateX(4px); }
+  75% { transform: translateX(-2px); }
+  100% { transform: translateX(0); }
+}
+
+.stage-map-info {
   position: absolute;
   top: clamp(1rem, 2vw, 2.5rem);
   z-index: 2;
@@ -237,9 +243,6 @@ body.safe-mode .stage-map-connections path {
   backdrop-filter: blur(10px);
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.25);
   text-align: left;
-}
-
-.stage-map-info {
   left: clamp(1rem, 2vw, 2.5rem);
   max-width: 420px;
   display: flex;
@@ -278,34 +281,6 @@ body.safe-mode .stage-map-connections path {
 
 .stage-map-title h1 {
   margin: 0;
-}
-
-.stage-detail-panel {
-  right: clamp(1rem, 2vw, 2.5rem);
-  max-width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.stage-detail-panel__chapter {
-  font-size: 0.85rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #475569;
-  margin: 0;
-}
-
-.stage-detail-panel__status {
-  font-size: 0.9rem;
-  color: #0f172a;
-  min-height: 1.5rem;
-}
-
-.stage-detail-panel__actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
 }
 
 .stage-map-hud {
@@ -451,7 +426,6 @@ body.safe-mode .stage-map-zoom button {
 }
 
 body.safe-mode .stage-map-info,
-body.safe-mode .stage-detail-panel,
 body.safe-mode .stage-panel {
   background: rgba(2, 6, 23, 0.94);
   color: #f8fafc;
