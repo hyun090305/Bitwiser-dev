@@ -302,10 +302,9 @@ function applyCircuitToLabData(newCircuit) {
 
 export function initializeLabMode() {
   const labBtn = document.getElementById('labBtn');
-  if (!labBtn) return;
   const exitBtn = document.getElementById('labExitBtn');
 
-  labBtn.addEventListener('click', () => {
+  labBtn?.addEventListener('click', () => {
     showLabModeUI();
   });
 
@@ -319,4 +318,8 @@ export function initializeLabMode() {
     ensureLabVisible: () => showLabModeUI(),
     translate: typeof t === 'function' ? t : undefined,
   });
+}
+
+export function openLabModeFromShortcut() {
+  showLabModeUI();
 }

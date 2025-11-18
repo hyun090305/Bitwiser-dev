@@ -2,66 +2,120 @@ import {
   lockOrientationLandscape,
   hideStageMapScreen,
   showGameScreen,
-  showStageMapScreen
+  showStageMapScreen,
+  openUserProblemsFromShortcut
 } from './navigation.js';
+import { openLabModeFromShortcut } from './labMode.js';
+import { STAGE_GRAPH, STAGE_TYPE_META } from './stageMapLayout.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
   : key => key;
 
+const SPECIAL_NODE_KEY = 'stageMapSpecialClears';
+
+function loadSpecialNodeClears() {
+  if (typeof localStorage === 'undefined') return new Set();
+  try {
+    const raw = localStorage.getItem(SPECIAL_NODE_KEY);
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed);
+  } catch (err) {
+    console.warn('Failed to load special node progress', err);
+    return new Set();
+  }
+}
+
+function saveSpecialNodeClears(set) {
+  if (typeof localStorage === 'undefined') return;
+  try {
+    localStorage.setItem(SPECIAL_NODE_KEY, JSON.stringify(Array.from(set)));
+  } catch (err) {
+    console.warn('Failed to persist special node progress', err);
+  }
+}
+
+function getTypeLabel(type) {
+  const meta = STAGE_TYPE_META[type];
+  if (!meta) return '';
+  const text = translate(meta.labelKey);
+  return typeof text === 'string' ? text : '';
+}
+
 function createNodeElement(node) {
   const button = document.createElement('button');
   button.type = 'button';
-  button.className = 'stage-node';
-  button.dataset.stage = String(node.level);
+  button.className = `stage-node ${STAGE_TYPE_META[node.type]?.className ?? ''}`;
+  button.dataset.nodeId = node.id;
+  if (node.level) {
+    button.dataset.stage = String(node.level);
+  }
   button.style.left = `${node.x}px`;
   button.style.top = `${node.y}px`;
-  button.innerHTML = `
+  const icon = document.createElement('span');
+  icon.className = 'stage-node__icon';
+  icon.textContent = node.icon ?? STAGE_TYPE_META[node.type]?.icon ?? '';
+  const body = document.createElement('span');
+  body.className = 'stage-node__body';
+  body.innerHTML = `
     <span class="stage-node__chapter">${node.chapterName}</span>
     <span class="stage-node__title">${node.title}</span>
     <span class="stage-node__status"></span>
   `;
+  button.appendChild(icon);
+  button.appendChild(body);
+  button.setAttribute('aria-label', `${node.title}`);
   return button;
 }
 
-function buildMapNodes({ getChapterData, getLevelTitle }) {
-  const chapters = typeof getChapterData === 'function' ? getChapterData() : [];
-  const columnSpacing = 320;
-  const rowSpacing = 150;
-  const jitter = 60;
-  let maxStages = 0;
-  const nodes = [];
-
-  chapters.forEach((chapter = {}, chapterIndex) => {
-    const stages = Array.isArray(chapter.stages) ? chapter.stages : [];
-    maxStages = Math.max(maxStages, stages.length);
-    stages.forEach((stageId, stageIndex) => {
-      const level = Number(stageId);
-      const title = getLevelTitle?.(level) ?? `Stage ${level}`;
-      const xOffset = stageIndex % 2 === 0 ? -jitter / 2 : jitter / 2;
-      const yOffset = chapterIndex % 2 === 0 ? 0 : jitter / 3;
-      nodes.push({
-        level,
-        chapterIndex,
-        chapterName: chapter.name || `Chapter ${chapterIndex + 1}`,
-        title,
-        x: chapterIndex * columnSpacing + 200 + xOffset,
-        y: stageIndex * rowSpacing + 140 + yOffset
-      });
-    });
+function buildMapNodes({ getLevelTitle } = {}) {
+  const nodes = STAGE_GRAPH.nodes.map(node => {
+    const [x, y] = node.position;
+    const title = node.level
+      ? (getLevelTitle?.(node.level) ?? node.label)
+      : node.label;
+    return {
+      ...node,
+      x,
+      y,
+      title,
+      chapterName: getTypeLabel(node.type)
+    };
   });
-
-  const width = Math.max(1200, chapters.length * columnSpacing + 400);
-  const height = Math.max(900, maxStages * rowSpacing + 260);
-
-  return { nodes, mapSize: { width, height } };
+  const width = Math.max(1400, Math.max(...nodes.map(node => node.x)) + 200);
+  const height = Math.max(900, Math.max(...nodes.map(node => node.y)) + 200);
+  return { nodes, mapSize: { width, height }, edges: [...STAGE_GRAPH.edges] };
 }
 
-function getDescription(getLevelDescription, level) {
+function getLevelDescriptionText(getLevelDescription, level) {
   const info = getLevelDescription?.(level);
   if (info?.desc) return info.desc;
   const fallback = translate('stageDetailDescription');
   return typeof fallback === 'string' ? fallback : '';
+}
+
+function getNodeDescription(node, getLevelDescription) {
+  if (node.level) {
+    return getLevelDescriptionText(getLevelDescription, node.level);
+  }
+  if (node.type === 'mode') {
+    if (node.mode === 'lab') {
+      return translate('stageDetailLabDescription');
+    }
+    if (node.mode === 'userProblems') {
+      return translate('stageDetailUserDescription');
+    }
+    return translate('stageDetailModeDescription');
+  }
+  if (node.type === 'title') {
+    return translate('stageDetailTitleDescription');
+  }
+  if (node.comingSoon) {
+    return translate('stageDetailComingSoonDescription');
+  }
+  return translate('stageDetailDescription');
 }
 
 function setDefaultDetail(detailElements) {
@@ -91,8 +145,49 @@ function updatePanelState(panel, isOpen, backdrop) {
   }
 }
 
+function createConnectionPath(from, to) {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const midX = (from.x + to.x) / 2;
+  const midY = (from.y + to.y) / 2;
+  const bend = Math.min(160, Math.hypot(dx, dy) * 0.35);
+  const controlY = dy >= 0 ? midY - bend : midY + bend;
+  const controlX = midX + Math.sign(dx || 1) * Math.min(60, Math.abs(dy) * 0.25);
+  return `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;
+}
+
+function getButtonConfig(node) {
+  if (!node) {
+    return { disabled: true, text: translate('stageDetailPlayBtn') };
+  }
+  if (node.type === 'mode') {
+    return {
+      disabled: !node.status?.unlocked,
+      text: translate('stageDetailOpenBtn')
+    };
+  }
+  if (node.level) {
+    return {
+      disabled: Boolean(node.status?.locked),
+      text: translate('stageDetailPlayBtn')
+    };
+  }
+  if (node.type === 'title') {
+    return {
+      disabled: true,
+      text: translate('stageDetailTitleBtn')
+    };
+  }
+  if (node.comingSoon) {
+    return {
+      disabled: true,
+      text: translate('stageDetailComingSoonBtn')
+    };
+  }
+  return { disabled: true, text: translate('stageDetailPlayBtn') };
+}
+
 export function initializeStageMap({
-  getChapterData,
   getLevelTitle,
   getLevelDescription,
   isLevelUnlocked,
@@ -132,38 +227,109 @@ export function initializeStageMap({
 
   const state = {
     nodes: [],
+    nodeLookup: new Map(),
     elements: new Map(),
+    edges: [],
+    dependencies: new Map(),
+    nodeStatus: new Map(),
     selected: null,
     scale: 1,
     translateX: 0,
     translateY: 0,
     openPanel: null,
-    pointerStart: null
+    pointerStart: null,
+    specialClears: loadSpecialNodeClears()
   };
+
+  function updateConnections() {
+    state.edges.forEach(edge => {
+      const status = state.nodeStatus.get(edge.from);
+      const active = Boolean(status?.progressCleared);
+      edge.element.classList.toggle('stage-connection--active', active);
+    });
+  }
+
+  function evaluateNodeStatus(node, memo, visiting, clearedLevels) {
+    if (!node) return null;
+    if (memo.has(node.id)) {
+      return memo.get(node.id);
+    }
+    if (visiting.has(node.id)) {
+      console.warn('Stage map cycle detected at node', node.id);
+      return null;
+    }
+    visiting.add(node.id);
+    const deps = state.dependencies.get(node.id) ?? [];
+    const depStatuses = deps.map(depId => {
+      const depNode = state.nodeLookup.get(depId);
+      return evaluateNodeStatus(depNode, memo, visiting, clearedLevels);
+    }).filter(Boolean);
+    visiting.delete(node.id);
+    const prerequisitesMet = depStatuses.every(status => status.progressCleared);
+
+    let unlocked = prerequisitesMet;
+    let locked = !unlocked;
+    let displayCleared = false;
+    let progressCleared = false;
+    let statusKey = 'stageDetailLockedMessage';
+
+    if (node.level) {
+      const levelUnlocked = isLevelUnlocked?.(node.level) ?? true;
+      unlocked = prerequisitesMet && levelUnlocked;
+      locked = !unlocked;
+      displayCleared = (clearedLevels.has(node.level));
+      progressCleared = displayCleared;
+      statusKey = displayCleared
+        ? 'stageDetailClearedMessage'
+        : (unlocked ? 'stageDetailReadyMessage' : 'stageDetailLockedMessage');
+    } else if (node.type === 'mode') {
+      unlocked = prerequisitesMet;
+      locked = !unlocked;
+      displayCleared = state.specialClears.has(node.id);
+      progressCleared = displayCleared;
+      statusKey = displayCleared
+        ? 'stageDetailShortcutCleared'
+        : (unlocked ? 'stageDetailShortcutReady' : 'stageDetailLockedMessage');
+    } else if (node.type === 'title') {
+      unlocked = prerequisitesMet;
+      locked = !unlocked;
+      displayCleared = unlocked;
+      progressCleared = unlocked;
+      statusKey = unlocked ? 'stageDetailTitleUnlocked' : 'stageDetailTitleLocked';
+    } else if (node.autoClear) {
+      unlocked = prerequisitesMet;
+      locked = !unlocked;
+      displayCleared = false;
+      progressCleared = unlocked;
+      statusKey = node.comingSoon ? 'stageDetailComingSoonStatus' : 'stageDetailReadyMessage';
+    }
+
+    const result = { unlocked, locked, displayCleared, progressCleared, statusKey };
+    memo.set(node.id, result);
+    return result;
+  }
 
   function refreshNodeStates() {
     const cleared = new Set(getClearedLevels?.() ?? []);
+    const memo = new Map();
+    const visiting = new Set();
     state.nodes.forEach(node => {
-      const el = state.elements.get(node.level);
-      if (!el) return;
-      const unlocked = isLevelUnlocked?.(node.level) ?? true;
-      const clearedClass = cleared.has(node.level);
-      el.classList.toggle('stage-node--locked', !unlocked);
-      el.classList.toggle('stage-node--cleared', Boolean(clearedClass));
-      const status = el.querySelector('.stage-node__status');
-      if (status) {
-        if (!unlocked) {
-          status.textContent = translate('stageDetailLockedMessage');
-        } else if (clearedClass) {
-          status.textContent = translate('stageDetailClearedMessage');
-        } else {
-          status.textContent = translate('stageDetailReadyMessage');
+      const status = evaluateNodeStatus(node, memo, visiting, cleared);
+      node.status = status;
+      const el = state.elements.get(node.id);
+      if (el && status) {
+        el.classList.toggle('stage-node--locked', status.locked);
+        el.classList.toggle('stage-node--cleared', status.displayCleared);
+        el.classList.toggle('stage-node--preview', Boolean(node.comingSoon));
+        const statusEl = el.querySelector('.stage-node__status');
+        if (statusEl) {
+          const text = translate(status.statusKey);
+          statusEl.textContent = typeof text === 'string' ? text : '';
         }
       }
-      node.locked = !unlocked;
-      node.cleared = Boolean(clearedClass);
     });
-
+    state.nodeStatus = memo;
+    updateConnections();
     if (state.selected) {
       updateDetail(state.selected);
     }
@@ -171,58 +337,79 @@ export function initializeStageMap({
 
   function updateDetail(node) {
     state.elements.forEach(el => el.classList.remove('stage-node--active'));
-    const el = state.elements.get(node.level);
-    if (el) el.classList.add('stage-node--active');
-
+    const element = state.elements.get(node.id);
+    if (element) {
+      element.classList.add('stage-node--active');
+    }
     if (detailChapter) {
-      detailChapter.textContent = `${node.chapterName} · Stage ${node.level}`;
+      const typeLabel = node.chapterName || '';
+      detailChapter.textContent = node.level
+        ? `${typeLabel} · Stage ${node.level}`
+        : typeLabel;
     }
     if (detailTitle) {
       detailTitle.textContent = node.title;
     }
     if (detailDescription) {
-      detailDescription.textContent = getDescription(getLevelDescription, node.level);
+      detailDescription.textContent = getNodeDescription(node, getLevelDescription);
     }
     if (detailStatus) {
-      if (node.locked) {
-        detailStatus.textContent = translate('stageDetailLockedMessage');
-      } else if (node.cleared) {
-        detailStatus.textContent = translate('stageDetailClearedMessage');
-      } else {
-        detailStatus.textContent = translate('stageDetailReadyMessage');
-      }
+      const statusText = node.status ? translate(node.status.statusKey) : '';
+      detailStatus.textContent = typeof statusText === 'string' ? statusText : '';
     }
     if (playButton) {
-      playButton.disabled = Boolean(node.locked);
-      playButton.textContent = translate('stageDetailPlayBtn');
+      const config = getButtonConfig(node);
+      playButton.disabled = Boolean(config.disabled);
+      playButton.textContent = config.text;
     }
     state.selected = node;
   }
 
   function attachNodes() {
-    const { nodes, mapSize } = buildMapNodes({ getChapterData, getLevelTitle });
+    const { nodes, mapSize, edges } = buildMapNodes({ getLevelTitle });
     state.nodes = nodes;
+    state.nodeLookup = new Map(nodes.map(node => [node.id, node]));
+    state.dependencies = new Map();
+    nodes.forEach(node => {
+      state.dependencies.set(node.id, []);
+    });
+    edges.forEach(edge => {
+      const deps = state.dependencies.get(edge.to);
+      if (deps) deps.push(edge.from);
+    });
     viewport.style.setProperty('--map-width', `${mapSize.width}px`);
     viewport.style.setProperty('--map-height', `${mapSize.height}px`);
     nodesLayer.innerHTML = '';
     connectionsSvg.innerHTML = '';
+    connectionsSvg.setAttribute('viewBox', `0 0 ${mapSize.width} ${mapSize.height}`);
+    connectionsSvg.setAttribute('width', mapSize.width);
+    connectionsSvg.setAttribute('height', mapSize.height);
     state.elements.clear();
+    state.edges = [];
 
-    nodes.forEach((node, idx) => {
+    edges.forEach(edge => {
+      const from = state.nodeLookup.get(edge.from);
+      const to = state.nodeLookup.get(edge.to);
+      if (!from || !to) return;
+      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+      path.setAttribute('d', createConnectionPath(from, to));
+      path.classList.add('stage-connection');
+      path.dataset.from = edge.from;
+      path.dataset.to = edge.to;
+      connectionsSvg.appendChild(path);
+      state.edges.push({ ...edge, element: path });
+    });
+
+    nodes.forEach(node => {
       const el = createNodeElement(node);
       el.addEventListener('click', () => {
         updateDetail(node);
       });
       nodesLayer.appendChild(el);
-      state.elements.set(node.level, el);
-      if (idx > 0) {
-        const prev = nodes[idx - 1];
-        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-        path.setAttribute('d', `M ${prev.x} ${prev.y} Q ${(prev.x + node.x) / 2} ${prev.y - 60}, ${node.x} ${node.y}`);
-        connectionsSvg.appendChild(path);
-      }
+      state.elements.set(node.id, el);
     });
 
+    state.selected = null;
     refreshNodeStates();
     setDefaultDetail(detailElements);
   }
@@ -284,10 +471,46 @@ export function initializeStageMap({
     }, { passive: false });
   }
 
+  function markModeNodeCleared(nodeId) {
+    if (state.specialClears.has(nodeId)) return;
+    state.specialClears.add(nodeId);
+    saveSpecialNodeClears(state.specialClears);
+    refreshNodeStates();
+    document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
+  }
+
+  function handleModeShortcut(node) {
+    if (node.mode === 'lab') {
+      openLabModeFromShortcut?.();
+      markModeNodeCleared(node.id);
+      return;
+    }
+    if (node.mode === 'userProblems') {
+      openUserProblemsFromShortcut?.();
+      markModeNodeCleared(node.id);
+    }
+  }
+
   async function launchSelectedStage() {
-    if (!state.selected || state.selected.locked) {
-      if (detailStatus && state.selected?.locked) {
-        detailStatus.textContent = translate('stageDetailLockedMessage');
+    if (!state.selected) return;
+    const node = state.selected;
+    if (node.type === 'mode') {
+      if (node.status?.unlocked) {
+        handleModeShortcut(node);
+      }
+      return;
+    }
+    if (!node.level) {
+      if (detailStatus && node.status) {
+        const text = translate(node.status.statusKey);
+        detailStatus.textContent = typeof text === 'string' ? text : '';
+      }
+      return;
+    }
+    if (node.status?.locked) {
+      if (detailStatus) {
+        const text = translate('stageDetailLockedMessage');
+        detailStatus.textContent = typeof text === 'string' ? text : '';
       }
       return;
     }
@@ -296,7 +519,7 @@ export function initializeStageMap({
     returnToEditScreen?.();
     closeOpenPanel();
     try {
-      await startLevel(state.selected.level);
+      await startLevel(node.level);
       hideStageMapScreen();
       showGameScreen();
       document.body.classList.add('game-active');
