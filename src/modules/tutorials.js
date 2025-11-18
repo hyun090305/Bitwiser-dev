@@ -1,3 +1,5 @@
+import { hideStageMapScreen, showGameScreen } from './navigation.js';
+
 const tutorialStepsData = {
   ko: [
     {
@@ -105,7 +107,7 @@ export function initializeTutorials({
     screens = {}
   } = elements;
 
-  const { gameScreen, firstScreen, chapterStageScreen } = screens;
+  const { gameScreen, chapterStageScreen } = screens;
 
   let tutIndex = 0;
 
@@ -163,14 +165,12 @@ export function initializeTutorials({
     if (typeof document !== 'undefined') {
       document.body.classList.add('game-active');
     }
-    if (firstScreen) {
-      firstScreen.style.display = 'none';
-    }
+    hideStageMapScreen();
     if (chapterStageScreen) {
       chapterStageScreen.style.display = 'none';
     }
     if (gameScreen) {
-      gameScreen.style.display = 'flex';
+      showGameScreen();
     }
   };
 
