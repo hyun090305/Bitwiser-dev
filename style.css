@@ -22,7 +22,7 @@ body.game-active {
   flex: 1;
   width: 100%;
   min-height: calc(100vh - 2rem);
-  padding: clamp(1rem, 2vw, 2.5rem);
+  /* padding: clamp(1rem, 2vw, 2.5rem); */
   box-sizing: border-box;
   background: linear-gradient(140deg, #f8fafc, #e2e8f0);
   overflow: hidden;
@@ -36,9 +36,9 @@ body.safe-mode .stage-map-screen {
 .stage-map-surface {
   position: relative;
   width: 100%;
-  height: min(820px, calc(100vh - 4rem));
+  /* height: min(820px, calc(100vh - 4rem)); */
   min-height: 460px;
-  border-radius: 36px;
+  /* border-radius: 36px; */
   background: radial-gradient(circle at 20% 20%, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.95));
   overflow: hidden;
   box-shadow: 0 30px 60px rgba(15, 23, 42, 0.35);
