@@ -198,6 +198,7 @@ body.safe-mode .stage-map-connections path {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+  /* width: auto; */
 }
 
 .stage-map-title h1 {
@@ -376,42 +377,6 @@ body.safe-mode .stage-panel {
   background: rgba(2, 6, 23, 0.94);
   color: #f8fafc;
   border: 1px solid rgba(248, 250, 252, 0.1);
-}
-
-@media (max-width: 1024px) {
-  .stage-map-surface {
-    height: auto;
-    min-height: 520px;
-  }
-
-  .stage-map-info,
-  .stage-detail-panel {
-    position: static;
-    margin-bottom: 1rem;
-  }
-
-  .stage-map-hud {
-    position: static;
-    flex-direction: row;
-    justify-content: flex-end;
-    transform: none;
-    margin-top: 1rem;
-  }
-
-  .stage-map-zoom {
-    left: auto;
-    right: 1.5rem;
-  }
-
-  .stage-panel {
-    width: 100%;
-    border-radius: 24px 24px 0 0;
-    transform: translateY(110%);
-  }
-
-  .stage-panel.stage-panel--open {
-    transform: translateY(0);
-  }
 }
 
 .problem-grid-container {
