@@ -241,10 +241,32 @@ body.safe-mode .stage-map-connections path {
 
 .stage-map-info {
   left: clamp(1rem, 2vw, 2.5rem);
-  max-width: 360px;
+  max-width: 420px;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+}
+
+.stage-map-profile {
+  width: 100%;
+  border-top: 1px solid rgba(15, 23, 42, 0.08);
+  padding-top: 1rem;
+}
+
+.stage-map-profile h2 {
+  margin: 0;
+  font-size: 1.25rem;
+}
+
+.stage-map-profile .button-row {
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.stage-map-profile .button-row .main-button {
+  flex: 1 1 140px;
 }
 
 .stage-map-actions {
@@ -1502,8 +1524,7 @@ html, body {
   /* ── ② 비게임 화면에만 “흰 배경 + 블러” 오버레이 적용 ── */
   /* ── 비게임 화면에만 오버레이 적용 ── */
   body:not(.game-active) #mainScreen,
-  body:not(.game-active) #chapterStageScreen,
-  body:not(.game-active) #loginArea{
+  body:not(.game-active) #chapterStageScreen{
     background-color: rgba(255, 255, 255, 0.8);
     backdrop-filter: blur(8px);
     border-radius: 12px;
@@ -1802,8 +1823,7 @@ html, body {
     margin: 0 auto;
   }
 
-#mainScreen,
-#loginArea{
+#mainScreen{
   width: 320px;
 }
 
@@ -1821,7 +1841,9 @@ html, body {
   #loginArea {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: flex-start;
+    gap: 0.75rem;
+    width: 100%;
   }
 
   #loginArea #rankTable {
