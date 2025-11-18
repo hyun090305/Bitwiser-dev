@@ -104,84 +104,165 @@
         </div>
       </div>
     </div>
-    <!-- 메인 화면 -->
-    <div class="container" id="firstScreen">
-      <div id="overallRankingArea" class="tab-screen">
-        <h3 id="overallRankingTitle">🏆 전체 랭킹</h3>
-        <div id="overallRankingList">로딩 중…</div>
-      </div>
-      <div id="mainArea" class="tab-screen active">
-        <div id="mainScreen">
-        <h1>🧠 Bitwiser</h1>
-        <p class="tagline" id="mainTagline"></p>
-        <div class="button-row">
-          <button id="labBtn" class="main-button icon-button" type="button" aria-label="실험실" title="실험실">🔬</button>
-          <button id="chapterNavBtn" class="main-button icon-button" type="button" aria-label="스테이지 선택" title="스테이지 선택">▶</button>
-          <button id="userProblemsBtn" class="main-button icon-button" type="button" aria-label="사용자 문제" title="사용자 문제">⚒️</button>
+    <!-- 스테이지 맵 화면 -->
+    <section id="stageMapScreen" class="stage-map-screen" aria-label="Stage Map">
+      <div class="stage-map-surface" id="stageMapSurface">
+        <div
+          class="stage-map-viewport"
+          id="stageMapViewport"
+          style="--map-scale: 1; --map-translate-x: 0px; --map-translate-y: 0px;"
+        >
+          <div class="stage-map-grid" aria-hidden="true"></div>
+          <svg id="stageMapConnections" class="stage-map-connections" role="presentation"></svg>
+          <div id="stageMapNodes" class="stage-map-nodes" role="list"></div>
         </div>
-        <div class="button-row">
-          <button id="tutorialBtn" class="main-button">튜토리얼</button>
-          <button id="copyStatusBtn" class="main-button">공유하기</button>
-        </div>
-        </div>
-        <div id="loginArea">
-          <h2 id="loginUsername"></h2>
-          <div id="rankSection" style="display:none;">
-            <table id="rankTable">
-              <tr>
-                <td class="rank-cell">
-                  <p id="loginRankOverallLabel" class="rank-label"></p>
-                  <p id="overallRank" class="rank-value">#-</p>
-                </td>
-                <td class="rank-cell">
-                  <p id="loginRankClearedLabel" class="rank-label"></p>
-                  <p id="clearedCount" class="rank-value">0</p>
-                </td>
-              </tr>
-            </table>
+        <div class="stage-map-info">
+          <div class="stage-map-title">
+            <h1>🧠 Bitwiser</h1>
+            <p class="tagline" id="mainTagline"></p>
           </div>
-          <div class="button-row">
-            <button id="googleLoginBtn" class="main-button"></button>
-            <button id="settingsBtn" class="main-button"></button>
-          </div>
-          <p id="loginGuestPrompt" class="tagline"></p>
-          <div class="button-row">
-            <button id="languageBtn" class="main-button"></button>
+          <div class="stage-map-actions">
+            <button id="tutorialBtn" class="main-button" type="button">튜토리얼</button>
+            <button id="copyStatusBtn" class="main-button" type="button">공유하기</button>
+            <button
+              id="chapterNavBtn"
+              class="main-button icon-button"
+              type="button"
+              aria-label="스테이지 목록 보기"
+              title="스테이지 목록 보기"
+            >📋</button>
+            <button
+              id="userProblemsBtn"
+              class="main-button icon-button"
+              type="button"
+              aria-label="사용자 문제"
+              title="사용자 문제"
+            >⚒️</button>
           </div>
         </div>
-      </div>
-      <div id="guestbookArea" class="tab-screen">
-        <div id="guestbookForm">
-          <h3 id="guestbookTitle">📝 개발자(이현준)한테 글 남기기</h3>
-          <p class="info-text" id="guestNicknameLabel">닉네임: <b id="guestUsername"></b></p>
-          <br>
-          <textarea id="guestMessage" rows="4"
-            placeholder="남기고 싶은 말..."></textarea>
-          <br>
-          <button id="guestSubmitBtn" onclick="submitGuestEntry()">등록</button>
-        </div>
-        <div id="guestbookListArea">
-          <div id="guestbookList"></div>
-          <button id="coffeeBtn">
-            ☕ 개발자(이현준)한테 커피 사주기
-          </button>
+        <div class="stage-detail-panel" id="stageDetailPanel">
+          <p class="stage-detail-panel__chapter" id="stageDetailChapter"></p>
+          <h2 id="stageDetailTitle">스테이지를 선택하세요</h2>
+          <p id="stageDetailDescription">맵에서 노드를 선택하면 상세 정보를 볼 수 있습니다.</p>
+          <div class="stage-detail-panel__status" id="stageDetailStatus"></div>
+          <div class="stage-detail-panel__actions">
+            <button id="stageDetailPlayBtn" class="main-button" type="button" disabled>시작하기</button>
+          </div>
         </div>
       </div>
-      <div id="mobileNav" role="tablist">
-        <div class="nav-item" data-target="overallRankingArea" role="tab" aria-selected="false">
-          <img id="mobileNavRankingIcon" src="assets/trophy-icon.png" alt="" class="nav-icon">
-          <span class="nav-text" id="mobileNavRankingText"></span>
-        </div>
-        <div class="nav-item active" data-target="mainArea" role="tab" aria-selected="true">
-          <img id="mobileNavHomeIcon" src="assets/home-icon.png" alt="" class="nav-icon">
-          <span class="nav-text" id="mobileNavHomeText"></span>
-        </div>
-        <div class="nav-item" data-target="guestbookArea" role="tab" aria-selected="false">
-          <img id="mobileNavGuestbookIcon" src="assets/message-icon.png" alt="" class="nav-icon">
-          <span class="nav-text" id="mobileNavGuestbookText"></span>
-        </div>
+      <div class="stage-map-hud" aria-label="Stage map HUD">
+        <button
+          class="hud-button"
+          type="button"
+          data-panel-target="#loginPanel"
+          aria-controls="loginPanel"
+          aria-expanded="false"
+          aria-label="프로필"
+        >
+          👤
+        </button>
+        <button class="hud-button" id="settingsBtn" type="button" aria-label="설정">
+          ⚙️
+        </button>
+        <button
+          class="hud-button"
+          type="button"
+          data-panel-target="#rankingPanel"
+          aria-controls="rankingPanel"
+          aria-expanded="false"
+          aria-label="랭킹"
+        >
+          🏆
+        </button>
+        <button
+          class="hud-button"
+          type="button"
+          data-panel-target="#guestbookPanel"
+          aria-controls="guestbookPanel"
+          aria-expanded="false"
+          aria-label="방명록"
+        >
+          💬
+        </button>
+        <button class="hud-button" id="labBtn" type="button" aria-label="실험실">
+          🔬
+        </button>
       </div>
-    </div>
+      <div class="stage-map-zoom" aria-label="Map zoom controls">
+        <button id="stageMapZoomOut" type="button" aria-label="Zoom out">−</button>
+        <button id="stageMapZoomReset" type="button" aria-label="Reset zoom">1×</button>
+        <button id="stageMapZoomIn" type="button" aria-label="Zoom in">+</button>
+      </div>
+      <div id="stagePanelBackdrop" class="stage-panel-backdrop" hidden></div>
+      <div class="stage-map-panels">
+        <aside id="loginPanel" class="stage-panel" aria-hidden="true">
+          <div class="stage-panel__header">
+            <h2 id="loginPanelTitle">프로필 &amp; 로그인</h2>
+            <button class="stage-panel__close" type="button" data-panel-close aria-label="패널 닫기">×</button>
+          </div>
+          <div class="stage-panel__body">
+            <div id="loginArea">
+              <h2 id="loginUsername"></h2>
+              <div id="rankSection" style="display:none;">
+                <table id="rankTable">
+                  <tr>
+                    <td class="rank-cell">
+                      <p id="loginRankOverallLabel" class="rank-label"></p>
+                      <p id="overallRank" class="rank-value">#-</p>
+                    </td>
+                    <td class="rank-cell">
+                      <p id="loginRankClearedLabel" class="rank-label"></p>
+                      <p id="clearedCount" class="rank-value">0</p>
+                    </td>
+                  </tr>
+                </table>
+              </div>
+              <div class="button-row">
+                <button id="googleLoginBtn" class="main-button"></button>
+                <button id="languageBtn" class="main-button"></button>
+              </div>
+              <p id="loginGuestPrompt" class="tagline"></p>
+            </div>
+          </div>
+        </aside>
+        <aside id="rankingPanel" class="stage-panel" aria-hidden="true">
+          <div class="stage-panel__header">
+            <h2 id="rankingPanelTitle">🏆 전체 랭킹</h2>
+            <button class="stage-panel__close" type="button" data-panel-close aria-label="패널 닫기">×</button>
+          </div>
+          <div class="stage-panel__body">
+            <div id="overallRankingArea" class="stage-panel__section">
+              <h3 id="overallRankingTitle">🏆 전체 랭킹</h3>
+              <div id="overallRankingList">로딩 중…</div>
+            </div>
+          </div>
+        </aside>
+        <aside id="guestbookPanel" class="stage-panel" aria-hidden="true">
+          <div class="stage-panel__header">
+            <h2 id="guestbookPanelTitle">📝 방명록</h2>
+            <button class="stage-panel__close" type="button" data-panel-close aria-label="패널 닫기">×</button>
+          </div>
+          <div class="stage-panel__body">
+            <div id="guestbookArea" class="stage-panel__section">
+              <div id="guestbookForm">
+                <h3 id="guestbookTitle">📝 개발자(이현준)한테 글 남기기</h3>
+                <p class="info-text" id="guestNicknameLabel">닉네임: <b id="guestUsername"></b></p>
+                <br>
+                <textarea id="guestMessage" rows="4" placeholder="남기고 싶은 말..."></textarea>
+                <br>
+                <button id="guestSubmitBtn" onclick="submitGuestEntry()">등록</button>
+              </div>
+              <div id="guestbookListArea">
+                <div id="guestbookList"></div>
+                <button id="coffeeBtn">
+                  ☕ 개발자(이현준)한테 커피 사주기
+                </button>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </section>
 
     <div id="labScreen" style="display:none;">
       <div id="labCanvasContainer">

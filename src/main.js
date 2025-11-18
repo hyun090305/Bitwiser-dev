@@ -76,6 +76,7 @@ import {
   initializeRankingUI
 } from './modules/rank.js';
 import { initializeLabMode } from './modules/labMode.js';
+import { initializeStageMap } from './modules/stageMap.js';
 import {
   getAvailableThemes,
   getActiveThemeId,
@@ -105,6 +106,7 @@ const {
   fetchClearedLevels,
   isLevelUnlocked,
   showIntroModal,
+  getLevelDescription,
   getLevelTitles,
   getLevelBlockSet,
   getLevelAnswer,
@@ -451,7 +453,7 @@ function setupKeyToggles() {
 
 const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
-const firstScreen = document.getElementById('firstScreen');
+const stageMapScreen = document.getElementById('stageMapScreen');
 const chapterListEl = document.getElementById("chapterList");
 
 document.getElementById("toggleChapterList").onclick = () => {
@@ -562,7 +564,7 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
     stageButton: document.getElementById('stageTutBtn'),
     screens: {
       gameScreen,
-      firstScreen,
+      stageMapScreen,
       chapterStageScreen
     }
   }
@@ -1053,10 +1055,18 @@ document.addEventListener("DOMContentLoaded", () => {
   onThemeChange(syncGameAreaBackground);
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
+    initializeStageMap({
+      getChapterData,
+      getLevelTitle,
+      getLevelDescription,
+      isLevelUnlocked,
+      getClearedLevels,
+      startLevel,
+      returnToEditScreen
+    });
     setupNavigation({
       refreshUserData,
       renderChapterList,
-      getClearedLevels,
       renderUserProblemList,
       selectChapter: index => {
         const chapters = getChapterData();
@@ -1144,7 +1154,7 @@ initializeProblemCreationFlow({
   ids: {
     backButtonId: 'backToMainFromProblem',
     problemScreenId: 'problem-screen',
-    firstScreenId: 'firstScreen',
+    firstScreenId: 'stageMapScreen',
     chapterStageScreenId: 'chapterStageScreen',
     userProblemsScreenId: 'user-problems-screen',
     openProblemCreatorBtnId: 'openProblemCreatorBtn',

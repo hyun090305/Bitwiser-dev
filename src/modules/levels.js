@@ -621,6 +621,7 @@ function refreshClearedUI() {
       check.remove();
     }
   });
+  document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
 }
 
 function createPaletteForLevel(level) {

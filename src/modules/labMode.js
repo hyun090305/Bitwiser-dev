@@ -4,6 +4,12 @@ import { createCamera } from '../canvas/camera.js';
 import { onThemeChange } from '../themes.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
 import { initializeCircuitCommunity } from './circuitCommunity.js';
+import {
+  hideStageMapScreen,
+  showStageMapScreen,
+  showLabScreen as revealLabScreen,
+  hideLabScreen as concealLabScreen
+} from './navigation.js';
 
 function getAvailableIONames(circuit, count = 5) {
   const collectNames = (type, prefix) => {
@@ -219,14 +225,12 @@ function createLabController({ preserveCircuit = false } = {}) {
   labController.attachKeyboardHandlers?.();
 }
 
-function showLabScreen() {
+function showLabModeUI() {
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
-  const firstScreen = document.getElementById('firstScreen');
-  if (firstScreen) firstScreen.style.display = 'none';
+  hideStageMapScreen();
   moveRightPanelInto(labScreen);
-  labScreen.style.display = 'block';
-  document.body.classList.add('lab-mode-active');
+  revealLabScreen();
   const titleEl = document.getElementById('gameTitle');
   if (titleEl) {
     if (!originalGameTitleText) {
@@ -238,14 +242,12 @@ function showLabScreen() {
   labInitialized = true;
 }
 
-function hideLabScreen() {
+function hideLabModeUI() {
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
-  labScreen.style.display = 'none';
+  concealLabScreen();
   restoreRightPanel();
-  const firstScreen = document.getElementById('firstScreen');
-  if (firstScreen) firstScreen.style.display = '';
-  document.body.classList.remove('lab-mode-active');
+  showStageMapScreen();
   removeLabResizeHandler();
   labController?.destroy?.();
   labController = null;
@@ -304,17 +306,17 @@ export function initializeLabMode() {
   const exitBtn = document.getElementById('labExitBtn');
 
   labBtn.addEventListener('click', () => {
-    showLabScreen();
+    showLabModeUI();
   });
 
   exitBtn?.addEventListener('click', () => {
-    hideLabScreen();
+    hideLabModeUI();
   });
 
   initializeCircuitCommunity({
     getCircuit: () => labCircuit,
     applyCircuit: circuitData => applyCircuitToLabData(circuitData),
-    ensureLabVisible: () => showLabScreen(),
+    ensureLabVisible: () => showLabModeUI(),
     translate: typeof t === 'function' ? t : undefined,
   });
 }
