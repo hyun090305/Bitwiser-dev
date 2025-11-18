@@ -1,6 +1,7 @@
 let stageMapScreenEl = null;
 let gameScreenEl = null;
 let labScreenEl = null;
+let openUserProblemsShortcutHandler = null;
 
 function ensureScreens() {
   if (!stageMapScreenEl) {
@@ -109,6 +110,14 @@ export function hideLabScreen() {
   document.body.classList.remove('lab-mode-active');
 }
 
+export function openUserProblemsFromShortcut() {
+  if (typeof openUserProblemsShortcutHandler === 'function') {
+    openUserProblemsShortcutHandler();
+  } else {
+    console.warn('User problems navigation is not ready yet');
+  }
+}
+
 export function setupNavigation({
   refreshUserData,
   renderChapterList,
@@ -178,6 +187,11 @@ export function setupNavigation({
     lockOrientationLandscape();
     openUserProblemsScreen();
   });
+
+  openUserProblemsShortcutHandler = () => {
+    lockOrientationLandscape();
+    openUserProblemsScreen();
+  };
 
   backToMainFromChapterBtn?.addEventListener('click', closeChapterList);
   backFromUserProblemsBtn?.addEventListener('click', closeUserProblemsScreen);

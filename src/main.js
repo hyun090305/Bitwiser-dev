@@ -1059,7 +1059,6 @@ document.addEventListener("DOMContentLoaded", () => {
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
     initializeStageMap({
-      getChapterData,
       getLevelTitle,
       getLevelDescription,
       isLevelUnlocked,
