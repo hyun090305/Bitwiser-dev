@@ -174,7 +174,12 @@ export function initializeTutorials({
     }
   };
 
+  const autoTutorialEnabled = false;
+
   const maybeStartTutorial = () => {
+    if (!autoTutorialEnabled) {
+      return;
+    }
     if (!storage || storage.getItem('tutorialCompleted')) {
       return;
     }
