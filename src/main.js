@@ -106,7 +106,6 @@ const {
   fetchClearedLevels,
   isLevelUnlocked,
   showIntroModal,
-  getLevelDescription,
   getLevelTitle,
   getLevelTitles,
   getLevelBlockSet,
@@ -1060,7 +1059,6 @@ document.addEventListener("DOMContentLoaded", () => {
   Promise.all(initialTasks).then(() => {
     initializeStageMap({
       getLevelTitle,
-      getLevelDescription,
       isLevelUnlocked,
       getClearedLevels,
       startLevel,

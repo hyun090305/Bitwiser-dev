@@ -89,53 +89,6 @@ function buildMapNodes({ getLevelTitle } = {}) {
   return { nodes, mapSize: { width, height }, edges: [...STAGE_GRAPH.edges] };
 }
 
-function getLevelDescriptionText(getLevelDescription, level) {
-  const info = getLevelDescription?.(level);
-  if (info?.desc) return info.desc;
-  const fallback = translate('stageDetailDescription');
-  return typeof fallback === 'string' ? fallback : '';
-}
-
-function getNodeDescription(node, getLevelDescription) {
-  if (node.level) {
-    return getLevelDescriptionText(getLevelDescription, node.level);
-  }
-  if (node.type === 'mode') {
-    if (node.mode === 'lab') {
-      return translate('stageDetailLabDescription');
-    }
-    if (node.mode === 'userProblems') {
-      return translate('stageDetailUserDescription');
-    }
-    return translate('stageDetailModeDescription');
-  }
-  if (node.type === 'title') {
-    return translate('stageDetailTitleDescription');
-  }
-  if (node.comingSoon) {
-    return translate('stageDetailComingSoonDescription');
-  }
-  return translate('stageDetailDescription');
-}
-
-function setDefaultDetail(detailElements) {
-  const {
-    titleEl,
-    descriptionEl,
-    chapterEl,
-    statusEl,
-    playButton
-  } = detailElements;
-  if (chapterEl) chapterEl.textContent = '';
-  if (titleEl) titleEl.textContent = translate('stageDetailTitle');
-  if (descriptionEl) descriptionEl.textContent = translate('stageDetailDescription');
-  if (statusEl) statusEl.textContent = '';
-  if (playButton) {
-    playButton.disabled = true;
-    playButton.textContent = translate('stageDetailPlayBtn');
-  }
-}
-
 function updatePanelState(panel, isOpen, backdrop) {
   if (!panel) return;
   panel.classList.toggle('stage-panel--open', isOpen);
@@ -156,40 +109,8 @@ function createConnectionPath(from, to) {
   return `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;
 }
 
-function getButtonConfig(node) {
-  if (!node) {
-    return { disabled: true, text: translate('stageDetailPlayBtn') };
-  }
-  if (node.type === 'mode') {
-    return {
-      disabled: !node.status?.unlocked,
-      text: translate('stageDetailOpenBtn')
-    };
-  }
-  if (node.level) {
-    return {
-      disabled: Boolean(node.status?.locked),
-      text: translate('stageDetailPlayBtn')
-    };
-  }
-  if (node.type === 'title') {
-    return {
-      disabled: true,
-      text: translate('stageDetailTitleBtn')
-    };
-  }
-  if (node.comingSoon) {
-    return {
-      disabled: true,
-      text: translate('stageDetailComingSoonBtn')
-    };
-  }
-  return { disabled: true, text: translate('stageDetailPlayBtn') };
-}
-
 export function initializeStageMap({
   getLevelTitle,
-  getLevelDescription,
   isLevelUnlocked,
   getClearedLevels,
   startLevel,
@@ -199,11 +120,6 @@ export function initializeStageMap({
   const viewport = document.getElementById('stageMapViewport');
   const nodesLayer = document.getElementById('stageMapNodes');
   const connectionsSvg = document.getElementById('stageMapConnections');
-  const detailTitle = document.getElementById('stageDetailTitle');
-  const detailDescription = document.getElementById('stageDetailDescription');
-  const detailChapter = document.getElementById('stageDetailChapter');
-  const detailStatus = document.getElementById('stageDetailStatus');
-  const playButton = document.getElementById('stageDetailPlayBtn');
   const zoomInBtn = document.getElementById('stageMapZoomIn');
   const zoomOutBtn = document.getElementById('stageMapZoomOut');
   const zoomResetBtn = document.getElementById('stageMapZoomReset');
@@ -217,14 +133,6 @@ export function initializeStageMap({
     return null;
   }
 
-  const detailElements = {
-    titleEl: detailTitle,
-    descriptionEl: detailDescription,
-    chapterEl: detailChapter,
-    statusEl: detailStatus,
-    playButton
-  };
-
   const state = {
     nodes: [],
     nodeLookup: new Map(),
@@ -232,7 +140,6 @@ export function initializeStageMap({
     edges: [],
     dependencies: new Map(),
     nodeStatus: new Map(),
-    selected: null,
     scale: 1,
     translateX: 0,
     translateY: 0,
@@ -330,39 +237,6 @@ export function initializeStageMap({
     });
     state.nodeStatus = memo;
     updateConnections();
-    if (state.selected) {
-      updateDetail(state.selected);
-    }
-  }
-
-  function updateDetail(node) {
-    state.elements.forEach(el => el.classList.remove('stage-node--active'));
-    const element = state.elements.get(node.id);
-    if (element) {
-      element.classList.add('stage-node--active');
-    }
-    if (detailChapter) {
-      const typeLabel = node.chapterName || '';
-      detailChapter.textContent = node.level
-        ? `${typeLabel} · Stage ${node.level}`
-        : typeLabel;
-    }
-    if (detailTitle) {
-      detailTitle.textContent = node.title;
-    }
-    if (detailDescription) {
-      detailDescription.textContent = getNodeDescription(node, getLevelDescription);
-    }
-    if (detailStatus) {
-      const statusText = node.status ? translate(node.status.statusKey) : '';
-      detailStatus.textContent = typeof statusText === 'string' ? statusText : '';
-    }
-    if (playButton) {
-      const config = getButtonConfig(node);
-      playButton.disabled = Boolean(config.disabled);
-      playButton.textContent = config.text;
-    }
-    state.selected = node;
   }
 
   function attachNodes() {
@@ -403,15 +277,13 @@ export function initializeStageMap({
     nodes.forEach(node => {
       const el = createNodeElement(node);
       el.addEventListener('click', () => {
-        updateDetail(node);
+        handleNodeActivation(node);
       });
       nodesLayer.appendChild(el);
       state.elements.set(node.id, el);
     });
 
-    state.selected = null;
     refreshNodeStates();
-    setDefaultDetail(detailElements);
   }
 
   function updateViewport() {
@@ -491,30 +363,13 @@ export function initializeStageMap({
     }
   }
 
-  async function launchSelectedStage() {
-    if (!state.selected) return;
-    const node = state.selected;
-    if (node.type === 'mode') {
-      if (node.status?.unlocked) {
-        handleModeShortcut(node);
-      }
-      return;
-    }
-    if (!node.level) {
-      if (detailStatus && node.status) {
-        const text = translate(node.status.statusKey);
-        detailStatus.textContent = typeof text === 'string' ? text : '';
-      }
+  async function launchStage(node) {
+    if (!node || !node.level || typeof startLevel !== 'function') {
       return;
     }
     if (node.status?.locked) {
-      if (detailStatus) {
-        const text = translate('stageDetailLockedMessage');
-        detailStatus.textContent = typeof text === 'string' ? text : '';
-      }
       return;
     }
-    if (typeof startLevel !== 'function') return;
     lockOrientationLandscape?.();
     returnToEditScreen?.();
     closeOpenPanel();
@@ -528,11 +383,26 @@ export function initializeStageMap({
     }
   }
 
-  function setupPlayButton() {
-    if (playButton) {
-      playButton.textContent = translate('stageDetailPlayBtn');
-      playButton.addEventListener('click', launchSelectedStage);
+  function handleNodeActivation(node) {
+    if (!node) return;
+    if (node.type === 'mode') {
+      if (node.status?.unlocked) {
+        handleModeShortcut(node);
+      }
+      return;
     }
+    if (!node.level) {
+      return;
+    }
+    if (node.status?.locked) {
+      const el = state.elements.get(node.id);
+      if (el) {
+        el.classList.add('stage-node--locked-feedback');
+        window.setTimeout(() => el.classList.remove('stage-node--locked-feedback'), 400);
+      }
+      return;
+    }
+    launchStage(node);
   }
 
   function closeOpenPanel() {
@@ -579,7 +449,6 @@ export function initializeStageMap({
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => handleZoom(-0.1));
   if (zoomResetBtn) zoomResetBtn.addEventListener('click', resetView);
 
-  setupPlayButton();
   attachNodes();
   attachPanHandlers();
   setupPanels();
@@ -587,7 +456,6 @@ export function initializeStageMap({
   document.addEventListener('stageMap:progressUpdated', refreshNodeStates);
   document.addEventListener('stageMap:closePanels', closeOpenPanel);
   showStageMapScreen();
-  setDefaultDetail(detailElements);
 
   return {
     refresh: () => {
