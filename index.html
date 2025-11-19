@@ -107,14 +107,12 @@
     <!-- 스테이지 맵 화면 -->
     <section id="stageMapScreen" class="stage-map-screen" aria-label="Stage Map">
       <div class="stage-map-surface" id="stageMapSurface">
-        <div
-          class="stage-map-viewport"
-          id="stageMapViewport"
-          style="--map-scale: 1; --map-translate-x: 0px; --map-translate-y: 0px;"
-        >
-          <div class="stage-map-grid" aria-hidden="true"></div>
-          <svg id="stageMapConnections" class="stage-map-connections" role="presentation"></svg>
-          <div id="stageMapNodes" class="stage-map-nodes" role="list"></div>
+        <div class="stage-map-viewport" id="stageMapViewport">
+          <div class="stage-map-canvas-stack" id="stageMapCanvasStack">
+            <canvas id="stageMapBgCanvas"></canvas>
+            <canvas id="stageMapContentCanvas"></canvas>
+            <canvas id="stageMapOverlayCanvas"></canvas>
+          </div>
         </div>
         <div class="stage-map-info">
           <div class="stage-map-title">

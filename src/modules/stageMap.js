@@ -6,13 +6,99 @@ import {
   openUserProblemsFromShortcut
 } from './navigation.js';
 import { openLabModeFromShortcut } from './labMode.js';
-import { STAGE_GRAPH, STAGE_TYPE_META } from './stageMapLayout.js';
+import { STAGE_GRAPH, STAGE_TYPE_META, STAGE_MAP_BLUEPRINT } from './stageMapLayout.js';
+import { makeCircuit, newBlock, newWire, coord, CELL, GAP } from '../canvas/model.js';
+import { drawGrid, renderContent, setupCanvas } from '../canvas/renderer.js';
+import { createCamera } from '../canvas/camera.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
   : key => key;
 
 const SPECIAL_NODE_KEY = 'stageMapSpecialClears';
+const PITCH = CELL + GAP;
+
+const GRID_STYLE = {
+  background: 'rgba(15, 23, 42, 0.85)',
+  gridStroke: 'rgba(148, 163, 184, 0.18)',
+  gridLineWidth: 1,
+  panelShadow: null,
+  borderColor: 'rgba(15, 23, 42, 0.2)'
+};
+
+const STAGE_BLOCK_BASE_STYLE = {
+  font: '700 20px "Noto Sans KR", sans-serif',
+  subtitleSize: 13,
+  subtitleColor: '#1e293b',
+  radius: 18,
+  hoverFill: ['#fff7ed', '#fed7aa'],
+  hoverShadow: {
+    color: 'rgba(248, 250, 252, 0.55)',
+    blur: 30,
+    offsetY: 18
+  },
+  shadow: {
+    color: 'rgba(15, 23, 42, 0.45)',
+    blur: 36,
+    offsetY: 22
+  }
+};
+
+const STAGE_TYPE_THEMES = {
+  primitive_gate: {
+    fill: ['#dbeafe', '#bfdbfe'],
+    textColor: '#0f172a'
+  },
+  logic_stage: {
+    fill: ['#ede9fe', '#ddd6fe'],
+    textColor: '#4c1d95'
+  },
+  arith_stage: {
+    fill: ['#fee2e2', '#fecaca'],
+    textColor: '#7f1d1d'
+  },
+  mode: {
+    fill: ['#fef3c7', '#fde68a'],
+    textColor: '#713f12'
+  },
+  title: {
+    fill: ['#fdf4ff', '#fae8ff'],
+    textColor: '#6b21a8'
+  }
+};
+
+const LOCKED_STYLE = {
+  fill: ['#0f172a', '#1e293b'],
+  textColor: '#94a3b8',
+  subtitleColor: '#cbd5f5'
+};
+
+const CLEARED_STYLE = {
+  fill: ['#fef3c7', '#fde68a'],
+  textColor: '#92400e',
+  subtitleColor: '#78350f'
+};
+
+const COMING_SOON_STYLE = {
+  fill: ['#e2e8f0', '#cbd5f5'],
+  textColor: '#475569',
+  subtitleColor: '#475569'
+};
+
+const WIRE_STYLE_INACTIVE = {
+  color: 'rgba(148, 163, 184, 0.45)',
+  dashPattern: [26, 18],
+  width: 2.5,
+  nodeFill: 'rgba(248, 250, 252, 0.7)'
+};
+
+const WIRE_STYLE_ACTIVE = {
+  color: '#fbbf24',
+  dashPattern: [16, 12],
+  width: 3.4,
+  nodeFill: 'rgba(255, 247, 222, 0.95)',
+  nodeShadow: 'rgba(251, 191, 36, 0.6)'
+};
 
 function loadSpecialNodeClears() {
   if (typeof localStorage === 'undefined') return new Set();
@@ -44,69 +130,65 @@ function getTypeLabel(type) {
   return typeof text === 'string' ? text : '';
 }
 
-function createNodeElement(node) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = `stage-node ${STAGE_TYPE_META[node.type]?.className ?? ''}`;
-  button.dataset.nodeId = node.id;
-  if (node.level) {
-    button.dataset.stage = String(node.level);
-  }
-  button.style.left = `${node.x}px`;
-  button.style.top = `${node.y}px`;
-  const icon = document.createElement('span');
-  icon.className = 'stage-node__icon';
-  icon.textContent = node.icon ?? STAGE_TYPE_META[node.type]?.icon ?? '';
-  const body = document.createElement('span');
-  body.className = 'stage-node__body';
-  body.innerHTML = `
-    <span class="stage-node__chapter">${node.chapterName}</span>
-    <span class="stage-node__title">${node.title}</span>
-    <span class="stage-node__status"></span>
-  `;
-  button.appendChild(icon);
-  button.appendChild(body);
-  button.setAttribute('aria-label', `${node.title}`);
-  return button;
+function computeBlockBounds(block) {
+  if (!block?.pos) return null;
+  const { r, c } = block.pos;
+  if (!Number.isFinite(r) || !Number.isFinite(c)) return null;
+  const spanRows = Math.max(1, Math.round(block.span?.rows ?? block.span?.h ?? 1));
+  const spanCols = Math.max(1, Math.round(block.span?.cols ?? block.span?.w ?? 1));
+  const width = spanCols * CELL + Math.max(0, spanCols - 1) * GAP;
+  const height = spanRows * CELL + Math.max(0, spanRows - 1) * GAP;
+  const left = GAP + c * PITCH;
+  const top = GAP + r * PITCH;
+  return { left, top, right: left + width, bottom: top + height };
 }
 
-function buildMapNodes({ getLevelTitle } = {}) {
-  const nodes = STAGE_GRAPH.nodes.map(node => {
-    const [x, y] = node.position;
-    const title = node.level
-      ? (getLevelTitle?.(node.level) ?? node.label)
-      : node.label;
-    return {
-      ...node,
-      x,
-      y,
-      title,
-      chapterName: getTypeLabel(node.type)
-    };
+function buildStageCircuit(blueprint, { padding = 2 } = {}) {
+  const nodes = blueprint?.nodes || [];
+  const wires = blueprint?.wires || [];
+  let maxRow = 0;
+  let maxCol = 0;
+  nodes.forEach(node => {
+    if (!node?.block) return;
+    maxRow = Math.max(maxRow, node.block.y + node.block.h);
+    maxCol = Math.max(maxCol, node.block.x + node.block.w);
   });
-  const width = Math.max(1400, Math.max(...nodes.map(node => node.x)) + 200);
-  const height = Math.max(900, Math.max(...nodes.map(node => node.y)) + 200);
-  return { nodes, mapSize: { width, height }, edges: [...STAGE_GRAPH.edges] };
-}
+  wires.forEach(wire => {
+    (wire.path || []).forEach(point => {
+      if (!point) return;
+      maxRow = Math.max(maxRow, point.y);
+      maxCol = Math.max(maxCol, point.x);
+    });
+  });
+  const rowOffset = padding;
+  const colOffset = padding;
+  const totalRows = maxRow + rowOffset + 3;
+  const totalCols = maxCol + colOffset + 3;
+  const circuit = makeCircuit(totalRows, totalCols);
+  const visuals = [];
+  const wireRefs = [];
 
-function updatePanelState(panel, isOpen, backdrop) {
-  if (!panel) return;
-  panel.classList.toggle('stage-panel--open', isOpen);
-  panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-  if (backdrop) {
-    backdrop.hidden = !isOpen;
-  }
-}
+  nodes.forEach(node => {
+    if (!node?.block) return;
+    const pos = coord(node.block.y + rowOffset, node.block.x + colOffset);
+    const block = newBlock({ id: node.id, type: 'STAGE', name: node.label, pos, fixed: true });
+    block.span = { rows: node.block.h, cols: node.block.w };
+    circuit.blocks[block.id] = block;
+    visuals.push({ id: node.id, block, bounds: computeBlockBounds(block) });
+  });
 
-function createConnectionPath(from, to) {
-  const dx = to.x - from.x;
-  const dy = to.y - from.y;
-  const midX = (from.x + to.x) / 2;
-  const midY = (from.y + to.y) / 2;
-  const bend = Math.min(160, Math.hypot(dx, dy) * 0.35);
-  const controlY = dy >= 0 ? midY - bend : midY + bend;
-  const controlX = midX + Math.sign(dx || 1) * Math.min(60, Math.abs(dy) * 0.25);
-  return `M ${from.x} ${from.y} Q ${controlX} ${controlY} ${to.x} ${to.y}`;
+  wires.forEach(wire => {
+    const path = (wire.path || []).map(point => coord(point.y + rowOffset, point.x + colOffset));
+    const wireObj = newWire({ id: wire.id, path, startBlockId: wire.from, endBlockId: wire.to });
+    wireObj.stageConnection = { from: wire.from, to: wire.to };
+    circuit.wires[wire.id] = wireObj;
+    wireRefs.push(wireObj);
+  });
+
+  const worldWidth = GAP + totalCols * PITCH;
+  const worldHeight = GAP + totalRows * PITCH;
+
+  return { circuit, visuals, wires: wireRefs, worldWidth, worldHeight };
 }
 
 export function initializeStageMap({
@@ -118,42 +200,287 @@ export function initializeStageMap({
 } = {}) {
   const screenEl = document.getElementById('stageMapScreen');
   const viewport = document.getElementById('stageMapViewport');
-  const nodesLayer = document.getElementById('stageMapNodes');
-  const connectionsSvg = document.getElementById('stageMapConnections');
+  const bgCanvas = document.getElementById('stageMapBgCanvas');
+  const contentCanvas = document.getElementById('stageMapContentCanvas');
+  const overlayCanvas = document.getElementById('stageMapOverlayCanvas');
   const zoomInBtn = document.getElementById('stageMapZoomIn');
   const zoomOutBtn = document.getElementById('stageMapZoomOut');
   const zoomResetBtn = document.getElementById('stageMapZoomReset');
-  const surface = document.getElementById('stageMapSurface');
   const panels = Array.from(document.querySelectorAll('.stage-panel'));
   const panelButtons = document.querySelectorAll('[data-panel-target]');
   const panelButtonByPanel = new Map();
   const panelBackdrop = document.getElementById('stagePanelBackdrop');
 
-  if (!screenEl || !viewport || !nodesLayer || !connectionsSvg) {
+  if (!screenEl || !viewport || !bgCanvas || !contentCanvas || !overlayCanvas) {
     return null;
   }
 
+  const blueprintNodeMap = new Map((STAGE_MAP_BLUEPRINT.nodes || []).map(node => [node.id, node]));
+  const { circuit, visuals, wires, worldWidth, worldHeight } = buildStageCircuit(STAGE_MAP_BLUEPRINT);
+
+  const camera = createCamera();
   const state = {
     nodes: [],
     nodeLookup: new Map(),
-    elements: new Map(),
-    edges: [],
     dependencies: new Map(),
     nodeStatus: new Map(),
-    scale: 1,
-    translateX: 0,
-    translateY: 0,
     openPanel: null,
-    pointerStart: null,
-    specialClears: loadSpecialNodeClears()
+    specialClears: loadSpecialNodeClears(),
+    hoverNodeId: null,
+    pointerState: null,
+    lockedFeedbackId: null,
+    lockedFeedbackTimeout: null,
+    circuit,
+    nodeVisuals: visuals,
+    nodeVisualLookup: new Map(visuals.map(v => [v.id, v])),
+    blockByNode: new Map(Object.entries(circuit.blocks || {})),
+    wires,
+    viewportSize: { width: 0, height: 0 },
+    ctx: { grid: null, content: null },
+    camera,
+    worldSize: { width: worldWidth, height: worldHeight },
+    animationPhase: 0,
+    lastFrameTime: 0,
+    animationHandle: null
   };
 
-  function updateConnections() {
-    state.edges.forEach(edge => {
-      const status = state.nodeStatus.get(edge.from);
+  camera.setBounds(worldWidth, worldHeight, { clamp: true });
+
+  function updateZoomLabel() {
+    if (!zoomResetBtn) return;
+    const scale = camera.getScale?.() ?? 1;
+    zoomResetBtn.textContent = `${scale.toFixed(1)}×`;
+  }
+
+  function drawScene() {
+    if (!state.ctx.grid || !state.ctx.content) return;
+    drawGrid(state.ctx.grid, circuit.rows, circuit.cols, 0, camera, GRID_STYLE);
+    renderContent(
+      state.ctx.content,
+      circuit,
+      state.animationPhase,
+      0,
+      state.hoverNodeId,
+      camera,
+      STAGE_BLOCK_BASE_STYLE
+    );
+  }
+
+  function animationLoop(timestamp) {
+    state.animationHandle = window.requestAnimationFrame(animationLoop);
+    if (screenEl.offsetParent === null) {
+      state.lastFrameTime = timestamp;
+      return;
+    }
+    const delta = state.lastFrameTime ? timestamp - state.lastFrameTime : 16;
+    state.lastFrameTime = timestamp;
+    state.animationPhase = (state.animationPhase + delta * 0.02) % 2000;
+    drawScene();
+  }
+
+  function setHoverNode(nodeId) {
+    if (state.hoverNodeId === nodeId) return;
+    state.hoverNodeId = nodeId;
+    drawScene();
+  }
+
+  function hitTest(worldX, worldY) {
+    for (const visual of state.nodeVisuals) {
+      const bounds = visual.bounds;
+      if (!bounds) continue;
+      if (worldX >= bounds.left && worldX <= bounds.right && worldY >= bounds.top && worldY <= bounds.bottom) {
+        return visual.id;
+      }
+    }
+    return null;
+  }
+
+  function getPointerPosition(event) {
+    const rect = overlayCanvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top
+    };
+  }
+
+  function updatePointerHover(event) {
+    if (state.pointerState) return;
+    const pos = getPointerPosition(event);
+    const world = camera.screenToWorld(pos.x, pos.y);
+    const nodeId = hitTest(world.x, world.y);
+    setHoverNode(nodeId);
+  }
+
+  function handlePointerDown(event) {
+    overlayCanvas.setPointerCapture(event.pointerId);
+    const pos = getPointerPosition(event);
+    const world = camera.screenToWorld(pos.x, pos.y);
+    const nodeId = hitTest(world.x, world.y);
+    state.pointerState = {
+      id: event.pointerId,
+      nodeId,
+      isPanning: !nodeId,
+      moved: false,
+      lastClientX: event.clientX,
+      lastClientY: event.clientY
+    };
+    if (nodeId) {
+      setHoverNode(nodeId);
+    }
+    event.preventDefault();
+  }
+
+  function handlePointerMove(event) {
+    if (!state.pointerState) {
+      updatePointerHover(event);
+      return;
+    }
+    const pointer = state.pointerState;
+    const dx = event.clientX - pointer.lastClientX;
+    const dy = event.clientY - pointer.lastClientY;
+    pointer.lastClientX = event.clientX;
+    pointer.lastClientY = event.clientY;
+    if (pointer.isPanning) {
+      camera.pan(dx, dy);
+      updateZoomLabel();
+      drawScene();
+      pointer.moved = true;
+      return;
+    }
+    const travel = Math.hypot(dx, dy);
+    if (travel > 4) {
+      pointer.isPanning = true;
+      pointer.nodeId = null;
+      setHoverNode(null);
+      return;
+    }
+    const pos = getPointerPosition(event);
+    const world = camera.screenToWorld(pos.x, pos.y);
+    const nodeId = hitTest(world.x, world.y);
+    setHoverNode(nodeId);
+  }
+
+  function resetPointerState() {
+    if (state.pointerState) {
+      try {
+        overlayCanvas.releasePointerCapture(state.pointerState.id);
+      } catch (err) {
+        // ignore
+      }
+    }
+    state.pointerState = null;
+  }
+
+  function handlePointerUp(event) {
+    if (!state.pointerState || state.pointerState.id !== event.pointerId) {
+      updatePointerHover(event);
+      return;
+    }
+    const pointer = state.pointerState;
+    resetPointerState();
+    if (pointer.isPanning || !pointer.nodeId) {
+      return;
+    }
+    const node = state.nodeLookup.get(pointer.nodeId);
+    if (node) {
+      handleNodeActivation(node);
+    }
+  }
+
+  function handleWheel(event) {
+    event.preventDefault();
+    const factor = event.deltaY > 0 ? 0.9 : 1.1;
+    const pos = getPointerPosition(event);
+    const currentScale = camera.getScale?.() ?? 1;
+    camera.setScale(currentScale * factor, pos.x, pos.y);
+    updateZoomLabel();
+    drawScene();
+  }
+
+  function fitCameraToWorld() {
+    const { width, height } = state.viewportSize;
+    if (!width || !height) return;
+    const stageWidth = state.worldSize.width;
+    const stageHeight = state.worldSize.height;
+    if (!stageWidth || !stageHeight) return;
+    const paddingFactor = 1.1;
+    const scaleX = width / (stageWidth * paddingFactor);
+    const scaleY = height / (stageHeight * paddingFactor);
+    const scale = Math.min(scaleX, scaleY);
+    if (Number.isFinite(scale) && scale > 0) {
+      camera.setScale(scale);
+    }
+    const stateInfo = camera.getState?.();
+    const effectiveScale = stateInfo?.scale ?? scale;
+    if (!effectiveScale) return;
+    const visibleWidth = width / effectiveScale;
+    const visibleHeight = height / effectiveScale;
+    const targetOriginX = Math.max(0, (stageWidth - visibleWidth) / 2);
+    const targetOriginY = Math.max(0, (stageHeight - visibleHeight) / 2);
+    const dx = ((stateInfo?.originX ?? 0) - targetOriginX) * effectiveScale;
+    const dy = ((stateInfo?.originY ?? 0) - targetOriginY) * effectiveScale;
+    camera.pan(dx, dy);
+    updateZoomLabel();
+    drawScene();
+  }
+
+  function resizeViewport(forceFit = false) {
+    const rect = viewport.getBoundingClientRect();
+    const width = Math.max(200, Math.floor(rect.width));
+    const height = Math.max(200, Math.floor(rect.height));
+    state.viewportSize = { width, height };
+    state.ctx.grid = setupCanvas(bgCanvas, width, height);
+    state.ctx.content = setupCanvas(contentCanvas, width, height);
+    setupCanvas(overlayCanvas, width, height);
+    camera.setViewport(width, height);
+    if (forceFit) {
+      fitCameraToWorld();
+    } else {
+      drawScene();
+    }
+  }
+
+  function buildNodeStyle(node) {
+    const base = { ...STAGE_BLOCK_BASE_STYLE, ...(STAGE_TYPE_THEMES[node.type] || {}) };
+    let style = base;
+    if (node.comingSoon) {
+      style = { ...style, ...COMING_SOON_STYLE };
+    }
+    if (node.status?.displayCleared) {
+      style = { ...style, ...CLEARED_STYLE };
+    } else if (node.status?.locked) {
+      style = { ...style, ...LOCKED_STYLE };
+    }
+    if (state.lockedFeedbackId === node.id) {
+      style = {
+        ...style,
+        strokeColor: '#f87171',
+        strokeWidth: 2.5
+      };
+    }
+    return style;
+  }
+
+  function updateWireStyles() {
+    state.wires.forEach(wire => {
+      const sourceId = wire.stageConnection?.from ?? wire.startBlockId;
+      const status = sourceId ? state.nodeStatus.get(sourceId) : null;
       const active = Boolean(status?.progressCleared);
-      edge.element.classList.toggle('stage-connection--active', active);
+      wire.style = active ? WIRE_STYLE_ACTIVE : WIRE_STYLE_INACTIVE;
     });
+  }
+
+  function updateBlockStyles() {
+    state.nodes.forEach(node => {
+      const block = state.blockByNode.get(node.id);
+      if (!block) return;
+      block.name = node.title;
+      const statusText = node.status ? translate(node.status.statusKey) : '';
+      block.subtitle = statusText || '';
+      block.style = buildNodeStyle(node);
+    });
+    updateWireStyles();
+    drawScene();
   }
 
   function evaluateNodeStatus(node, memo, visiting, clearedLevels) {
@@ -223,186 +550,42 @@ export function initializeStageMap({
     state.nodes.forEach(node => {
       const status = evaluateNodeStatus(node, memo, visiting, cleared);
       node.status = status;
-      const el = state.elements.get(node.id);
-      if (el && status) {
-        el.classList.toggle('stage-node--locked', status.locked);
-        el.classList.toggle('stage-node--cleared', status.displayCleared);
-        el.classList.toggle('stage-node--preview', Boolean(node.comingSoon));
-        const statusEl = el.querySelector('.stage-node__status');
-        if (statusEl) {
-          const text = translate(status.statusKey);
-          statusEl.textContent = typeof text === 'string' ? text : '';
-        }
-      }
     });
     state.nodeStatus = memo;
-    updateConnections();
+    updateBlockStyles();
   }
 
   function attachNodes() {
-    const { nodes, mapSize, edges } = buildMapNodes({ getLevelTitle });
+    const nodes = STAGE_GRAPH.nodes.map(node => {
+      const blueprint = blueprintNodeMap.get(node.id);
+      const title = node.level
+        ? (getLevelTitle?.(node.level) ?? node.label)
+        : node.label;
+      return {
+        ...node,
+        block: blueprint?.block || null,
+        title,
+        chapterName: getTypeLabel(node.type)
+      };
+    });
     state.nodes = nodes;
     state.nodeLookup = new Map(nodes.map(node => [node.id, node]));
     state.dependencies = new Map();
-    nodes.forEach(node => {
-      state.dependencies.set(node.id, []);
-    });
-    edges.forEach(edge => {
+    nodes.forEach(node => state.dependencies.set(node.id, []));
+    STAGE_GRAPH.edges.forEach(edge => {
       const deps = state.dependencies.get(edge.to);
       if (deps) deps.push(edge.from);
     });
-    viewport.style.setProperty('--map-width', `${mapSize.width}px`);
-    viewport.style.setProperty('--map-height', `${mapSize.height}px`);
-    nodesLayer.innerHTML = '';
-    connectionsSvg.innerHTML = '';
-    connectionsSvg.setAttribute('viewBox', `0 0 ${mapSize.width} ${mapSize.height}`);
-    connectionsSvg.setAttribute('width', mapSize.width);
-    connectionsSvg.setAttribute('height', mapSize.height);
-    state.elements.clear();
-    state.edges = [];
-
-    edges.forEach(edge => {
-      const from = state.nodeLookup.get(edge.from);
-      const to = state.nodeLookup.get(edge.to);
-      if (!from || !to) return;
-      const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      path.setAttribute('d', createConnectionPath(from, to));
-      path.classList.add('stage-connection');
-      path.dataset.from = edge.from;
-      path.dataset.to = edge.to;
-      connectionsSvg.appendChild(path);
-      state.edges.push({ ...edge, element: path });
-    });
-
-    nodes.forEach(node => {
-      const el = createNodeElement(node);
-      el.addEventListener('click', () => {
-        handleNodeActivation(node);
-      });
-      nodesLayer.appendChild(el);
-      state.elements.set(node.id, el);
-    });
-
     refreshNodeStates();
   }
 
-  function updateViewport() {
-    viewport.style.setProperty('--map-scale', String(state.scale));
-    viewport.style.setProperty('--map-translate-x', `${state.translateX}px`);
-    viewport.style.setProperty('--map-translate-y', `${state.translateY}px`);
-  }
-
-  function handleZoom(delta) {
-    state.scale = Math.max(0.6, Math.min(1.6, state.scale + delta));
-    updateViewport();
-    if (zoomResetBtn) {
-      zoomResetBtn.textContent = `${state.scale.toFixed(1)}×`;
+  function updatePanelState(panel, isOpen, backdrop) {
+    if (!panel) return;
+    panel.classList.toggle('stage-panel--open', isOpen);
+    panel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    if (backdrop) {
+      backdrop.hidden = !isOpen;
     }
-  }
-
-  function resetView() {
-    state.scale = 1;
-    state.translateX = 0;
-    state.translateY = 0;
-    updateViewport();
-    if (zoomResetBtn) {
-      zoomResetBtn.textContent = '1×';
-    }
-  }
-
-  function attachPanHandlers() {
-    if (!surface) return;
-
-    surface.addEventListener('pointerdown', event => {
-      if (event.target.closest('.stage-panel') || event.target.closest('.hud-button') || event.target.closest('.stage-node')) {
-        return;
-      }
-      surface.setPointerCapture(event.pointerId);
-      state.pointerStart = {
-        x: event.clientX - state.translateX,
-        y: event.clientY - state.translateY
-      };
-    });
-
-    surface.addEventListener('pointermove', event => {
-      if (!state.pointerStart) return;
-      state.translateX = event.clientX - state.pointerStart.x;
-      state.translateY = event.clientY - state.pointerStart.y;
-      updateViewport();
-    });
-
-    surface.addEventListener('pointerup', () => {
-      state.pointerStart = null;
-    });
-
-    surface.addEventListener('wheel', event => {
-      if (!event.ctrlKey) {
-        event.preventDefault();
-        handleZoom(event.deltaY > 0 ? -0.05 : 0.05);
-      }
-    }, { passive: false });
-  }
-
-  function markModeNodeCleared(nodeId) {
-    if (state.specialClears.has(nodeId)) return;
-    state.specialClears.add(nodeId);
-    saveSpecialNodeClears(state.specialClears);
-    refreshNodeStates();
-    document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
-  }
-
-  function handleModeShortcut(node) {
-    if (node.mode === 'lab') {
-      openLabModeFromShortcut?.();
-      markModeNodeCleared(node.id);
-      return;
-    }
-    if (node.mode === 'userProblems') {
-      openUserProblemsFromShortcut?.();
-      markModeNodeCleared(node.id);
-    }
-  }
-
-  async function launchStage(node) {
-    if (!node || !node.level || typeof startLevel !== 'function') {
-      return;
-    }
-    if (node.status?.locked) {
-      return;
-    }
-    lockOrientationLandscape?.();
-    returnToEditScreen?.();
-    closeOpenPanel();
-    try {
-      await startLevel(node.level);
-      hideStageMapScreen();
-      showGameScreen();
-      document.body.classList.add('game-active');
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  function handleNodeActivation(node) {
-    if (!node) return;
-    if (node.type === 'mode') {
-      if (node.status?.unlocked) {
-        handleModeShortcut(node);
-      }
-      return;
-    }
-    if (!node.level) {
-      return;
-    }
-    if (node.status?.locked) {
-      const el = state.elements.get(node.id);
-      if (el) {
-        el.classList.add('stage-node--locked-feedback');
-        window.setTimeout(() => el.classList.remove('stage-node--locked-feedback'), 400);
-      }
-      return;
-    }
-    launchStage(node);
   }
 
   function closeOpenPanel() {
@@ -445,13 +628,116 @@ export function initializeStageMap({
     });
   }
 
-  if (zoomInBtn) zoomInBtn.addEventListener('click', () => handleZoom(0.1));
-  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => handleZoom(-0.1));
+  function markModeNodeCleared(nodeId) {
+    if (state.specialClears.has(nodeId)) return;
+    state.specialClears.add(nodeId);
+    saveSpecialNodeClears(state.specialClears);
+    refreshNodeStates();
+    document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
+  }
+
+  function handleModeShortcut(node) {
+    if (node.mode === 'lab') {
+      openLabModeFromShortcut?.();
+      markModeNodeCleared(node.id);
+      return;
+    }
+    if (node.mode === 'userProblems') {
+      openUserProblemsFromShortcut?.();
+      markModeNodeCleared(node.id);
+    }
+  }
+
+  async function launchStage(node) {
+    if (!node || !node.level || typeof startLevel !== 'function') {
+      return;
+    }
+    if (node.status?.locked) {
+      return;
+    }
+    lockOrientationLandscape?.();
+    returnToEditScreen?.();
+    closeOpenPanel();
+    try {
+      await startLevel(node.level);
+      hideStageMapScreen();
+      showGameScreen();
+      document.body.classList.add('game-active');
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  function triggerLockedFeedback(nodeId) {
+    state.lockedFeedbackId = nodeId;
+    window.clearTimeout(state.lockedFeedbackTimeout);
+    state.lockedFeedbackTimeout = window.setTimeout(() => {
+      state.lockedFeedbackId = null;
+      updateBlockStyles();
+    }, 450);
+    updateBlockStyles();
+  }
+
+  function handleNodeActivation(node) {
+    if (!node) return;
+    if (node.type === 'mode') {
+      if (node.status?.unlocked) {
+        handleModeShortcut(node);
+      } else {
+        triggerLockedFeedback(node.id);
+      }
+      return;
+    }
+    if (!node.level) {
+      return;
+    }
+    if (node.status?.locked) {
+      triggerLockedFeedback(node.id);
+      return;
+    }
+    launchStage(node);
+  }
+
+  function handleZoom(delta, pivot) {
+    const current = camera.getScale?.() ?? 1;
+    const next = current * (delta > 0 ? 1.15 : 0.87);
+    if (pivot) {
+      camera.setScale(next, pivot.x, pivot.y);
+    } else {
+      camera.setScale(next);
+    }
+    updateZoomLabel();
+    drawScene();
+  }
+
+  function resetView() {
+    fitCameraToWorld();
+  }
+
+  if (zoomInBtn) zoomInBtn.addEventListener('click', () => handleZoom(1));
+  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => handleZoom(-1));
   if (zoomResetBtn) zoomResetBtn.addEventListener('click', resetView);
 
+  overlayCanvas.addEventListener('pointerdown', handlePointerDown);
+  overlayCanvas.addEventListener('pointermove', handlePointerMove);
+  overlayCanvas.addEventListener('pointerup', handlePointerUp);
+  overlayCanvas.addEventListener('pointercancel', resetPointerState);
+  overlayCanvas.addEventListener('pointerleave', () => setHoverNode(null));
+  overlayCanvas.addEventListener('wheel', handleWheel, { passive: false });
+
+  window.addEventListener('resize', () => resizeViewport(false));
+
+  camera.setOnChange(() => {
+    updateZoomLabel();
+    drawScene();
+  });
+
   attachNodes();
-  attachPanHandlers();
   setupPanels();
+  resizeViewport(true);
+  updateZoomLabel();
+  drawScene();
+  animationLoop(performance.now());
 
   document.addEventListener('stageMap:progressUpdated', refreshNodeStates);
   document.addEventListener('stageMap:closePanels', closeOpenPanel);
