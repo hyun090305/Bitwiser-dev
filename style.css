@@ -51,35 +51,93 @@ body.safe-mode .stage-map-surface {
 
 .stage-map-viewport {
   position: absolute;
-  inset: 0;
-  overflow: hidden;
-  z-index: 1;
+  top: 50%;
+  left: 50%;
+  width: var(--map-width, 1800px);
+  height: var(--map-height, 1100px);
+  transform-origin: center;
+  transform: translate3d(calc(-50% + var(--map-translate-x, 0px)), calc(-50% + var(--map-translate-y, 0px)), 0)
+    scale(var(--map-scale, 1));
+  transition: transform 0.15s ease-out;
 }
 
-.stage-map-canvas-stack {
-  position: absolute;
-  inset: 0;
-}
-
-.stage-map-canvas-stack canvas {
+.stage-map-grid,
+.stage-map-connections,
+.stage-map-nodes {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
 }
 
-#stageMapBgCanvas,
-#stageMapContentCanvas {
+.stage-map-grid {
+  background-image: linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
+  background-size: 120px 120px;
+  filter: drop-shadow(0 0 16px rgba(15, 23, 42, 0.6));
+}
+
+body.safe-mode .stage-map-grid {
+  background-image: linear-gradient(rgba(248, 250, 252, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(248, 250, 252, 0.08) 1px, transparent 1px);
+}
+
+.stage-map-connections {
   pointer-events: none;
 }
 
-#stageMapOverlayCanvas {
-  pointer-events: auto;
-  cursor: grab;
+.stage-map-connections path {
+  stroke: rgba(100, 116, 139, 0.65);
+  stroke-width: 3.5;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.5;
 }
 
-#stageMapOverlayCanvas:active {
-  cursor: grabbing;
+body.safe-mode .stage-map-connections path {
+  stroke: rgba(248, 250, 252, 0.4);
+}
+
+.stage-connection--active {
+  stroke: #fbbf24;
+  opacity: 0.95;
+  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.5));
+}
+
+.stage-map-nodes {
+  pointer-events: none;
+}
+
+.stage-map-nodes button {
+  pointer-events: auto;
+}
+
+.stage-node {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 210px;
+  padding: 0.85rem 1.1rem;
+  border-radius: 20px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  background: rgba(248, 250, 252, 0.95);
+  color: #0f172a;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.stage-node:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.45);
+}
+
+.stage-node:focus-visible {
+  outline: 3px solid #38bdf8;
+  outline-offset: 4px;
 }
 
 .stage-node__icon {

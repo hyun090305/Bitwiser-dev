@@ -47,9 +47,6 @@ const BASE_BLOCK_STYLE = {
   fill: ['#f0f0ff', '#d0d0ff'],
   hoverFill: ['#fdfdff', '#c8c8ff'],
   textColor: '#000',
-  subtitleColor: '#475569',
-  subtitleSize: 13,
-  subtitleFont: null,
   radius: CELL_CORNER_RADIUS,
   shadow: {
     color: 'rgba(0,0,0,0.18)',
@@ -220,9 +217,6 @@ function resolveBlockStyle(options = {}) {
   style.hoverShadow = mergeShadow(mergeShadow(BASE_BLOCK_STYLE.hoverShadow, themeBlock.hoverShadow), hoverShadow);
   style.radius = CELL_CORNER_RADIUS;
   style.font = style.font || base.font || null;
-  style.subtitleFont = style.subtitleFont || base.subtitleFont || null;
-  style.subtitleSize = style.subtitleSize ?? base.subtitleSize ?? 13;
-  style.subtitleColor = style.subtitleColor || base.subtitleColor || '#475569';
   style.activeFill = style.activeFill || getThemeAccent(theme);
   style.activeHoverFill = style.activeHoverFill || style.hoverFill;
   style.activeTextColor = style.activeTextColor || 'hsl(170, 25%, 20%)';
@@ -353,30 +347,17 @@ function rectIntersects(bounds, rect) {
   );
 }
 
-function resolveBlockSpan(block) {
-  if (!block) {
-    return { rows: 1, cols: 1 };
-  }
-  const span = block.span;
-  const rows = Math.max(1, Math.round(span?.rows ?? span?.h ?? span?.height ?? span ?? 1));
-  const cols = Math.max(1, Math.round(span?.cols ?? span?.w ?? span?.width ?? span ?? 1));
-  return { rows, cols };
-}
-
 function blockWorldRect(block) {
   if (!block || !block.pos) return null;
   const { r, c } = block.pos;
   if (!Number.isFinite(r) || !Number.isFinite(c)) return null;
-  const { rows, cols } = resolveBlockSpan(block);
-  const width = cols * CELL + Math.max(0, cols - 1) * GAP;
-  const height = rows * CELL + Math.max(0, rows - 1) * GAP;
   const x = GAP + c * PITCH;
   const y = GAP + r * PITCH;
   return {
     minX: x,
     minY: y,
-    maxX: x + width,
-    maxY: y + height
+    maxX: x + CELL,
+    maxY: y + CELL
   };
 }
 
@@ -751,19 +732,6 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   ctx.restore();
 }
 
-function resolveFontSpec(font, scale = 1, { fallbackSize = 16, fallbackWeight = 'bold' } = {}) {
-  const defaultFont = `${fallbackWeight} ${fallbackSize}px "Noto Sans KR", sans-serif`;
-  const baseFont = font || defaultFont;
-  const fontMatch = baseFont.match(/(\d+(?:\.\d+)?)px/);
-  if (fontMatch) {
-    const px = parseFloat(fontMatch[1]);
-    const scaled = Math.max(0, px * scale);
-    return baseFont.replace(fontMatch[0], `${scaled}px`);
-  }
-  const fallback = Math.max(0, fallbackSize * scale);
-  return `${fallbackWeight} ${fallback}px "Noto Sans KR", sans-serif`;
-}
-
 // Blocks are drawn as rounded rectangles with text labels
 export function drawBlock(
   ctx,
@@ -775,27 +743,18 @@ export function drawBlock(
 ) {
   const style = resolveBlockStyle(options);
   const { r, c } = block.pos;
-  const scale = camera ? camera.getScale() : 1;
-  const { rows, cols } = resolveBlockSpan(block);
-  const widthWorld = cols * CELL + Math.max(0, cols - 1) * GAP;
-  const heightWorld = rows * CELL + Math.max(0, rows - 1) * GAP;
-  const baseX = GAP + c * PITCH;
-  const baseY = GAP + r * PITCH;
   let x;
   let y;
-  let width;
-  let height;
+  let size = CELL;
+  const scale = camera ? camera.getScale() : 1;
   if (camera) {
-    const point = camera.worldToScreen(baseX, baseY);
+    const point = camera.cellToScreenCell({ r, c });
     x = point.x;
     y = point.y;
-    width = widthWorld * scale;
-    height = heightWorld * scale;
+    size = CELL * scale;
   } else {
-    x = offsetX + baseX;
-    y = baseY;
-    width = widthWorld;
-    height = heightWorld;
+    x = offsetX + GAP + c * PITCH;
+    y = GAP + r * PITCH;
   }
   ctx.save();
 
@@ -813,29 +772,29 @@ export function drawBlock(
     applyScaledShadow(ctx, haloShadow, scale);
     const baseGlowColor = 'rgba(255, 246, 225, 0.96)';
     ctx.fillStyle = baseGlowColor;
-    roundRect(ctx, x, y, width, height, blockRadius);
+    roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
 
     ctx.shadowColor = 'transparent';
-    const cx = x + width * 0.42;
-    const cy = y + height * 0.38;
-    const innerRadius = Math.max(Math.min(width, height) * 0.06, 0);
-    const outerRadius = Math.max(Math.min(width, height) * 0.9, innerRadius + 0.1);
+    const cx = x + size * 0.42;
+    const cy = y + size * 0.38;
+    const innerRadius = Math.max(size * 0.06, 0);
+    const outerRadius = Math.max(size * 0.9, innerRadius + 0.1);
     const glowGradient = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
     glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
     glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
     glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
     ctx.globalCompositeOperation = 'lighter';
     ctx.fillStyle = glowGradient;
-    roundRect(ctx, x, y, width, height, blockRadius);
+    roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
     ctx.globalCompositeOperation = 'source-over';
   } else {
     const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
     applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
-    const fillStyle = createFillStyle(ctx, fillSpec, x, y, width, height) || fillSpec || '#f0f0ff';
+    const fillStyle = createFillStyle(ctx, fillSpec, x, y, size, size) || fillSpec || '#f0f0ff';
     ctx.fillStyle = fillStyle;
-    roundRect(ctx, x, y, width, height, blockRadius);
+    roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
   }
 
@@ -843,37 +802,29 @@ export function drawBlock(
     ctx.shadowColor = 'transparent';
     ctx.lineWidth = Math.max(style.strokeWidth * scale, 0.6);
     ctx.strokeStyle = style.strokeColor;
-    roundRect(ctx, x, y, width, height, blockRadius);
+    roundRect(ctx, x, y, size, size, blockRadius);
     ctx.stroke();
   }
 
   ctx.shadowColor = 'transparent';
 
-  const mainFont = resolveFontSpec(style.font, scale, { fallbackSize: 16, fallbackWeight: 'bold' });
+  const baseFont = style.font || `bold 16px "Noto Sans KR", sans-serif`;
+  const fontMatch = baseFont.match(/(\d+(?:\.\d+)?)px/);
+  let resolvedFont;
+  if (fontMatch) {
+    const px = parseFloat(fontMatch[1]);
+    const scaled = Math.max(0, px * scale);
+    resolvedFont = baseFont.replace(fontMatch[0], `${scaled}px`);
+  } else {
+    const fallbackSize = Math.max(0, 16 * scale);
+    resolvedFont = `bold ${fallbackSize}px "Noto Sans KR", sans-serif`;
+  }
   const textColor = isActive && style.activeTextColor ? style.activeTextColor : style.textColor;
   ctx.fillStyle = textColor || '#000';
-  ctx.font = mainFont;
+  ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const centerX = x + width / 2;
-  const centerY = y + height / 2;
-  const subtitle = block.subtitle && block.subtitle.trim().length ? block.subtitle : null;
-  if (subtitle) {
-    const gap = Math.max(height * 0.08, 10 * scale);
-    ctx.fillText(block.name || block.type, centerX, centerY - gap / 2);
-    const subtitleFont = resolveFontSpec(
-      style.subtitleFont || `600 ${style.subtitleSize || 13}px "Noto Sans KR", sans-serif`,
-      scale,
-      { fallbackSize: style.subtitleSize || 13, fallbackWeight: '600' }
-    );
-    ctx.font = subtitleFont;
-    ctx.fillStyle = style.subtitleColor || textColor || '#475569';
-    ctx.globalAlpha = 0.95;
-    ctx.fillText(subtitle, centerX, centerY + gap / 2);
-    ctx.globalAlpha = 1;
-  } else {
-    ctx.fillText(block.name || block.type, centerX, centerY);
-  }
+  ctx.fillText(block.name || block.type, x + size / 2, y + size / 2);
   ctx.restore();
 }
 
@@ -983,14 +934,8 @@ export function renderContent(
   const blocks = contentBounds
     ? Object.values(circuit.blocks).filter(b => rectIntersects(contentBounds, blockWorldRect(b)))
     : Object.values(circuit.blocks);
-  wires.forEach(w => {
-    const wireOptions = w.style ? { ...styleOptions, ...w.style } : styleOptions;
-    drawWire(ctx, w, phase, offsetX, camera, wireOptions);
-  });
-  blocks.forEach(b => {
-    const blockOptions = b.style ? { ...styleOptions, ...b.style } : styleOptions;
-    drawBlock(ctx, b, offsetX, b.id === hoverId, camera, blockOptions);
-  });
+  wires.forEach(w => drawWire(ctx, w, phase, offsetX, camera, styleOptions));
+  blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
   ctx.restore();
 }
 
