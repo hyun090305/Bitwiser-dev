@@ -7,7 +7,7 @@ import {
 } from './navigation.js';
 import { openLabModeFromShortcut } from './labMode.js';
 import { createCamera } from '../canvas/camera.js';
-import { drawGrid } from '../canvas/renderer.js';
+import { drawGrid, setupCanvas } from '../canvas/renderer.js';
 import { CELL } from '../canvas/model.js';
 import {
   STAGE_NODE_LEVEL_MAP,
@@ -318,7 +318,7 @@ export function initializeStageMap({
   }
 
   const camera = createCamera({ scale: 1 });
-  const ctx = canvas.getContext('2d');
+  let ctx = canvas.getContext('2d');
   const state = {
     nodes: [],
     edges: [],
@@ -333,23 +333,25 @@ export function initializeStageMap({
     dragging: false
   };
 
+  // Only reinitialize the canvas when its CSS size or DPR changes.
+  function ensureCanvasInitialized() {
+    const rect = canvas.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    const baseWidth = String(Math.max(1, Math.floor(rect.width)));
+    const baseHeight = String(Math.max(1, Math.floor(rect.height)));
+    const prevBaseWidth = canvas.dataset.baseWidth || '';
+    const prevBaseHeight = canvas.dataset.baseHeight || '';
+    const prevDpr = canvas.dataset.dpr || '';
+    if (prevBaseWidth !== baseWidth || prevBaseHeight !== baseHeight || prevDpr !== String(dpr)) {
+      ctx = setupCanvas(canvas, Number(baseWidth), Number(baseHeight));
+      camera.setViewport(rect.width, rect.height);
+    }
+  }
+
   function requestRender() {
     if (!ctx) return;
     window.requestAnimationFrame(() => {
-      const rect = canvas.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
-      const width = Math.max(1, Math.floor(rect.width * dpr));
-      const height = Math.max(1, Math.floor(rect.height * dpr));
-      if (canvas.width !== width || canvas.height !== height) {
-        canvas.width = width;
-        canvas.height = height;
-        canvas.style.width = `${rect.width}px`;
-        canvas.style.height = `${rect.height}px`;
-        canvas.dataset.baseWidth = String(rect.width);
-        canvas.dataset.baseHeight = String(rect.height);
-        canvas.dataset.dpr = String(dpr);
-        camera.setViewport(rect.width, rect.height);
-      }
+      ensureCanvasInitialized();
 
       drawGrid(ctx, 1, 1, 0, camera, {
         unbounded: true,
