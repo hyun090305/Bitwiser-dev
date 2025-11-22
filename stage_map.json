@@ -1,0 +1,380 @@
+{
+  "grid": {
+    "unit": 1,
+    "description": "All coordinates and sizes are in grid units."
+  },
+  "nodeTypes": {
+    "stage": { "defaultSize": { "w": 3, "h": 3 } },
+    "rank":  { "defaultSize": { "w": 9, "h": 3 } },
+    "feature": { "defaultSize": { "w": 9, "h": 3 } },
+    "mode":  { "defaultSize": { "w": 6, "h": 3 } }
+  },
+  "nodes": [
+    {
+      "id": "bit_solver",
+      "label": "Bit Solver",
+      "nodeType": "rank",
+      "category": "meta",
+      "position": { "x": 9, "y": 0 },
+      "size": { "w": 9, "h": 3 }
+    },
+    {
+      "id": "bit_wiser",
+      "label": "Bit Wiser",
+      "nodeType": "rank",
+      "category": "meta",
+      "position": { "x": 9, "y": 16 },
+      "size": { "w": 9, "h": 3 }
+    },
+    {
+      "id": "bit_master",
+      "label": "Bit Master",
+      "nodeType": "rank",
+      "category": "meta",
+      "position": { "x": 9, "y": 32 },
+      "size": { "w": 9, "h": 3 }
+    },
+
+    {
+      "id": "tutorial",
+      "label": "Tutorial",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 6, "y": 4 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "not",
+      "label": "NOT",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 10, "y": 4 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "nand",
+      "label": "NAND",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 14, "y": 4 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "nor",
+      "label": "NOR",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 6, "y": 8 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "or",
+      "label": "OR",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 10, "y": 8 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "and",
+      "label": "AND",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 14, "y": 8 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "crossroad",
+      "label": "Crossroad",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 6, "y": 12 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "fixed_xor",
+      "label": "Fixed XOR",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 10, "y": 12 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "xor",
+      "label": "XOR",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "position": { "x": 14, "y": 12 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "story",
+      "label": "Story",
+      "nodeType": "feature",
+      "category": "meta",
+      "position": { "x": 20, "y": 4 },
+      "size": { "w": 9, "h": 3 }
+    },
+    {
+      "id": "leaderboard",
+      "label": "Leaderboard",
+      "nodeType": "feature",
+      "category": "meta",
+      "position": { "x": 20, "y": 8 },
+      "size": { "w": 9, "h": 3 }
+    },
+    {
+      "id": "credits",
+      "label": "Credits",
+      "nodeType": "feature",
+      "category": "meta",
+      "position": { "x": 20, "y": 12 },
+      "size": { "w": 9, "h": 3 }
+    },
+
+    {
+      "id": "lab",
+      "label": "Lab",
+      "nodeType": "mode",
+      "category": "meta",
+      "position": { "x": 3, "y": 16 },
+      "size": { "w": 6, "h": 3 }
+    },
+    {
+      "id": "user_created_stages",
+      "label": "User Created Stages",
+      "nodeType": "mode",
+      "category": "meta",
+      "position": { "x": 20, "y": 16 },
+      "size": { "w": 6, "h": 3 }
+    },
+
+    {
+      "id": "three_bit_shifter",
+      "label": "3-bit Shifter",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 3, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "parity_checker",
+      "label": "Parity Checker",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 7, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "majority_gate",
+      "label": "Majority Gate",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 11, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "fixed_decoder_2to4",
+      "label": "Fixed 2-to-4 Decoder",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 3, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "decoder_2to4",
+      "label": "2-to-4 Decoder",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 7, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "enable_gate_center",
+      "label": "Enable Gate",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 11, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "enable_gate_left_bottom",
+      "label": "Enable Gate (Left Chain)",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 3, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "two_bit_max_selector",
+      "label": "2-bit Max Selector",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 7, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "mux_4to1",
+      "label": "4-to-1 MUX",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "position": { "x": 11, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "half_adder",
+      "label": "Half Adder",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 15, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "full_adder",
+      "label": "Full Adder",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 19, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "overflow_detector",
+      "label": "Overflow Detector",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 23, "y": 20 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "mod3_remainder",
+      "label": "Mod 3 Remainder",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 15, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "two_bit_comparator",
+      "label": "2-bit Comparator",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 19, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "two_bit_subtractor",
+      "label": "2-bit Subtractor",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 23, "y": 24 },
+      "size": { "w": 3, "h": 3 }
+    },
+
+    {
+      "id": "two_bit_multiplier",
+      "label": "2-bit Multiplier",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 15, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "two_bit_adder",
+      "label": "2-bit Adder",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 19, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    },
+    {
+      "id": "twos_complement",
+      "label": "2's complement",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "position": { "x": 23, "y": 28 },
+      "size": { "w": 3, "h": 3 }
+    }
+  ],
+
+  "edges": [
+    {
+      "from": "bit_solver",
+      "to": "tutorial",
+      "style": "orthogonal",
+      "waypoints": [
+        { "x": 12, "y": 3 },
+        { "x": 12, "y": 5 },
+        { "x": 7,  "y": 5 }
+      ]
+    },
+    {
+      "from": "bit_solver",
+      "to": "nand",
+      "style": "orthogonal",
+      "waypoints": [
+        { "x": 13, "y": 3 }
+      ]
+    },
+    {
+      "from": "bit_solver",
+      "to": "story",
+      "style": "orthogonal",
+      "waypoints": [
+        { "x": 18, "y": 3 },
+        { "x": 18, "y": 6 },
+        { "x": 22, "y": 6 }
+      ]
+    },
+
+    { "from": "tutorial", "to": "not", "style": "orthogonal" },
+    { "from": "not",      "to": "or",  "style": "orthogonal" },
+    { "from": "or",       "to": "nor", "style": "orthogonal" },
+    { "from": "or",       "to": "and", "style": "orthogonal" },
+    { "from": "nand",     "to": "and", "style": "orthogonal" },
+    { "from": "and",      "to": "xor", "style": "orthogonal" },
+    { "from": "xor",      "to": "fixed_xor", "style": "orthogonal" },
+    { "from": "fixed_xor","to": "crossroad", "style": "orthogonal" },
+    { "from": "crossroad","to": "bit_wiser", "style": "orthogonal" },
+
+    { "from": "story",       "to": "leaderboard", "style": "orthogonal" },
+    { "from": "leaderboard", "to": "credits",     "style": "orthogonal" },
+
+    { "from": "bit_wiser", "to": "lab",                 "style": "orthogonal" },
+    { "from": "bit_wiser", "to": "user_created_stages","style": "orthogonal" },
+    { "from": "bit_wiser", "to": "three_bit_shifter",  "style": "orthogonal" },
+    { "from": "bit_wiser", "to": "half_adder",         "style": "orthogonal" },
+
+    { "from": "three_bit_shifter", "to": "parity_checker", "style": "orthogonal" },
+    { "from": "parity_checker",    "to": "majority_gate",  "style": "orthogonal" },
+    { "from": "parity_checker",    "to": "decoder_2to4",   "style": "orthogonal" },
+    { "from": "parity_checker",    "to": "fixed_decoder_2to4", "style": "orthogonal" },
+    { "from": "fixed_decoder_2to4","to": "decoder_2to4",   "style": "orthogonal" },
+    { "from": "decoder_2to4",      "to": "two_bit_max_selector", "style": "orthogonal" },
+    { "from": "decoder_2to4",      "to": "enable_gate_left_bottom", "style": "orthogonal" },
+    { "from": "majority_gate",     "to": "enable_gate_center", "style": "orthogonal" },
+    { "from": "enable_gate_center","to": "mux_4to1", "style": "orthogonal" },
+    { "from": "two_bit_max_selector","to": "enable_gate_left_bottom","style":"orthogonal" },
+
+    { "from": "half_adder",        "to": "full_adder",        "style": "orthogonal" },
+    { "from": "full_adder",        "to": "overflow_detector","style": "orthogonal" },
+    { "from": "overflow_detector", "to": "two_bit_subtractor","style": "orthogonal" },
+    { "from": "two_bit_subtractor","to": "twos_complement",   "style": "orthogonal" },
+
+    { "from": "half_adder",        "to": "mod3_remainder",    "style": "orthogonal" },
+    { "from": "mod3_remainder",    "to": "two_bit_multiplier","style": "orthogonal" },
+
+    { "from": "full_adder",        "to": "two_bit_comparator","style": "orthogonal" },
+    { "from": "two_bit_comparator","to": "two_bit_adder",     "style": "orthogonal" },
+    { "from": "two_bit_adder",     "to": "two_bit_multiplier","style": "orthogonal" },
+
+    { "from": "mux_4to1",          "to": "bit_master",        "style": "orthogonal" },
+    { "from": "two_bit_multiplier","to": "bit_master",        "style": "orthogonal" }
+  ]
+}
