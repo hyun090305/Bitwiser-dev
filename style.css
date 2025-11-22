@@ -49,68 +49,14 @@ body.safe-mode .stage-map-surface {
   box-shadow: 0 20px 40px rgba(2, 6, 23, 0.8);
 }
 
-.stage-map-viewport {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: var(--map-width, 1800px);
-  height: var(--map-height, 1100px);
-  transform-origin: center;
-  transform: translate3d(calc(-50% + var(--map-translate-x, 0px)), calc(-50% + var(--map-translate-y, 0px)), 0)
-    scale(var(--map-scale, 1));
-  transition: transform 0.15s ease-out;
-}
 
-.stage-map-grid,
-.stage-map-connections,
-.stage-map-nodes {
+.stage-map-canvas {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
-}
-
-.stage-map-grid {
-  background-image: linear-gradient(rgba(148, 163, 184, 0.12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.12) 1px, transparent 1px);
-  background-size: 120px 120px;
-  filter: drop-shadow(0 0 16px rgba(15, 23, 42, 0.6));
-}
-
-body.safe-mode .stage-map-grid {
-  background-image: linear-gradient(rgba(248, 250, 252, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(248, 250, 252, 0.08) 1px, transparent 1px);
-}
-
-.stage-map-connections {
-  pointer-events: none;
-}
-
-.stage-map-connections path {
-  stroke: rgba(100, 116, 139, 0.65);
-  stroke-width: 3.5;
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.5;
-}
-
-body.safe-mode .stage-map-connections path {
-  stroke: rgba(248, 250, 252, 0.4);
-}
-
-.stage-connection--active {
-  stroke: #fbbf24;
-  opacity: 0.95;
-  filter: drop-shadow(0 0 18px rgba(251, 191, 36, 0.5));
-}
-
-.stage-map-nodes {
-  pointer-events: none;
-}
-
-.stage-map-nodes button {
-  pointer-events: auto;
+  display: block;
+  background: transparent;
 }
 
 .stage-node {
