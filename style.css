@@ -1132,131 +1132,6 @@ html, body {
     text-align: center;
   }
 
-  /* Chapter & Stage Screen */
-  #chapterStageContainer {
-    display: flex;
-    gap: 1rem;
-  }
-
-  .chapter-list {
-    width: 200px;
-    border-right: 1px solid #ccc;
-  }
-
-  #stagePanel {
-    flex: 1;
-  }
-
-  .chapterItem {
-    padding: 0.5rem;
-    cursor: pointer;
-  }
-
-  .chapterItem.selected {
-    background: #e0e0ff;
-    font-weight: bold;
-  }
-
-  .chapterItem.locked {
-    color: #999;
-    cursor: default;
-  }
-
-  .stage-list {
-    flex: 1;
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  .stageCard {
-    position: relative;
-    box-sizing: border-box;
-    width: 200px;
-    height: 125px;
-    padding: 1rem;
-    border: 1px solid #666;
-    border-radius: 8px;
-    background: #f5f5ff;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    transition: transform 0.2s, box-shadow 0.2s;
-    opacity: 0;
-    transform: scale(0.96);
-  }
-
-  .stageCard:not(.locked):hover {
-    transform: scale(1.05);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-  }
-
-  .stageCard.cleared {
-    border-color: green;
-  }
-
-  .stageCard.card-enter {
-    animation: cardIn 180ms forwards ease-out;
-  }
-
-  @keyframes cardIn {
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  .stageCard .checkmark {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 24px;
-    height: 24px;
-  }
-
-  .stageCard .checkmark path {
-    stroke-dasharray: 30;
-    stroke-dashoffset: 0;
-  }
-
-  .stageCard .checkmark.animate {
-    animation: checkBounce 150ms 150ms both;
-  }
-
-  .stageCard .checkmark.animate path {
-    stroke-dashoffset: 30;
-    animation: drawCheck 150ms forwards ease-out;
-  }
-
-  @keyframes drawCheck {
-    to { stroke-dashoffset: 0; }
-  }
-
-  @keyframes checkBounce {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.2); }
-    100% { transform: scale(1); }
-  }
-
-  .stageCard.locked {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .stageCard.locked::after {
-    content: '🔒';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-  }
-
-  .btn-toggle {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    margin-left: 0.5rem;
-  }
-
   .hidden {
     display: none;
   }
@@ -1439,19 +1314,6 @@ html, body {
 
   body:not(.game-active) #backgroundCanvas {
     display: block;
-  }
-
-  /* ── ② 비게임 화면에만 “흰 배경 + 블러” 오버레이 적용 ── */
-  /* ── 비게임 화면에만 오버레이 적용 ── */
-  body:not(.game-active) #mainScreen,
-  body:not(.game-active) #chapterStageScreen{
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(8px);
-    border-radius: 12px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-    padding: 1rem 2rem;
-    margin: 1rem;
-    box-sizing: border-box;
   }
 
   #problem-screen {
@@ -2085,13 +1947,6 @@ html, body {
     background-color: #C6C9ED;
     color: #0F172A;
   }
-
-
-  #chapterStageScreen {
-    min-height: auto;
-    overflow-y: auto;
-  }
-
 
   /* ② 메인 카드(#mainScreen) 가 가진 margin:auto 를 수직 여백만 남기도록 변경 */
 

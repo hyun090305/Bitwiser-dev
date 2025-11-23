@@ -107,7 +107,7 @@ export function initializeTutorials({
     screens = {}
   } = elements;
 
-  const { gameScreen, chapterStageScreen } = screens;
+  const { gameScreen } = screens;
 
   let tutIndex = 0;
 
@@ -166,9 +166,6 @@ export function initializeTutorials({
       document.body.classList.add('game-active');
     }
     hideStageMapScreen();
-    if (chapterStageScreen) {
-      chapterStageScreen.style.display = 'none';
-    }
     if (gameScreen) {
       showGameScreen();
     }

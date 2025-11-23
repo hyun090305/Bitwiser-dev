@@ -750,7 +750,7 @@ function enterProblemScreen(from) {
   } else if (from === 'userProblems') {
     hideElement(ids.userProblemsScreenId);
   } else {
-    hideElement(ids.chapterStageScreenId);
+    hideElement(ids.firstScreenId);
   }
   const displayMode = from === 'main' ? 'block' : 'flex';
   showElement(ids.problemScreenId, displayMode);
@@ -767,7 +767,7 @@ function leaveProblemScreen() {
   } else if (previousScreen === 'main') {
     showElement(ids.firstScreenId);
   } else {
-    showElement(ids.chapterStageScreenId, 'block');
+    showElement(ids.firstScreenId);
   }
   onRefreshUserData?.();
   previousScreen = null;
