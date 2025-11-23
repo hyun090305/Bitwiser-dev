@@ -95,8 +95,6 @@ const {
   configureLevelModule,
   loadStageData,
   getStageDataPromise,
-  renderChapterList,
-  selectChapter,
   startLevel,
   returnToEditScreen,
   returnToLevels,
@@ -111,7 +109,6 @@ const {
   getLevelBlockSet,
   getLevelAnswer,
   getLevelHints,
-  getChapterData,
   getCurrentLevel,
   clearCurrentLevel,
   getClearedLevels,
@@ -452,14 +449,8 @@ function setupKeyToggles() {
 
 
 
-const chapterStageScreen = document.getElementById("chapterStageScreen");
 const gameScreen = document.getElementById("gameScreen");
 const stageMapScreen = document.getElementById('stageMapScreen');
-const chapterListEl = document.getElementById("chapterList");
-
-document.getElementById("toggleChapterList").onclick = () => {
-  chapterListEl.classList.toggle('hidden');
-};
 
 document.getElementById("backToLevelsBtn").onclick = async () => {
   await returnToLevels({
@@ -566,8 +557,7 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
     stageButton: document.getElementById('stageTutBtn'),
     screens: {
       gameScreen,
-      stageMapScreen,
-      chapterStageScreen
+      stageMapScreen
     }
   }
 }) ?? {});
@@ -1066,14 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
     setupNavigation({
       refreshUserData,
-      renderChapterList,
-      renderUserProblemList,
-      selectChapter: index => {
-        const chapters = getChapterData();
-        if (chapters.length > index) {
-          selectChapter(index);
-        }
-      }
+      renderUserProblemList
     });
     hideLoadingScreen();
   });
@@ -1155,7 +1138,6 @@ initializeProblemCreationFlow({
     backButtonId: 'backToMainFromProblem',
     problemScreenId: 'problem-screen',
     firstScreenId: 'stageMapScreen',
-    chapterStageScreenId: 'chapterStageScreen',
     userProblemsScreenId: 'user-problems-screen',
     openProblemCreatorBtnId: 'openProblemCreatorBtn',
     saveProblemBtnId: 'saveProblemBtn',

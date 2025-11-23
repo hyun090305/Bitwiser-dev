@@ -1,6 +1,7 @@
 import { setupGrid, setGridDimensions, destroyPlayContext } from './grid.js';
 import { getUsername } from './storage.js';
 import { fetchOverallStats } from './rank.js';
+import { showStageMapScreen } from './navigation.js';
 
 const translate =
   typeof window !== 'undefined' && typeof window.t === 'function'
@@ -8,109 +9,17 @@ const translate =
     : key => key;
 
 const DEFAULT_GRID_SIZE = 6;
-const STAGE_GRID_COLUMNS = 3;
-const STAGE_CARD_WIDTH = 200;
-const STAGE_CARD_HEIGHT = 125;
-const STAGE_GRID_GAP = 16;
-
-const defaultStageListLayout = {
-  cardWidth: STAGE_CARD_WIDTH,
-  cardHeight: STAGE_CARD_HEIGHT,
-  gapX: STAGE_GRID_GAP,
-  gapY: STAGE_GRID_GAP,
-  columns: STAGE_GRID_COLUMNS,
-  rows: 1
-};
-
-let stageListLayoutCache = { ...defaultStageListLayout };
 
 let levelTitles = {};
 let levelGridSizes = {};
 let levelBlockSets = {};
 let chapterData = [];
-let selectedChapterIndex = 0;
 let levelAnswers = {};
 let levelDescriptions = {};
 let levelHints = {};
 let clearedLevelsFromDb = [];
 let stageDataPromise = Promise.resolve();
 let currentLevel = null;
-
-function parseSpacingValue(primary, secondary, fallback) {
-  const tryParse = value => {
-    if (typeof value !== 'string') return NaN;
-    const trimmed = value.trim();
-    if (!trimmed || trimmed === 'normal') return NaN;
-    const parsed = parseFloat(trimmed);
-    return Number.isFinite(parsed) ? parsed : NaN;
-  };
-
-  const primaryParsed = tryParse(primary);
-  if (!Number.isNaN(primaryParsed)) return primaryParsed;
-
-  const secondaryParsed = tryParse(secondary);
-  if (!Number.isNaN(secondaryParsed)) return secondaryParsed;
-
-  return fallback;
-}
-
-function calculateStageBounds(layout) {
-  const width = layout.columns * layout.cardWidth + (layout.columns - 1) * layout.gapX;
-  const height = layout.rows * layout.cardHeight + (layout.rows - 1) * layout.gapY;
-  return { width, height };
-}
-
-function applyStageBounds(stageListEl, bounds) {
-  const widthPx = `${Math.max(bounds.width, 0)}px`;
-  const heightPx = `${Math.max(bounds.height, 0)}px`;
-  stageListEl.style.minWidth = widthPx;
-  stageListEl.style.minHeight = heightPx;
-
-  const stagePanel = stageListEl.closest('#stagePanel') || stageListEl.parentElement;
-  if (stagePanel) {
-    stagePanel.style.minWidth = widthPx;
-    stagePanel.style.minHeight = heightPx;
-  }
-}
-
-function ensureStageListMinSize(stageListEl, stageCount) {
-  const layout = { ...stageListLayoutCache };
-
-  if (stageCount > 0) {
-    layout.columns = Math.min(STAGE_GRID_COLUMNS, Math.max(stageCount, 1));
-    layout.rows = Math.max(1, Math.ceil(stageCount / STAGE_GRID_COLUMNS));
-    stageListLayoutCache = { ...stageListLayoutCache, columns: layout.columns, rows: layout.rows };
-  }
-
-  applyStageBounds(stageListEl, calculateStageBounds(layout));
-
-  if (stageCount > 0) {
-    const schedule = typeof requestAnimationFrame === 'function'
-      ? requestAnimationFrame
-      : (cb => setTimeout(cb, 0));
-
-    schedule(() => {
-      const firstCard = stageListEl.querySelector('.stageCard');
-      if (!firstCard) return;
-
-      const rect = firstCard.getBoundingClientRect();
-      const computed = getComputedStyle(stageListEl);
-      const gapX = parseSpacingValue(computed.columnGap, computed.gap, layout.gapX);
-      const gapY = parseSpacingValue(computed.rowGap, computed.gap, layout.gapY);
-
-      stageListLayoutCache = {
-        cardWidth: rect.width || layout.cardWidth,
-        cardHeight: rect.height || layout.cardHeight,
-        gapX,
-        gapY,
-        columns: layout.columns,
-        rows: layout.rows
-      };
-
-      applyStageBounds(stageListEl, calculateStageBounds(stageListLayoutCache));
-    });
-  }
-}
 
 const dependencies = {
   renderUserProblemList: null,
@@ -170,14 +79,6 @@ export function getLevelHints() {
 
 export function getChapterData() {
   return chapterData;
-}
-
-export function getSelectedChapterIndex() {
-  return selectedChapterIndex;
-}
-
-export function setSelectedChapterIndex(index) {
-  selectedChapterIndex = index;
 }
 
 export function getCurrentLevel() {
@@ -266,7 +167,6 @@ export function markLevelCleared(level) {
   if (!clearedLevelsFromDb.includes(level)) {
     clearedLevelsFromDb.push(level);
     refreshClearedUI();
-    renderChapterList();
   }
 }
 
@@ -296,141 +196,19 @@ export async function returnToLevels({
     return;
   }
 
-  const chapterStageScreen = document.getElementById('chapterStageScreen');
-  if (chapterStageScreen) {
-    chapterStageScreen.style.display = 'block';
-    chapterStageScreen.classList.add('stage-screen-enter');
-    chapterStageScreen.addEventListener(
-      'animationend',
-      event => {
-        if (event.target === chapterStageScreen) {
-          chapterStageScreen.classList.remove('stage-screen-enter');
-        }
-      },
-      { once: true }
-    );
+  if (typeof showStageMapScreen === 'function') {
+    showStageMapScreen();
+  } else {
+    const stageMapScreen = document.getElementById('stageMapScreen');
+    if (stageMapScreen) {
+      stageMapScreen.style.display = 'flex';
+      stageMapScreen.setAttribute('aria-hidden', 'false');
+    }
   }
-
-  await Promise.all([
-    renderChapterList(),
-    (async () => {
-      const chapter = chapterData[selectedChapterIndex];
-      if (chapter) {
-        await renderStageList(chapter.stages);
-      }
-    })()
-  ]);
+  document.dispatchEvent(new Event('stageMap:closePanels'));
+  document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
 }
 
-export async function renderChapterList() {
-  await loadClearedLevelsFromDb();
-  const chapterListEl = document.getElementById('chapterList');
-  if (!chapterListEl) return;
-  chapterListEl.innerHTML = '';
-  const cleared = clearedLevelsFromDb;
-
-  chapterData.forEach((chapter, idx) => {
-    const item = document.createElement('div');
-    item.className = 'chapterItem';
-    const unlocked = idx === 0
-      ? true
-      : chapterData[idx - 1].stages.every(s => cleared.includes(s));
-    if (!unlocked) {
-      item.classList.add('locked');
-      item.textContent = `${chapter.name} 🔒`;
-      item.onclick = () => {
-        const template = translate('levelsChapterLocked');
-        const message = typeof template === 'string' && template !== 'levelsChapterLocked'
-          ? template
-          : '챕터 {chapter}의 스테이지를 모두 완료해야 다음 챕터가 열립니다.';
-        alert(message.replace('{chapter}', idx));
-      };
-    } else {
-      item.textContent = chapter.name;
-      item.onclick = () => {
-        selectChapter(idx);
-      };
-    }
-    if (idx === selectedChapterIndex) item.classList.add('selected');
-    chapterListEl.appendChild(item);
-  });
-}
-
-export function selectChapter(idx) {
-  selectedChapterIndex = idx;
-  renderChapterList();
-  const chapter = chapterData[idx];
-  if (chapter) {
-    renderStageList(chapter.stages);
-  }
-}
-
-export async function renderStageList(stageList) {
-  const stageListEl = document.getElementById('stageList');
-  if (!stageListEl) return;
-
-  ensureStageListMinSize(stageListEl, stageList.length);
-
-  stageListEl.querySelectorAll('.stageCard').forEach(card => {
-    card.style.opacity = '0';
-    card.style.transform = 'scale(0.96)';
-  });
-
-  stageListEl.innerHTML = '';
-  await loadClearedLevelsFromDb();
-  stageList.forEach((level, idx) => {
-    const card = document.createElement('div');
-    card.className = 'stageCard';
-    card.style.animationDelay = `${idx * 40}ms`;
-    card.dataset.stage = level;
-    const title = levelTitles[level] ?? `Stage ${level}`;
-    let name = title;
-    let desc = '';
-    const parts = title.split(':');
-    if (parts.length > 1) {
-      name = parts[0];
-      desc = parts.slice(1).join(':').trim();
-    }
-    card.innerHTML = `<h3>${name}</h3><p>${desc}</p>`;
-    const unlocked = isLevelUnlocked(level);
-    if (!unlocked) {
-      card.classList.add('locked');
-    } else {
-      if (clearedLevelsFromDb.includes(level)) {
-        card.classList.add('cleared');
-        const check = createCheckmarkSvg();
-        card.appendChild(check);
-      }
-      card.onclick = async () => {
-        returnToEditScreen();
-        await startLevel(level);
-        const chapterStageScreen = document.getElementById('chapterStageScreen');
-        const gameScreen = document.getElementById('gameScreen');
-        if (chapterStageScreen) chapterStageScreen.style.display = 'none';
-        if (gameScreen) gameScreen.style.display = 'flex';
-        document.body.classList.add('game-active');
-      };
-    }
-    stageListEl.appendChild(card);
-
-    requestAnimationFrame(() => {
-      card.classList.add('card-enter');
-    });
-
-    card.addEventListener(
-      'animationend',
-      event => {
-        if (event.animationName === 'cardIn') {
-          card.style.opacity = '1';
-          card.style.transform = 'scale(1)';
-          card.classList.remove('card-enter');
-          card.style.removeProperty('animation-delay');
-        }
-      },
-      { once: true }
-    );
-  });
-}
 
 export function refreshUserData() {
   const nickname = getUsername() || '';
@@ -589,38 +367,7 @@ export function buildPaletteGroups(blocks) {
   return groups;
 }
 
-function createCheckmarkSvg(animate = false) {
-  const svgNS = 'http://www.w3.org/2000/svg';
-  const svg = document.createElementNS(svgNS, 'svg');
-  svg.classList.add('checkmark');
-  svg.setAttribute('viewBox', '0 0 24 24');
-  const path = document.createElementNS(svgNS, 'path');
-  path.setAttribute('d', 'M4 12l5 5 11-11');
-  path.setAttribute('fill', 'none');
-  path.setAttribute('stroke', 'green');
-  path.setAttribute('stroke-width', '3');
-  path.setAttribute('stroke-linecap', 'round');
-  path.setAttribute('stroke-linejoin', 'round');
-  svg.appendChild(path);
-  if (animate) svg.classList.add('animate');
-  return svg;
-}
-
 function refreshClearedUI() {
-  document.querySelectorAll('.stageCard').forEach(card => {
-    const level = parseInt(card.dataset.stage, 10);
-    card.classList.remove('cleared');
-    const check = card.querySelector('.checkmark');
-    if (clearedLevelsFromDb.includes(level)) {
-      card.classList.add('cleared');
-      if (!check) {
-        const svg = createCheckmarkSvg(true);
-        card.appendChild(svg);
-      }
-    } else if (check) {
-      check.remove();
-    }
-  });
   document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
 }
 

@@ -120,15 +120,10 @@ export function openUserProblemsFromShortcut() {
 
 export function setupNavigation({
   refreshUserData,
-  renderChapterList,
-  selectChapter,
   renderUserProblemList
 } = {}) {
   ensureScreens();
 
-  const chapterStageScreen = document.getElementById('chapterStageScreen');
-  const chapterNavBtn = document.getElementById('chapterNavBtn');
-  const backToMainFromChapterBtn = document.getElementById('backToMainFromChapter');
   const userProblemsBtn = document.getElementById('userProblemsBtn');
   const userProblemsScreen = document.getElementById('user-problems-screen');
   const backFromUserProblemsBtn = document.getElementById('backToChapterFromUserProblems');
@@ -137,28 +132,6 @@ export function setupNavigation({
     if (typeof refreshUserData === 'function') {
       refreshUserData();
     }
-  }
-
-  function openChapterList() {
-    hideStageMapScreen();
-    toggleScreen(chapterStageScreen, true, 'block');
-    animateEnter(chapterStageScreen);
-    const renderPromise = typeof renderChapterList === 'function'
-      ? Promise.resolve(renderChapterList())
-      : Promise.resolve();
-    renderPromise.then(() => {
-      if (typeof selectChapter === 'function') {
-        selectChapter(0);
-      }
-    }).catch(err => console.error(err));
-    refreshUserInfo();
-  }
-
-  function closeChapterList() {
-    animateExit(chapterStageScreen, () => {
-      showStageMapScreen();
-      refreshUserInfo();
-    });
   }
 
   function openUserProblemsScreen() {
@@ -178,11 +151,6 @@ export function setupNavigation({
     });
   }
 
-  chapterNavBtn?.addEventListener('click', () => {
-    lockOrientationLandscape();
-    openChapterList();
-  });
-
   userProblemsBtn?.addEventListener('click', () => {
     lockOrientationLandscape();
     openUserProblemsScreen();
@@ -193,8 +161,8 @@ export function setupNavigation({
     openUserProblemsScreen();
   };
 
-  backToMainFromChapterBtn?.addEventListener('click', closeChapterList);
   backFromUserProblemsBtn?.addEventListener('click', closeUserProblemsScreen);
 
   showStageMapScreen();
+  refreshUserInfo();
 }
