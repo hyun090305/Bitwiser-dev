@@ -1,25 +1,27 @@
 {
   "levelTitles": {
-  "1": "NOT gate",
-  "2": "OR gate",
-  "3": "AND gate",
-  "4": "NOR gate",
-  "5": "NAND gate",
-  "6": "XOR gate",
-  "7": "Majority gate",
-  "8": "Parity checker",
-  "9": "Half Adder",
-  "10": "Full Adder",
-  "11": "2-to-4 Decoder",
-  "12": "4-to-1 MUX",
-  "13": "2-bit Comparator",
-  "14": "2-bit Adder",
-  "15": "2-bit Mod 4 Subtractor",
-  "16": "2-bit Max Selector",
-  "17": "2-bit Multiplier",
-  "18": "4-bit Mod 3 Remainder"
-},
+    "0": "튜토리얼: 첫 회로",
+    "1": "NOT gate",
+    "2": "OR gate",
+    "3": "AND gate",
+    "4": "NOR gate",
+    "5": "NAND gate",
+    "6": "XOR gate",
+    "7": "Majority gate",
+    "8": "Parity checker",
+    "9": "Half Adder",
+    "10": "Full Adder",
+    "11": "2-to-4 Decoder",
+    "12": "4-to-1 MUX",
+    "13": "2-bit Comparator",
+    "14": "2-bit Adder",
+    "15": "2-bit Mod 4 Subtractor",
+    "16": "2-bit Max Selector",
+    "17": "2-bit Multiplier",
+    "18": "4-bit Mod 3 Remainder"
+  },
   "levelGridSizes": {
+    "0": [6, 6],
     "1": [6, 6],
     "2": [6, 6],
     "3": [6, 6],
@@ -40,6 +42,13 @@
     "18": [15, 15]
   },
   "levelBlockSets": {
+    "0": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "NOT" },
+      { "type": "AND" }
+    ],
     "1": [
       { "type": "INPUT", "name": "IN1" },
       { "type": "OUTPUT", "name": "OUT1" },
@@ -223,6 +232,12 @@
   },
   "chapterData": [
     {
+      "id": "tutorial",
+      "name": "튜토리얼",
+      "desc": "블록 배치, 배선, 채점 흐름을 익혀요.",
+      "stages": [0]
+    },
+    {
       "id": "basic",
       "name": "기초 논리 게이트",
       "desc": "NOT, AND, OR 등 기본 게이트를 연습합니다.",
@@ -242,6 +257,12 @@
     }
   ],
   "levelAnswers": {
+    "0": [
+      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0 } },
+      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+    ],
     "1": [
       { "inputs": { "IN1": 0 }, "expected": { "OUT1": 1 } },
       { "inputs": { "IN1": 1 }, "expected": { "OUT1": 0 } }
@@ -1269,6 +1290,16 @@
 
   },
   "levelDescriptions": {
+    "0": {
+      "title": "Stage 0: 튜토리얼 - 첫 회로",
+      "desc": "IN1을 반전해 AND 게이트로 IN2와 결합한 뒤 OUT1으로 보내는 회로를 따라 만들어 보세요.",
+      "table": [
+        { "IN1": 0, "IN2": 0, "OUT1": 0 },
+        { "IN1": 0, "IN2": 1, "OUT1": 1 },
+        { "IN1": 1, "IN2": 0, "OUT1": 0 },
+        { "IN1": 1, "IN2": 1, "OUT1": 0 }
+      ]
+    },
     "1": {
       "title": "Stage 1: NOT 게이트",
       "desc": "NOT 게이트는 입력이 1이면 출력이 0, 입력이 0이면 출력이 1이 됩니다.",
