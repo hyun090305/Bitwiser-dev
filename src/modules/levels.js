@@ -26,7 +26,8 @@ const dependencies = {
   showStageTutorial: null,
   showOverallRanking: null,
   setIsScoring: null,
-  onLevelIntroComplete: null
+  onLevelIntroComplete: null,
+  onLevelStarted: null
 };
 
 export function configureLevelModule(options = {}) {
@@ -138,6 +139,10 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     createPaletteForLevel(level),
     { enableCopyPaste: level >= 7 }
   );
+
+  if (typeof dependencies.onLevelStarted === 'function') {
+    dependencies.onLevelStarted(currentLevel);
+  }
 
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {
