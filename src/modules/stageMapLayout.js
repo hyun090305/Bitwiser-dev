@@ -4,7 +4,7 @@ export const GRID_UNIT = CELL + GAP;
 
 export const STAGE_NODE_LEVEL_MAP = {
   bit_solver: null,
-  tutorial: null,
+  tutorial: 0,
   not: 1,
   nand: 5,
   nor: 4,
