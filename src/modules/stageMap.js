@@ -9,6 +9,7 @@ import { openLabModeFromShortcut } from './labMode.js';
 import { createCamera } from '../canvas/camera.js';
 import { drawGrid, setupCanvas } from '../canvas/renderer.js';
 import { CELL } from '../canvas/model.js';
+import { getActiveTheme } from '../themes.js';
 import {
   STAGE_NODE_LEVEL_MAP,
   STAGE_TYPE_META,
@@ -55,6 +56,142 @@ const NODE_STYLE = {
     text: '#bfdbfe'
   }
 };
+
+const STAGE_BLOCK_STYLE_FALLBACK = {
+  fill: ['#d7dbff', '#b9c1ff'],
+  activeFill: {
+    type: 'linear',
+    angle: 90,
+    stops: [
+      { offset: 0, color: '#fef3c7' },
+      { offset: 0.55, color: '#fde047' },
+      { offset: 1, color: '#facc15' }
+    ]
+  },
+  textColor: '#1f2937',
+  activeTextColor: '#422006',
+  shadow: {
+    color: 'rgba(79, 70, 229, 0.18)',
+    blur: 18,
+    offsetX: 0,
+    offsetY: 6
+  },
+  strokeColor: 'rgba(99, 102, 241, 0.4)',
+  strokeWidth: 1.2
+};
+
+function normalizeShadow(shadow, fallback) {
+  if (shadow === null) return null;
+  const base = fallback ? { ...fallback } : null;
+  if (shadow === undefined) {
+    return base;
+  }
+  if (!shadow) {
+    return base;
+  }
+  if (typeof shadow === 'string') {
+    return { ...(base || {}), color: shadow };
+  }
+  if (typeof shadow === 'object') {
+    return { ...(base || {}), ...shadow };
+  }
+  return base;
+}
+
+function applyScaledShadow(ctx, shadow, scale = 1) {
+  if (!shadow) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    return;
+  }
+  const spec = typeof shadow === 'object' ? { ...shadow } : { color: shadow };
+  if (typeof spec.blur === 'number') spec.blur *= scale;
+  if (typeof spec.offsetX === 'number') spec.offsetX *= scale;
+  if (typeof spec.offsetY === 'number') spec.offsetY *= scale;
+  ctx.shadowColor = spec.color || 'transparent';
+  ctx.shadowBlur = spec.blur ?? 0;
+  ctx.shadowOffsetX = spec.offsetX ?? 0;
+  ctx.shadowOffsetY = spec.offsetY ?? 0;
+}
+
+function createFillStyle(ctx, fill, x, y, w, h) {
+  if (!fill) return null;
+  if (Array.isArray(fill)) {
+    const gradient = ctx.createLinearGradient(x, y, x, y + h);
+    const step = fill.length > 1 ? 1 / (fill.length - 1) : 1;
+    fill.forEach((color, index) => {
+      gradient.addColorStop(Math.min(1, Math.max(0, index * step)), color);
+    });
+    return gradient;
+  }
+  if (typeof fill === 'object') {
+    if (fill.type === 'linear') {
+      const angle = (fill.angle ?? 90) * (Math.PI / 180);
+      const dx = Math.cos(angle);
+      const dy = Math.sin(angle);
+      const halfW = w / 2;
+      const halfH = h / 2;
+      const centerX = x + halfW;
+      const centerY = y + halfH;
+      const extent = Math.abs(w * dx) + Math.abs(h * dy) || 1;
+      const startX = centerX - (dx * extent) / 2;
+      const startY = centerY - (dy * extent) / 2;
+      const endX = centerX + (dx * extent) / 2;
+      const endY = centerY + (dy * extent) / 2;
+      const gradient = ctx.createLinearGradient(startX, startY, endX, endY);
+      (fill.stops || []).forEach(stop => {
+        const offset = Math.min(1, Math.max(0, stop.offset ?? 0));
+        gradient.addColorStop(offset, stop.color);
+      });
+      return gradient;
+    }
+    if (typeof fill.color === 'string') {
+      return fill.color;
+    }
+    if (Array.isArray(fill.stops)) {
+      const validStop = fill.stops.find(stop => typeof stop?.color === 'string');
+      if (validStop) {
+        return validStop.color;
+      }
+    }
+  }
+  if (typeof fill === 'string') {
+    return fill;
+  }
+  return null;
+}
+
+function getStageBlockStyle() {
+  const theme = typeof getActiveTheme === 'function' ? getActiveTheme() : null;
+  const block = theme?.block || {};
+  const fill = block.fill ?? STAGE_BLOCK_STYLE_FALLBACK.fill;
+  const activeFill = block.activeFill ?? STAGE_BLOCK_STYLE_FALLBACK.activeFill;
+  const textColor = block.textColor ?? STAGE_BLOCK_STYLE_FALLBACK.textColor;
+  const activeTextColor = block.activeTextColor ?? STAGE_BLOCK_STYLE_FALLBACK.activeTextColor;
+  const shadow = normalizeShadow(block.shadow, STAGE_BLOCK_STYLE_FALLBACK.shadow);
+  const strokeColor = block.strokeColor ?? STAGE_BLOCK_STYLE_FALLBACK.strokeColor;
+  const strokeWidth = Number.isFinite(block.strokeWidth)
+    ? block.strokeWidth
+    : STAGE_BLOCK_STYLE_FALLBACK.strokeWidth;
+  return { fill, activeFill, textColor, activeTextColor, shadow, strokeColor, strokeWidth };
+}
+
+function buildRoundedRectPath(ctx, x, y, width, height, radius) {
+  const r = Math.max(0, Math.min(radius, Math.min(width, height) / 2));
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
 let stageMapSpecPromise = null;
 
@@ -258,43 +395,116 @@ function drawNode(ctx, camera, node, status) {
   const height = node.rect.h * scale;
   const radius = Math.min(12 * scale, Math.min(width, height) / 4);
 
-  const baseStyle = status.locked
-    ? NODE_STYLE.locked
-    : node.comingSoon
-      ? NODE_STYLE.comingSoon
-      : NODE_STYLE[node.nodeType] || NODE_STYLE.stage;
-  const borderColor = status.progressCleared ? (STAGE_TYPE_META[node.nodeType]?.accent || baseStyle.stroke) : baseStyle.stroke;
+  const isStageNode = node.nodeType === 'stage' && !status.locked;
+  const stageStyle = isStageNode ? getStageBlockStyle() : null;
+  const stageCleared = stageStyle ? Boolean(status.progressCleared) && !node.comingSoon : false;
+
+  const baseStyle = stageStyle
+    ? null
+    : status.locked
+      ? NODE_STYLE.locked
+      : node.comingSoon
+        ? NODE_STYLE.comingSoon
+        : NODE_STYLE[node.nodeType] || NODE_STYLE.stage;
+
+  const accentColor = STAGE_TYPE_META[node.nodeType]?.accent;
+  const borderColor = stageStyle
+    ? stageCleared
+      ? accentColor || stageStyle.strokeColor
+      : stageStyle.strokeColor
+    : status.progressCleared
+      ? accentColor || baseStyle.stroke
+      : baseStyle.stroke;
 
   ctx.save();
-  ctx.beginPath();
-  ctx.moveTo(topLeft.x + radius, topLeft.y);
-  ctx.lineTo(topLeft.x + width - radius, topLeft.y);
-  ctx.quadraticCurveTo(topLeft.x + width, topLeft.y, topLeft.x + width, topLeft.y + radius);
-  ctx.lineTo(topLeft.x + width, topLeft.y + height - radius);
-  ctx.quadraticCurveTo(topLeft.x + width, topLeft.y + height, topLeft.x + width - radius, topLeft.y + height);
-  ctx.lineTo(topLeft.x + radius, topLeft.y + height);
-  ctx.quadraticCurveTo(topLeft.x, topLeft.y + height, topLeft.x, topLeft.y + height - radius);
-  ctx.lineTo(topLeft.x, topLeft.y + radius);
-  ctx.quadraticCurveTo(topLeft.x, topLeft.y, topLeft.x + radius, topLeft.y);
-  ctx.closePath();
+  const drawRounded = () => buildRoundedRectPath(ctx, topLeft.x, topLeft.y, width, height, radius);
 
-  const gradient = ctx.createLinearGradient(topLeft.x, topLeft.y, topLeft.x, topLeft.y + height);
-  gradient.addColorStop(0, baseStyle.fill);
-  gradient.addColorStop(1, status.locked ? 'rgba(148, 163, 184, 0.35)' : baseStyle.stroke);
-  ctx.fillStyle = gradient;
-  ctx.shadowColor = status.progressCleared ? 'rgba(14, 165, 233, 0.5)' : 'rgba(15, 23, 42, 0.45)';
-  ctx.shadowBlur = status.progressCleared ? 18 : 12;
-  ctx.shadowOffsetY = 6;
-  ctx.fill();
+  if (stageStyle) {
+    if (stageCleared) {
+      const haloShadow = {
+        color: 'rgba(255, 220, 180, 0.28)',
+        blur: 26,
+        offsetX: 0,
+        offsetY: 6
+      };
+      applyScaledShadow(ctx, haloShadow, scale);
+      drawRounded();
+      ctx.fillStyle = 'rgba(255, 246, 225, 0.96)';
+      ctx.fill();
 
-  ctx.lineWidth = Math.max(2, 2.4 * scale);
-  ctx.strokeStyle = borderColor;
-  ctx.stroke();
+      ctx.shadowColor = 'transparent';
+      ctx.shadowBlur = 0;
+      ctx.shadowOffsetX = 0;
+      ctx.shadowOffsetY = 0;
 
-  ctx.shadowColor = 'transparent';
-  ctx.shadowBlur = 0;
+      const centerX = topLeft.x + width * 0.45;
+      const centerY = topLeft.y + height * 0.45;
+      const minSize = Math.min(width, height);
+      const innerRadius = Math.max(minSize * 0.18, 0);
+      const outerRadius = Math.max(Math.max(width, height), innerRadius + 0.1);
+      const glowGradient = ctx.createRadialGradient(centerX, centerY, innerRadius, centerX, centerY, outerRadius);
+      glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
+      glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
+      glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
+      ctx.globalCompositeOperation = 'lighter';
+      drawRounded();
+      ctx.fillStyle = glowGradient;
+      ctx.fill();
+      ctx.globalCompositeOperation = 'source-over';
 
-  ctx.fillStyle = baseStyle.text;
+      const activeOverlay = createFillStyle(ctx, stageStyle.activeFill, topLeft.x, topLeft.y, width, height) || stageStyle.activeFill;
+      if (activeOverlay) {
+        drawRounded();
+        ctx.globalAlpha = 0.92;
+        ctx.fillStyle = activeOverlay;
+        ctx.fill();
+        ctx.globalAlpha = 1;
+      }
+    } else {
+      applyScaledShadow(ctx, stageStyle.shadow, scale);
+      drawRounded();
+      const fillStyle = createFillStyle(ctx, stageStyle.fill, topLeft.x, topLeft.y, width, height) || stageStyle.fill;
+      ctx.fillStyle = fillStyle || '#d7dbff';
+      ctx.fill();
+    }
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+
+    const strokeWidth = stageStyle.strokeWidth ?? 0;
+    if (borderColor && strokeWidth > 0) {
+      ctx.lineWidth = Math.max(strokeWidth * scale, 0.6);
+      ctx.strokeStyle = borderColor;
+      drawRounded();
+      ctx.stroke();
+    }
+  } else {
+    drawRounded();
+    const gradient = ctx.createLinearGradient(topLeft.x, topLeft.y, topLeft.x, topLeft.y + height);
+    gradient.addColorStop(0, baseStyle.fill);
+    gradient.addColorStop(1, status.locked ? 'rgba(148, 163, 184, 0.35)' : baseStyle.stroke);
+    ctx.fillStyle = gradient;
+    ctx.shadowColor = status.progressCleared ? 'rgba(14, 165, 233, 0.5)' : 'rgba(15, 23, 42, 0.45)';
+    ctx.shadowBlur = status.progressCleared ? 18 : 12;
+    ctx.shadowOffsetY = 6;
+    ctx.fill();
+
+    ctx.lineWidth = Math.max(2, 2.4 * scale);
+    ctx.strokeStyle = borderColor;
+    ctx.stroke();
+
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+
+  const titleColor = stageStyle
+    ? stageCleared
+      ? stageStyle.activeTextColor || stageStyle.textColor
+      : stageStyle.textColor
+    : baseStyle.text;
+  ctx.fillStyle = titleColor;
   ctx.font = `700 ${Math.max(14, 16 * scale)}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
@@ -303,13 +513,12 @@ function drawNode(ctx, camera, node, status) {
   const paddingY = 10 * scale;
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
-  // Fit/truncate text so it doesn't overflow the node box
   const maxTextWidth = Math.max(8, width - paddingX * 2);
   function fitText(t) {
     if (!t) return '';
     if (ctx.measureText(t).width <= maxTextWidth) return t;
-    // binary search trim
-    let lo = 0, hi = t.length;
+    let lo = 0;
+    let hi = t.length;
     let result = t;
     while (lo < hi) {
       const mid = Math.ceil((lo + hi) / 2);
@@ -322,7 +531,6 @@ function drawNode(ctx, camera, node, status) {
       }
     }
     if (ctx.measureText(result).width > maxTextWidth) {
-      // fallback iterative trim
       let s = t;
       while (s.length && ctx.measureText(s + '…').width > maxTextWidth) s = s.slice(0, -1);
       result = s + (s.length < t.length ? '…' : '');
@@ -335,17 +543,36 @@ function drawNode(ctx, camera, node, status) {
 
   ctx.font = `500 ${Math.max(11, 12 * scale)}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   textY += 18 * scale;
-  ctx.fillStyle = status.locked ? 'rgba(241, 245, 249, 0.75)' : 'rgba(226, 232, 240, 0.95)';
-  const chapterText = fitText(node.chapterName || '');
-  ctx.fillText(chapterText, textX, textY);
 
-  // Do not render the stage number (user requested)
+  const chapterText = fitText(node.chapterName || '');
+  if (stageStyle) {
+    const prevAlpha = ctx.globalAlpha;
+    ctx.fillStyle = stageCleared
+      ? stageStyle.activeTextColor || stageStyle.textColor
+      : stageStyle.textColor;
+    ctx.globalAlpha = stageCleared ? 0.88 : 0.78;
+    ctx.fillText(chapterText, textX, textY);
+    ctx.globalAlpha = prevAlpha;
+  } else {
+    ctx.fillStyle = status.locked ? 'rgba(241, 245, 249, 0.75)' : 'rgba(226, 232, 240, 0.95)';
+    ctx.fillText(chapterText, textX, textY);
+  }
 
   if (node.comingSoon) {
     ctx.font = `${600 * scale} ${Math.max(11, 12 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
     ctx.textAlign = 'right';
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
-    ctx.fillText('Coming soon', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
+    if (stageStyle) {
+      const prevAlpha = ctx.globalAlpha;
+      ctx.fillStyle = stageCleared
+        ? stageStyle.activeTextColor || stageStyle.textColor
+        : stageStyle.textColor;
+      ctx.globalAlpha = 0.82;
+      ctx.fillText('Coming soon', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
+      ctx.globalAlpha = prevAlpha;
+    } else {
+      ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
+      ctx.fillText('Coming soon', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
+    }
   } else if (status.locked) {
     ctx.font = `${600 * scale} ${Math.max(11, 12 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
     ctx.textAlign = 'right';
@@ -496,8 +723,16 @@ export function initializeStageMap({
     let progressCleared = false;
 
     if (node.level) {
-      const levelUnlocked = isLevelUnlocked?.(node.level) ?? true;
-      unlocked = prerequisitesMet && levelUnlocked;
+      // Stage nodes unlock purely from stage_map edge requirements.
+      if (typeof isLevelUnlocked === 'function') {
+        // Preserve legacy side effects without letting the callback gate access.
+        try {
+          isLevelUnlocked(node.level);
+        } catch (err) {
+          console.warn('isLevelUnlocked callback threw', err);
+        }
+      }
+      unlocked = prerequisitesMet;
       locked = !unlocked;
       displayCleared = clearedLevels.has(node.level);
       progressCleared = displayCleared;
@@ -520,7 +755,7 @@ export function initializeStageMap({
       unlocked = prerequisitesMet;
       locked = !unlocked;
       displayCleared = false;
-      progressCleared = unlocked;
+      progressCleared = false;
     }
 
     const result = { unlocked, locked, displayCleared, progressCleared };
