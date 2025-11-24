@@ -104,6 +104,28 @@ body.safe-mode .stage-map-surface {
   text-align: left;
 }
 
+/* Ensure stage node text uses a consistent font and doesn't overflow */
+.stage-node, .stage-node * {
+  font-family: 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.stage-node {
+  min-width: 0;
+}
+
+.stage-node__body {
+  min-width: 0;
+}
+
+.stage-node__title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  max-width: 28ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .stage-node__chapter {
   font-size: 0.72rem;
   letter-spacing: 0.08em;
@@ -1623,7 +1645,7 @@ html, body {
   #loginArea {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
     gap: 0.75rem;
     width: 100%;
   }
@@ -2055,7 +2077,7 @@ html, body {
     /* 포커스 아웃라인 제거 */
   }
 
-}
+
 
 /* block panels removed in canvas-based version */
 
@@ -2886,9 +2908,6 @@ html, body {
     /* height: 100%; */
   }
 
-  #gameArea.menu-collapsed {
-    /* margin-left: 1rem; */
-  }
 
   #backToLevelsBtn {
     width: 100%;

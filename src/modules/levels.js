@@ -205,6 +205,15 @@ export async function returnToLevels({
       stageMapScreen.setAttribute('aria-hidden', 'false');
     }
   }
+  // Ensure layout has updated and canvas sizes are recalculated by
+  // dispatching a resize on the next animation frame. This prevents the
+  // stage map canvas from being initialized with a tiny bounding rect
+  // when returning from the game screen.
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(() => window.dispatchEvent(new Event('resize')));
+  } else if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('resize'));
+  }
   document.dispatchEvent(new Event('stageMap:closePanels'));
   document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
 }

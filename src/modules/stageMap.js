@@ -187,23 +187,67 @@ function updatePanelState(panel, isOpen, backdrop) {
   }
 }
 
-function drawEdge(ctx, camera, edge, active) {
+function drawEdge(ctx, camera, edge, active, t = 0) {
   if (!edge?.points?.length) return;
+  // Only render edges when the source node is cleared/active.
+  if (!active) return;
+
   ctx.save();
   ctx.beginPath();
-  edge.points.forEach((pt, idx) => {
-    const screen = camera.worldToScreen(pt.x, pt.y);
+  // Build the path in screen space so dash lengths are consistent visually.
+  const screenPoints = edge.points.map(pt => camera.worldToScreen(pt.x, pt.y));
+  screenPoints.forEach((screen, idx) => {
     if (idx === 0) ctx.moveTo(screen.x, screen.y);
     else ctx.lineTo(screen.x, screen.y);
   });
-  ctx.strokeStyle = active ? '#fbbf24' : 'rgba(241, 245, 249, 0.55)';
-  ctx.lineWidth = active ? 4 : 2.5;
+
+  // Glow stroke behind the main wire
+  ctx.lineWidth = Math.max(3, 4 * camera.getScale());
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.globalAlpha = active ? 0.95 : 0.6;
-  ctx.shadowColor = active ? 'rgba(251, 191, 36, 0.55)' : 'rgba(15, 23, 42, 0.35)';
-  ctx.shadowBlur = active ? 12 : 6;
+  ctx.strokeStyle = 'rgba(246, 203, 77, 0.18)';
+  ctx.shadowColor = 'rgba(246, 203, 77, 0.35)';
+  ctx.shadowBlur = 12;
+  ctx.globalAlpha = 1;
   ctx.stroke();
+
+  // Main animated dashed wire
+  ctx.beginPath();
+  screenPoints.forEach((screen, idx) => {
+    if (idx === 0) ctx.moveTo(screen.x, screen.y);
+    else ctx.lineTo(screen.x, screen.y);
+  });
+
+  const baseDash = 18 * Math.max(1, camera.getScale());
+  try {
+    ctx.setLineDash([baseDash, baseDash]);
+  } catch (e) {
+    // setLineDash may throw in some older contexts; ignore gracefully
+  }
+  // Flow speed and offset use the RAF timestamp `t`. Negative offset makes
+  // the apparent motion go from the first point (from) toward the last (to).
+  ctx.lineDashOffset = -((t || 0) * 0.06) % (baseDash * 2);
+
+  // Gradient along the first segment direction for a better wire look.
+  const p0 = screenPoints[0];
+  const p1 = screenPoints[screenPoints.length - 1];
+  const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+  grad.addColorStop(0, '#fbbf24');
+  grad.addColorStop(0.5, '#fb923c');
+  grad.addColorStop(1, '#f97316');
+
+  ctx.lineWidth = Math.max(2, 3 * camera.getScale());
+  ctx.strokeStyle = grad;
+  ctx.shadowColor = 'rgba(0,0,0,0)';
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 1;
+  ctx.stroke();
+
+  // reset dash to normal for other draw ops
+  try {
+    ctx.setLineDash([]);
+  } catch (e) {}
+
   ctx.restore();
 }
 
@@ -251,7 +295,7 @@ function drawNode(ctx, camera, node, status) {
   ctx.shadowBlur = 0;
 
   ctx.fillStyle = baseStyle.text;
-  ctx.font = `${700 * scale} ${Math.max(14, 16 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
+  ctx.font = `700 ${Math.max(14, 16 * scale)}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
@@ -259,20 +303,43 @@ function drawNode(ctx, camera, node, status) {
   const paddingY = 10 * scale;
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
+  // Fit/truncate text so it doesn't overflow the node box
+  const maxTextWidth = Math.max(8, width - paddingX * 2);
+  function fitText(t) {
+    if (!t) return '';
+    if (ctx.measureText(t).width <= maxTextWidth) return t;
+    // binary search trim
+    let lo = 0, hi = t.length;
+    let result = t;
+    while (lo < hi) {
+      const mid = Math.ceil((lo + hi) / 2);
+      const cand = t.slice(0, mid) + '…';
+      if (ctx.measureText(cand).width <= maxTextWidth) {
+        lo = mid;
+        result = cand;
+      } else {
+        hi = mid - 1;
+      }
+    }
+    if (ctx.measureText(result).width > maxTextWidth) {
+      // fallback iterative trim
+      let s = t;
+      while (s.length && ctx.measureText(s + '…').width > maxTextWidth) s = s.slice(0, -1);
+      result = s + (s.length < t.length ? '…' : '');
+    }
+    return result;
+  }
 
-  ctx.fillText(node.title, textX, textY);
+  const titleText = fitText(node.title);
+  ctx.fillText(titleText, textX, textY);
 
-  ctx.font = `${500 * scale} ${Math.max(11, 12 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
+  ctx.font = `500 ${Math.max(11, 12 * scale)}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   textY += 18 * scale;
   ctx.fillStyle = status.locked ? 'rgba(241, 245, 249, 0.75)' : 'rgba(226, 232, 240, 0.95)';
-  ctx.fillText(node.chapterName || '', textX, textY);
+  const chapterText = fitText(node.chapterName || '');
+  ctx.fillText(chapterText, textX, textY);
 
-  if (node.level) {
-    ctx.font = `${600 * scale} ${Math.max(11, 12 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillStyle = status.progressCleared ? '#fbbf24' : 'rgba(248, 250, 252, 0.9)';
-    ctx.fillText(`Stage ${String(node.level).padStart(2, '0')}`, topLeft.x + width - paddingX, topLeft.y + paddingY + 10 * scale);
-  }
+  // Do not render the stage number (user requested)
 
   if (node.comingSoon) {
     ctx.font = `${600 * scale} ${Math.max(11, 12 * scale)}px 'Noto Sans KR', 'Inter', sans-serif`;
@@ -335,42 +402,78 @@ export function initializeStageMap({
 
   // Only reinitialize the canvas when its CSS size or DPR changes.
   function ensureCanvasInitialized() {
-    const rect = canvas.getBoundingClientRect();
+    // Prefer the surface (parent container) size when available because
+    // the canvas may be styled to fill its container rather than the
+    // direct canvas bounding rect matching the viewport. Fall back to
+    // parentElement, canvas rect, and finally the window viewport.
+    const containerRect = (surface && typeof surface.getBoundingClientRect === 'function')
+      ? surface.getBoundingClientRect()
+      : (canvas.parentElement && typeof canvas.parentElement.getBoundingClientRect === 'function')
+      ? canvas.parentElement.getBoundingClientRect()
+      : canvas.getBoundingClientRect();
+
     const dpr = window.devicePixelRatio || 1;
-    const baseWidth = String(Math.max(1, Math.floor(rect.width)));
-    const baseHeight = String(Math.max(1, Math.floor(rect.height)));
-    const prevBaseWidth = canvas.dataset.baseWidth || '';
-    const prevBaseHeight = canvas.dataset.baseHeight || '';
-    const prevDpr = canvas.dataset.dpr || '';
-    if (prevBaseWidth !== baseWidth || prevBaseHeight !== baseHeight || prevDpr !== String(dpr)) {
+    const baseWidth = Math.max(1, Math.floor(containerRect.width || window.innerWidth || 1));
+    const baseHeight = Math.max(1, Math.floor(containerRect.height || window.innerHeight || 1));
+
+    // Compute expected internal pixel buffer size (CSS size × DPR).
+    const expectedInternalWidth = Math.floor(baseWidth * dpr);
+    const expectedInternalHeight = Math.floor(baseHeight * dpr);
+
+    // Current internal buffer size on the canvas element.
+    const currentInternalWidth = Number(canvas.width || 0);
+    const currentInternalHeight = Number(canvas.height || 0);
+
+    const prevDpr = Number.parseFloat(canvas.dataset?.dpr || '') || null;
+
+    // Reinitialize when the actual internal buffer size or DPR doesn't
+    // match the expected values derived from the container/viewport.
+    if (
+      currentInternalWidth !== expectedInternalWidth ||
+      currentInternalHeight !== expectedInternalHeight ||
+      prevDpr !== dpr
+    ) {
       ctx = setupCanvas(canvas, Number(baseWidth), Number(baseHeight));
-      camera.setViewport(rect.width, rect.height);
+      // Use containerRect dimensions for camera viewport so the camera
+      // aligns with the visible area the canvas is expected to fill.
+      camera.setViewport(containerRect.width || window.innerWidth, containerRect.height || window.innerHeight);
     }
   }
 
-  function requestRender() {
+  // Continuous render loop so wire animation flows smoothly.
+  let _raf = null;
+  let _lastVisible = true;
+  function renderFrame(t) {
     if (!ctx) return;
-    window.requestAnimationFrame(() => {
-      ensureCanvasInitialized();
+    ensureCanvasInitialized();
 
-      drawGrid(ctx, 1, 1, 0, camera, {
-        unbounded: true,
-        background: 'rgba(15, 23, 42, 0.92)',
-        gridFillA: 'rgba(226, 232, 240, 0.035)',
-        gridFillB: 'rgba(148, 163, 184, 0.05)',
-        gridStroke: 'rgba(148, 163, 184, 0.35)'
-      });
-
-      state.edges.forEach(edge => {
-        const fromStatus = state.nodeStatus.get(edge.from);
-        drawEdge(ctx, camera, edge, Boolean(fromStatus?.progressCleared));
-      });
-
-      state.nodes.forEach(node => {
-        const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
-        drawNode(ctx, camera, node, status);
-      });
+    drawGrid(ctx, 1, 1, 0, camera, {
+      unbounded: true,
+      background: 'rgba(15, 23, 42, 0.92)',
+      gridFillA: 'rgba(226, 232, 240, 0.035)',
+      gridFillB: 'rgba(148, 163, 184, 0.05)',
+      gridStroke: 'rgba(148, 163, 184, 0.35)'
     });
+
+    state.edges.forEach(edge => {
+      const fromStatus = state.nodeStatus.get(edge.from);
+      // Only render wires when the source node is cleared
+      const active = Boolean(fromStatus?.progressCleared);
+      drawEdge(ctx, camera, edge, active, t);
+    });
+
+    state.nodes.forEach(node => {
+      const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
+      drawNode(ctx, camera, node, status);
+    });
+
+    _raf = window.requestAnimationFrame(renderFrame);
+  }
+
+  function requestRender() {
+    if (_raf == null) {
+      _raf = window.requestAnimationFrame(renderFrame);
+    }
   }
 
   function evaluateNodeStatus(node, memo, visiting, clearedLevels) {
@@ -443,7 +546,28 @@ export function initializeStageMap({
     state.dependencies = graph.dependencies;
     state.mapBounds = graph.bounds;
     refreshNodeStates();
-    centerMap();
+    // Defer centering until the next animation frame so that the
+    // canvas and layout have settled (prevents tiny bounding rects
+    // when the stage map is being shown/animated). This avoids the
+    // intermittent "minimized 2×2" appearance caused by centering
+    // against an incorrect/too-small viewport.
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        try {
+          ensureCanvasInitialized();
+        } catch (e) {
+          // ensureCanvasInitialized may rely on DOM APIs; swallow errors
+          // here to avoid breaking initialization.
+          console.warn('ensureCanvasInitialized failed during attachGraph RAF', e);
+        }
+        centerMap();
+        requestRender();
+      });
+    } else {
+      ensureCanvasInitialized();
+      centerMap();
+      requestRender();
+    }
   }
 
   function centerMap() {
@@ -650,6 +774,19 @@ export function initializeStageMap({
   }
 
   function onResize() {
+    try {
+      // Ensure canvas internal buffer and DPR are up-to-date before
+      // updating the camera viewport. This prevents cases where the
+      // canvas CSS size or devicePixelRatio changed but the internal
+      // pixel buffer (and dataset) haven't been reinitialized yet,
+      // which can cause the canvas to not fill the available area.
+      ensureCanvasInitialized();
+    } catch (e) {
+      // Swallow errors from initialization to avoid breaking resize flow.
+      // We'll still attempt to update viewport and render below.
+      // eslint-disable-next-line no-console
+      console.warn('ensureCanvasInitialized failed on resize', e);
+    }
     const rect = canvas.getBoundingClientRect();
     camera.setViewport(rect.width, rect.height);
     requestRender();
