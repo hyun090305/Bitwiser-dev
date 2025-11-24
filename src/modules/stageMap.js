@@ -274,8 +274,9 @@ function buildNode(node, nodeTypes, getLevelTitle) {
   const rectSize = gridSizeToWorldSize(size);
   const rect = { x: rectOrigin.x, y: rectOrigin.y, w: rectSize.width, h: rectSize.height };
   const level = STAGE_NODE_LEVEL_MAP[node.id] ?? null;
-  const title = level ? (getLevelTitle?.(level) ?? node.label) : node.label;
-  const comingSoon = node.nodeType === 'stage' && level == null;
+  const hasLevel = level !== null && level !== undefined;
+  const title = hasLevel ? (getLevelTitle?.(level) ?? node.label) : node.label;
+  const comingSoon = node.nodeType === 'stage' && !hasLevel;
   return {
     ...node,
     level,
@@ -722,7 +723,9 @@ export function initializeStageMap({
     let displayCleared = false;
     let progressCleared = false;
 
-    if (node.level) {
+    const hasLevel = node.level !== null && node.level !== undefined;
+
+    if (hasLevel) {
       // Stage nodes unlock purely from stage_map edge requirements.
       if (typeof isLevelUnlocked === 'function') {
         // Preserve legacy side effects without letting the callback gate access.

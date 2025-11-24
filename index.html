@@ -610,6 +610,39 @@
     </div>
     <!-- 게임 화면 -->
     <div id="gameScreen" style="display:none">
+      <div id="tutorialMissionPanel" class="tutorial-mission-panel" hidden>
+        <div class="tutorial-mission__header">
+          <p id="tutorialMissionEyebrow" class="tutorial-mission__eyebrow"></p>
+          <h3 id="tutorialMissionTitle" class="tutorial-mission__title"></h3>
+          <p id="tutorialMissionSubtitle" class="tutorial-mission__subtitle"></p>
+        </div>
+        <ol class="tutorial-mission__list">
+          <li class="tutorial-mission__item" data-step="place">
+            <div class="tutorial-mission__status" aria-hidden="true"></div>
+            <div class="tutorial-mission__content">
+              <p id="tutorialStepPlaceTitle" class="tutorial-mission__heading"></p>
+              <p id="tutorialStepPlaceBody" class="tutorial-mission__body"></p>
+              <p id="tutorialStepPlaceHint" class="tutorial-mission__hint"></p>
+            </div>
+          </li>
+          <li class="tutorial-mission__item" data-step="wire">
+            <div class="tutorial-mission__status" aria-hidden="true"></div>
+            <div class="tutorial-mission__content">
+              <p id="tutorialStepWireTitle" class="tutorial-mission__heading"></p>
+              <p id="tutorialStepWireBody" class="tutorial-mission__body"></p>
+              <p id="tutorialStepWireHint" class="tutorial-mission__hint"></p>
+            </div>
+          </li>
+          <li class="tutorial-mission__item" data-step="grade">
+            <div class="tutorial-mission__status" aria-hidden="true"></div>
+            <div class="tutorial-mission__content">
+              <p id="tutorialStepGradeTitle" class="tutorial-mission__heading"></p>
+              <p id="tutorialStepGradeBody" class="tutorial-mission__body"></p>
+              <p id="tutorialStepGradeHint" class="tutorial-mission__hint"></p>
+            </div>
+          </li>
+        </ol>
+      </div>
       <div id="gameArea">
 
         <!-- 전체 게임 영역: 좌측 메뉴 + 중앙 그리드 + 우측 안내 -->
