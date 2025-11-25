@@ -1,7 +1,6 @@
 {
   "levelTitles": {
-    "0": "Tutorial: NOT + AND",
-    "1": "NOT gate",
+  "1": "NOT gate",
   "2": "OR gate",
   "3": "AND gate",
   "4": "NOR gate",
@@ -21,7 +20,6 @@
   "18": "4-bit Mod 3 Remainder"
 },
   "levelGridSizes": {
-    "0": [6, 6],
     "1": [6, 6],
     "2": [6, 6],
     "3": [6, 6],
@@ -42,13 +40,6 @@
     "18": [15, 15]
   },
   "levelBlockSets": {
-    "0": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "NOT" },
-      { "type": "AND" }
-    ],
     "1": [
       { "type": "INPUT", "name": "IN1" },
       { "type": "OUTPUT", "name": "OUT1" },
@@ -232,12 +223,6 @@
   },
   "chapterData": [
     {
-      "id": "tutorial",
-      "name": "Tutorial",
-      "desc": "Learn how to place blocks, draw wires, and grade circuits.",
-      "stages": [0]
-    },
-    {
       "id": "basic",
       "name": "Basic Logic Gates",
       "desc": "Practice basic gates such as NOT, AND, and OR.",
@@ -257,12 +242,6 @@
     }
   ],
   "levelAnswers": {
-    "0": [
-      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
-      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
-      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0 } },
-      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
-    ],
     "1": [
       { "inputs": { "IN1": 0 }, "expected": { "OUT1": 1 } },
       { "inputs": { "IN1": 1 }, "expected": { "OUT1": 0 } }
@@ -1290,16 +1269,6 @@
 
   },
   "levelDescriptions": {
-    "0": {
-      "title": "Tutorial: invert then AND",
-      "desc": "Flip IN1 with a NOT gate, then feed it into AND along with IN2 so OUT1 only turns on when IN1 is 0 and IN2 is 1.",
-      "table": [
-        { "IN1": 0, "IN2": 0, "OUT1": 0 },
-        { "IN1": 0, "IN2": 1, "OUT1": 1 },
-        { "IN1": 1, "IN2": 0, "OUT1": 0 },
-        { "IN1": 1, "IN2": 1, "OUT1": 0 }
-      ]
-    },
     "1": {
       "title": "Stage 1: NOT Gate",
       "desc": "The NOT gate outputs 0 when the input is 1 and outputs 1 when the input is 0.",

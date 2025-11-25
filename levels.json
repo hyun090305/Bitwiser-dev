@@ -1,7 +1,6 @@
 {
   "levelTitles": {
-    "0": "튜토리얼: NOT-AND 입문",
-    "1": "NOT gate",
+  "1": "NOT gate",
   "2": "OR gate",
   "3": "AND gate",
   "4": "NOR gate",
@@ -21,7 +20,6 @@
   "18": "4-bit Mod 3 Remainder"
 },
   "levelGridSizes": {
-    "0": [6, 6],
     "1": [6, 6],
     "2": [6, 6],
     "3": [6, 6],
@@ -42,13 +40,6 @@
     "18": [15, 15]
   },
   "levelBlockSets": {
-    "0": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "NOT" },
-      { "type": "AND" }
-    ],
     "1": [
       { "type": "INPUT", "name": "IN1" },
       { "type": "OUTPUT", "name": "OUT1" },
@@ -232,12 +223,6 @@
   },
   "chapterData": [
     {
-      "id": "tutorial",
-      "name": "튜토리얼",
-      "desc": "블록 배치, 배선, 채점 과정을 단계별로 익혀요.",
-      "stages": [0]
-    },
-    {
       "id": "basic",
       "name": "기초 논리 게이트",
       "desc": "NOT, AND, OR 등 기본 게이트를 연습합니다.",
@@ -257,12 +242,6 @@
     }
   ],
   "levelAnswers": {
-    "0": [
-      { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
-      { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
-      { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0 } },
-      { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
-    ],
     "1": [
       { "inputs": { "IN1": 0 }, "expected": { "OUT1": 1 } },
       { "inputs": { "IN1": 1 }, "expected": { "OUT1": 0 } }
@@ -1290,16 +1269,6 @@
 
   },
   "levelDescriptions": {
-    "0": {
-      "title": "튜토리얼: 반전 후 AND",
-      "desc": "IN1을 NOT으로 뒤집은 뒤 IN2와 AND로 묶어야 OUT1이 1이 됩니다. 아래 진리표대로 동작하도록 회로를 완성해보세요.",
-      "table": [
-        { "IN1": 0, "IN2": 0, "OUT1": 0 },
-        { "IN1": 0, "IN2": 1, "OUT1": 1 },
-        { "IN1": 1, "IN2": 0, "OUT1": 0 },
-        { "IN1": 1, "IN2": 1, "OUT1": 0 }
-      ]
-    },
     "1": {
       "title": "Stage 1: NOT 게이트",
       "desc": "NOT 게이트는 입력이 1이면 출력이 0, 입력이 0이면 출력이 1이 됩니다.",
