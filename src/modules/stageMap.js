@@ -274,7 +274,7 @@ function buildNode(node, nodeTypes, getLevelTitle) {
   const rectSize = gridSizeToWorldSize(size);
   const rect = { x: rectOrigin.x, y: rectOrigin.y, w: rectSize.width, h: rectSize.height };
   const level = STAGE_NODE_LEVEL_MAP[node.id] ?? null;
-  const title = level ? (getLevelTitle?.(level) ?? node.label) : node.label;
+  const title = level != null ? (getLevelTitle?.(level) ?? node.label) : node.label;
   const comingSoon = node.nodeType === 'stage' && level == null;
   return {
     ...node,
@@ -722,7 +722,7 @@ export function initializeStageMap({
     let displayCleared = false;
     let progressCleared = false;
 
-    if (node.level) {
+    if (node.level != null) {
       // Stage nodes unlock purely from stage_map edge requirements.
       if (typeof isLevelUnlocked === 'function') {
         // Preserve legacy side effects without letting the callback gate access.
@@ -877,7 +877,7 @@ export function initializeStageMap({
   }
 
   async function launchStage(node) {
-    if (!node || !node.level || typeof startLevel !== 'function') {
+    if (!node || node.level == null || typeof startLevel !== 'function') {
       return;
     }
     const status = state.nodeStatus.get(node.id);
@@ -909,7 +909,7 @@ export function initializeStageMap({
       handleFeatureShortcut(node);
       return;
     }
-    if (!node.level) return;
+    if (node.level == null) return;
     launchStage(node);
   }
 
