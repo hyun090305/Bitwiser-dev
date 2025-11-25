@@ -27,12 +27,14 @@ import {
   getPlayController,
   getProblemCircuit,
   getProblemController,
+  getGridDimensions,
   destroyProblemContext
 } from './modules/grid.js';
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
 import { openHintModal, initializeHintUI } from './modules/hints.js';
 import { initializeTutorials } from './modules/tutorials.js';
+import { createGuidedTutorial } from './modules/guidedTutorial.js';
 import { createGradingController } from './modules/grading.js';
 import {
   initializeCircuitShare,
@@ -451,8 +453,10 @@ function setupKeyToggles() {
 
 const gameScreen = document.getElementById("gameScreen");
 const stageMapScreen = document.getElementById('stageMapScreen');
+let guidedTutorial;
 
 document.getElementById("backToLevelsBtn").onclick = async () => {
+  guidedTutorial?.stop?.();
   await returnToLevels({
     isCustomProblemActive: Boolean(getActiveCustomProblem()),
     onClearCustomProblem: clearActiveCustomProblem
@@ -664,6 +668,17 @@ if (gradeButton) {
   });
 }
 
+guidedTutorial = createGuidedTutorial({
+  lang: typeof currentLang !== 'undefined' ? currentLang : 'en',
+  missionPanel: document.getElementById('tutorialMissionPanel'),
+  missionList: document.getElementById('tutorialMissionList'),
+  missionDetail: document.getElementById('tutorialMissionDetail'),
+  calloutLayer: document.getElementById('tutorialCalloutLayer'),
+  gradeButton,
+  getPlayCircuit,
+  getGridDimensions
+});
+
 initializeRankingUI({
   viewRankingButtonSelector: '#viewRankingBtn',
   rankingListSelector: '#rankingList',
@@ -676,8 +691,10 @@ initializeRankingUI({
 });
 
 configureLevelModule({
-  onLevelIntroComplete: () =>
-    collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
+  onLevelIntroComplete: () => {
+    collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
+    guidedTutorial?.handleLevelStart?.(getCurrentLevel());
+  }
 });
 
 function parseColorToRgb(color) {
