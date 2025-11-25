@@ -328,18 +328,6 @@ const translations = {
     loginCancel: {text: "제 계정이 아닙니다"},
     authUnknownError: {text: "알 수 없는 오류가 발생했습니다."},
     usernameRegistering: {text: "닉네임 등록"},
-    tutorialMissionEyebrow: {text: "가이드"},
-    tutorialMissionTitle: {text: "튜토리얼 미션"},
-    tutorialMissionSubtitle: {text: "좌상단 안내를 따라 블록 배치 → 도선 → 채점 순서로 진행해보세요."},
-    tutorialMissionPlaceTitle: {text: "1) 블록 배치하기"},
-    tutorialMissionPlaceBody: {text: "왼쪽 팔레트에서 IN1, IN2, NOT, AND, OUT1을 끌어 원하는 칸에 놓으세요. 추천 좌표에 두면 배선이 편해요."},
-    tutorialMissionPositionLine: {text: "IN1: 행2 열2 · IN2: 행4 열2 · NOT: 행2 열4 · AND: 행3 열5 · OUT1: 행3 열6"},
-    tutorialMissionWireTitle: {text: "2) 도선 설치"},
-    tutorialMissionWireBody: {text: "Ctrl/Cmd를 누른 채 출발 블록에서 도착 블록까지 드래그해 선을 이어주세요."},
-    tutorialMissionWireLine: {text: "IN1→NOT, NOT→AND, IN2→AND, AND→OUT1"},
-    tutorialMissionGradeTitle: {text: "3) 채점 버튼 누르기"},
-    tutorialMissionGradeBody: {text: "우측의 ‘채점하기’ 버튼을 눌러 테스트 입력을 실행하고 결과를 확인하세요."},
-    tutorialMissionGradeHint: {text: "배선을 모두 잇고 나서 버튼을 클릭하면 다음 단계로 넘어갑니다."},
     rankOverall: {text: "전체"}
   },
   en: {
@@ -671,18 +659,6 @@ const translations = {
     loginCancel: {text: "Not my account"},
     authUnknownError: {text: "An unknown error occurred."},
     usernameRegistering: {text: "Register nickname"},
-    tutorialMissionEyebrow: {text: "Guide"},
-    tutorialMissionTitle: {text: "Tutorial missions"},
-    tutorialMissionSubtitle: {text: "Follow the top-left guide: place blocks → draw wires → grade."},
-    tutorialMissionPlaceTitle: {text: "1) Place blocks"},
-    tutorialMissionPlaceBody: {text: "Drag IN1, IN2, NOT, AND, and OUT1 from the left palette onto the grid. Using the suggested cells makes wiring easier."},
-    tutorialMissionPositionLine: {text: "IN1: r2 c2 · IN2: r4 c2 · NOT: r2 c4 · AND: r3 c5 · OUT1: r3 c6"},
-    tutorialMissionWireTitle: {text: "2) Draw wires"},
-    tutorialMissionWireBody: {text: "Hold Ctrl/Cmd and drag from the start block to the destination block to connect them."},
-    tutorialMissionWireLine: {text: "IN1→NOT, NOT→AND, IN2→AND, AND→OUT1"},
-    tutorialMissionGradeTitle: {text: "3) Press grade"},
-    tutorialMissionGradeBody: {text: "Press the 'Grade' button on the right to run the test inputs and check the result."},
-    tutorialMissionGradeHint: {text: "After all wires are connected, click the button to move to the final step."},
     rankOverall: {text: "All"}
   }
 };

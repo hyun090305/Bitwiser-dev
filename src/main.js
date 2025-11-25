@@ -34,7 +34,6 @@ import * as uiModule from './modules/ui.js';
 import { openHintModal, initializeHintUI } from './modules/hints.js';
 import { initializeTutorials } from './modules/tutorials.js';
 import { createGradingController } from './modules/grading.js';
-import { createTutorialStageGuide } from './modules/tutorialStageGuide.js';
 import {
   initializeCircuitShare,
   initializeStatusShare,
@@ -125,13 +124,6 @@ onCircuitModified(context => {
 });
 
 const translate = typeof t === 'function' ? t : key => key;
-
-const tutorialGuide = createTutorialStageGuide({
-  translate,
-  getCurrentLevel,
-  getPlayCircuit,
-  onCircuitModified
-});
 
 const toastContainer = document.getElementById('toastContainer') ?? (() => {
   const el = document.createElement('div');
@@ -461,7 +453,6 @@ const gameScreen = document.getElementById("gameScreen");
 const stageMapScreen = document.getElementById('stageMapScreen');
 
 document.getElementById("backToLevelsBtn").onclick = async () => {
-  tutorialGuide.deactivate();
   await returnToLevels({
     isCustomProblemActive: Boolean(getActiveCustomProblem()),
     onClearCustomProblem: clearActiveCustomProblem
@@ -664,7 +655,6 @@ configureLevelModule({
 
 const gradeButton = document.getElementById('gradeButton');
 if (gradeButton) {
-  tutorialGuide.bindGradeButton(gradeButton);
   gradeButton.addEventListener('click', () => {
     if (circuitHasError) {
       alert(translate('circuitErrorAlert'));
@@ -686,11 +676,8 @@ initializeRankingUI({
 });
 
 configureLevelModule({
-  onLevelIntroComplete: () => {
-    collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
-    tutorialGuide.handleLevelIntroComplete();
-  },
-  onLevelStarted: tutorialGuide.handleLevelStarted
+  onLevelIntroComplete: () =>
+    collapseMenuBarForMobile({ onAfterCollapse: updatePadding })
 });
 
 function parseColorToRgb(color) {
