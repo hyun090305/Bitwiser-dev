@@ -59,147 +59,10 @@ body.safe-mode .stage-map-surface {
   background: transparent;
 }
 
-.stage-node {
-  position: absolute;
-  display: flex;
-  align-items: center;
-  gap: 0.9rem;
-  min-width: 210px;
-  padding: 0.85rem 1.1rem;
-  border-radius: 20px;
-  border: 1px solid rgba(148, 163, 184, 0.4);
-  background: rgba(248, 250, 252, 0.95);
-  color: #0f172a;
-  transform: translate(-50%, -50%);
-  cursor: pointer;
-  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.35);
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-}
-
-.stage-node:hover {
-  transform: translate(-50%, -50%) scale(1.05);
-  box-shadow: 0 24px 55px rgba(15, 23, 42, 0.45);
-}
-
-.stage-node:focus-visible {
-  outline: 3px solid #38bdf8;
-  outline-offset: 4px;
-}
-
-.stage-node__icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: rgba(15, 23, 42, 0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-}
-
-.stage-node__body {
-  display: flex;
-  flex-direction: column;
-  gap: 0.1rem;
-  text-align: left;
-}
-
-/* Ensure stage node text uses a consistent font and doesn't overflow */
-.stage-node, .stage-node * {
-  font-family: 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
-
-.stage-node {
-  min-width: 0;
-}
-
-.stage-node__body {
-  min-width: 0;
-}
-
-.stage-node__title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  max-width: 28ch;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.stage-node__chapter {
-  font-size: 0.72rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #64748b;
-}
-
-.stage-node__title {
-  font-size: 1.05rem;
-  font-weight: 700;
-}
-
-.stage-node__status {
-  font-size: 0.8rem;
-  color: #475569;
-}
-
-.stage-node--primitive {
-  border-color: rgba(59, 130, 246, 0.7);
-}
-
-.stage-node--logic {
-  border-color: rgba(16, 185, 129, 0.6);
-}
-
-.stage-node--arithmetic {
-  border-color: rgba(249, 115, 22, 0.6);
-}
-
-.stage-node--mode {
-  background: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(251, 191, 36, 0.25));
-  border-color: rgba(56, 189, 248, 0.65);
-}
-
-.stage-node--title {
-  background: linear-gradient(135deg, rgba(253, 224, 71, 0.85), rgba(234, 179, 8, 0.95));
-  color: #422006;
-  border-color: rgba(217, 119, 6, 0.9);
-  box-shadow: 0 20px 45px rgba(234, 179, 8, 0.45);
-}
-
-.stage-node--locked {
-  background: rgba(15, 23, 42, 0.75);
-  color: #cbd5f5;
-  border-color: rgba(148, 163, 184, 0.3);
-  cursor: not-allowed;
-  box-shadow: none;
-}
-
-.stage-node--locked .stage-node__status {
-  color: #cbd5f5;
-}
-
-.stage-node--cleared {
-  border-color: rgba(34, 197, 94, 0.7);
-  box-shadow: 0 22px 50px rgba(34, 197, 94, 0.35);
-}
-
-.stage-node--preview {
-  border-style: dashed;
-  opacity: 0.85;
-}
-
-.stage-node--locked-feedback {
-  animation: stage-node-shake 0.4s ease;
-}
-
-@keyframes stage-node-shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  50% { transform: translateX(4px); }
-  75% { transform: translateX(-2px); }
-  100% { transform: translateX(0); }
-}
+/* Removed `.stage-node` visual styles: stage map nodes are rendered on canvas
+   by `src/modules/stageMap.js` (drawNode). These DOM rules were unused.
+   If you want HTML overlays for accessibility or interaction, we can re-add
+   a smaller, focused set of rules and wire them into the stage map logic. */
 
 .stage-map-info {
   position: absolute;
@@ -372,15 +235,8 @@ body.safe-mode .stage-map-surface {
   pointer-events: none;
 }
 
-body.safe-mode .stage-node {
-  background: rgba(2, 6, 23, 0.9);
-  color: #f8fafc;
-  border-color: rgba(248, 250, 252, 0.2);
-}
-
-body.safe-mode .stage-node__icon {
-  background: rgba(248, 250, 252, 0.12);
-}
+/* Removed safe-mode overrides for `.stage-node` (canvas-rendered nodes).
+   If HTML overlays are added later, reintroduce focused safe-mode rules. */
 
 body.safe-mode .hud-button {
   background: rgba(248, 250, 252, 0.9);
@@ -785,11 +641,6 @@ html, body {
   background-color: rgba(46, 60, 88, 0.9);
 }
 
-
-#gameArea.game-area--dark #mainScreen #chapterNavBtn {
-  background-color: #2563eb;
-  color: #f8fafc;
-}
   .toggle-key {
     display: block;
     margin: 6px 0;

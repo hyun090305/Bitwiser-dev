@@ -1,4 +1,4 @@
-import { setupGrid, setGridDimensions, destroyPlayContext } from './grid.js';
+import { setupGrid, setGridDimensions, destroyPlayContext, getPlayController } from './grid.js';
 import { getUsername } from './storage.js';
 import { fetchOverallStats } from './rank.js';
 import { showStageMapScreen } from './navigation.js';
@@ -13,10 +13,10 @@ const DEFAULT_GRID_SIZE = 6;
 let levelTitles = {};
 let levelGridSizes = {};
 let levelBlockSets = {};
-let chapterData = [];
 let levelAnswers = {};
 let levelDescriptions = {};
 let levelHints = {};
+let levelFixedIO = {};
 let clearedLevelsFromDb = [];
 let stageDataPromise = Promise.resolve();
 let currentLevel = null;
@@ -77,8 +77,11 @@ export function getLevelHints() {
   return levelHints;
 }
 
-export function getChapterData() {
-  return chapterData;
+export function getLevelFixedIO(level) {
+  if (typeof level === 'undefined') {
+    return levelFixedIO;
+  }
+  return levelFixedIO[level];
 }
 
 export function getCurrentLevel() {
@@ -101,10 +104,10 @@ export function loadStageData(currentLang) {
       levelTitles = data.levelTitles;
       levelGridSizes = data.levelGridSizes;
       levelBlockSets = data.levelBlockSets;
-      chapterData = data.chapterData;
       levelAnswers = data.levelAnswers;
       levelDescriptions = data.levelDescriptions;
       levelHints = data.levelHints || {};
+      levelFixedIO = data.levelFixedIO || {};
       return data;
     });
   return stageDataPromise;
@@ -115,11 +118,15 @@ export async function startLevel(level, { onIntroComplete } = {}) {
   await loadClearedLevelsFromDb();
   const [rows, cols] = levelGridSizes[level] || [DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE];
   setGridDimensions(rows, cols);
+  const fixedIOConfig = levelFixedIO[level];
+  const hasFixedIO = Boolean(fixedIOConfig?.fixIO);
 
   currentLevel = parseInt(level, 10);
   const title = document.getElementById('gameTitle');
   if (title) {
-    title.textContent = levelTitles[level] ?? `Stage ${level}`;
+    const localizedUntitled = translate('stageUntitled');
+    const fallbackTitle = localizedUntitled !== 'stageUntitled' ? localizedUntitled : 'Untitled stage';
+    title.textContent = levelTitles[level] ?? fallbackTitle;
   }
 
   const prevMenuBtn = document.getElementById('prevStageBtnMenu');
@@ -136,8 +143,15 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     rows,
     cols,
     createPaletteForLevel(level),
-    { enableCopyPaste: level >= 7 }
+    {
+      enableCopyPaste: level >= 7,
+      forceHideInOut: hasFixedIO
+    }
   );
+
+  if (hasFixedIO) {
+    getPlayController()?.placeFixedIO?.(fixedIOConfig);
+  }
 
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {
@@ -263,15 +277,7 @@ export function fetchClearedLevels(nickname) {
 }
 
 export function isLevelUnlocked(level) {
-  const cleared = clearedLevelsFromDb;
-  for (let idx = 0; idx < chapterData.length; idx++) {
-    const chap = chapterData[idx];
-    if (chap.stages.includes(level)) {
-      if (idx === 0) return true;
-      return chapterData[idx - 1].stages.every(s => cleared.includes(s));
-    }
-  }
-  return true;
+  return Boolean(levelTitles[level]);
 }
 
 export function showIntroModal(level) {

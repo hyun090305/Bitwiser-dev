@@ -1,0 +1,540 @@
+{
+  "creator": "garden",
+  "description": "IN1 = OUT1, IN2 = OUT2",
+  "difficulty": 5,
+  "fixIO": true,
+  "grid": [
+    {
+      "index": 42,
+      "name": "IN2",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "index": 6,
+      "name": "OUT2",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 44,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 29,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 38,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 48,
+      "name": "OUT1",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 40,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 12,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 10,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 2,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 0,
+      "name": "IN1",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "index": 15,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 24,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 26,
+      "name": "NOT",
+      "type": "NOT"
+    }
+  ],
+  "gridCols": 7,
+  "gridRows": 7,
+  "inputCount": 2,
+  "likes": {
+    "garden": true,
+    "gardengarden": true,
+    "이현준": true
+  },
+  "outputCount": 2,
+  "ranking": {
+    "-Oc3gy3m7n3X5ul-tCTb": {
+      "blockCounts": {
+        "AND": 2,
+        "INPUT": 2,
+        "JUNCTION": 1,
+        "NOT": 4,
+        "OR": 4,
+        "OUTPUT": 2
+      },
+      "hintsUsed": 0,
+      "nickname": "gardengarden",
+      "timestamp": "2025-10-21T02:58:08.876Z",
+      "usedWires": 30
+    }
+  },
+  "table": [
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "OUT1": 0,
+      "OUT2": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "OUT1": 0,
+      "OUT2": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "OUT1": 1,
+      "OUT2": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "OUT1": 1,
+      "OUT2": 1
+    }
+  ],
+  "timestamp": "2025-09-01T11:43:11.065Z",
+  "title": "7 x 7 crossroad",
+  "wires": [
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 6
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "up",
+      "x": 3,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 6
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 3,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 2
+    }
+  ],
+  "wiresObj": [
+    {
+      "endIdx": 44,
+      "pathIdxs": [
+        42,
+        43,
+        44
+      ],
+      "startIdx": 42
+    },
+    {
+      "endIdx": 29,
+      "pathIdxs": [
+        42,
+        35,
+        36,
+        29
+      ],
+      "startIdx": 42
+    },
+    {
+      "endIdx": 38,
+      "pathIdxs": [
+        44,
+        45,
+        38
+      ],
+      "startIdx": 44
+    },
+    {
+      "endIdx": 38,
+      "pathIdxs": [
+        29,
+        30,
+        37,
+        38
+      ],
+      "startIdx": 29
+    },
+    {
+      "endIdx": 40,
+      "pathIdxs": [
+        38,
+        39,
+        40
+      ],
+      "startIdx": 38
+    },
+    {
+      "endIdx": 48,
+      "pathIdxs": [
+        40,
+        47,
+        48
+      ],
+      "startIdx": 40
+    },
+    {
+      "endIdx": 6,
+      "pathIdxs": [
+        12,
+        5,
+        6
+      ],
+      "startIdx": 12
+    },
+    {
+      "endIdx": 12,
+      "pathIdxs": [
+        10,
+        11,
+        12
+      ],
+      "startIdx": 10
+    },
+    {
+      "endIdx": 10,
+      "pathIdxs": [
+        2,
+        3,
+        10
+      ],
+      "startIdx": 2
+    },
+    {
+      "endIdx": 2,
+      "pathIdxs": [
+        0,
+        1,
+        2
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 29,
+      "pathIdxs": [
+        0,
+        7,
+        14,
+        21,
+        28,
+        29
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 15,
+      "pathIdxs": [
+        29,
+        22,
+        15
+      ],
+      "startIdx": 29
+    },
+    {
+      "endIdx": 2,
+      "pathIdxs": [
+        15,
+        8,
+        9,
+        2
+      ],
+      "startIdx": 15
+    },
+    {
+      "endIdx": 24,
+      "pathIdxs": [
+        15,
+        16,
+        23,
+        24
+      ],
+      "startIdx": 15
+    },
+    {
+      "endIdx": 24,
+      "pathIdxs": [
+        38,
+        31,
+        24
+      ],
+      "startIdx": 38
+    },
+    {
+      "endIdx": 24,
+      "pathIdxs": [
+        10,
+        17,
+        24
+      ],
+      "startIdx": 10
+    },
+    {
+      "endIdx": 26,
+      "pathIdxs": [
+        24,
+        25,
+        26
+      ],
+      "startIdx": 24
+    },
+    {
+      "endIdx": 40,
+      "pathIdxs": [
+        26,
+        33,
+        40
+      ],
+      "startIdx": 26
+    },
+    {
+      "endIdx": 12,
+      "pathIdxs": [
+        26,
+        19,
+        12
+      ],
+      "startIdx": 26
+    }
+  ]
+}

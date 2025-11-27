@@ -1,6 +1,6 @@
 import { ensureDriveAuth } from './auth.js';
 import { getActiveCircuit, getActiveController, markCircuitModified } from './grid.js';
-import { getCurrentLevel } from './levels.js';
+import { getCurrentLevel, getLevelTitle } from './levels.js';
 
 const CURRENT_CIRCUIT_VERSION = 2;
 
@@ -168,11 +168,13 @@ function buildStatusShareString() {
   const maxStageNumber = stageNumbers.length
     ? stageNumbers[stageNumbers.length - 1]
     : 0;
+  const untitledStage = translateShare('stageUntitled', 'Untitled stage');
 
   for (let stage = 1; stage <= maxStageNumber; stage += 1) {
     const title = titlesRaw[stage] || '';
     const mark = clearedLevels.has(stage) ? '✅' : '❌';
-    lines.push(`Stage ${stage} (${title}): ${mark}`);
+    const displayTitle = title || untitledStage;
+    lines.push(`${displayTitle}: ${mark}`);
   }
 
   return lines.join('\n');
@@ -567,9 +569,13 @@ export async function renderSavedList() {
     const data = JSON.parse(text);
     const item = document.createElement('div');
     item.className = 'saved-item';
-    const label = data.stageId != null
-      ? `Stage ${String(data.stageId).padStart(2, '0')}`
-      : `Problem ${data.problemTitle || data.problemKey}`;
+    const stageTitle = data.stageId != null
+      ? getLevelTitle?.(data.stageId) ?? translateText('stageUntitled', 'Untitled stage')
+      : null;
+    const problemLabel = data.problemTitle || data.problemKey || translateText('problemUntitled', 'Untitled problem');
+    const label = stageTitle
+      ? stageTitle
+      : `Problem ${problemLabel}`;
 
     const img = document.createElement('img');
     if (gifBlob) img.src = URL.createObjectURL(gifBlob);

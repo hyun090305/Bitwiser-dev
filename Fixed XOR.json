@@ -1,0 +1,843 @@
+{
+  "creator": "garden",
+  "description": "Get the XOR of IN1 and IN2.",
+  "difficulty": 3,
+  "fixIO": true,
+  "grid": [
+    {
+      "classes": [
+        "block",
+        "flow-right",
+        "active"
+      ],
+      "index": 0,
+      "name": "IN1",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 1,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 2,
+      "type": "NOT"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 3,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-down"
+      ],
+      "index": 4,
+      "type": "NOT"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-right",
+        "corner",
+        "flow-up",
+        "flow-right"
+      ],
+      "index": 5,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 6,
+      "name": "OUT1",
+      "type": "OUTPUT"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-down",
+        "v",
+        "flow-down"
+      ],
+      "index": 7,
+      "type": "WIRE"
+    },
+    {
+      "index": 8
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-down",
+        "v",
+        "flow-down"
+      ],
+      "index": 9,
+      "type": "WIRE"
+    },
+    {
+      "index": 10
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-down",
+        "v",
+        "flow-down"
+      ],
+      "index": 11,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-up"
+      ],
+      "index": 12,
+      "type": "AND"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-left",
+        "corner",
+        "flow-up",
+        "flow-left"
+      ],
+      "index": 13,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-down",
+        "v",
+        "flow-down"
+      ],
+      "index": 14,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-right",
+        "corner",
+        "flow-up",
+        "flow-right"
+      ],
+      "index": 15,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 16,
+      "type": "AND"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 17,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 18,
+      "type": "OR"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-up",
+        "corner",
+        "flow-right",
+        "flow-up"
+      ],
+      "index": 19,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-up"
+      ],
+      "index": 20,
+      "type": "NOT"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-down",
+        "v",
+        "flow-down"
+      ],
+      "index": 21,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-up",
+        "v",
+        "flow-up"
+      ],
+      "index": 22,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-right",
+        "corner",
+        "flow-down",
+        "flow-right"
+      ],
+      "index": 23,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-up"
+      ],
+      "index": 24,
+      "type": "NOT"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-down",
+        "corner",
+        "flow-right",
+        "flow-down"
+      ],
+      "index": 25,
+      "type": "WIRE"
+    },
+    {
+      "index": 26
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-up",
+        "v",
+        "flow-up"
+      ],
+      "index": 27,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-up",
+        "wire-right",
+        "corner",
+        "flow-down",
+        "flow-right"
+      ],
+      "index": 28,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 29,
+      "type": "OR"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 30,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 31,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 32,
+      "type": "AND"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 33,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right"
+      ],
+      "index": 34,
+      "type": "AND"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-right",
+        "corner",
+        "flow-up",
+        "flow-right"
+      ],
+      "index": 35,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-up",
+        "corner",
+        "flow-right",
+        "flow-up"
+      ],
+      "index": 36,
+      "type": "WIRE"
+    },
+    {
+      "index": 37
+    },
+    {
+      "index": 38
+    },
+    {
+      "index": 39
+    },
+    {
+      "index": 40
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-down",
+        "wire-up",
+        "v",
+        "flow-up"
+      ],
+      "index": 41,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "block",
+        "flow-right",
+        "active"
+      ],
+      "index": 42,
+      "name": "IN2",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 43,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 44,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 45,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 46,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-right",
+        "h",
+        "flow-right"
+      ],
+      "index": 47,
+      "type": "WIRE"
+    },
+    {
+      "classes": [
+        "wire",
+        "wire-left",
+        "wire-up",
+        "corner",
+        "flow-right",
+        "flow-up"
+      ],
+      "index": 48,
+      "type": "WIRE"
+    }
+  ],
+  "gridCols": 7,
+  "gridRows": 7,
+  "inputCount": 2,
+  "likes": {
+    "garden": true,
+    "이현준": true
+  },
+  "outputCount": 1,
+  "ranking": {
+    "-OY0oNx67BB-DN4vfWQ3": {
+      "blockCounts": {
+        "AND": 4,
+        "INPUT": 2,
+        "NOT": 4,
+        "OR": 2,
+        "OUTPUT": 1
+      },
+      "hintsUsed": 0,
+      "nickname": "garden",
+      "timestamp": "2025-08-19T10:13:11.574Z",
+      "usedWires": 29
+    },
+    "-OanpnEu7Mgv4-w-yAYe": {
+      "blockCounts": {
+        "AND": 2,
+        "INPUT": 2,
+        "NOT": 3,
+        "OR": 2,
+        "OUTPUT": 1
+      },
+      "hintsUsed": 0,
+      "nickname": "이현준",
+      "timestamp": "2025-10-05T10:07:28.580Z",
+      "usedWires": 24
+    }
+  },
+  "table": [
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "OUT1": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "OUT1": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "OUT1": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "OUT1": 0
+    }
+  ],
+  "timestamp": "2025-08-19T10:11:15.344Z",
+  "title": "Fixed XOR Gate",
+  "wires": [
+    {
+      "dir": "left",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 1
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "dir": "up",
+      "x": 4,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 1
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 3
+    },
+    {
+      "dir": "left",
+      "x": 4,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 1,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 4,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 6
+    }
+  ],
+  "wiresObj": [
+    {
+      "endIdx": 29,
+      "pathIdxs": [
+        42,
+        35,
+        36,
+        29
+      ],
+      "startIdx": 42
+    },
+    {
+      "endIdx": 29,
+      "pathIdxs": [
+        0,
+        7,
+        14,
+        21,
+        28,
+        29
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 2,
+      "pathIdxs": [
+        0,
+        1,
+        2
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 16,
+      "pathIdxs": [
+        29,
+        22,
+        15,
+        16
+      ],
+      "startIdx": 29
+    },
+    {
+      "endIdx": 16,
+      "pathIdxs": [
+        2,
+        9,
+        16
+      ],
+      "startIdx": 2
+    },
+    {
+      "endIdx": 34,
+      "pathIdxs": [
+        42,
+        43,
+        44,
+        45,
+        46,
+        47,
+        48,
+        41,
+        34
+      ],
+      "startIdx": 42
+    },
+    {
+      "endIdx": 20,
+      "pathIdxs": [
+        34,
+        27,
+        20
+      ],
+      "startIdx": 34
+    },
+    {
+      "endIdx": 24,
+      "pathIdxs": [
+        16,
+        23,
+        24
+      ],
+      "startIdx": 16
+    },
+    {
+      "endIdx": 32,
+      "pathIdxs": [
+        24,
+        25,
+        32
+      ],
+      "startIdx": 24
+    },
+    {
+      "endIdx": 32,
+      "pathIdxs": [
+        29,
+        30,
+        31,
+        32
+      ],
+      "startIdx": 29
+    },
+    {
+      "endIdx": 34,
+      "pathIdxs": [
+        32,
+        33,
+        34
+      ],
+      "startIdx": 32
+    },
+    {
+      "endIdx": 4,
+      "pathIdxs": [
+        2,
+        3,
+        4
+      ],
+      "startIdx": 2
+    },
+    {
+      "endIdx": 18,
+      "pathIdxs": [
+        4,
+        11,
+        18
+      ],
+      "startIdx": 4
+    },
+    {
+      "endIdx": 18,
+      "pathIdxs": [
+        16,
+        17,
+        18
+      ],
+      "startIdx": 16
+    },
+    {
+      "endIdx": 12,
+      "pathIdxs": [
+        18,
+        19,
+        12
+      ],
+      "startIdx": 18
+    },
+    {
+      "endIdx": 12,
+      "pathIdxs": [
+        20,
+        13,
+        12
+      ],
+      "startIdx": 20
+    },
+    {
+      "endIdx": 6,
+      "pathIdxs": [
+        12,
+        5,
+        6
+      ],
+      "startIdx": 12
+    }
+  ]
+}

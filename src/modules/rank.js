@@ -499,7 +499,7 @@ export function showProblemRanking(problemKey, options = {}) {
 export async function showClearedModal(level, options = {}) {
   const {
     modalSelector = '#clearedModal',
-    stageNumberSelector = '#clearedStageNumber',
+    stageTitleSelector = '#clearedStageName',
     rankingSelector = '#clearedRanking',
     prevButtonSelector = '#prevStageBtn',
     nextButtonSelector = '#nextStageBtn',
@@ -519,20 +519,21 @@ export async function showClearedModal(level, options = {}) {
   const modal = document.querySelector(modalSelector);
   if (!modal) return;
 
-  const stageNumberEl = document.querySelector(stageNumberSelector);
-  const container = document.querySelector(rankingSelector);
-  if (stageNumberEl) stageNumberEl.textContent = level;
-  if (!container) return;
-
   const tr = resolveTranslator(translate);
+  const titles = typeof getLevelTitles === 'function' ? getLevelTitles() : null;
+  const resolvedStageTitle = titles?.[level] ?? translateText(tr, 'stageUntitled', 'Untitled stage');
+  const stageTitleEl = document.querySelector(stageTitleSelector);
+  if (stageTitleEl) stageTitleEl.textContent = resolvedStageTitle;
+
+  const container = document.querySelector(rankingSelector);
+  if (!container) return;
 
   const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
 
   const prevBtn = document.querySelector(prevButtonSelector);
   const nextBtn = document.querySelector(nextButtonSelector);
 
-  if (typeof getLevelTitles === 'function' && typeof isLevelUnlocked === 'function') {
-    const titles = getLevelTitles();
+  if (titles && typeof isLevelUnlocked === 'function') {
     if (prevBtn) prevBtn.disabled = !(titles[level - 1] && isLevelUnlocked(level - 1));
     if (nextBtn) nextBtn.disabled = !(titles[level + 1] && isLevelUnlocked(level + 1));
   }

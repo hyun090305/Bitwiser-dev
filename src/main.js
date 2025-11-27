@@ -243,7 +243,7 @@ const toastApi = {
 };
 const clearedModalOptions = {
   modalSelector: '#clearedModal',
-  stageNumberSelector: '#clearedStageNumber',
+  stageTitleSelector: '#clearedStageName',
   rankingSelector: '#clearedRanking',
   prevButtonSelector: '#prevStageBtn',
   nextButtonSelector: '#nextStageBtn',
@@ -1173,7 +1173,7 @@ initializeProblemCreationFlow({
     problemDifficultyValueInputId: 'problemDifficultyValue',
     problemDifficultyValueLabelId: 'problemDifficultyValueLabel',
     fixIOCheckId: 'fixIOCheck',
-    backToChapterFromUserProblemsBtnId: 'backToChapterFromUserProblems'
+    backToStageMapFromUserProblemsBtnId: 'backToStageMapFromUserProblems'
   },
   buildPaletteGroups,
   onDestroyProblemContext: destroyProblemContext,

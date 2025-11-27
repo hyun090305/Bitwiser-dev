@@ -59,7 +59,7 @@ mentioned.
 | **GuestbookAgent** (`guestbook.js`) | Manages a simple in‑game guestbook. Handles CRUD operations for player messages. |
 | **ToastAgent** (`toast.js`) | Centralises toast notifications. Provides a `createToastManager()` that can show, update and hide messages with actions and progress indicators. |
 | **GridAgent** (`grid.js`) | Maintains the current grid dimensions and the active circuits/controllers for *play* and *problem* contexts. Handles resizing, zooming, creation and destruction of circuit contexts, and emits circuit‑modified events via `onCircuitModified()`. |
-| **LevelsAgent** (`levels.js`) | Loads level metadata from `levels.json`/`levels_en.json`, stores titles, grid sizes, block sets, answers and hints. Exposes methods to start and return from levels, mark levels cleared, and render chapter/stage lists. |
+| **LevelsAgent** (`levels.js`) | Loads level metadata from `levels.json`/`levels_en.json`, stores titles, grid sizes, block sets, answers and hints. Exposes methods to start and return from levels, mark levels cleared, and render stage lists. |
 | **HintsAgent** (`hints.js`) | Controls hint functionality. Tracks which hints have been viewed and opens/closes the hint modal when requested via `openHintModal()`. |
 | **TutorialsAgent** (`tutorials.js`) | Implements step‑by‑step tutorials shown at the start of certain levels. Provides `initializeTutorials()` and manages tutorial state. |
 | **GradingAgent** (`grading.js`) | Grades player circuits. Compares the output of the EngineAgent against level answers and updates scoring UI. |

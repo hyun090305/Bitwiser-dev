@@ -1,24 +1,26 @@
 {
   "levelTitles": {
-    "0": "튜토리얼: 첫 회로",
-    "1": "NOT gate",
-    "2": "OR gate",
-    "3": "AND gate",
-    "4": "NOR gate",
-    "5": "NAND gate",
-    "6": "XOR gate",
-    "7": "Majority gate",
-    "8": "Parity checker",
+    "0": "Tutorial",
+    "1": "NOT",
+    "2": "OR",
+    "3": "AND",
+    "4": "NOR",
+    "5": "NAND",
+    "6": "XOR",
+    "7": "Majority",
+    "8": "Parity",
     "9": "Half Adder",
     "10": "Full Adder",
     "11": "2-to-4 Decoder",
     "12": "4-to-1 MUX",
-    "13": "2-bit Comparator",
-    "14": "2-bit Adder",
-    "15": "2-bit Mod 4 Subtractor",
-    "16": "2-bit Max Selector",
-    "17": "2-bit Multiplier",
-    "18": "4-bit Mod 3 Remainder"
+    "13": "Comparator",
+    "14": "Adder",
+    "15": "Mod 4 Subtractor",
+    "16": "Max Selector",
+    "17": "Multiplier",
+    "18": "Remainder",
+    "19": "Crossroad",
+    "20": "Fixed XOR"
   },
   "levelGridSizes": {
     "0": [6, 6],
@@ -39,7 +41,9 @@
     "15": [12, 12],
     "16": [12, 12],
     "17": [12, 12],
-    "18": [15, 15]
+    "18": [15, 15],
+    "19": [7, 7],
+    "20": [7, 7]
   },
   "levelBlockSets": {
     "0": [
@@ -228,34 +232,45 @@
   { "type": "AND" },
   { "type": "OR" },
   { "type": "JUNCTION" }
+],
+"19": [
+  { "type": "INPUT", "name": "IN1" },
+  { "type": "INPUT", "name": "IN2" },
+  { "type": "OUTPUT", "name": "OUT1" },
+  { "type": "OUTPUT", "name": "OUT2" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"20": [
+  { "type": "INPUT", "name": "IN1" },
+  { "type": "INPUT", "name": "IN2" },
+  { "type": "OUTPUT", "name": "OUT1" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" }
 ]
   },
-  "chapterData": [
-    {
-      "id": "tutorial",
-      "name": "튜토리얼",
-      "desc": "블록 배치, 배선, 채점 흐름을 익혀요.",
-      "stages": [0]
+  "levelFixedIO": {
+    "19": {
+      "fixIO": true,
+      "grid": [
+        { "index": 0, "type": "INPUT", "name": "IN1" },
+        { "index": 42, "type": "INPUT", "name": "IN2" },
+        { "index": 6, "type": "OUTPUT", "name": "OUT2" },
+        { "index": 48, "type": "OUTPUT", "name": "OUT1" }
+      ]
     },
-    {
-      "id": "basic",
-      "name": "기초 논리 게이트",
-      "desc": "NOT, AND, OR 등 기본 게이트를 연습합니다.",
-      "stages": [1, 2, 3, 4, 5, 6]
-    },
-    {
-      "id": "advanced",
-      "name": "조합 논리 회로",
-      "desc": "Half Adder, MUX 등 복합 회로를 구현합니다.",
-      "stages": [7, 8, 9, 10, 11, 12]
-    },
-    {
-      "id": "operations",
-      "name": "산술 연산 회로",
-      "desc": "사칙연산 등의 복잡한 회로를 구현합니다.",
-      "stages": [13, 14, 15, 16, 17, 18]
+    "20": {
+      "fixIO": true,
+      "grid": [
+        { "index": 0, "type": "INPUT", "name": "IN1" },
+        { "index": 42, "type": "INPUT", "name": "IN2" },
+        { "index": 27, "type": "OUTPUT", "name": "OUT1" }
+      ]
     }
-  ],
+  },
   "levelAnswers": {
     "0": [
       { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
@@ -1286,12 +1301,24 @@
   { "inputs": { "A3": 1, "A2": 1, "A1": 0, "A0": 1 }, "expected": { "R1": 0, "R0": 1 } },  
   { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 0 }, "expected": { "R1": 1, "R0": 0 } },  
   { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 1 }, "expected": { "R1": 0, "R0": 0 } }   
-]
+],
+  "19": [
+    { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0, "OUT2": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 1, "OUT2": 1 } }
+  ],
+  "20": [
+    { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+  ]
 
   },
   "levelDescriptions": {
     "0": {
-      "title": "Stage 0: 튜토리얼 - 첫 회로",
+      "title": "Tutorial",
       "desc": "IN1을 반전해 AND 게이트로 IN2와 결합한 뒤 OUT1으로 보내는 회로를 따라 만들어 보세요.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 0 },
@@ -1301,7 +1328,7 @@
       ]
     },
     "1": {
-      "title": "Stage 1: NOT 게이트",
+      "title": "NOT",
       "desc": "NOT 게이트는 입력이 1이면 출력이 0, 입력이 0이면 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "OUT1": 1 },
@@ -1309,7 +1336,7 @@
       ]
     },
     "2": {
-      "title": "Stage 2: OR 게이트",
+      "title": "OR",
       "desc": "OR 게이트는 두 입력 중 하나라도 1이면 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 0 },
@@ -1319,7 +1346,7 @@
       ]
     },
     "3": {
-      "title": "Stage 3: AND 게이트",
+      "title": "AND",
       "desc": "AND 게이트는 두 입력이 모두 1일 때만 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 0 },
@@ -1329,7 +1356,7 @@
       ]
     },
     "4": {
-      "title": "Stage 4: NOR 게이트",
+      "title": "NOR",
       "desc": "NOR 게이트는 OR 게이트의 출력을 NOT한 결과입니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 1 },
@@ -1339,7 +1366,7 @@
       ]
     },
     "5": {
-      "title": "Stage 5: NAND 게이트",
+      "title": "NAND",
       "desc": "NAND 게이트는 AND 게이트의 출력을 NOT한 결과입니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 1 },
@@ -1349,7 +1376,7 @@
       ]
     },
     "6": {
-      "title": "Stage 6: XOR 게이트",
+      "title": "XOR",
       "desc": "XOR 게이트는 두 입력이 서로 다를 때만 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 0 },
@@ -1359,7 +1386,7 @@
       ]
     },
     "7": {
-      "title": "Stage 7: Majority 게이트",
+      "title": "Majority",
       "desc": "세 입력 중 2개 이상이 1이면 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0 },
@@ -1373,7 +1400,7 @@
       ]
     },
     "8": {
-      "title": "Stage 8: 패리티 검사기",
+      "title": "Parity",
       "desc": "세 입력의 홀수 개가 1이면 출력이 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0 },
@@ -1387,7 +1414,7 @@
       ]
     },
     "9": {
-      "title": "Stage 9: Half Adder",
+      "title": "Half Adder",
       "desc": "두 입력의 덧셈 결과를 합과 자리올림으로 나눠 출력합니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
@@ -1397,7 +1424,7 @@
       ]
     },
     "10": {
-      "title": "Stage 10: Full Adder",
+      "title": "Full Adder",
       "desc": "세 입력을 더한 결과를 합과 자리올림으로 나눠 출력합니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "IN3": 0, "OUT1": 0, "OUT2": 0 },
@@ -1411,7 +1438,7 @@
       ]
     },
     "11": {
-      "title": "Stage 11: 2-to-4 디코더",
+      "title": "2-to-4 Decoder",
       "desc": "두 입력으로 4개의 출력 중 하나만 1이 됩니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 },
@@ -1421,7 +1448,7 @@
       ]
     },
     "12": {
-      "title": "Stage 12: 4-to-1 MUX",
+      "title": "4-to-1 MUX",
       "desc": "선택신호(S1, S0)에 따라 입력 신호 하나를 선택하여 그대로 출력합니다.",
       "table": [
         { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0, "S1": 0, "S0": 0, "OUT1": 0 },
@@ -1432,7 +1459,7 @@
       ]
     },
   "13": {
-    "title": "Stage 13: 2-bit Comparator",
+    "title": "Comparator",
     "desc": "두 2비트 숫자 A와 B를 비교하여 A > B, A = B, A < B 중 하나를 출력합니다.",
     "table": [
       { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "A>B": 0, "A=B": 1, "A<B": 0 },
@@ -1443,7 +1470,7 @@
     ]
   },
   "14": {
-    "title": "Stage 14: 2-bit Adder",
+    "title": "Adder",
     "desc": "두 2비트 숫자를 더해 3비트 결과를 출력합니다.",
     "table": [
       { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "S2": 0, "S1": 0, "S0": 0 },
@@ -1454,7 +1481,7 @@
     ]
   },
   "15": {
-    "title": "Stage 15: mod 4 2-bit Subtractor",
+    "title": "mod 4 Subtractor",
     "desc": "두 2비트 숫자 A - B를 mod 4로 계산하여 출력합니다.",
     "table": [
       { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "S1": 0, "S0": 0 },
@@ -1465,7 +1492,7 @@
     ]
   },
   "16": {
-  "title": "Stage 16: 2-bit Max Selector",
+  "title": "Max Selector",
   "desc": "두 2비트 이진수 A(A1A0)와 B(B1B0)가 주어질 때, 더 큰 값을 출력으로 선택합니다. 출력은 선택된 2비트 숫자 M(M1M0)입니다.",
   "table": [
     { "A1": 0, "A0": 1, "B1": 0, "B0": 0, "M1": 0, "M0": 1 },  
@@ -1476,7 +1503,7 @@
   ]
 },
   "17": {
-    "title": "Stage 17: 2-bit Multiplier",
+    "title": "Multiplier",
     "desc": "두 2비트 숫자 A와 B의 곱을 4비트 이진수로 출력합니다.",
     "table": [
       { "A1": 0, "A0": 0, "B1": 0, "B0": 0, "P3": 0, "P2": 0, "P1": 0, "P0": 0 },
@@ -1487,7 +1514,7 @@
     ]
   },
   "18": {
-  "title": "Stage 18: Mod 3 Remainder",
+  "title": "Remainder",
   "desc": "4비트 이진수 A(A3A2A1A0)를 3으로 나눈 나머지를 2비트 R(R1R0)로 출력합니다. 예: 6 → 0, 7 → 1, 8 → 2",
   "table": [
     { "A3": 0, "A2": 0, "A1": 0, "A0": 0, "R1": 0, "R0": 0 },  
@@ -1496,7 +1523,27 @@
     { "A3": 1, "A2": 0, "A1": 0, "A0": 1, "R1": 0, "R0": 0 },  
     { "A3": 1, "A2": 0, "A1": 1, "A0": 0, "R1": 0, "R0": 1 }   
   ]
-}
+},
+  "19": {
+    "title": "Crossroad",
+    "desc": "IN1은 OUT1, IN2는 OUT2로 가도록 교차로를 설계하세요.",
+    "table": [
+      { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
+      { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1 },
+      { "IN1": 1, "IN2": 0, "OUT1": 1, "OUT2": 0 },
+      { "IN1": 1, "IN2": 1, "OUT1": 1, "OUT2": 1 }
+    ]
+  },
+  "20": {
+    "title": "Fixed XOR",
+    "desc": "고정된 IN/OUT에서 작동하는 XOR 게이트를 만드세요.",
+    "table": [
+      { "IN1": 0, "IN2": 0, "OUT1": 0 },
+      { "IN1": 0, "IN2": 1, "OUT1": 1 },
+      { "IN1": 1, "IN2": 0, "OUT1": 1 },
+      { "IN1": 1, "IN2": 1, "OUT1": 0 }
+    ]
+  }
   },
   "levelHints": {
     "stage6": {

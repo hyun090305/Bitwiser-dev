@@ -126,7 +126,7 @@ export function setupNavigation({
 
   const userProblemsBtn = document.getElementById('userProblemsBtn');
   const userProblemsScreen = document.getElementById('user-problems-screen');
-  const backFromUserProblemsBtn = document.getElementById('backToChapterFromUserProblems');
+  const backFromUserProblemsBtn = document.getElementById('backToStageMapFromUserProblems');
 
   function refreshUserInfo() {
     if (typeof refreshUserData === 'function') {

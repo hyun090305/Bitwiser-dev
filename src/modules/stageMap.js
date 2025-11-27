@@ -421,45 +421,43 @@ function drawNode(ctx, camera, node, status) {
 
   if (stageStyle) {
     if (stageCleared) {
+      // Match the active block visual language: warm halo + radial glow
       const haloShadow = {
-        color: 'rgba(255, 220, 180, 0.28)',
-        blur: 26,
+        color: 'rgba(255, 220, 180, 0.22)',
+        blur: 18,
         offsetX: 0,
-        offsetY: 6
+        offsetY: 4
       };
       applyScaledShadow(ctx, haloShadow, scale);
       drawRounded();
+      // base warm fill behind the glow (same as blocks)
       ctx.fillStyle = 'rgba(255, 246, 225, 0.96)';
       ctx.fill();
 
+      // clear direct shadow before radial glow
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
       ctx.shadowOffsetY = 0;
 
-      const centerX = topLeft.x + width * 0.45;
-      const centerY = topLeft.y + height * 0.45;
+      // Use same center/radius heuristics as drawBlock for consistent glow
+      const centerX = topLeft.x + width * 0.42;
+      const centerY = topLeft.y + height * 0.38;
       const minSize = Math.min(width, height);
-      const innerRadius = Math.max(minSize * 0.18, 0);
-      const outerRadius = Math.max(Math.max(width, height), innerRadius + 0.1);
+      const innerRadius = Math.max(minSize * 0.06, 0);
+      const outerRadius = Math.max(minSize * 0.6, innerRadius + 0.1);
       const glowGradient = ctx.createRadialGradient(centerX, centerY, innerRadius, centerX, centerY, outerRadius);
-      glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
-      glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
+      glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.12)');
+      glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.08)');
       glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
       ctx.globalCompositeOperation = 'lighter';
       drawRounded();
       ctx.fillStyle = glowGradient;
       ctx.fill();
       ctx.globalCompositeOperation = 'source-over';
-
-      const activeOverlay = createFillStyle(ctx, stageStyle.activeFill, topLeft.x, topLeft.y, width, height) || stageStyle.activeFill;
-      if (activeOverlay) {
-        drawRounded();
-        ctx.globalAlpha = 0.92;
-        ctx.fillStyle = activeOverlay;
-        ctx.fill();
-        ctx.globalAlpha = 1;
-      }
+      // Note: do not apply an extra opaque active overlay here so the glow
+      // matches the block appearance; the node's active text color and
+      // border are still applied below.
     } else {
       applyScaledShadow(ctx, stageStyle.shadow, scale);
       drawRounded();

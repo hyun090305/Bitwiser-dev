@@ -18,12 +18,20 @@
     "15": "2-bit Mod 4 Subtractor",
     "16": "2-bit Max Selector",
     "17": "2-bit Multiplier",
-    "18": "4-bit Mod 3 Remainder"
+    "18": "4-bit Mod 3 Remainder",
+    "19": "7 x 7 crossroad",
+    "20": "Fixed XOR Gate"
   },
   "levelGridSizes": {
     "0": [6, 6],
     "1": [6, 6],
     "2": [6, 6],
+    },
+    {
+      "id": "community",
+      "name": "Community Stages",
+      "desc": "Take on circuits curated from player creations.",
+      "stages": [19, 20]
     "3": [6, 6],
     "4": [6, 6],
     "5": [6, 6],
@@ -39,41 +47,11 @@
     "15": [12, 12],
     "16": [12, 12],
     "17": [12, 12],
-    "18": [15, 15]
+    "18": [15, 15],
+    "19": [7, 7],
+    "20": [7, 7]
   },
   "levelBlockSets": {
-    "0": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "NOT" },
-      { "type": "AND" }
-    ],
-    "1": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "NOT" }
-    ],
-    "2": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "OR" }
-    ],
-    "3": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "AND" }
-    ],
-    "4": [
-      { "type": "INPUT", "name": "IN1" },
-      { "type": "INPUT", "name": "IN2" },
-      { "type": "OUTPUT", "name": "OUT1" },
-      { "type": "OR" },
-      { "type": "NOT" }
-    ],
-    "5": [
       { "type": "INPUT", "name": "IN1" },
       { "type": "INPUT", "name": "IN2" },
       { "type": "OUTPUT", "name": "OUT1" },
@@ -228,34 +206,45 @@
   { "type": "AND" },
   { "type": "OR" },
   { "type": "JUNCTION" }
+],
+"19": [
+  { "type": "INPUT", "name": "IN1" },
+  { "type": "INPUT", "name": "IN2" },
+  { "type": "OUTPUT", "name": "OUT1" },
+  { "type": "OUTPUT", "name": "OUT2" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" },
+  { "type": "JUNCTION" }
+],
+"20": [
+  { "type": "INPUT", "name": "IN1" },
+  { "type": "INPUT", "name": "IN2" },
+  { "type": "OUTPUT", "name": "OUT1" },
+  { "type": "NOT" },
+  { "type": "AND" },
+  { "type": "OR" }
 ]
   },
-  "chapterData": [
-    {
-      "id": "tutorial",
-      "name": "Tutorial",
-      "desc": "Learn how to place blocks, draw wires, and grade.",
-      "stages": [0]
+  "levelFixedIO": {
+    "19": {
+      "fixIO": true,
+      "grid": [
+        { "index": 0, "type": "INPUT", "name": "IN1" },
+        { "index": 42, "type": "INPUT", "name": "IN2" },
+        { "index": 6, "type": "OUTPUT", "name": "OUT2" },
+        { "index": 48, "type": "OUTPUT", "name": "OUT1" }
+      ]
     },
-    {
-      "id": "basic",
-      "name": "Basic Logic Gates",
-      "desc": "Practice basic gates such as NOT, AND, and OR.",
-      "stages": [1, 2, 3, 4, 5, 6]
-    },
-    {
-      "id": "advanced",
-      "name": "Combinational Logic Circuits",
-      "desc": "Build complex circuits like Half Adder and MUX.",
-      "stages": [7, 8, 9, 10, 11, 12]
-    },
-    {
-      "id": "operations",
-      "name": "Arithmetic Operation Circuits",
-      "desc": "Implement arithmetic circuits like adders and more.",
-      "stages": [13, 14, 15, 16, 17, 18]
+    "20": {
+      "fixIO": true,
+      "grid": [
+        { "index": 0, "type": "INPUT", "name": "IN1" },
+        { "index": 42, "type": "INPUT", "name": "IN2" },
+        { "index": 6, "type": "OUTPUT", "name": "OUT1" }
+      ]
     }
-  ],
+  },
   "levelAnswers": {
     "0": [
       { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
@@ -418,7 +407,27 @@
         "A=B": 1,
         "A<B": 0
       }
-    },
+      },
+        "19": {
+          "title": "Stage 19: 7 x 7 crossroad",
+          "desc": "Unravel the 7x7 crossroad so IN1 reaches OUT1 and IN2 reaches OUT2 without getting mixed up.",
+          "table": [
+            { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
+            { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1 },
+            { "IN1": 1, "IN2": 0, "OUT1": 1, "OUT2": 0 },
+            { "IN1": 1, "IN2": 1, "OUT1": 1, "OUT2": 1 }
+          ]
+        },
+        "20": {
+          "title": "Stage 20: Fixed XOR Gate",
+          "desc": "Use the fixed layout to produce OUT1 = IN1 XOR IN2 in as few moves as possible.",
+          "table": [
+            { "IN1": 0, "IN2": 0, "OUT1": 0 },
+            { "IN1": 0, "IN2": 1, "OUT1": 1 },
+            { "IN1": 1, "IN2": 0, "OUT1": 1 },
+            { "IN1": 1, "IN2": 1, "OUT1": 0 }
+          ]
+        }
     {
       "inputs": {
         "A1": 0,
@@ -1286,7 +1295,19 @@
   { "inputs": { "A3": 1, "A2": 1, "A1": 0, "A0": 1 }, "expected": { "R1": 0, "R0": 1 } },  
   { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 0 }, "expected": { "R1": 1, "R0": 0 } },  
   { "inputs": { "A3": 1, "A2": 1, "A1": 1, "A0": 1 }, "expected": { "R1": 0, "R0": 0 } }   
-]
+],
+  "19": [
+    { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0, "OUT2": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1, "OUT2": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 1, "OUT2": 1 } }
+  ],
+  "20": [
+    { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+  ]
 
   },
   "levelDescriptions": {
