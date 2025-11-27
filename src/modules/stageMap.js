@@ -80,6 +80,136 @@ const STAGE_BLOCK_STYLE_FALLBACK = {
   strokeWidth: 1.2
 };
 
+const TITLE_BADGE_BASE = {
+  dropShadow: {
+    color: 'rgba(13, 16, 23, 0.55)',
+    blur: 14,
+    offsetX: 0,
+    offsetY: 4
+  },
+  highlight: {
+    heightRatio: 0.2,
+    color: 'rgba(255, 255, 255, 0.32)'
+  },
+  textColor: '#000000',
+  textShadow: {
+    color: 'rgba(0, 0, 0, 0.35)',
+    offsetX: 0,
+    offsetY: 2,
+    blur: 4
+  },
+  subtitleColor: '#000000'
+};
+
+const RANK_TITLE_BADGES = {
+  bit_solver: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#FFE6A2' },
+        { offset: 0.55, color: '#F2C15C' },
+        { offset: 1, color: '#D9A645' }
+      ]
+    },
+    glow: { color: 'rgba(255, 214, 138, 0.3)', blur: 26 },
+    bloom: { color: 'rgba(255, 244, 208, 0.15)' },
+    border: { width: 1.5, color: '#FFD58A' },
+    sparkle: {
+      baseOpacity: 0.12,
+      size: 6,
+      color: '#ffffff',
+      positions: [
+        { x: 0.2, y: 0.46, scale: 0.9 },
+        { x: 0.52, y: 0.32, scale: 1 },
+        { x: 0.78, y: 0.56, scale: 1.1 }
+      ]
+    },
+    textShadow: { color: '#C6933A', offsetY: 2, blur: 3 }
+  },
+  bit_wiser: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#FFECC5' },
+        { offset: 0.5, color: '#F7C96D' },
+        { offset: 1, color: '#C48A2D' }
+      ]
+    },
+    glow: { color: 'rgba(255, 208, 130, 0.55)', blur: 32 },
+    bloom: { color: 'rgba(255, 244, 208, 0.25)' },
+    border: { width: 2.2, color: '#FFDE9B', inner: { inset: 2, color: 'rgba(255, 255, 255, 0.55)', width: 1 } },
+    sparkle: {
+      baseOpacity: 0.18,
+      size: 6.6,
+      color: '#fff7df',
+      twinkle: true,
+      period: 1500,
+      positions: [
+        { x: 0.16, y: 0.42, scale: 1 },
+        { x: 0.35, y: 0.28, scale: 1.1 },
+        { x: 0.55, y: 0.5, scale: 0.9 },
+        { x: 0.72, y: 0.34, scale: 1.05 },
+        { x: 0.86, y: 0.56, scale: 1.15 }
+      ]
+    },
+    metallicSheen: { opacity: 0.35 },
+    textShadow: { color: '#B87C1F', offsetY: 2, blur: 5 }
+  },
+  bit_master: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#FFF2D0' },
+        { offset: 0.3, color: '#FFD16F' },
+        { offset: 0.65, color: '#E1A23D' },
+        { offset: 1, color: '#8A5A16' }
+      ]
+    },
+    glow: { color: 'rgba(255, 210, 120, 0.9)', blur: 38 },
+    bloom: { color: 'rgba(255, 220, 160, 0.4)' },
+    border: {
+      width: 3,
+      color: '#FFE298',
+      inner: { inset: 2.6, color: '#D49D3F', width: 1.4 }
+    },
+    halo: { color: 'rgba(255, 214, 147, 0.18)', radiusMultiplier: 2.2 },
+    sparkle: {
+      baseOpacity: 0.22,
+      size: 7.2,
+      color: '#fff7e1',
+      twinkle: true,
+      period: 1800,
+      positions: [
+        { x: 0.14, y: 0.4, scale: 1 },
+        { x: 0.3, y: 0.25, scale: 0.9 },
+        { x: 0.45, y: 0.55, scale: 1 },
+        { x: 0.62, y: 0.33, scale: 1.05 },
+        { x: 0.76, y: 0.52, scale: 1.12 },
+        { x: 0.88, y: 0.3, scale: 0.95 }
+      ]
+    },
+    particles: {
+      count: 10,
+      color: 'rgba(255, 242, 210, 0.12)',
+      radius: 3.2,
+      amplitude: 0.08,
+      period: 2800
+    },
+    sweep: {
+      period: 2500,
+      widthRatio: 0.25,
+      color: 'rgba(255, 255, 255, 0.35)',
+      fade: true,
+      fadePower: 1.2,
+      alpha: 1
+    },
+    textShadow: { color: '#7A4E14', offsetY: 3, blur: 6 }
+  }
+};
+
 function normalizeShadow(shadow, fallback) {
   if (shadow === null) return null;
   const base = fallback ? { ...fallback } : null;
@@ -191,6 +321,110 @@ function buildRoundedRectPath(ctx, x, y, width, height, radius) {
   ctx.lineTo(x, y + r);
   ctx.quadraticCurveTo(x, y, x + r, y);
   ctx.closePath();
+}
+
+function drawInsetRoundedRect(ctx, x, y, width, height, radius, inset, lineWidth, strokeStyle) {
+  const adj = Math.max(0, inset);
+  buildRoundedRectPath(ctx, x + adj, y + adj, width - adj * 2, height - adj * 2, Math.max(0, radius - adj));
+  ctx.lineWidth = lineWidth;
+  ctx.strokeStyle = strokeStyle;
+  ctx.stroke();
+}
+
+function drawSparkle(ctx, x, y, size, color, alpha) {
+  if (alpha <= 0) return;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  const gradient = ctx.createRadialGradient(x, y, 0, x, y, size);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  ctx.fillStyle = gradient;
+  ctx.beginPath();
+  ctx.arc(x, y, size, 0, Math.PI * 2);
+  ctx.fill();
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(0.6, size * 0.2);
+  ctx.beginPath();
+  ctx.moveTo(x - size, y);
+  ctx.lineTo(x + size, y);
+  ctx.moveTo(x, y - size);
+  ctx.lineTo(x, y + size);
+  ctx.globalAlpha *= 0.5;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawSparkles(ctx, rect, config, scale, t = 0) {
+  if (!config?.positions?.length) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const baseOpacity = config.baseOpacity ?? 0.12;
+  const baseSize = (config.size ?? 6) * scale;
+  const period = config.period ?? 1600;
+  config.positions.forEach((pos, idx) => {
+    const size = baseSize * (pos.scale ?? 1);
+    let alpha = baseOpacity;
+    if (config.twinkle) {
+      const phase = (idx * 0.37 + (pos.phase || 0)) * Math.PI * 2;
+      alpha *= 0.55 + 0.45 * Math.sin(((t || 0) / period) * Math.PI * 2 + phase);
+    }
+    const x = rect.x + rect.w * pos.x;
+    const y = rect.y + rect.h * pos.y;
+    drawSparkle(ctx, x, y, size, config.color || '#ffffff', Math.max(0, alpha));
+  });
+  ctx.restore();
+}
+
+function drawDriftingParticles(ctx, rect, config, scale, t = 0) {
+  if (!config?.count) return;
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const period = Math.max(800, config.period ?? 2600);
+  const amplitude = config.amplitude ?? 0.08;
+  const baseRadius = (config.radius ?? 3) * scale;
+  for (let i = 0; i < config.count; i += 1) {
+    const seed = (i + 1) * 97;
+    const baseX = (i + 0.5) / (config.count + 1);
+    const baseY = ((seed % 37) / 37) * 0.6 + 0.2;
+    const phase = ((seed % 23) / 23) * Math.PI * 2;
+    const progress = ((t || 0) / period) * Math.PI * 2;
+    const offset = Math.sin(progress + phase) * amplitude;
+    const x = rect.x + rect.w * (baseX + offset);
+    const y = rect.y + rect.h * baseY;
+    const radius = baseRadius * (0.7 + ((seed % 13) / 13) * 0.6);
+    const alpha = (config.baseOpacity ?? 0.12) * (0.6 + 0.4 * Math.cos(progress * 1.3 + phase));
+    drawSparkle(ctx, x, y, radius, config.color || 'rgba(255, 255, 255, 0.25)', Math.max(0, alpha));
+  }
+  ctx.restore();
+}
+
+function drawHighlightSweep(ctx, rect, config, t = 0, pathBuilder) {
+  if (!config) return;
+  const period = Math.max(400, config.period ?? 2400);
+  const widthRatio = config.widthRatio ?? 0.25;
+  const sweepWidth = rect.w * widthRatio;
+  const progress = ((t || 0) % period) / period;
+  const startX = rect.x - sweepWidth + progress * (rect.w + sweepWidth * 2);
+  const endX = startX + sweepWidth;
+  ctx.save();
+  pathBuilder();
+  ctx.clip();
+  const gradient = ctx.createLinearGradient(startX, rect.y, endX, rect.y + rect.h);
+  gradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+  gradient.addColorStop(0.5, config.color || 'rgba(255, 255, 255, 0.4)');
+  gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+  const prevAlpha = ctx.globalAlpha;
+  const fadeEnabled = config.fade ?? false;
+  const fadePower = Math.max(0.5, config.fadePower ?? 1);
+  const fadeFactor = fadeEnabled ? Math.pow(Math.sin(progress * Math.PI), fadePower) : 1;
+  const alpha = Math.max(0, Math.min(1, config.alpha ?? 1)) * fadeFactor;
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.globalAlpha = prevAlpha * alpha;
+  ctx.fillStyle = gradient;
+  ctx.fillRect(rect.x - sweepWidth, rect.y, rect.w + sweepWidth * 2, rect.h);
+  ctx.globalAlpha = prevAlpha;
+  ctx.restore();
 }
 
 let stageMapSpecPromise = null;
@@ -388,7 +622,196 @@ function drawEdge(ctx, camera, edge, active, t = 0) {
   ctx.restore();
 }
 
-function drawNode(ctx, camera, node, status) {
+function drawRankTitleNode(ctx, camera, node, status, t = 0) {
+  const spec = RANK_TITLE_BADGES[node.id];
+  if (!spec || !status?.progressCleared) {
+    return false;
+  }
+  const { scale } = camera.getState();
+  const topLeft = camera.worldToScreen(node.rect.x, node.rect.y);
+  const width = node.rect.w * scale;
+  const height = node.rect.h * scale;
+  const radius = Math.min(18 * scale, Math.min(width, height) / 3);
+  const rect = { x: topLeft.x, y: topLeft.y, w: width, h: height };
+  const pathBuilder = () => buildRoundedRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius);
+
+  ctx.save();
+
+  if (spec.halo) {
+    const haloRadius = Math.max(width, height) * (spec.halo.radiusMultiplier ?? 2);
+    const centerX = rect.x + rect.w / 2;
+    const centerY = rect.y + rect.h / 2;
+    const haloGradient = ctx.createRadialGradient(centerX, centerY, Math.max(width, height) * 0.4, centerX, centerY, haloRadius);
+    haloGradient.addColorStop(0, spec.halo.color || 'rgba(255, 255, 255, 0.15)');
+    haloGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = haloGradient;
+    ctx.fillRect(centerX - haloRadius, centerY - haloRadius, haloRadius * 2, haloRadius * 2);
+    ctx.restore();
+  }
+
+  applyScaledShadow(ctx, spec.dropShadow ?? TITLE_BADGE_BASE.dropShadow, scale);
+  pathBuilder();
+  const fillStyle = createFillStyle(ctx, spec.gradient, rect.x, rect.y, rect.w, rect.h) || '#facc15';
+  ctx.fillStyle = fillStyle;
+  ctx.fill();
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.shadowOffsetX = 0;
+  ctx.shadowOffsetY = 0;
+
+  const highlight = { ...TITLE_BADGE_BASE.highlight, ...(spec.highlight || {}) };
+  if (highlight) {
+    ctx.save();
+    pathBuilder();
+    ctx.clip();
+    const highlightHeight = rect.h * (highlight.heightRatio ?? 0.2);
+    const highlightGradient = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + highlightHeight);
+    highlightGradient.addColorStop(0, highlight.color || TITLE_BADGE_BASE.highlight.color);
+    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.fillStyle = highlightGradient;
+    ctx.fillRect(rect.x, rect.y, rect.w, highlightHeight);
+    ctx.restore();
+  }
+
+  if (spec.bloom) {
+    ctx.save();
+    pathBuilder();
+    ctx.clip();
+    const centerX = rect.x + rect.w * 0.45;
+    const centerY = rect.y + rect.h * 0.5;
+    const bloomGradient = ctx.createRadialGradient(centerX, centerY, Math.min(rect.w, rect.h) * 0.12, centerX, centerY, Math.max(rect.w, rect.h));
+    bloomGradient.addColorStop(0, spec.bloom.color);
+    bloomGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = bloomGradient;
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.restore();
+  }
+
+  if (spec.metallicSheen) {
+    ctx.save();
+    pathBuilder();
+    ctx.clip();
+    const sheen = ctx.createLinearGradient(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h * 0.6);
+    sheen.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    sheen.addColorStop(0.5, `rgba(255, 255, 255, ${spec.metallicSheen.opacity})`);
+    sheen.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.fillStyle = sheen;
+    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+    ctx.restore();
+  }
+
+  if (spec.glow) {
+    ctx.save();
+    pathBuilder();
+    ctx.shadowColor = spec.glow.color;
+    ctx.shadowBlur = (spec.glow.blur ?? 30) * scale;
+    ctx.lineWidth = Math.max((spec.glow.strokeWidth ?? 2) * scale, 0.8);
+    ctx.strokeStyle = spec.glow.strokeColor || spec.border?.color || '#fff7d6';
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  if (spec.border?.width) {
+    pathBuilder();
+    ctx.lineWidth = Math.max(spec.border.width * scale, 0.9);
+    ctx.strokeStyle = spec.border.color;
+    ctx.stroke();
+    if (spec.border.inner) {
+      const inner = spec.border.inner;
+      const innerWidth = Math.max((inner.width ?? 1) * scale, 0.6);
+      drawInsetRoundedRect(
+        ctx,
+        rect.x,
+        rect.y,
+        rect.w,
+        rect.h,
+        radius,
+        inner.inset ?? Math.max(1.5, inner.width || 1),
+        innerWidth,
+        inner.color || 'rgba(255, 255, 255, 0.45)'
+      );
+    }
+  }
+
+  drawHighlightSweep(ctx, rect, spec.sweep, t, pathBuilder);
+
+  if (spec.particles) {
+    drawDriftingParticles(ctx, rect, spec.particles, scale, t);
+  }
+
+  drawSparkles(ctx, rect, spec.sparkle, scale, t);
+
+  const textColor = spec.textColor || TITLE_BADGE_BASE.textColor;
+  const subtitleColor = spec.subtitleColor || TITLE_BADGE_BASE.subtitleColor;
+  const mainFontSize = Math.max(18, 20 * scale);
+  const subtitleSize = Math.max(12, 13 * scale);
+
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = textColor;
+  ctx.font = `900 ${mainFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  const textShadow = { ...TITLE_BADGE_BASE.textShadow, ...(spec.textShadow || {}) };
+  ctx.shadowColor = textShadow.color;
+  ctx.shadowBlur = (textShadow.blur ?? 4) * scale;
+  ctx.shadowOffsetX = (textShadow.offsetX ?? 0) * scale;
+  ctx.shadowOffsetY = (textShadow.offsetY ?? 0) * scale;
+
+  const clampText = (text, maxWidth) => {
+    if (!text) return '';
+    if (ctx.measureText(text).width <= maxWidth) return text;
+    let low = 0;
+    let high = text.length;
+    let result = text;
+    while (low < high) {
+      const mid = Math.ceil((low + high) / 2);
+      const candidate = text.slice(0, mid) + '…';
+      if (ctx.measureText(candidate).width <= maxWidth) {
+        low = mid;
+        result = candidate;
+      } else {
+        high = mid - 1;
+      }
+    }
+    if (ctx.measureText(result).width > maxWidth) {
+      let shortened = text;
+      while (shortened.length && ctx.measureText(shortened + '…').width > maxWidth) {
+        shortened = shortened.slice(0, -1);
+      }
+      result = shortened + (shortened.length < text.length ? '…' : '');
+    }
+    return result;
+  };
+
+  const titleText = clampText(node.title, rect.w * 0.84);
+  ctx.fillText(titleText, rect.x + rect.w / 2, rect.y + rect.h / 2 - Math.max(4 * scale, 6));
+
+  ctx.shadowColor = 'transparent';
+  ctx.shadowBlur = 0;
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = subtitleColor;
+  ctx.font = `700 ${subtitleSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  const subtitle = clampText(node.chapterName || '', rect.w * 0.8);
+  if (subtitle) {
+    ctx.fillText(subtitle, rect.x + rect.w / 2, rect.y + rect.h - Math.max(12 * scale, 14));
+  }
+  ctx.globalAlpha = 1;
+
+  ctx.restore();
+  return true;
+}
+
+function drawNode(ctx, camera, node, status, t = 0) {
+  if (node.nodeType === 'rank' && RANK_TITLE_BADGES[node.id]) {
+    const handled = drawRankTitleNode(ctx, camera, node, status, t);
+    if (handled) {
+      return;
+    }
+  }
   const { scale } = camera.getState();
   const topLeft = camera.worldToScreen(node.rect.x, node.rect.y);
   const width = node.rect.w * scale;
@@ -689,7 +1112,7 @@ export function initializeStageMap({
 
     state.nodes.forEach(node => {
       const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
-      drawNode(ctx, camera, node, status);
+      drawNode(ctx, camera, node, status, t);
     });
 
     _raf = window.requestAnimationFrame(renderFrame);
