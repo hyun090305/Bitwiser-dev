@@ -672,11 +672,8 @@ guidedTutorial = createGuidedTutorial({
   lang: typeof currentLang !== 'undefined' ? currentLang : 'en',
   missionPanel: document.getElementById('tutorialMissionPanel'),
   missionList: document.getElementById('tutorialMissionList'),
-  missionDetail: document.getElementById('tutorialMissionDetail'),
-  calloutLayer: document.getElementById('tutorialCalloutLayer'),
   gradeButton,
-  getPlayCircuit,
-  getGridDimensions
+  getPlayCircuit
 });
 
 initializeRankingUI({
@@ -738,16 +735,17 @@ function isColorDark(color) {
 
 function syncGameAreaBackground(theme) {
   const gameArea = document.getElementById('gameArea');
-  if (!gameArea) return;
+  const gameScreen = document.getElementById('gameScreen');
   const color = getThemeGridBackground(theme);
-  if (color) {
-    gameArea.style.backgroundColor = color;
-  } else {
-    gameArea.style.backgroundColor = '';
+  if (gameArea) {
+    gameArea.style.backgroundColor = color || '';
+    const isDarkTheme = color ? isColorDark(color) : false;
+    gameArea.style.color = isDarkTheme ? '#e2e8f0' : '';
+    gameArea.classList.toggle('game-area--dark', isDarkTheme);
   }
-  const isDarkTheme = color ? isColorDark(color) : false;
-  gameArea.style.color = isDarkTheme ? '#e2e8f0' : '';
-  gameArea.classList.toggle('game-area--dark', isDarkTheme);
+  if (gameScreen) {
+    gameScreen.style.backgroundColor = color || '';
+  }
 }
 
 function setupSettings() {
@@ -1005,12 +1003,17 @@ function setupSettings() {
 function updatePadding() {
   const menuBar = document.getElementById('menuBar');
   const gameArea = document.getElementById('gameArea');
-  if (!menuBar || !gameArea) return;
+  if (!menuBar) return;
+
+  const menuHeight = menuBar.offsetHeight;
+  document.documentElement.style.setProperty('--menu-bar-height', `${menuHeight}px`);
+
+  if (!gameArea) return;
 
   if (window.matchMedia('(max-width: 1024px)').matches) {
     gameArea.style.paddingBottom = '';
   } else {
-    gameArea.style.paddingBottom = menuBar.offsetHeight + 'px';
+    gameArea.style.paddingBottom = menuHeight + 'px';
   }
 }
 

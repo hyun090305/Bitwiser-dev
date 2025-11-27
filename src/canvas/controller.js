@@ -220,6 +220,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   updateCanvasMetadata();
 
+  const renderOptions = {
+    tutorialHighlights: [],
+    tutorialWireGuides: []
+  };
+
   const state = {
     mode: 'idle',
     placingType: null,
@@ -241,6 +246,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     clipboard: getSharedClipboard(),
     pastePreview: null,
     copyPasteEnabled: Boolean(options.enableCopyPaste),
+    tutorialHighlights: renderOptions.tutorialHighlights,
+    tutorialWireGuides: renderOptions.tutorialWireGuides,
   };
 
   const eventBindings = [];
@@ -343,11 +350,114 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function refreshContent() {
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     if (state.selection) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       drawSelection();
     }
+  }
+
+  function normalizeTutorialHighlight(entry) {
+    if (!entry) return null;
+    const sourcePos = entry.pos || entry;
+    const r = Number.isFinite(sourcePos?.r) ? sourcePos.r : null;
+    const c = Number.isFinite(sourcePos?.c) ? sourcePos.c : null;
+    if (!Number.isInteger(r) || !Number.isInteger(c)) {
+      return null;
+    }
+    const label = typeof entry.label === 'string' && entry.label.trim().length > 0
+      ? entry.label.trim()
+      : '';
+    return {
+      pos: { r, c },
+      label
+    };
+  }
+
+  function setTutorialHighlights(highlights) {
+    const normalized = Array.isArray(highlights)
+      ? highlights.map(normalizeTutorialHighlight).filter(Boolean)
+      : [];
+    const current = state.tutorialHighlights || [];
+    const unchanged =
+      current.length === normalized.length &&
+      current.every((item, index) => {
+        const next = normalized[index];
+        return (
+          next &&
+          item.pos.r === next.pos.r &&
+          item.pos.c === next.pos.c &&
+          item.label === next.label
+        );
+      });
+    if (unchanged) {
+      return;
+    }
+    renderOptions.tutorialHighlights = normalized;
+    state.tutorialHighlights = normalized;
+    refreshContent();
+  }
+
+  function normalizeTutorialWireGuide(entry) {
+    if (!entry) return null;
+    const sourcePath = Array.isArray(entry.path) ? entry.path : [];
+    const normalizedPath = sourcePath
+      .map(step => {
+        const r = Number.isFinite(step?.r) ? step.r : null;
+        const c = Number.isFinite(step?.c) ? step.c : null;
+        if (!Number.isInteger(r) || !Number.isInteger(c)) {
+          return null;
+        }
+        return { r, c };
+      })
+      .filter(Boolean);
+    if (normalizedPath.length < 2) {
+      return null;
+    }
+    const label = typeof entry.label === 'string' && entry.label.trim().length > 0
+      ? entry.label.trim()
+      : '';
+    return {
+      path: normalizedPath,
+      label
+    };
+  }
+
+  function setTutorialWireGuides(guides) {
+    const normalized = Array.isArray(guides)
+      ? guides.map(normalizeTutorialWireGuide).filter(Boolean)
+      : [];
+    const current = state.tutorialWireGuides || [];
+    const unchanged =
+      current.length === normalized.length &&
+      current.every((item, index) => {
+        const next = normalized[index];
+        if (!next) return false;
+        if (item.label !== next.label) return false;
+        if (item.path.length !== next.path.length) return false;
+        for (let i = 0; i < item.path.length; i += 1) {
+          const a = item.path[i];
+          const b = next.path[i];
+          if (a.r !== b.r || a.c !== b.c) {
+            return false;
+          }
+        }
+        return true;
+      });
+    if (unchanged) {
+      return;
+    }
+    renderOptions.tutorialWireGuides = normalized;
+    state.tutorialWireGuides = normalized;
+    refreshContent();
   }
 
   if (useCamera) {
@@ -476,7 +586,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     syncPaletteWithCircuit();
     refreshBackground();
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     updateUsageCounts();
     notifyCircuitModified();
   }
@@ -499,7 +617,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
   engineHandle = startEngine(contentCtx, circuit, (ctx, circ, phase) =>
-    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera)
+    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera, renderOptions)
   );
 
   function redrawPanel() {
@@ -509,7 +627,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function refreshVisuals() {
     drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
     drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
   }
 
   function normalizePaletteLabel(type, label) {
@@ -935,7 +1061,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
 
     if (deleted) {
-      renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+      renderContent(
+        contentCtx,
+        circuit,
+        0,
+        panelTotalWidth,
+        state.hoverBlockId,
+        camera,
+        renderOptions
+      );
       updateUsageCounts();
       clearSelection();
       snapshot();
@@ -1230,7 +1364,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
     });
 
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     updateUsageCounts();
 
     clearSelection();
@@ -1317,7 +1459,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     sel.c1 += dc;
     sel.c2 += dc;
 
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     drawSelection();
     snapshot();
@@ -1554,7 +1704,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         circuit.wires = {};
         syncPaletteWithCircuit();
         refreshBackground();
-        renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        renderContent(
+          contentCtx,
+          circuit,
+          0,
+          panelTotalWidth,
+          state.hoverBlockId,
+          camera,
+          renderOptions
+        );
         updateUsageCounts();
         clearSelection();
         snapshot();
@@ -1784,7 +1942,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               }
             });
           }
-          renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+          renderContent(
+            contentCtx,
+            circuit,
+            0,
+            panelTotalWidth,
+            state.hoverBlockId,
+            camera,
+            renderOptions
+          );
           updateUsageCounts();
           if (deleted) {
             clearSelection();
@@ -1978,7 +2144,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           if (blk && blk.type === 'INPUT') {
             blk.value = !blk.value;
             evaluateCircuit(circuit);
-            renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+            renderContent(
+              contentCtx,
+              circuit,
+              0,
+              panelTotalWidth,
+              state.hoverBlockId,
+              camera,
+              renderOptions
+            );
           }
         }
       }
@@ -1990,7 +2164,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const endBlock = blockAt(state.wireTrace[state.wireTrace.length - 1]);
         circuit.wires[id] = newWire({ id, path: [...state.wireTrace], startBlockId: startBlock.id, endBlockId: endBlock.id });
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
-        renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        renderContent(
+          contentCtx,
+          circuit,
+          0,
+          panelTotalWidth,
+          state.hoverBlockId,
+          camera,
+          renderOptions
+        );
         updateUsageCounts();
         clearSelection();
         snapshot();
@@ -2107,7 +2289,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const removedExistingBlock =
         !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
-        renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        renderContent(
+          contentCtx,
+          circuit,
+          0,
+          panelTotalWidth,
+          state.hoverBlockId,
+          camera,
+          renderOptions
+        );
         syncPaletteWithCircuit();
         snapshot();
       } else if (removedExistingBlock) {
@@ -2291,7 +2481,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               wires: removedWires
             };
             delete circuit.blocks[state.dragCandidate.id];
-            renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+            renderContent(
+              contentCtx,
+              circuit,
+              0,
+              panelTotalWidth,
+              state.hoverBlockId,
+              camera,
+              renderOptions
+            );
             updateUsageCounts();
             clearSelection();
           }
@@ -2403,7 +2601,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             delete circuit.wires[wid];
           }
         });
-        renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+        renderContent(
+          contentCtx,
+          circuit,
+          0,
+          panelTotalWidth,
+          state.hoverBlockId,
+          camera,
+          renderOptions
+        );
         updateUsageCounts();
       }
       state.draggingBlock = null;
@@ -2454,7 +2660,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       w.path = w.path.map(p => ({ r: p.r + dy, c: p.c + dx }));
     });
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     snapshot();
     return true;
   }
@@ -2478,7 +2692,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
     });
     syncPaletteWithCircuit();
-    renderContent(contentCtx, circuit, 0, panelTotalWidth, state.hoverBlockId, camera);
+    renderContent(
+      contentCtx,
+      circuit,
+      0,
+      panelTotalWidth,
+      state.hoverBlockId,
+      camera,
+      renderOptions
+    );
     undoStack.length = 0;
     redoStack.length = 0;
     snapshot();
@@ -2494,6 +2716,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     setIOPaletteNames,
     moveCircuit,
     placeFixedIO,
+    setTutorialHighlights,
+    setTutorialWireGuides,
     moveSelection,
     clearSelection,
     undo,

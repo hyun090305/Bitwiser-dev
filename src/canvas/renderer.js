@@ -892,6 +892,122 @@ export function drawWire(
   ctx.restore();
 }
 
+function getCellScreenRect(pos, offsetX, camera) {
+  if (!pos || !Number.isFinite(pos.r) || !Number.isFinite(pos.c)) {
+    return null;
+  }
+  const scale = camera ? camera.getScale() : 1;
+  const topLeft = camera
+    ? camera.cellToScreenCell(pos)
+    : { x: offsetX + GAP + pos.c * PITCH, y: GAP + pos.r * PITCH };
+  return {
+    x: topLeft.x,
+    y: topLeft.y,
+    size: CELL * scale,
+    scale
+  };
+}
+
+function drawTutorialHighlights(ctx, highlights, phase, offsetX, camera, theme) {
+  if (!Array.isArray(highlights) || highlights.length === 0) {
+    return;
+  }
+  const accent = getThemeAccent(theme) || '#38bdf8';
+  const basePulse = 0.5 + 0.5 * Math.sin((phase || 0) * 0.12);
+  highlights.forEach((hint, index) => {
+    const rect = getCellScreenRect(hint?.pos, offsetX, camera);
+    if (!rect) return;
+    const radius = Math.max(0, CELL_CORNER_RADIUS * rect.scale);
+    const strokeWidth = Math.max(1.4 * rect.scale, 0.8);
+    const pulse = 0.65 + 0.35 * Math.sin((phase || 0) * 0.12 + index * 0.8);
+    ctx.save();
+    ctx.lineWidth = strokeWidth * (1 + basePulse * 0.35);
+    ctx.strokeStyle = accent;
+    ctx.globalAlpha = pulse;
+    applyScaledShadow(
+      ctx,
+      {
+        color: accent,
+        blur: 18,
+        offsetX: 0,
+        offsetY: 0
+      },
+      rect.scale
+    );
+    ctx.setLineDash([8 * rect.scale, 6 * rect.scale]);
+    ctx.lineDashOffset = -(phase * rect.scale) % (28 * rect.scale);
+    roundRect(ctx, rect.x, rect.y, rect.size, rect.size, radius);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    applyShadow(ctx, null);
+    const label = typeof hint?.label === 'string' ? hint.label : '';
+    if (label) {
+      ctx.fillStyle = 'rgba(30, 41, 59, 0.55)';
+      const fontSize = Math.max(12, 16 * rect.scale);
+      ctx.font = `600 ${fontSize}px "Noto Sans KR", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, rect.x + rect.size / 2, rect.y + rect.size / 2);
+    }
+    ctx.restore();
+  });
+}
+
+function drawTutorialWireGuides(ctx, guides, phase, offsetX, camera, theme) {
+  if (!Array.isArray(guides) || guides.length === 0) {
+    return;
+  }
+  const accent = getThemeAccent(theme) || '#0ea5e9';
+  const scale = camera ? camera.getScale() : 1;
+  const dash = Math.max(6 * scale, 4);
+  guides.forEach((guide, index) => {
+    const path = Array.isArray(guide?.path) ? guide.path : [];
+    if (path.length < 2) return;
+    const points = path
+      .map(pos => getCellScreenRect(pos, offsetX, camera))
+      .filter(Boolean)
+      .map(rect => ({
+        x: rect.x + rect.size / 2,
+        y: rect.y + rect.size / 2,
+        scale: rect.scale
+      }));
+    if (points.length < 2) return;
+    ctx.save();
+    ctx.strokeStyle = accent;
+    ctx.lineWidth = Math.max(2 * scale, 1);
+    ctx.setLineDash([dash, dash]);
+    ctx.lineDashOffset = -((phase || 0) * scale + index * dash) % (dash * 2);
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (let i = 1; i < points.length; i += 1) {
+      ctx.lineTo(points[i].x, points[i].y);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+    const last = points[points.length - 1];
+    const prev = points[points.length - 2];
+    const angle = Math.atan2(last.y - prev.y, last.x - prev.x);
+    const arrowSize = Math.max(10 * scale, 6);
+    ctx.fillStyle = accent;
+    ctx.beginPath();
+    ctx.moveTo(last.x, last.y);
+    ctx.lineTo(
+      last.x - arrowSize * Math.cos(angle - Math.PI / 7),
+      last.y - arrowSize * Math.sin(angle - Math.PI / 7)
+    );
+    ctx.lineTo(
+      last.x - arrowSize * Math.cos(angle + Math.PI / 7),
+      last.y - arrowSize * Math.sin(angle + Math.PI / 7)
+    );
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+  });
+}
+
 // Render the circuit: wires then blocks to keep z-order
 export function renderContent(
   ctx,
@@ -902,7 +1018,12 @@ export function renderContent(
   camera = null,
   options = {}
 ) {
-  const { preserveExisting, ...styleOptions } = options || {};
+  const {
+    preserveExisting,
+    tutorialHighlights = [],
+    tutorialWireGuides = [],
+    ...styleOptions
+  } = options || {};
   if (preserveExisting) {
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -936,6 +1057,13 @@ export function renderContent(
     : Object.values(circuit.blocks);
   wires.forEach(w => drawWire(ctx, w, phase, offsetX, camera, styleOptions));
   blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
+  const themeForTutorial = styleOptions.theme || getActiveTheme();
+  if (tutorialHighlights.length) {
+    drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);
+  }
+  if (tutorialWireGuides.length) {
+    drawTutorialWireGuides(ctx, tutorialWireGuides, phase, offsetX, camera, themeForTutorial);
+  }
   ctx.restore();
 }
 
