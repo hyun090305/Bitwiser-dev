@@ -1160,6 +1160,15 @@ export function initializeStageMap({
   }
 
   canvas.style.cursor = 'grab';
+  // Prevent the browser from using touch gestures (scroll/zoom) on the
+  // canvas/surface so pointer events can be used reliably for panning on
+  // mobile devices.
+  try {
+    canvas.style.touchAction = canvas.style.touchAction || 'none';
+    surface.style.touchAction = surface.style.touchAction || 'none';
+  } catch (e) {
+    // Ignore failures assigning style in very old browsers/environments.
+  }
 
   const camera = createCamera({ scale: 1 });
   let ctx = canvas.getContext('2d');

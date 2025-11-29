@@ -2911,6 +2911,10 @@ html, body {
     position: fixed;
     top: 0;
     right: 0;
+    /* Ensure any earlier `left` value is cleared so the bar stays on the right */
+    left: auto;
+    /* When positioned at the top/right, clear bottom to avoid conflicts */
+    bottom: auto;
     /* margin-right: 0.5rem; */
     /* transform: translateY(-50%); */
     width: var(--menuBarWidth);
@@ -3003,6 +3007,13 @@ html, body {
 
   #gameArea {
     /* margin-left: calc(var(--menuBarWidth) + 1rem); */
+    padding-bottom: 0;
+  }
+
+  /* When the menu bar is displayed vertically (mobile), remove the
+     bottom padding on the main game screen so content doesn't leave
+     an unnecessary gap at the bottom. */
+  #gameScreen {
     padding-bottom: 0;
   }
 
