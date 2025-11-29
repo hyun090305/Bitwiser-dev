@@ -144,6 +144,14 @@
         <button
           class="hud-button"
           type="button"
+          id="storyHudBtn"
+          aria-label="스토리"
+        >
+          📖
+        </button>
+        <button
+          class="hud-button"
+          type="button"
           data-panel-target="#rankingPanel"
           aria-controls="rankingPanel"
           aria-expanded="false"
@@ -207,6 +215,61 @@
         </aside>
       </div>
     </section>
+
+    <div
+      id="storyModalOverlay"
+      class="story-modal-overlay"
+      aria-hidden="true"
+      role="presentation"
+      data-open="false"
+    >
+      <section
+        class="story-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="storyModalTitle"
+      >
+        <button
+          id="storyModalCloseBtn"
+          class="story-modal__close"
+          type="button"
+          aria-label="스토리 닫기"
+        >
+          ×
+        </button>
+        <header class="story-modal__header">
+          <div class="story-modal__meta">
+            <span class="story-modal__icon" aria-hidden="true">🧠</span>
+            <span id="storyModalProgress" class="story-modal__progress">
+              Neural Fragment 0 / 27
+            </span>
+          </div>
+          <h2 id="storyModalTitle" class="story-modal__title">공백의 시작</h2>
+          <p id="storyModalSubtitle" class="story-modal__subtitle">
+            회로를 완성해 기억을 복구하세요.
+          </p>
+          <progress
+            id="storyProgressBar"
+            class="story-modal__progressbar"
+            max="27"
+            value="0"
+            aria-label="스토리 진행도"
+          ></progress>
+        </header>
+        <div class="story-modal__body">
+          <div
+            id="storyFragmentsList"
+            class="story-fragments"
+            aria-live="polite"
+            aria-busy="true"
+          ></div>
+        </div>
+        <div class="story-modal__actions">
+          <button id="storyModalBackBtn" class="story-modal__back" type="button" aria-label="이전" disabled>Back</button>
+          <button id="storyModalContinueBtn" type="button" aria-label="다음">Next</button>
+        </div>
+      </section>
+    </div>
 
     <div id="labScreen" style="display:none;">
       <div id="labCanvasContainer">
@@ -742,8 +805,7 @@
         <button id="showIntroBtn">ℹ️ 스테이지 안내</button>
         <button id="hintBtn">💡 힌트</button>
         <button id="exportGifBtn">📷 회로 내보내기</button>
-        <button id="prevStageBtnMenu">← 이전 스테이지</button>
-        <button id="nextStageBtnMenu">다음 스테이지 →</button>
+        <!-- 이전/다음 스테이지 버튼 제거됨 -->
         <button id="backToLevelsBtn">← 스테이지 맵으로</button>
       </div>
     </div>
@@ -803,8 +865,7 @@
         <h2 id="clearedTitle"><span id="clearedStageName"></span> 클리어!</h2>
         <div id="clearedRanking"></div>
         <div class="modal-buttons">
-          <button id="prevStageBtn">이전 스테이지</button>
-          <button id="nextStageBtn">다음 스테이지</button>
+          <button id="clearedNextBtn">다음</button>
         </div>
         <button class="closeBtn">&times;</button>
       </div>
@@ -849,15 +910,6 @@
           <table id="truthTable" border="1"></table>
         </div>
         <button id="startLevelBtn">시작하기</button>
-      </div>
-    </div>
-    <div id="stageTutorialModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <img id="stageTutImg" class="tutorial-img" src="" alt="tutorial">
-        <div class="tutorial-text" style="font-size: 1.1rem">
-          <p id="stageTutDesc"></p>
-          <button id="stageTutBtn" class="main-button">시작하기</button>
-        </div>
       </div>
     </div>
     <script>

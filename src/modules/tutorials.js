@@ -47,27 +47,6 @@ const tutorialStepsData = {
   ]
 };
 
-const stageTutorialsData = {
-  ko: {
-    1: [{ img: 'assets/not-gate-tutorial.gif', desc: 'NOT 게이트는 입력 신호와 반대되는 신호를 전달합니다.' }],
-    2: [{ img: 'assets/or-gate-tutorial.gif', desc: 'OR 게이트는 여러 개의 입력 신호 중 하나라도 1이 있으면 1을 전달하고, 모두 0이면 0을 전달합니다.' }],
-    3: [{ img: 'assets/and-gate-tutorial.gif', desc: 'AND 게이트는 여러 개의 입력 신호가 모두 1이면 1을 전달하고, 모두 0이면 0을 전달합니다.' }],
-    7: [
-      { img: 'assets/junction-tutorial.gif', desc: 'JUNC 블록은 하나의 입력 신호를 그대로 전달합니다.' },
-      { img: 'assets/multi-input-tutorial.gif', desc: 'OR, AND 게이트는 최대 3개의 입력 신호를 받을 수 있습니다.' }
-    ]
-  },
-  en: {
-    1: [{ img: 'assets/not-gate-tutorial.gif', desc: 'The NOT gate outputs the opposite of its input.' }],
-    2: [{ img: 'assets/or-gate-tutorial.gif', desc: 'The OR gate outputs 1 if any input is 1, otherwise 0.' }],
-    3: [{ img: 'assets/and-gate-tutorial.gif', desc: 'The AND gate outputs 1 only when all inputs are 1.' }],
-    7: [
-      { img: 'assets/junction-tutorial.gif', desc: 'The JUNC block passes a single input signal unchanged.' },
-      { img: 'assets/multi-input-tutorial.gif', desc: 'OR and AND gates can accept up to three input signals.' }
-    ]
-  }
-};
-
 const fallbackTranslate = key => key;
 
 function resolveLanguage(map, lang) {
@@ -79,7 +58,6 @@ export function initializeTutorials({
   translate,
   storage = typeof window !== 'undefined' ? window.localStorage : undefined,
   elements = {},
-  configureLevelModule,
   lockOrientationLandscape,
   getStageDataPromise,
   startLevel,
@@ -88,7 +66,6 @@ export function initializeTutorials({
 } = {}) {
   const t = typeof translate === 'function' ? translate : fallbackTranslate;
   const tutorialSteps = resolveLanguage(tutorialStepsData, lang);
-  const stageTutorials = resolveLanguage(stageTutorialsData, lang);
 
   const {
     tutorialModal,
@@ -100,10 +77,6 @@ export function initializeTutorials({
     tutorialFinishButton,
     tutorialButton,
     tutorialImage,
-    stageModal,
-    stageImage,
-    stageDescription,
-    stageButton,
     screens = {}
   } = elements;
 
@@ -183,40 +156,6 @@ export function initializeTutorials({
     showTutorial(0);
   };
 
-  const showStageTutorial = (level, done = () => {}) => {
-    const steps = stageTutorials[level];
-    if (!steps || !stageModal || !stageImage || !stageDescription || !stageButton) {
-      done();
-      return;
-    }
-    let idx = 0;
-    const render = () => {
-      const step = steps[idx];
-      stageImage.src = step.img;
-      stageDescription.textContent = step.desc;
-      stageButton.textContent = idx === steps.length - 1 ? t('stageTutBtn') : t('tutNextBtn');
-    };
-    stageButton.onclick = () => {
-      if (idx < steps.length - 1) {
-        idx += 1;
-        render();
-      } else {
-        stageModal.classList.remove('show');
-        setTimeout(() => {
-          stageModal.style.display = 'none';
-          done();
-        }, 180);
-      }
-    };
-    render();
-    stageModal.style.display = 'flex';
-    requestAnimationFrame(() => stageModal.classList.add('show'));
-  };
-
-  if (typeof configureLevelModule === 'function') {
-    configureLevelModule({ showStageTutorial });
-  }
-
   if (tutorialButton) {
     tutorialButton.addEventListener('click', () => showTutorial(0));
   }
@@ -247,7 +186,6 @@ export function initializeTutorials({
 
   return {
     showTutorial,
-    maybeStartTutorial,
-    showStageTutorial
+    maybeStartTutorial
   };
 }

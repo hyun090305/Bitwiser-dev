@@ -79,6 +79,7 @@ import {
 } from './modules/rank.js';
 import { initializeLabMode } from './modules/labMode.js';
 import { initializeStageMap } from './modules/stageMap.js';
+import { initializeStory } from './modules/story.js';
 import {
   getAvailableThemes,
   getActiveThemeId,
@@ -241,20 +242,19 @@ const toastApi = {
   hideCircuitSaving: hideCircuitSavingToast,
   showCircuitSaved: renderCircuitSavedToast
 };
+let stageMapController = null;
 const clearedModalOptions = {
   modalSelector: '#clearedModal',
   stageTitleSelector: '#clearedStageName',
   rankingSelector: '#clearedRanking',
-  prevButtonSelector: '#prevStageBtn',
-  nextButtonSelector: '#nextStageBtn',
+  continueButtonSelector: '#clearedNextBtn',
   closeButtonSelector: '.closeBtn',
   translate,
   loadClearedLevelsFromDb,
-  getLevelTitle,
   getLevelTitles,
-  isLevelUnlocked,
-  startLevel,
-  returnToEditScreen
+  returnToEditScreen,
+  returnToLevels,
+  stageMapCelebrate: level => stageMapController?.celebrateLevel?.(level)
 };
 
 // Preload heavy canvas modules so they are ready when a stage begins.
@@ -476,18 +476,7 @@ window.addEventListener("DOMContentLoaded", () => {
   });
 
   const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
-    const prevMenuBtn = document.getElementById('prevStageBtnMenu');
-    const nextMenuBtn = document.getElementById('nextStageBtnMenu');
-
-    prevMenuBtn.addEventListener('click', () => {
-      returnToEditScreen();           // 채점 모드 닫기
-      startLevel(getCurrentLevel() - 1);
-    });
-
-    nextMenuBtn.addEventListener('click', () => {
-      returnToEditScreen();
-      startLevel(getCurrentLevel() + 1);
-    });
+    // 이전/다음 스테이지 메뉴 버튼 제거됨
     return loadClearedLevelsFromDb();
   });
   initialTasks.push(stagePromise);
@@ -538,7 +527,6 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
   lang: typeof currentLang !== 'undefined' ? currentLang : 'en',
   translate: typeof t === 'function' ? t : undefined,
   storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  configureLevelModule,
   lockOrientationLandscape,
   getStageDataPromise,
   startLevel,
@@ -555,10 +543,6 @@ const { maybeStartTutorial = () => {} } = (initializeTutorials({
     tutorialFinishButton: document.getElementById('tutFinishBtn'),
     tutorialButton: document.getElementById('tutorialBtn'),
     tutorialImage: document.getElementById('tutImg'),
-    stageModal: document.getElementById('stageTutorialModal'),
-    stageImage: document.getElementById('stageTutImg'),
-    stageDescription: document.getElementById('stageTutDesc'),
-    stageButton: document.getElementById('stageTutBtn'),
     screens: {
       gameScreen,
       stageMapScreen
@@ -1067,7 +1051,8 @@ document.addEventListener("DOMContentLoaded", () => {
   onThemeChange(syncGameAreaBackground);
   setupGameAreaPadding();
   Promise.all(initialTasks).then(() => {
-    initializeStageMap({
+    initializeStory({ getClearedLevels });
+    stageMapController = initializeStageMap({
       getLevelTitle,
       isLevelUnlocked,
       getClearedLevels,
@@ -1139,10 +1124,7 @@ async function startCustomProblem(key, problem) {
   clearGrid();
   placeFixedIO(problem);
   setGridDimensions(rows, cols);
-  const prevMenuBtn = document.getElementById('prevStageBtnMenu');
-  const nextMenuBtn = document.getElementById('nextStageBtnMenu');
-  prevMenuBtn.disabled = true;
-  nextMenuBtn.disabled = true;
+  // 이전/다음 스테이지 메뉴 버튼 관련 로직 제거됨
   document.getElementById('gameTitle').textContent = problem.title
     || translate('userProblemFallbackTitle');
   if (userProblemsScreen) userProblemsScreen.style.display = 'none';

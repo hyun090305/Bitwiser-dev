@@ -501,15 +501,14 @@ export async function showClearedModal(level, options = {}) {
     modalSelector = '#clearedModal',
     stageTitleSelector = '#clearedStageName',
     rankingSelector = '#clearedRanking',
-    prevButtonSelector = '#prevStageBtn',
-    nextButtonSelector = '#nextStageBtn',
+    continueButtonSelector = '#clearedNextBtn',
     closeButtonSelector = '.closeBtn',
     translate,
     loadClearedLevelsFromDb,
     getLevelTitles,
-    isLevelUnlocked,
-    startLevel,
-    returnToEditScreen
+    returnToEditScreen,
+    returnToLevels,
+    stageMapCelebrate
   } = options;
 
   if (typeof loadClearedLevelsFromDb === 'function') {
@@ -529,13 +528,10 @@ export async function showClearedModal(level, options = {}) {
   if (!container) return;
 
   const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
-
-  const prevBtn = document.querySelector(prevButtonSelector);
-  const nextBtn = document.querySelector(nextButtonSelector);
-
-  if (titles && typeof isLevelUnlocked === 'function') {
-    if (prevBtn) prevBtn.disabled = !(titles[level - 1] && isLevelUnlocked(level - 1));
-    if (nextBtn) nextBtn.disabled = !(titles[level + 1] && isLevelUnlocked(level + 1));
+  const continueBtn = document.querySelector(continueButtonSelector);
+  if (continueBtn) {
+    continueBtn.textContent = translateText(tr, 'clearedNextBtn', '다음');
+    continueBtn.disabled = false;
   }
 
   db.ref(`rankings/${level}`)
@@ -576,20 +572,27 @@ export async function showClearedModal(level, options = {}) {
         container.innerHTML = html;
       }
 
-      if (prevBtn) {
-        prevBtn.onclick = () => {
+      if (continueBtn) {
+        continueBtn.onclick = async () => {
+          continueBtn.disabled = true;
           modal.style.display = 'none';
-          if (typeof returnToEditScreen === 'function') returnToEditScreen();
-          if (typeof startLevel === 'function') startLevel(level - 1);
+          try {
+            if (typeof returnToEditScreen === 'function') {
+              returnToEditScreen();
+            }
+            if (typeof returnToLevels === 'function') {
+              await returnToLevels();
+            }
+          } catch (err) {
+            console.error('레벨 선택 화면으로 이동 실패:', err);
+          }
+          if (typeof stageMapCelebrate === 'function') {
+            stageMapCelebrate(level);
+          }
+          continueBtn.disabled = false;
         };
       }
-      if (nextBtn) {
-        nextBtn.onclick = () => {
-          modal.style.display = 'none';
-          if (typeof returnToEditScreen === 'function') returnToEditScreen();
-          if (typeof startLevel === 'function') startLevel(level + 1);
-        };
-      }
+
       const closeBtn = modal.querySelector(closeButtonSelector);
       if (closeBtn) {
         closeBtn.onclick = () => {

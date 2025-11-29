@@ -16,6 +16,7 @@ import {
   gridSizeToWorldSize,
   gridToWorldPoint
 } from './stageMapLayout.js';
+import { openStoryModal } from './story.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
@@ -23,6 +24,9 @@ const translate = typeof window !== 'undefined' && typeof window.t === 'function
 
 const SPECIAL_NODE_KEY = 'stageMapSpecialClears';
 const STAGE_MAP_SPEC_PATH = 'stage_map.json';
+
+const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+const easeOutCubic = value => 1 - Math.pow(1 - clamp(value, 0, 1), 3);
 
 const NODE_STYLE = {
   stage: {
@@ -36,9 +40,9 @@ const NODE_STYLE = {
     text: '#0f172a'
   },
   feature: {
-    fill: '#a855f7',
-    stroke: '#c084fc',
-    text: '#f8fafc'
+    fill: '#F6F6F6',
+    stroke: '#FFFFFF',
+    text: '#2E2E2E'
   },
   mode: {
     fill: '#22c55e',
@@ -529,7 +533,7 @@ function buildGraph(spec, { getLevelTitle } = {}) {
   const dependencies = new Map();
   nodes.forEach(n => dependencies.set(n.id, []));
 
-  const edges = (spec?.edges || []).map(edge => {
+  const edges = (spec?.edges || []).map((edge, index) => {
     const from = nodeLookup.get(edge.from);
     const to = nodeLookup.get(edge.to);
     if (!from || !to) return null;
@@ -539,8 +543,10 @@ function buildGraph(spec, { getLevelTitle } = {}) {
     const points = [from.center, ...waypoints, to.center];
     const deps = dependencies.get(edge.to);
     if (deps) deps.push(edge.from);
+    const edgeId = edge.id ?? `${edge.from}->${edge.to}-${index}`;
     return {
       ...edge,
+      id: edgeId,
       points
     };
   }).filter(Boolean);
@@ -558,68 +564,101 @@ function updatePanelState(panel, isOpen, backdrop) {
   }
 }
 
-function drawEdge(ctx, camera, edge, active, t = 0) {
+function drawEdge(ctx, camera, edge, active, t = 0, highlight = null) {
   if (!edge?.points?.length) return;
-  // Only render edges when the source node is cleared/active.
-  if (!active) return;
+  const highlightActive = Boolean(highlight && highlight.alpha > 0);
+  if (!active && !highlightActive) return;
 
-  ctx.save();
-  ctx.beginPath();
-  // Build the path in screen space so dash lengths are consistent visually.
   const screenPoints = edge.points.map(pt => camera.worldToScreen(pt.x, pt.y));
-  screenPoints.forEach((screen, idx) => {
-    if (idx === 0) ctx.moveTo(screen.x, screen.y);
-    else ctx.lineTo(screen.x, screen.y);
-  });
 
-  // Glow stroke behind the main wire
-  ctx.lineWidth = Math.max(3, 4 * camera.getScale());
-  ctx.lineCap = 'round';
-  ctx.lineJoin = 'round';
-  ctx.strokeStyle = 'rgba(246, 203, 77, 0.18)';
-  ctx.shadowColor = 'rgba(246, 203, 77, 0.35)';
-  ctx.shadowBlur = 12;
-  ctx.globalAlpha = 1;
-  ctx.stroke();
+  if (active) {
+    ctx.save();
+    ctx.beginPath();
+    screenPoints.forEach((screen, idx) => {
+      if (idx === 0) ctx.moveTo(screen.x, screen.y);
+      else ctx.lineTo(screen.x, screen.y);
+    });
 
-  // Main animated dashed wire
-  ctx.beginPath();
-  screenPoints.forEach((screen, idx) => {
-    if (idx === 0) ctx.moveTo(screen.x, screen.y);
-    else ctx.lineTo(screen.x, screen.y);
-  });
+    ctx.lineWidth = Math.max(3, 4 * camera.getScale());
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = 'rgba(246, 203, 77, 0.18)';
+    ctx.shadowColor = 'rgba(246, 203, 77, 0.35)';
+    ctx.shadowBlur = 12;
+    ctx.globalAlpha = 1;
+    ctx.stroke();
 
-  const baseDash = 18 * Math.max(1, camera.getScale());
-  try {
-    ctx.setLineDash([baseDash, baseDash]);
-  } catch (e) {
-    // setLineDash may throw in some older contexts; ignore gracefully
+    ctx.beginPath();
+    screenPoints.forEach((screen, idx) => {
+      if (idx === 0) ctx.moveTo(screen.x, screen.y);
+      else ctx.lineTo(screen.x, screen.y);
+    });
+
+    const baseDash = 18 * Math.max(1, camera.getScale());
+    try {
+      ctx.setLineDash([baseDash, baseDash]);
+    } catch (e) {
+      // Ignore dash errors silently to keep compatibility with older canvases.
+    }
+    ctx.lineDashOffset = -((t || 0) * 0.06) % (baseDash * 2);
+
+    const p0 = screenPoints[0];
+    const p1 = screenPoints[screenPoints.length - 1];
+    const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
+    grad.addColorStop(0, '#fbbf24');
+    grad.addColorStop(0.5, '#fb923c');
+    grad.addColorStop(1, '#f97316');
+
+    ctx.lineWidth = Math.max(2, 3 * camera.getScale());
+    ctx.strokeStyle = grad;
+    ctx.shadowColor = 'rgba(0,0,0,0)';
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.stroke();
+
+    try {
+      ctx.setLineDash([]);
+    } catch (e) {}
+
+    ctx.restore();
   }
-  // Flow speed and offset use the RAF timestamp `t`. Negative offset makes
-  // the apparent motion go from the first point (from) toward the last (to).
-  ctx.lineDashOffset = -((t || 0) * 0.06) % (baseDash * 2);
 
-  // Gradient along the first segment direction for a better wire look.
-  const p0 = screenPoints[0];
-  const p1 = screenPoints[screenPoints.length - 1];
-  const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
-  grad.addColorStop(0, '#fbbf24');
-  grad.addColorStop(0.5, '#fb923c');
-  grad.addColorStop(1, '#f97316');
-
-  ctx.lineWidth = Math.max(2, 3 * camera.getScale());
-  ctx.strokeStyle = grad;
-  ctx.shadowColor = 'rgba(0,0,0,0)';
-  ctx.shadowBlur = 0;
-  ctx.globalAlpha = 1;
-  ctx.stroke();
-
-  // reset dash to normal for other draw ops
-  try {
-    ctx.setLineDash([]);
-  } catch (e) {}
-
-  ctx.restore();
+  if (highlightActive) {
+    const progress = clamp(highlight.progress ?? 0, 0, 1);
+    const alpha = clamp(highlight.alpha ?? 1, 0, 1);
+    let totalLength = 0;
+    for (let i = 1; i < screenPoints.length; i += 1) {
+      const prev = screenPoints[i - 1];
+      const current = screenPoints[i];
+      totalLength += Math.hypot(current.x - prev.x, current.y - prev.y);
+    }
+    if (totalLength > 0) {
+      const drawLength = Math.max(0.0001, totalLength * progress);
+      ctx.save();
+      ctx.beginPath();
+      screenPoints.forEach((screen, idx) => {
+        if (idx === 0) ctx.moveTo(screen.x, screen.y);
+        else ctx.lineTo(screen.x, screen.y);
+      });
+      try {
+        ctx.setLineDash([drawLength, totalLength]);
+        ctx.lineDashOffset = totalLength * 0.02;
+      } catch (e) {}
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.lineWidth = Math.max(3.2, 4.4 * camera.getScale());
+      ctx.strokeStyle = 'rgba(255, 213, 128, 1)';
+      ctx.shadowColor = `rgba(255, 200, 92, ${0.45 * alpha})`;
+      ctx.shadowBlur = 24 * alpha;
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = alpha;
+      ctx.stroke();
+      try {
+        ctx.setLineDash([]);
+      } catch (e) {}
+      ctx.restore();
+    }
+  }
 }
 
 function drawRankTitleNode(ctx, camera, node, status, t = 0) {
@@ -805,7 +844,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
   return true;
 }
 
-function drawNode(ctx, camera, node, status, t = 0) {
+function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed = false, highlight = null) {
   if (node.nodeType === 'rank' && RANK_TITLE_BADGES[node.id]) {
     const handled = drawRankTitleNode(ctx, camera, node, status, t);
     if (handled) {
@@ -840,6 +879,12 @@ function drawNode(ctx, camera, node, status, t = 0) {
       : baseStyle.stroke;
 
   ctx.save();
+  if (highlight?.pulse) {
+    const centerScreen = camera.worldToScreen(node.center.x, node.center.y);
+    ctx.translate(centerScreen.x, centerScreen.y);
+    ctx.scale(highlight.pulse, highlight.pulse);
+    ctx.translate(-centerScreen.x, -centerScreen.y);
+  }
   const drawRounded = () => buildRoundedRectPath(ctx, topLeft.x, topLeft.y, width, height, radius);
 
   if (stageStyle) {
@@ -918,6 +963,52 @@ function drawNode(ctx, camera, node, status, t = 0) {
 
     ctx.shadowColor = 'transparent';
     ctx.shadowBlur = 0;
+  }
+
+  if (isPressed) {
+    ctx.save();
+    drawRounded();
+    ctx.fillStyle = stageStyle
+      ? 'rgba(15, 23, 42, 0.08)'
+      : 'rgba(15, 23, 42, 0.18)';
+    ctx.fill();
+    ctx.lineWidth = Math.max(2 * scale, 1.2);
+    ctx.strokeStyle = stageStyle ? 'rgba(250, 204, 21, 0.9)' : 'rgba(248, 250, 252, 0.85)';
+    ctx.shadowColor = stageStyle ? 'rgba(250, 204, 21, 0.35)' : 'rgba(148, 163, 184, 0.4)';
+    ctx.shadowBlur = 10 * Math.max(1, scale);
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 3 * Math.max(1, scale);
+    drawRounded();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  if (isHovered && !isPressed) {
+    ctx.save();
+    const hoverStroke = stageStyle
+      ? 'rgba(250, 204, 21, 0.85)'
+      : 'rgba(248, 250, 252, 0.9)';
+    const hoverGlow = stageStyle
+      ? 'rgba(250, 204, 21, 0.5)'
+      : 'rgba(148, 163, 184, 0.55)';
+    ctx.lineWidth = Math.max(2.6 * scale, 2);
+    ctx.strokeStyle = hoverStroke;
+    ctx.shadowColor = hoverGlow;
+    ctx.shadowBlur = 16 * Math.max(scale, 0.8);
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 4 * Math.max(scale, 0.8);
+    drawRounded();
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.globalAlpha = stageStyle ? 0.12 : 0.08;
+    ctx.fillStyle = stageStyle
+      ? 'rgba(250, 204, 21, 0.25)'
+      : 'rgba(148, 163, 184, 0.25)';
+    drawRounded();
+    ctx.fill();
+    ctx.restore();
   }
 
   const titleColor = stageStyle
@@ -1001,6 +1092,30 @@ function drawNode(ctx, camera, node, status, t = 0) {
     ctx.fillText('Locked', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
   }
 
+  if (highlight && (highlight.alpha ?? 0) > 0) {
+    const alpha = clamp(highlight.alpha ?? 1, 0, 1);
+    const glow = clamp(highlight.glow ?? alpha, 0, 1);
+
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = alpha * 0.35;
+    ctx.fillStyle = 'rgba(255, 246, 200, 0.85)';
+    drawRounded();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255, 208, 103, 1)';
+    ctx.lineWidth = Math.max(3.2 * scale, 2.6);
+    ctx.shadowColor = `rgba(255, 188, 66, ${0.55 * alpha})`;
+    ctx.shadowBlur = 28 * Math.max(glow, 0.2);
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = alpha;
+    drawRounded();
+    ctx.stroke();
+    ctx.restore();
+  }
+
   ctx.restore();
 }
 
@@ -1008,6 +1123,18 @@ function isPointInsideNode(node, worldPoint) {
   if (!node?.rect) return false;
   return worldPoint.x >= node.rect.x && worldPoint.x <= node.rect.x + node.rect.w
     && worldPoint.y >= node.rect.y && worldPoint.y <= node.rect.y + node.rect.h;
+}
+
+function isNodeInteractive(node, status) {
+  if (!node || !status || status.locked || node.comingSoon) {
+    return false;
+  }
+  if (node.nodeType === 'stage') {
+    return node.level != null;
+  }
+  return node.nodeType === 'mode'
+    || node.nodeType === 'feature'
+    || node.nodeType === 'rank';
 }
 
 export function initializeStageMap({
@@ -1032,6 +1159,8 @@ export function initializeStageMap({
     return null;
   }
 
+  canvas.style.cursor = 'grab';
+
   const camera = createCamera({ scale: 1 });
   let ctx = canvas.getContext('2d');
   const state = {
@@ -1045,8 +1174,23 @@ export function initializeStageMap({
     specialClears: loadSpecialNodeClears(),
     mapBounds: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
     hoverNode: null,
-    dragging: false
+    pressedNode: null,
+    dragging: false,
+    edgesBySource: new Map(),
+    focusHighlight: null,
+    edgeHighlights: new Map(),
+    pendingFocus: null,
+    cameraAnimation: null
   };
+
+  function executeNextFrame(fn) {
+    if (typeof fn !== 'function') return;
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => fn());
+    } else {
+      setTimeout(() => fn(), 16);
+    }
+  }
 
   // Only reinitialize the canvas when its CSS size or DPR changes.
   function ensureCanvasInitialized() {
@@ -1093,7 +1237,9 @@ export function initializeStageMap({
   let _lastVisible = true;
   function renderFrame(t) {
     if (!ctx) return;
+    const timestamp = typeof t === 'number' ? t : performance.now();
     ensureCanvasInitialized();
+    updateCameraAnimation(timestamp);
 
     drawGrid(ctx, 1, 1, 0, camera, {
       unbounded: true,
@@ -1107,12 +1253,16 @@ export function initializeStageMap({
       const fromStatus = state.nodeStatus.get(edge.from);
       // Only render wires when the source node is cleared
       const active = Boolean(fromStatus?.progressCleared);
-      drawEdge(ctx, camera, edge, active, t);
+      const highlight = resolveEdgeHighlight(edge.id, timestamp);
+      drawEdge(ctx, camera, edge, active, timestamp, highlight);
     });
 
     state.nodes.forEach(node => {
       const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
-      drawNode(ctx, camera, node, status, t);
+      const isHovered = Boolean(state.hoverNode && state.hoverNode.id === node.id);
+      const isPressed = Boolean(state.pressedNode && state.pressedNode.id === node.id);
+      const highlight = resolveNodeHighlight(node.id, timestamp);
+      drawNode(ctx, camera, node, status, timestamp, isHovered, isPressed, highlight);
     });
 
     _raf = window.requestAnimationFrame(renderFrame);
@@ -1192,6 +1342,18 @@ export function initializeStageMap({
       const status = evaluateNodeStatus(node, memo, visiting, cleared);
       state.nodeStatus.set(node.id, status || { locked: false, progressCleared: false });
     });
+    if (state.hoverNode) {
+      const hoverStatus = state.nodeStatus.get(state.hoverNode.id);
+      if (!isNodeInteractive(state.hoverNode, hoverStatus)) {
+        clearHoverNode();
+      }
+    }
+    if (state.pressedNode) {
+      const pressedStatus = state.nodeStatus.get(state.pressedNode.id);
+      if (!isNodeInteractive(state.pressedNode, pressedStatus)) {
+        clearPressedNode();
+      }
+    }
     requestRender();
   }
 
@@ -1201,7 +1363,23 @@ export function initializeStageMap({
     state.nodeLookup = graph.nodeLookup;
     state.dependencies = graph.dependencies;
     state.mapBounds = graph.bounds;
+    state.focusHighlight = null;
+    state.edgeHighlights = new Map();
+    state.edgesBySource = new Map();
+    state.edges.forEach(edge => {
+      if (!state.edgesBySource.has(edge.from)) {
+        state.edgesBySource.set(edge.from, []);
+      }
+      state.edgesBySource.get(edge.from).push(edge);
+    });
+    clearHoverNode();
+    clearPressedNode();
     refreshNodeStates();
+    if (state.pendingFocus) {
+      const pending = state.pendingFocus;
+      state.pendingFocus = null;
+      focusLevel(pending.level, pending.options);
+    }
     // Defer centering until the next animation frame so that the
     // canvas and layout have settled (prevents tiny bounding rects
     // when the stage map is being shown/animated). This avoids the
@@ -1226,6 +1404,62 @@ export function initializeStageMap({
     }
   }
 
+  function panToOrigin(targetOrigin, { animate = true, duration = 650 } = {}) {
+    if (!targetOrigin) return;
+    const { originX, originY } = camera.getState();
+    const targetX = Number.isFinite(targetOrigin.x) ? targetOrigin.x : originX;
+    const targetY = Number.isFinite(targetOrigin.y) ? targetOrigin.y : originY;
+    if (!animate) {
+      const dx = (originX - targetX) * camera.getScale();
+      const dy = (originY - targetY) * camera.getScale();
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        camera.pan(dx, dy);
+      }
+      if (zoomResetBtn) {
+        zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
+      }
+      state.cameraAnimation = null;
+      requestRender();
+      return;
+    }
+
+    state.cameraAnimation = {
+      from: { x: originX, y: originY },
+      to: { x: targetX, y: targetY },
+      startTime: performance.now(),
+      duration: Math.max(200, duration || 0)
+    };
+    requestRender();
+  }
+
+  function updateCameraAnimation(timestamp) {
+    const anim = state.cameraAnimation;
+    if (!anim) return;
+    const elapsed = timestamp - anim.startTime;
+    if (elapsed >= anim.duration) {
+      state.cameraAnimation = null;
+      const { originX, originY } = camera.getState();
+      const dx = (originX - anim.to.x) * camera.getScale();
+      const dy = (originY - anim.to.y) * camera.getScale();
+      if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+        camera.pan(dx, dy);
+      }
+      if (zoomResetBtn) {
+        zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
+      }
+      return;
+    }
+    const progress = easeOutCubic(elapsed / Math.max(1, anim.duration));
+    const desiredX = anim.from.x + (anim.to.x - anim.from.x) * progress;
+    const desiredY = anim.from.y + (anim.to.y - anim.from.y) * progress;
+    const { originX, originY } = camera.getState();
+    const dx = (originX - desiredX) * camera.getScale();
+    const dy = (originY - desiredY) * camera.getScale();
+    if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+      camera.pan(dx, dy);
+    }
+  }
+
   function centerMap() {
     const { minX, minY, maxX, maxY } = state.mapBounds;
     const rect = canvas.getBoundingClientRect();
@@ -1234,12 +1468,109 @@ export function initializeStageMap({
     const height = rect.height || 1;
     const targetOriginX = Math.max(0, (minX + maxX) / 2 - (width / (2 * scale)));
     const targetOriginY = Math.max(0, (minY + maxY) / 2 - (height / (2 * scale)));
-    const { originX, originY } = camera.getState();
-    camera.pan(-(targetOriginX - originX) * scale, -(targetOriginY - originY) * scale);
+    panToOrigin({ x: targetOriginX, y: targetOriginY }, { animate: false });
+  }
+
+  function triggerHighlightForNode(node) {
+    if (!node) return;
+    const now = performance.now();
+    state.focusHighlight = {
+      nodeId: node.id,
+      startTime: now,
+      duration: 1100,
+      hold: 900
+    };
+    state.edgeHighlights.clear();
+    const outgoing = state.edgesBySource.get(node.id) || [];
+    outgoing.forEach((edge, index) => {
+      state.edgeHighlights.set(edge.id, {
+        startTime: now + index * 120,
+        duration: 900,
+        hold: 700
+      });
+    });
     requestRender();
-    if (zoomResetBtn) {
-      zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
+  }
+
+  function resolveNodeHighlight(nodeId, timestamp) {
+    const info = state.focusHighlight;
+    if (!info || info.nodeId !== nodeId) return null;
+    const elapsed = timestamp - info.startTime;
+    if (elapsed < 0) return null;
+    const duration = info.duration || 0;
+    const hold = info.hold || 0;
+    if (elapsed > duration + hold) {
+      if (state.focusHighlight?.nodeId === nodeId) {
+        state.focusHighlight = null;
+      }
+      return null;
     }
+    const progress = duration > 0 ? easeOutCubic(Math.min(elapsed / duration, 1)) : 1;
+    const fade = elapsed > duration
+      ? Math.max(0, 1 - ((elapsed - duration) / Math.max(1, hold)))
+      : 1;
+    const pulse = 1 + 0.08 * (1 - progress) * fade;
+    const glow = clamp(fade, 0, 1);
+    const alpha = clamp(fade, 0, 1);
+    return { pulse, glow, alpha };
+  }
+
+  function resolveEdgeHighlight(edgeId, timestamp) {
+    const info = state.edgeHighlights.get(edgeId);
+    if (!info) return null;
+    const elapsed = timestamp - info.startTime;
+    if (elapsed < 0) return null;
+    const duration = info.duration || 0;
+    const hold = info.hold || 0;
+    if (elapsed > duration + hold) {
+      state.edgeHighlights.delete(edgeId);
+      return null;
+    }
+    const progress = duration > 0 ? easeOutCubic(Math.min(elapsed / duration, 1)) : 1;
+    const fade = elapsed > duration
+      ? Math.max(0, 1 - ((elapsed - duration) / Math.max(1, hold)))
+      : 1;
+    return { progress, alpha: fade };
+  }
+
+  function focusNode(node, { animate = true, celebrate = false } = {}) {
+    if (!node) return;
+    executeNextFrame(() => {
+      ensureCanvasInitialized();
+      const { scale, viewportWidth, viewportHeight } = camera.getState();
+      const widthWorld = (viewportWidth || canvas.clientWidth || 1) / Math.max(scale, 1e-6);
+      const heightWorld = (viewportHeight || canvas.clientHeight || 1) / Math.max(scale, 1e-6);
+      const rawTarget = {
+        x: node.center.x - widthWorld / 2,
+        y: node.center.y - heightWorld / 2
+      };
+      // 이전에는 맵 경계(`state.mapBounds`)에 맞춰 클램프(clamp)하여
+      // 뷰포트가 맵 밖으로 나가지 않도록 했습니다. 요청에 따라
+      // 맵 경계와 비교하지 않고 원래 계산한 목표 위치(`rawTarget`)를
+      // 그대로 사용하도록 변경합니다.
+      const targetOrigin = rawTarget;
+      panToOrigin(targetOrigin, { animate, duration: 650 });
+      if (celebrate) {
+        triggerHighlightForNode(node);
+      }
+      requestRender();
+    });
+  }
+
+  function focusLevel(level, options = {}) {
+    const normalizedLevel = Number(level);
+    const opts = { animate: true, celebrate: false, ...options };
+    if (!state.nodes.length) {
+      state.pendingFocus = { level: normalizedLevel, options: opts };
+      return;
+    }
+    const node = state.nodes.find(n => n.level === normalizedLevel);
+    if (!node) return;
+    focusNode(node, opts);
+  }
+
+  function celebrateLevel(level, options = {}) {
+    focusLevel(level, { ...options, celebrate: true });
   }
 
   function handleZoom(delta, pivotX, pivotY) {
@@ -1258,6 +1589,94 @@ export function initializeStageMap({
     if (zoomResetBtn) {
       zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
     }
+  }
+
+  function updateCanvasCursor() {
+    if (!canvas) return;
+    if (state.dragging) {
+      canvas.style.cursor = 'grabbing';
+      return;
+    }
+    if (state.hoverNode || state.pressedNode) {
+      canvas.style.cursor = 'pointer';
+      return;
+    }
+    canvas.style.cursor = 'grab';
+  }
+
+  function setHoverNode(nextNode) {
+    const prevId = state.hoverNode?.id || null;
+    const nextId = nextNode?.id || null;
+    if (prevId === nextId) {
+      updateCanvasCursor();
+      return;
+    }
+    state.hoverNode = nextNode || null;
+    updateCanvasCursor();
+    requestRender();
+  }
+
+  function clearHoverNode() {
+    if (!state.hoverNode) {
+      updateCanvasCursor();
+      return;
+    }
+    state.hoverNode = null;
+    updateCanvasCursor();
+    requestRender();
+  }
+
+  function findHoverableNode(worldPoint) {
+    if (!worldPoint) return null;
+    return state.nodes.find(node => {
+      if (!isPointInsideNode(node, worldPoint)) return false;
+      const status = state.nodeStatus.get(node.id);
+      return isNodeInteractive(node, status);
+    }) || null;
+  }
+
+  function updateHoverFromPoint(clientX, clientY) {
+    if (!canvas || state.dragging) {
+      updateCanvasCursor();
+      return null;
+    }
+    const rect = canvas.getBoundingClientRect();
+    const inside = clientX >= rect.left && clientX <= rect.right
+      && clientY >= rect.top && clientY <= rect.bottom;
+    if (!inside) {
+      clearHoverNode();
+      return null;
+    }
+    const world = camera.screenToWorld(clientX, clientY);
+    const hovered = findHoverableNode(world);
+    if (!hovered) {
+      clearHoverNode();
+      return null;
+    }
+    setHoverNode(hovered);
+    return hovered;
+  }
+
+  function setPressedNode(nextNode) {
+    const prevId = state.pressedNode?.id || null;
+    const nextId = nextNode?.id || null;
+    if (prevId === nextId) {
+      updateCanvasCursor();
+      return;
+    }
+    state.pressedNode = nextNode || null;
+    updateCanvasCursor();
+    requestRender();
+  }
+
+  function clearPressedNode() {
+    if (!state.pressedNode) {
+      updateCanvasCursor();
+      return;
+    }
+    state.pressedNode = null;
+    updateCanvasCursor();
+    requestRender();
   }
 
   function handleModeShortcut(node) {
@@ -1283,9 +1702,13 @@ export function initializeStageMap({
       }
       return;
     }
-    if (node.id === 'credits' || node.id === 'story') {
-      const msg = node.id === 'credits' ? 'Credits are coming soon.' : 'Story mode is coming soon.';
-      window.alert?.(msg);
+    if (node.id === 'story') {
+      closeOpenPanel();
+      openStoryModal();
+      return;
+    }
+    if (node.id === 'credits') {
+      window.alert?.('Credits are coming soon.');
     }
   }
 
@@ -1383,6 +1806,13 @@ export function initializeStageMap({
       moved: false
     };
     state.dragging = false;
+    const hovered = updateHoverFromPoint(event.clientX, event.clientY);
+    if (hovered) {
+      setPressedNode(hovered);
+    } else {
+      clearPressedNode();
+    }
+    updateCanvasCursor();
   }
 
   function handlePointerMove(event) {
@@ -1391,12 +1821,22 @@ export function initializeStageMap({
     const dy = event.clientY - state.pointerStart.y;
     if (!state.dragging && Math.hypot(dx, dy) > 4) {
       state.dragging = true;
+      clearHoverNode();
+      clearPressedNode();
+      updateCanvasCursor();
     }
     if (state.dragging) {
       camera.pan(dx, dy);
       state.pointerStart.x = event.clientX;
       state.pointerStart.y = event.clientY;
       requestRender();
+      return;
+    }
+    const hovered = updateHoverFromPoint(event.clientX, event.clientY);
+    if (hovered) {
+      setPressedNode(hovered);
+    } else {
+      clearPressedNode();
     }
   }
 
@@ -1407,12 +1847,15 @@ export function initializeStageMap({
     const start = state.pointerStart;
     state.pointerStart = null;
     canvas.releasePointerCapture?.(event.pointerId);
+    updateCanvasCursor();
 
     if (!wasDragging) {
       const world = camera.screenToWorld(event.clientX, event.clientY);
       const clickedNode = state.nodes.find(node => isPointInsideNode(node, world));
       handleNodeActivation(clickedNode);
     }
+    clearPressedNode();
+    updateHoverFromPoint(event.clientX, event.clientY);
   }
 
   function handleWheel(event) {
@@ -1422,10 +1865,43 @@ export function initializeStageMap({
     }
   }
 
+  function handlePointerHover(event) {
+    if (state.pointerStart) {
+      return;
+    }
+    if (state.pressedNode) {
+      clearPressedNode();
+    }
+    updateHoverFromPoint(event.clientX, event.clientY);
+  }
+
+  function handlePointerLeave() {
+    if (state.pointerStart) return;
+    clearHoverNode();
+    clearPressedNode();
+  }
+
+  function handlePointerCancel(event) {
+    if (!state.pointerStart && !state.dragging) {
+      clearHoverNode();
+      clearPressedNode();
+      return;
+    }
+    state.pointerStart = null;
+    state.dragging = false;
+    canvas.releasePointerCapture?.(event.pointerId);
+    updateCanvasCursor();
+    clearHoverNode();
+    clearPressedNode();
+  }
+
   function setupCanvasInteractions() {
     canvas.addEventListener('pointerdown', handlePointerDown);
     canvas.addEventListener('pointermove', handlePointerMove);
+    canvas.addEventListener('pointermove', handlePointerHover);
     canvas.addEventListener('pointerup', handlePointerUp);
+    canvas.addEventListener('pointerleave', handlePointerLeave);
+    canvas.addEventListener('pointercancel', handlePointerCancel);
     canvas.addEventListener('wheel', handleWheel, { passive: false });
   }
 
@@ -1476,6 +1952,8 @@ export function initializeStageMap({
   return {
     refresh: () => {
       refreshNodeStates();
-    }
+    },
+    focusLevel,
+    celebrateLevel
   };
 }

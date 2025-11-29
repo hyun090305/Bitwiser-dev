@@ -325,7 +325,7 @@
     { "from": "not",      "to": "or",  "style": "orthogonal" },
     { "from": "or",       "to": "nor", "style": "orthogonal" },
     { "from": "or",       "to": "and", "style": "orthogonal" },
-    { "from": "nand",     "to": "and", "style": "orthogonal" },
+    { "from": "and",     "to": "nand", "style": "orthogonal" },
     { "from": "and",      "to": "xor", "style": "orthogonal" },
     { "from": "xor",      "to": "fixed_xor", "style": "orthogonal" },
     { "from": "fixed_xor","to": "crossroad", "style": "orthogonal" },

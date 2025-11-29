@@ -23,7 +23,6 @@ let currentLevel = null;
 
 const dependencies = {
   renderUserProblemList: null,
-  showStageTutorial: null,
   showOverallRanking: null,
   setIsScoring: null,
   onLevelIntroComplete: null
@@ -129,14 +128,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     title.textContent = levelTitles[level] ?? fallbackTitle;
   }
 
-  const prevMenuBtn = document.getElementById('prevStageBtnMenu');
-  if (prevMenuBtn) {
-    prevMenuBtn.disabled = !(levelTitles[level - 1] && isLevelUnlocked(level - 1));
-  }
-  const nextMenuBtn = document.getElementById('nextStageBtnMenu');
-  if (nextMenuBtn) {
-    nextMenuBtn.disabled = !(levelTitles[level + 1] && isLevelUnlocked(level + 1));
-  }
+  // 이전/다음 스테이지 버튼이 제거되어 관련 UI 조정 로직을 삭제함
 
   await setupGrid(
     'canvasContainer',
@@ -359,11 +351,7 @@ function showLevelIntro(level, callback) {
   if (startBtn) {
     startBtn.onclick = () => {
       modal.style.display = 'none';
-      if (typeof dependencies.showStageTutorial === 'function') {
-        dependencies.showStageTutorial(level, callback);
-      } else {
-        callback();
-      }
+      callback();
     };
   }
 }

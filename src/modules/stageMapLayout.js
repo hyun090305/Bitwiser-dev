@@ -53,8 +53,8 @@ export const STAGE_TYPE_META = {
   },
   feature: {
     labelKey: 'stageTypeMode',
-    color: '#a855f7',
-    accent: '#8b5cf6'
+    color: '#F6F6F6',
+    accent: '#E5E7EB'
   },
   mode: {
     labelKey: 'stageTypeMode',
