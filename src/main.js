@@ -310,7 +310,7 @@ if (shareGifBtn) {
 }
 
 // 초기 로딩 관련
-const initialTasks = [];
+const criticalTasks = []; // Only wait for essentials before showing the map
 function hideLoadingScreen() {
   const el = document.getElementById('loadingScreen');
   if (el) el.style.display = 'none';
@@ -466,21 +466,6 @@ document.getElementById("backToLevelsBtn").onclick = async () => {
 
 
 
-
-window.addEventListener("DOMContentLoaded", () => {
-  initializeGuestbook({
-    getUsername,
-    messageInputId: 'guestMessage',
-    listElementId: 'guestbookList',
-    submitButtonId: 'guestSubmitBtn'
-  });
-
-  const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
-    // 이전/다음 스테이지 메뉴 버튼 제거됨
-    return loadClearedLevelsFromDb();
-  });
-  initialTasks.push(stagePromise);
-});
 
 window.addEventListener('focus', refreshUserData);
 
@@ -1008,10 +993,28 @@ function setupGameAreaPadding() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  initializeGuestbook({
+    getUsername,
+    messageInputId: 'guestMessage',
+    listElementId: 'guestbookList',
+    submitButtonId: 'guestSubmitBtn'
+  });
+
+  const stagePromise = loadStageData(typeof currentLang !== 'undefined' ? currentLang : undefined).then(() => {
+    // 이전/다음 스테이지 메뉴 버튼 제거됨
+    return loadClearedLevelsFromDb();
+  });
+  criticalTasks.push(stagePromise);
+
   const uname = getUsername();
   if (uname) document.getElementById("guestUsername").textContent = uname;
 
-  initialTasks.push(showOverallRanking());  // 전체 랭킹 표시
+  const overallRankingPromise = showOverallRanking(); // Load rankings without blocking the UI
+  if (overallRankingPromise && typeof overallRankingPromise.then === 'function') {
+    overallRankingPromise.catch(err => {
+      console.error('Failed to load overall ranking', err);
+    });
+  }
   const authInitPromise = initializeAuthUI({
     translate,
     loadClearedLevelsFromDb,
@@ -1040,8 +1043,10 @@ document.addEventListener("DOMContentLoaded", () => {
       mergeCancelBtnId: 'mergeCancelBtn'
     }
   });
-  if (authInitPromise) {
-    initialTasks.push(authInitPromise);
+  if (authInitPromise && typeof authInitPromise.then === 'function') {
+    authInitPromise.catch(err => {
+      console.error('Failed to initialise auth UI', err);
+    });
   }
 
   setupKeyToggles();
@@ -1050,7 +1055,7 @@ document.addEventListener("DOMContentLoaded", () => {
   syncGameAreaBackground(getThemeById(getActiveThemeId()));
   onThemeChange(syncGameAreaBackground);
   setupGameAreaPadding();
-  Promise.all(initialTasks).then(() => {
+  Promise.all(criticalTasks).then(() => {
     initializeStory({ getClearedLevels });
     stageMapController = initializeStageMap({
       getLevelTitle,
