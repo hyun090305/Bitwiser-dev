@@ -1180,6 +1180,8 @@ export function initializeStageMap({
     nodeStatus: new Map(),
     openPanel: null,
     pointerStart: null,
+    activePointers: new Map(),
+    pinchState: null,
     specialClears: loadSpecialNodeClears(),
     mapBounds: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
     hoverNode: null,
@@ -1424,9 +1426,7 @@ export function initializeStageMap({
       if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
         camera.pan(dx, dy);
       }
-      if (zoomResetBtn) {
-        zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
-      }
+      refreshZoomIndicator();
       state.cameraAnimation = null;
       requestRender();
       return;
@@ -1453,9 +1453,7 @@ export function initializeStageMap({
       if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
         camera.pan(dx, dy);
       }
-      if (zoomResetBtn) {
-        zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
-      }
+      refreshZoomIndicator();
       return;
     }
     const progress = easeOutCubic(elapsed / Math.max(1, anim.duration));
@@ -1582,27 +1580,29 @@ export function initializeStageMap({
     focusLevel(level, { ...options, celebrate: true });
   }
 
+  function refreshZoomIndicator() {
+    if (zoomResetBtn) {
+      zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
+    }
+  }
+
   function handleZoom(delta, pivotX, pivotY) {
     const current = camera.getScale();
     const next = Math.max(0.6, Math.min(2.2, current + delta));
     camera.setScale(next, pivotX, pivotY);
-    if (zoomResetBtn) {
-      zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
-    }
+    refreshZoomIndicator();
     requestRender();
   }
 
   function resetView() {
     camera.reset();
     centerMap();
-    if (zoomResetBtn) {
-      zoomResetBtn.textContent = `${camera.getScale().toFixed(1)}×`;
-    }
+    refreshZoomIndicator();
   }
 
   function updateCanvasCursor() {
     if (!canvas) return;
-    if (state.dragging) {
+    if (state.dragging || state.pinchState) {
       canvas.style.cursor = 'grabbing';
       return;
     }
@@ -1806,8 +1806,137 @@ export function initializeStageMap({
     });
   }
 
+  function addActivePointer(event) {
+    state.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  }
+
+  function updateActivePointer(event) {
+    if (state.activePointers.has(event.pointerId)) {
+      state.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    }
+  }
+
+  function removeActivePointer(event) {
+    state.activePointers.delete(event.pointerId);
+  }
+
+  function beginPinchGesture() {
+    const entries = Array.from(state.activePointers.entries());
+    if (entries.length < 2) {
+      return;
+    }
+    const [first, second] = entries;
+    const a = first?.[1];
+    const b = second?.[1];
+    if (!a || !b) {
+      return;
+    }
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    const distance = Math.hypot(dx, dy);
+    const initialDistance = Number.isFinite(distance) && distance > 0 ? distance : 1;
+    const centerX = (a.x + b.x) / 2;
+    const centerY = (a.y + b.y) / 2;
+
+    state.pinchState = {
+      pointerIds: [first[0], second[0]],
+      initialDistance,
+      initialScale: camera.getScale(),
+      lastCenter: { x: centerX, y: centerY }
+    };
+    state.pointerStart = null;
+    state.dragging = false;
+    clearHoverNode();
+    clearPressedNode();
+    updateCanvasCursor();
+  }
+
+  function getPinchPointers() {
+    const pinch = state.pinchState;
+    if (!pinch) return null;
+    const first = state.activePointers.get(pinch.pointerIds[0]);
+    const second = state.activePointers.get(pinch.pointerIds[1]);
+    if (!first || !second) return null;
+    return [
+      { id: pinch.pointerIds[0], x: first.x, y: first.y },
+      { id: pinch.pointerIds[1], x: second.x, y: second.y }
+    ];
+  }
+
+  function updatePinchGesture() {
+    const pinch = state.pinchState;
+    if (!pinch) return;
+    const pointers = getPinchPointers();
+    if (!pointers) {
+      if (state.activePointers.size >= 2) {
+        beginPinchGesture();
+      }
+      return;
+    }
+    const [a, b] = pointers;
+    const dx = b.x - a.x;
+    const dy = b.y - a.y;
+    let distance = Math.hypot(dx, dy);
+    if (!Number.isFinite(distance) || distance <= 0) {
+      distance = pinch.initialDistance || 1;
+    }
+    const centerX = (a.x + b.x) / 2;
+    const centerY = (a.y + b.y) / 2;
+
+    const ratio = distance / Math.max(pinch.initialDistance || 1, 1);
+    const desiredScale = pinch.initialScale * ratio;
+    const clampedScale = Math.max(0.6, Math.min(2.2, desiredScale));
+    camera.setScale(clampedScale, centerX, centerY);
+    refreshZoomIndicator();
+
+    if (pinch.lastCenter) {
+      const deltaX = centerX - pinch.lastCenter.x;
+      const deltaY = centerY - pinch.lastCenter.y;
+      if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
+        camera.pan(deltaX, deltaY);
+      }
+    }
+
+    pinch.lastCenter = { x: centerX, y: centerY };
+    pinch.initialScale = camera.getScale();
+    pinch.initialDistance = distance;
+    requestRender();
+  }
+
+  function endPinchGesture() {
+    state.pinchState = null;
+    refreshZoomIndicator();
+    updateCanvasCursor();
+  }
+
+  function syncPointerStartFromRemainingPointer() {
+    if (state.activePointers.size !== 1) {
+      state.pointerStart = null;
+      return;
+    }
+    const [, position] = state.activePointers.entries().next().value;
+    if (!position) {
+      state.pointerStart = null;
+      return;
+    }
+    state.pointerStart = {
+      x: position.x,
+      y: position.y,
+      world: camera.screenToWorld(position.x, position.y),
+      moved: false
+    };
+    state.dragging = false;
+  }
+
   function handlePointerDown(event) {
     canvas.setPointerCapture(event.pointerId);
+    addActivePointer(event);
+
+    if (state.activePointers.size >= 2) {
+      beginPinchGesture();
+      return;
+    }
+
     state.pointerStart = {
       x: event.clientX,
       y: event.clientY,
@@ -1825,6 +1954,22 @@ export function initializeStageMap({
   }
 
   function handlePointerMove(event) {
+    if (!state.activePointers.has(event.pointerId)) {
+      return;
+    }
+
+    updateActivePointer(event);
+
+    if (state.activePointers.size >= 2 || state.pinchState) {
+      if (!state.pinchState && state.activePointers.size >= 2) {
+        beginPinchGesture();
+      }
+      if (state.pinchState) {
+        updatePinchGesture();
+      }
+      return;
+    }
+
     if (!state.pointerStart) return;
     const dx = event.clientX - state.pointerStart.x;
     const dy = event.clientY - state.pointerStart.y;
@@ -1850,19 +1995,47 @@ export function initializeStageMap({
   }
 
   function handlePointerUp(event) {
-    if (!state.pointerStart) return;
-    const wasDragging = state.dragging;
-    state.dragging = false;
     const start = state.pointerStart;
-    state.pointerStart = null;
+    const wasDragging = state.dragging;
+    const hadPinch = Boolean(state.pinchState);
+
+    if (state.activePointers.has(event.pointerId)) {
+      updateActivePointer(event);
+    }
+
     canvas.releasePointerCapture?.(event.pointerId);
+    removeActivePointer(event);
+
+    if (hadPinch || state.pinchState) {
+      if (state.activePointers.size >= 2) {
+        beginPinchGesture();
+        return;
+      }
+      endPinchGesture();
+      if (state.activePointers.size === 1) {
+        syncPointerStartFromRemainingPointer();
+        updateCanvasCursor();
+        return;
+      }
+      state.pointerStart = null;
+      state.dragging = false;
+      updateCanvasCursor();
+      return;
+    }
+
+    state.dragging = false;
+    state.pointerStart = null;
     updateCanvasCursor();
 
-    if (!wasDragging) {
-      const world = camera.screenToWorld(event.clientX, event.clientY);
-      const clickedNode = state.nodes.find(node => isPointInsideNode(node, world));
-      handleNodeActivation(clickedNode);
+    if (!start || wasDragging) {
+      clearPressedNode();
+      updateHoverFromPoint(event.clientX, event.clientY);
+      return;
     }
+
+    const world = camera.screenToWorld(event.clientX, event.clientY);
+    const clickedNode = state.nodes.find(node => isPointInsideNode(node, world));
+    handleNodeActivation(clickedNode);
     clearPressedNode();
     updateHoverFromPoint(event.clientX, event.clientY);
   }
@@ -1875,7 +2048,7 @@ export function initializeStageMap({
   }
 
   function handlePointerHover(event) {
-    if (state.pointerStart) {
+    if (state.pointerStart || state.pinchState) {
       return;
     }
     if (state.pressedNode) {
@@ -1884,21 +2057,36 @@ export function initializeStageMap({
     updateHoverFromPoint(event.clientX, event.clientY);
   }
 
-  function handlePointerLeave() {
-    if (state.pointerStart) return;
+  function handlePointerLeave(event) {
+    if (state.activePointers.has(event.pointerId)) {
+      return;
+    }
+    if (state.pointerStart || state.pinchState) return;
     clearHoverNode();
     clearPressedNode();
   }
 
   function handlePointerCancel(event) {
-    if (!state.pointerStart && !state.dragging) {
-      clearHoverNode();
-      clearPressedNode();
-      return;
-    }
-    state.pointerStart = null;
-    state.dragging = false;
     canvas.releasePointerCapture?.(event.pointerId);
+    if (state.activePointers.has(event.pointerId)) {
+      removeActivePointer(event);
+    }
+
+    if (state.pinchState) {
+      if (state.activePointers.size >= 2) {
+        beginPinchGesture();
+      } else {
+        endPinchGesture();
+      }
+    }
+
+    if (state.activePointers.size === 1 && !state.pinchState) {
+      syncPointerStartFromRemainingPointer();
+    } else {
+      state.pointerStart = null;
+      state.dragging = false;
+    }
+
     updateCanvasCursor();
     clearHoverNode();
     clearPressedNode();

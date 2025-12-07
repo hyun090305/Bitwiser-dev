@@ -295,6 +295,8 @@ export function createGradingController(config = {}) {
     saveCircuit,
     updateSaveProgress,
     showCircuitSavedModal,
+    showClearedModal,
+    showClearedModalOptions,
     markLevelCleared,
     saveRanking,
     saveProblemRanking,
@@ -317,6 +319,7 @@ export function createGradingController(config = {}) {
   const overlay = elements.overlay || null;
   let isScoring = false;
   let pendingClearedLevel = null;
+  const shownClearedLevels = new Set();
 
   function showOverlay(show) {
     if (overlay) {
@@ -383,7 +386,8 @@ export function createGradingController(config = {}) {
 
     triggerConfetti();
 
-    const { saveSuccess, loginNeeded, statusMessage } = await attemptAutoSave({
+    // Start auto-save in background so UI (cleared modal) is not blocked by save
+    const savePromise = attemptAutoSave({
       getAutoSaveSetting,
       getCurrentUser,
       saveCircuit,
@@ -393,6 +397,7 @@ export function createGradingController(config = {}) {
       alertFn: alertSafe
     });
 
+    // Immediately mark level cleared and show cleared modal (don't wait for save)
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = typeof getHintProgress === 'function' ? getHintProgress(level) : 0;
     const anonymousLabel = (() => {
@@ -403,20 +408,35 @@ export function createGradingController(config = {}) {
       ? getUsername() || anonymousLabel
       : anonymousLabel;
 
-    const rankingsRef = db && typeof db.ref === 'function' ? db.ref(`rankings/${level}`) : null;
+    // Mark cleared now and show modal immediately
+    pendingClearedLevel = level;
+    if (typeof markLevelCleared === 'function') {
+      markLevelCleared(level);
+    }
+    if (typeof showClearedModal === 'function') {
+      try {
+        showClearedModal(level, showClearedModalOptions || {});
+        shownClearedLevels.add(level);
+      } catch (e) {
+        // ignore UI errors
+      }
+    }
+    // Clear pending flag so saved-modal continuation won't duplicate the cleared modal
     pendingClearedLevel = null;
 
+    const rankingsRef = db && typeof db.ref === 'function' ? db.ref(`rankings/${level}`) : null;
+
     if (!rankingsRef || typeof rankingsRef.orderByChild !== 'function') {
-      if (typeof markLevelCleared === 'function') {
-        markLevelCleared(level);
-      }
-      if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
-        showCircuitSavedModal({
-          message: statusMessage,
-          canShare: saveSuccess,
-          loginRequired: loginNeeded
-        });
-      }
+      // When there is no rankings DB, simply show saved modal once save completes (if needed)
+      savePromise.then(({ saveSuccess, loginNeeded, statusMessage } = {}) => {
+        if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
+          showCircuitSavedModal({
+            message: statusMessage,
+            canShare: saveSuccess,
+            loginRequired: loginNeeded
+          });
+        }
+      }).catch(() => {});
       return;
     }
 
@@ -428,9 +448,11 @@ export function createGradingController(config = {}) {
           if (typeof saveRanking === 'function') {
             saveRanking(level, blockCounts, usedWires, hintsUsed);
           }
-          pendingClearedLevel = level;
-          if (typeof markLevelCleared === 'function') {
-            markLevelCleared(level);
+          if (!shownClearedLevels.has(level)) {
+            pendingClearedLevel = level;
+            if (typeof markLevelCleared === 'function') {
+              markLevelCleared(level);
+            }
           }
         } else {
           let best = null;
@@ -453,19 +475,25 @@ export function createGradingController(config = {}) {
               hintsUsed,
               timestamp: new Date().toISOString()
             });
-            pendingClearedLevel = level;
-            if (typeof markLevelCleared === 'function') {
-              markLevelCleared(level);
+            if (!shownClearedLevels.has(level)) {
+              pendingClearedLevel = level;
+              if (typeof markLevelCleared === 'function') {
+                markLevelCleared(level);
+              }
             }
           }
         }
-        if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
-          showCircuitSavedModal({
-            message: statusMessage,
-            canShare: saveSuccess,
-            loginRequired: loginNeeded
-          });
-        }
+
+        // When ranking logic completes, show saved modal if save result requires it
+        savePromise.then(({ saveSuccess, loginNeeded, statusMessage } = {}) => {
+          if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
+            showCircuitSavedModal({
+              message: statusMessage,
+              canShare: saveSuccess,
+              loginRequired: loginNeeded
+            });
+          }
+        }).catch(() => {});
       });
   }
 

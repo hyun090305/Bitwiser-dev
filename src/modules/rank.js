@@ -583,6 +583,8 @@ export async function showClearedModal(level, options = {}) {
             if (typeof returnToLevels === 'function') {
               await returnToLevels();
             }
+            await loadClearedLevelsFromDb();
+            document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
           } catch (err) {
             console.error('레벨 선택 화면으로 이동 실패:', err);
           }

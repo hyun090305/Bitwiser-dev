@@ -33,7 +33,6 @@ import {
 import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
 import { openHintModal, initializeHintUI } from './modules/hints.js';
-import { initializeTutorials } from './modules/tutorials.js';
 import { createGuidedTutorial } from './modules/guidedTutorial.js';
 import { createGradingController } from './modules/grading.js';
 import {
@@ -508,32 +507,7 @@ document.getElementById('hintBtn').addEventListener('click', () => {
 
 
 
-const { maybeStartTutorial = () => {} } = (initializeTutorials({
-  lang: typeof currentLang !== 'undefined' ? currentLang : 'en',
-  translate: typeof t === 'function' ? t : undefined,
-  storage: typeof window !== 'undefined' ? window.localStorage : undefined,
-  lockOrientationLandscape,
-  getStageDataPromise,
-  startLevel,
-  getLevelTitle,
-  getLevelTitles,
-  getClearedLevels,
-  elements: {
-    tutorialModal: document.getElementById('tutorialModal'),
-    tutorialTitle: document.getElementById('tutTitle'),
-    tutorialDescription: document.getElementById('tutDesc'),
-    tutorialPrevButton: document.getElementById('tutPrevBtn'),
-    tutorialNextButton: document.getElementById('tutNextBtn'),
-    tutorialCloseButton: document.getElementById('tutCloseBtn'),
-    tutorialFinishButton: document.getElementById('tutFinishBtn'),
-    tutorialButton: document.getElementById('tutorialBtn'),
-    tutorialImage: document.getElementById('tutImg'),
-    screens: {
-      gameScreen,
-      stageMapScreen
-    }
-  }
-}) ?? {});
+const maybeStartTutorial = () => {};
 
 
 document.addEventListener('keydown', e => {
@@ -592,6 +566,8 @@ const gradingController = createGradingController({
   saveCircuit,
   updateSaveProgress,
   showCircuitSavedModal,
+  showClearedModal,
+  showClearedModalOptions: clearedModalOptions,
   markLevelCleared,
   saveRanking,
   saveProblemRanking,

@@ -387,7 +387,9 @@ async function onGoogleUsernameSubmit(oldName, uid) {
 
 async function ensureUsernameRegistered(name, options = {}) {
   const { reuseExisting = false } = options;
-  let targetName = name || getUsername();
+  const requestedName = name || getUsername();
+  const hadRequestedName = Boolean(requestedName);
+  let targetName = requestedName;
   if (!targetName) {
     targetName = await assignGuestNickname();
   }
@@ -422,21 +424,24 @@ async function ensureUsernameRegistered(name, options = {}) {
       return targetName;
     }
 
-    if (reuseExisting) {
-      let existingKey = null;
-      snapshot.forEach(child => {
-        if (!existingKey) {
-          existingKey = child.key;
-        }
-        return true;
-      });
+    let existingKey = null;
+    snapshot.forEach(child => {
+      if (!existingKey) {
+        existingKey = child.key;
+      }
+      return true;
+    });
+
+    // If the user already has a local nickname, avoid generating a new Player####;
+    // just reuse the existing reservation/entry.
+    if (reuseExisting || hadRequestedName) {
       if (existingKey) {
         setUsernameReservationKey(existingKey);
       }
       return targetName;
     }
 
-    // Conflict detected; generate a new nickname and try again.
+    // Conflict detected for an auto-generated guest; try a new guest nickname.
     // assignGuestNickname updates local storage/UI side effects for the new name.
     targetName = await assignGuestNickname();
   }
