@@ -24,6 +24,7 @@ const translate = typeof window !== 'undefined' && typeof window.t === 'function
 
 const SPECIAL_NODE_KEY = 'stageMapSpecialClears';
 const STAGE_MAP_SPEC_PATH = 'stage_map.json';
+const STORY_SOURCE = 'storyFragments.json';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const easeOutCubic = value => 1 - Math.pow(1 - clamp(value, 0, 1), 3);
@@ -1159,6 +1160,8 @@ export function initializeStageMap({
     return null;
   }
 
+  loadStoryFragmentCount();
+
   canvas.style.cursor = 'grab';
   // Prevent the browser from using touch gestures (scroll/zoom) on the
   // canvas/surface so pointer events can be used reliably for panning on
@@ -1191,8 +1194,33 @@ export function initializeStageMap({
     focusHighlight: null,
     edgeHighlights: new Map(),
     pendingFocus: null,
-    cameraAnimation: null
+    cameraAnimation: null,
+    clearedSnapshot: new Set(),
+    recentlyCleared: new Set(),
+    clearsInitialized: false,
+    previousClearedCount: 0,
+    storyFragmentCount: null
   };
+  const celebrationLayer = document.createElement('div');
+  celebrationLayer.className = 'stage-map-celebrations';
+  surface.appendChild(celebrationLayer);
+
+  function loadStoryFragmentCount() {
+    if (state.storyFragmentCount != null || typeof fetch !== 'function') return;
+    fetch(STORY_SOURCE)
+      .then(res => {
+        if (!res?.ok) return null;
+        return res.json();
+      })
+      .then(data => {
+        if (data && Array.isArray(data.fragments)) {
+          state.storyFragmentCount = data.fragments.length;
+        }
+      })
+      .catch(err => {
+        console.warn('Failed to load story fragment count', err);
+      });
+  }
 
   function executeNextFrame(fn) {
     if (typeof fn !== 'function') return;
@@ -1346,7 +1374,23 @@ export function initializeStageMap({
   }
 
   function refreshNodeStates() {
-    const cleared = new Set(getClearedLevels?.() ?? []);
+    const clearedValues = (getClearedLevels?.() ?? [])
+      .map(value => Number(value))
+      .filter(Number.isFinite);
+    const cleared = new Set(clearedValues);
+    const prevClearedCount = state.clearsInitialized ? state.clearedSnapshot.size : cleared.size;
+    const newlyCleared = new Set();
+    if (state.clearsInitialized) {
+      cleared.forEach(level => {
+        if (!state.clearedSnapshot.has(level)) {
+          newlyCleared.add(level);
+        }
+      });
+    }
+    state.previousClearedCount = prevClearedCount;
+    state.clearedSnapshot = cleared;
+    state.recentlyCleared = newlyCleared;
+    state.clearsInitialized = true;
     const memo = new Map();
     const visiting = new Set();
     state.nodes.forEach(node => {
@@ -1540,6 +1584,80 @@ export function initializeStageMap({
     return { progress, alpha: fade };
   }
 
+  function getStoryNumberForCelebration() {
+    const clearedCount = state.clearedSnapshot?.size ?? 0;
+    const availableFragments = state.storyFragmentCount;
+    if (Number.isFinite(availableFragments) && availableFragments > 0) {
+      return Math.max(1, Math.min(availableFragments, clearedCount));
+    }
+    return Math.max(1, clearedCount);
+  }
+
+  function renderMemoryRestoration(level) {
+    if (!celebrationLayer) return;
+    const normalizedLevel = Number(level);
+    const clearedLevelsSet = new Set((getClearedLevels?.() ?? [])
+      .map(value => Number(value))
+      .filter(Number.isFinite));
+    const isNewClear = state.recentlyCleared.has(normalizedLevel)
+      || (!state.clearedSnapshot.has(normalizedLevel) && clearedLevelsSet.has(normalizedLevel));
+    if (!isNewClear) return;
+    const stageNode = state.nodes.find(n => n.level === normalizedLevel);
+    const storyNode = state.nodeLookup.get('story');
+    if (!stageNode || !storyNode) return;
+
+    const startWorld = {
+      x: stageNode.center.x,
+      y: Math.max(0, stageNode.rect.y - 0.6)
+    };
+    const startScreen = camera.worldToScreen(startWorld.x, startWorld.y);
+    const targetScreen = camera.worldToScreen(storyNode.center.x, storyNode.center.y);
+    const label = document.createElement('div');
+    label.className = 'stage-map-celebration';
+    label.textContent = `기억 #${getStoryNumberForCelebration()} 복원됨`;
+    label.style.left = `${startScreen.x}px`;
+    label.style.top = `${startScreen.y}px`;
+    celebrationLayer.appendChild(label);
+
+    if (typeof label.animate !== 'function') {
+      label.style.opacity = '1';
+      setTimeout(() => label.remove(), 1600);
+      return;
+    }
+
+    const float = label.animate([
+      { opacity: 0, transform: 'translate(-50%, -50%) translateY(12px) scale(0.94)' },
+      { opacity: 1, transform: 'translate(-50%, -50%) translateY(0px) scale(1)', offset: 0.38 },
+      { opacity: 1, transform: 'translate(-50%, -50%) translateY(-6px) scale(1)' }
+    ], {
+      duration: 1100,
+      easing: 'ease-out',
+      fill: 'forwards'
+    });
+
+    const deltaX = targetScreen.x - startScreen.x;
+    const deltaY = targetScreen.y - startScreen.y;
+    const travel = label.animate([
+      { opacity: 1, transform: 'translate(-50%, -50%) translateY(-6px) scale(1)' },
+      { opacity: 0, transform: `translate(-50%, -50%) translate(${deltaX}px, ${deltaY}px) scale(0.7)` }
+    ], {
+      duration: 880,
+      delay: 900,
+      easing: 'cubic-bezier(0.35, 0.7, 0.25, 1)',
+      fill: 'forwards'
+    });
+
+    const cleanup = () => {
+      label.remove();
+    };
+    float.addEventListener('cancel', cleanup, { once: true });
+    travel.addEventListener('finish', cleanup, { once: true });
+    travel.addEventListener('cancel', cleanup, { once: true });
+    if (!travel?.finished && typeof setTimeout === 'function') {
+      setTimeout(cleanup, 2400);
+    }
+  }
+
   function focusNode(node, { animate = true, celebrate = false } = {}) {
     if (!node) return;
     executeNextFrame(() => {
@@ -1577,7 +1695,9 @@ export function initializeStageMap({
   }
 
   function celebrateLevel(level, options = {}) {
-    focusLevel(level, { ...options, celebrate: true });
+    const normalized = Number(level);
+    focusLevel(normalized, { ...options, celebrate: true });
+    executeNextFrame(() => renderMemoryRestoration(normalized));
   }
 
   function refreshZoomIndicator() {
