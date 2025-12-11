@@ -59,31 +59,6 @@ body.safe-mode .stage-map-surface {
   background: transparent;
 }
 
-.stage-map-celebrations {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 3;
-}
-
-.stage-map-celebration {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(250, 232, 255, 0.92));
-  color: #0f172a;
-  border: 1px solid rgba(124, 58, 237, 0.25);
-  padding: 0.6rem 0.9rem;
-  border-radius: 999px;
-  font-weight: 800;
-  font-size: clamp(0.9rem, 0.8vw + 0.6rem, 1.1rem);
-  letter-spacing: -0.01em;
-  box-shadow:
-    0 10px 30px rgba(79, 70, 229, 0.18),
-    0 0 0 1px rgba(99, 102, 241, 0.08),
-    0 18px 40px rgba(15, 23, 42, 0.18);
-  white-space: nowrap;
-}
-
 /* Removed `.stage-node` visual styles: stage map nodes are rendered on canvas
    by `src/modules/stageMap.js` (drawNode). These DOM rules were unused.
    If you want HTML overlays for accessibility or interaction, we can re-add
