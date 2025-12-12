@@ -3,6 +3,7 @@ const USERNAME_RESERVATION_KEY = 'usernameReservationKey';
 const HINT_COOLDOWN_KEY = 'hintCooldownUntil';
 const AUTO_SAVE_KEY = 'autoSaveCircuit';
 const BACKGROUND_ANIMATION_KEY = 'backgroundAnimationEnabled';
+const LAST_ACCESSED_LEVEL_KEY = 'lastAccessedLevel';
 
 function safeGetItem(key) {
   if (typeof localStorage === 'undefined') return null;
@@ -119,4 +120,12 @@ export function getGoogleNickname(uid) {
 export function setGoogleNickname(uid, value) {
   const key = googleKey('googleNickname', uid);
   if (key) safeSetItem(key, value);
+}
+
+export function getLastAccessedLevel() {
+  return safeGetItem(LAST_ACCESSED_LEVEL_KEY);
+}
+
+export function setLastAccessedLevel(level) {
+  safeSetItem(LAST_ACCESSED_LEVEL_KEY, String(level));
 }

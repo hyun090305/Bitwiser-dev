@@ -17,6 +17,7 @@ import {
   gridToWorldPoint
 } from './stageMapLayout.js';
 import { openStoryModal } from './story.js';
+import { getLastAccessedLevel } from './storage.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
@@ -1191,6 +1192,7 @@ export function initializeStageMap({
     focusHighlight: null,
     edgeHighlights: new Map(),
     pendingFocus: null,
+    pendingMemoryRestored: null,
     cameraAnimation: null
   };
 
@@ -1314,9 +1316,9 @@ export function initializeStageMap({
           console.warn('isLevelUnlocked callback threw', err);
         }
       }
-      unlocked = prerequisitesMet;
-      locked = !unlocked;
       displayCleared = clearedLevels.has(node.level);
+      unlocked = prerequisitesMet || displayCleared;
+      locked = !unlocked;
       progressCleared = displayCleared;
     } else if (node.nodeType === 'mode') {
       unlocked = prerequisitesMet;
@@ -1405,12 +1407,33 @@ export function initializeStageMap({
           // here to avoid breaking initialization.
           console.warn('ensureCanvasInitialized failed during attachGraph RAF', e);
         }
-        centerMap();
+        
+        const lastLevel = getLastAccessedLevel();
+        const lastLevelNode = lastLevel ? state.nodes.find(n => n.level === Number(lastLevel)) : null;
+        const bitSolverNode = state.nodes.find(n => n.id === 'bit_solver');
+
+        if (lastLevelNode) {
+          focusNode(lastLevelNode, { animate: false });
+        } else if (bitSolverNode) {
+          focusNode(bitSolverNode, { animate: false });
+        } else {
+          centerMap();
+        }
         requestRender();
       });
     } else {
       ensureCanvasInitialized();
-      centerMap();
+      const lastLevel = getLastAccessedLevel();
+      const lastLevelNode = lastLevel ? state.nodes.find(n => n.level === Number(lastLevel)) : null;
+      const bitSolverNode = state.nodes.find(n => n.id === 'bit_solver');
+
+      if (lastLevelNode) {
+        focusNode(lastLevelNode, { animate: false });
+      } else if (bitSolverNode) {
+        focusNode(bitSolverNode, { animate: false });
+      } else {
+        centerMap();
+      }
       requestRender();
     }
   }
@@ -2146,11 +2169,148 @@ export function initializeStageMap({
 
   requestRender();
 
+  function triggerMemoryRestoredAnimation(levelId, storyNumber) {
+    state.pendingMemoryRestored = { levelId, storyNumber };
+  }
+
+  function runMemoryRestoredAnimation({ levelId, storyNumber }) {
+    const levelNode = state.nodes.find(n => n.level === levelId);
+    const storyNode = state.nodes.find(n => n.id === 'story');
+
+    if (!levelNode || !storyNode) return;
+
+    const { scale } = camera.getState();
+    const startWorldX = levelNode.rect.x + levelNode.rect.w / 2;
+    const startWorldY = levelNode.rect.y + levelNode.rect.h / 4;
+    const endWorldX = storyNode.rect.x + storyNode.rect.w / 2;
+    const endWorldY = storyNode.rect.y + storyNode.rect.h / 2;
+
+    // worldToScreen returns coordinates relative to the canvas/viewport.
+    // Since we are appending the element to 'surface' (which contains the canvas),
+    // these coordinates should be correct relative to the surface's top-left.
+    // However, if the surface has padding or if the camera offset includes the panel width,
+    // we need to be careful.
+    // The camera.worldToScreen adds 'panel' width to x.
+    // Let's check if 'surface' is the offset parent.
+    
+    // We need to calculate the initial positions based on the CURRENT camera state.
+    // But since the element is absolutely positioned in 'surface', and 'surface'
+    // is the container for the canvas, the coordinates from worldToScreen should match
+    // the visual position on the canvas.
+    
+    // The issue might be that the animation runs over time, but the camera might move?
+    // Or simply that the initial calculation is done once.
+    // If the user pans/zooms WHILE the animation is playing, the HTML element won't move with the canvas.
+    // To fix this perfectly, we would need to update the element's position on every frame
+    // based on the camera's current transform.
+    
+    // For now, let's assume the camera is static during the animation or the user accepts it detaching.
+    // If the user says "position changes slightly depending on initial screen view",
+    // it might be due to 'panel' offset in camera or some CSS transform on the surface?
+    
+    // Actually, let's look at how 'surface' is styled.
+    // .stage-map-surface { position: relative; ... }
+    // The canvas is inside it.
+    // camera.worldToScreen(x,y) returns { x: panel + (x - originX) * scale, y: ... }
+    // 'panel' is the width of the side panel if any. In stageMap, panelWidth is likely 0.
+    
+    // Let's create a helper to update position.
+    
+    const el = document.createElement('div');
+    el.className = 'memory-restored-anim';
+    el.textContent = `기억 #${storyNumber} 복원됨`;
+    Object.assign(el.style, {
+      position: 'absolute',
+      transform: 'translate(-50%, -50%)',
+      color: '#fbbf24',
+      fontWeight: 'bold',
+      fontSize: '1.2rem',
+      textShadow: '0 2px 4px rgba(0,0,0,0.5)',
+      pointerEvents: 'none',
+      zIndex: '1000',
+      opacity: '0',
+      whiteSpace: 'nowrap',
+      transition: 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1)' // Removed top/left transition
+    });
+
+    if (surface) {
+      surface.appendChild(el);
+    } else {
+      document.body.appendChild(el);
+    }
+
+    let startTime = null;
+    const duration = 2300; // Total duration
+    const moveDelay = 1500;
+    const moveDuration = 800;
+
+    function updateAnim(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = timestamp - startTime;
+      
+      // Re-calculate positions based on current camera state to stick to the map
+      const currentStartPos = camera.worldToScreen(startWorldX, startWorldY);
+      const currentEndPos = camera.worldToScreen(endWorldX, endWorldY);
+      
+      // Initial float up
+      let targetX = currentStartPos.x;
+      let targetY = currentStartPos.y;
+      
+      if (elapsed < moveDelay) {
+        // Floating up phase
+        const floatProgress = Math.min(elapsed / 1000, 1);
+        // Ease out for float up
+        const floatOffset = 40 * (1 - Math.pow(1 - floatProgress, 3)); 
+        targetY -= floatOffset;
+        
+        el.style.opacity = Math.min(elapsed / 200, 1); // Fade in quickly
+      } else {
+        // Moving to target phase
+        const moveProgress = Math.min((elapsed - moveDelay) / moveDuration, 1);
+        const ease = 1 - Math.pow(1 - moveProgress, 3); // Ease out cubic
+        
+        // Interpolate between floated start and end
+        const floatedStartY = currentStartPos.y - 40;
+        
+        targetX = currentStartPos.x + (currentEndPos.x - currentStartPos.x) * ease;
+        targetY = floatedStartY + (currentEndPos.y - floatedStartY) * ease;
+        
+        // Fade out and scale down at the end
+        if (moveProgress > 0.5) {
+             el.style.opacity = 1 - (moveProgress - 0.5) * 2;
+             const scale = 1 - (moveProgress - 0.5);
+             el.style.transform = `translate(-50%, -50%) scale(${scale})`;
+        }
+      }
+
+      el.style.left = `${targetX}px`;
+      el.style.top = `${targetY}px`;
+
+      if (elapsed < duration) {
+        requestAnimationFrame(updateAnim);
+      } else {
+        el.remove();
+      }
+    }
+
+    requestAnimationFrame(updateAnim);
+  }
+
+  document.addEventListener('stageMap:shown', () => {
+    if (state.pendingMemoryRestored) {
+      setTimeout(() => {
+        runMemoryRestoredAnimation(state.pendingMemoryRestored);
+        state.pendingMemoryRestored = null;
+      }, 500);
+    }
+  });
+
   return {
     refresh: () => {
       refreshNodeStates();
     },
     focusLevel,
-    celebrateLevel
+    celebrateLevel,
+    triggerMemoryRestoredAnimation
   };
 }

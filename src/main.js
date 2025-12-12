@@ -1040,6 +1040,9 @@ document.addEventListener("DOMContentLoaded", () => {
       startLevel,
       returnToEditScreen
     });
+    configureLevelModule({
+      triggerMemoryRestoredAnimation: stageMapController.triggerMemoryRestoredAnimation
+    });
     setupNavigation({
       refreshUserData,
       renderUserProblemList

@@ -1,5 +1,5 @@
 import { setupGrid, setGridDimensions, destroyPlayContext, getPlayController } from './grid.js';
-import { getUsername } from './storage.js';
+import { getUsername, setLastAccessedLevel } from './storage.js';
 import { fetchOverallStats } from './rank.js';
 import { showStageMapScreen } from './navigation.js';
 
@@ -25,7 +25,8 @@ const dependencies = {
   renderUserProblemList: null,
   showOverallRanking: null,
   setIsScoring: null,
-  onLevelIntroComplete: null
+  onLevelIntroComplete: null,
+  triggerMemoryRestoredAnimation: null
 };
 
 export function configureLevelModule(options = {}) {
@@ -121,6 +122,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
   const hasFixedIO = Boolean(fixedIOConfig?.fixIO);
 
   currentLevel = parseInt(level, 10);
+  setLastAccessedLevel(currentLevel);
   const title = document.getElementById('gameTitle');
   if (title) {
     const localizedUntitled = translate('stageUntitled');
@@ -173,6 +175,9 @@ export function markLevelCleared(level) {
   if (!clearedLevelsFromDb.includes(level)) {
     clearedLevelsFromDb.push(level);
     refreshClearedUI();
+    if (typeof dependencies.triggerMemoryRestoredAnimation === 'function') {
+      dependencies.triggerMemoryRestoredAnimation(level, clearedLevelsFromDb.length);
+    }
   }
 }
 
@@ -204,6 +209,7 @@ export async function returnToLevels({
 
   if (typeof showStageMapScreen === 'function') {
     showStageMapScreen();
+    document.dispatchEvent(new Event('stageMap:shown'));
   } else {
     const stageMapScreen = document.getElementById('stageMapScreen');
     if (stageMapScreen) {
