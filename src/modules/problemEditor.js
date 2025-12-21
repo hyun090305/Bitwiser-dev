@@ -1287,9 +1287,9 @@ export function previewUserProblem(key) {
       alert(t('loadFailed'));
       return;
     }
-    showProblemIntro(data, startCustomProblemHandler
-      ? () => startCustomProblemHandler(key, data)
-      : undefined);
+    if (typeof startCustomProblemHandler === 'function') {
+      startCustomProblemHandler(key, data);
+    }
   });
 }
 
@@ -1435,5 +1435,30 @@ export function getActiveCustomProblem() {
 
 export function getActiveCustomProblemKey() {
   return activeCustomProblemKey;
+}
+
+export function getUserProblems() {
+  if (typeof db === 'undefined') return Promise.resolve([]);
+  const nickname = getUsername();
+  return db.ref('problems').once('value').then(snapshot => {
+    const problems = [];
+    if (!snapshot.exists()) return problems;
+    snapshot.forEach(child => {
+        const data = child.val();
+        if (!data) return false;
+        
+        const rankingEntries = data.ranking ? Object.values(data.ranking) : [];
+        const solvedByMe = rankingEntries.some(entry => entry.nickname === nickname);
+
+        problems.push({
+            key: child.key,
+            title: data.title || child.key,
+            creator: data.creator || 'Anonymous',
+            difficulty: data.difficulty || 0,
+            solvedByMe: solvedByMe
+        });
+    });
+    return problems;
+  });
 }
 

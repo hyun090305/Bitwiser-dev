@@ -552,10 +552,21 @@ export function createGradingController(config = {}) {
       return;
     }
 
+    triggerConfetti();
+
     const { blockCounts, usedWires } = getCircuitStats(circuit);
     const hintsUsed = typeof getHintProgress === 'function' ? getHintProgress(key) : 0;
     if (typeof saveProblemRanking === 'function') {
       saveProblemRanking(key, blockCounts, usedWires, hintsUsed);
+    }
+
+    if (typeof showClearedModal === 'function') {
+      showClearedModal(key, {
+        ...showClearedModalOptions,
+        isCustomProblem: true,
+        customTitle: problem.title || 'Custom Problem',
+        onClearCustomProblem: typeof clearActiveCustomProblem === 'function' ? clearActiveCustomProblem : null
+      });
     }
   }
 

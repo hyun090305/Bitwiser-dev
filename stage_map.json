@@ -5,7 +5,7 @@
   },
   "nodeTypes": {
     "stage": { "defaultSize": { "w": 3, "h": 3 } },
-    "rank":  { "defaultSize": { "w": 9, "h": 3 } },
+    "rank":  { "defaultSize": { "w": 29, "h": 3 } },
     "feature": { "defaultSize": { "w": 9, "h": 3 } },
     "mode":  { "defaultSize": { "w": 6, "h": 3 } }
   },
@@ -15,24 +15,24 @@
       "label": "Bit Solver",
       "nodeType": "rank",
       "category": "meta",
-      "position": { "x": 10, "y": 0 },
-      "size": { "w": 9, "h": 3 }
+      "position": { "x": 2, "y": 2 },
+      "size": { "w": 25, "h": 3 }
     },
     {
       "id": "bit_wiser",
       "label": "Bit Wiser",
       "nodeType": "rank",
       "category": "meta",
-      "position": { "x": 10, "y": 24 },
-      "size": { "w": 9, "h": 3 }
+      "position": { "x": 2, "y": 24 },
+      "size": { "w": 25, "h": 3 }
     },
     {
       "id": "bit_master",
       "label": "Bit Master",
       "nodeType": "rank",
       "category": "meta",
-      "position": { "x": 10, "y": 48 },
-      "size": { "w": 9, "h": 3 }
+      "position": { "x": 2, "y": 46 },
+      "size": { "w": 25, "h": 3 }
     },
 
     {
@@ -40,7 +40,7 @@
       "label": "Tutorial",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 3, "y": 7 },
+      "position": { "x": 8, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -48,7 +48,7 @@
       "label": "NOT",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 8, "y": 7 },
+      "position": { "x": 13, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -56,7 +56,7 @@
       "label": "NAND",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 13, "y": 7 },
+      "position": { "x": 18, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -65,7 +65,7 @@
       "label": "NOR",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 3, "y": 12 },
+      "position": { "x": 8, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -73,7 +73,7 @@
       "label": "OR",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 8, "y": 12 },
+      "position": { "x": 13, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -81,7 +81,7 @@
       "label": "AND",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 13, "y": 12 },
+      "position": { "x": 18, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -90,7 +90,7 @@
       "label": "Crossroad",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 3, "y": 17 },
+      "position": { "x": 8, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -98,7 +98,7 @@
       "label": "Fixed XOR",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 8, "y": 17 },
+      "position": { "x": 13, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -106,7 +106,7 @@
       "label": "XOR",
       "nodeType": "stage",
       "category": "basic_logic",
-      "position": { "x": 13, "y": 17 },
+      "position": { "x": 18, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -115,24 +115,8 @@
       "label": "Story",
       "nodeType": "feature",
       "category": "meta",
-      "position": { "x": 20, "y": 7 },
-      "size": { "w": 9, "h": 3 }
-    },
-    {
-      "id": "leaderboard",
-      "label": "Leaderboard",
-      "nodeType": "feature",
-      "category": "meta",
-      "position": { "x": 20, "y": 12 },
-      "size": { "w": 9, "h": 3 }
-    },
-    {
-      "id": "credits",
-      "label": "Credits",
-      "nodeType": "feature",
-      "category": "meta",
-      "position": { "x": 20, "y": 17 },
-      "size": { "w": 9, "h": 3 }
+      "position": { "x": 2, "y": -3 },
+      "size": { "w": 25, "h": 3 }
     },
 
     {
@@ -140,16 +124,16 @@
       "label": "Lab",
       "nodeType": "mode",
       "category": "meta",
-      "position": { "x": 0, "y": 24 },
-      "size": { "w": 6, "h": 3 }
+      "position": { "x": -6, "y": 23 },
+      "size": { "w": 5, "h": 5 }
     },
     {
       "id": "user_created_stages",
       "label": "User Created Stages",
       "nodeType": "mode",
       "category": "meta",
-      "position": { "x": 23, "y": 24 },
-      "size": { "w": 6, "h": 3 }
+      "position": { "x": 30, "y": 23 },
+      "size": { "w": 5, "h": 5 }
     },
 
     {
@@ -157,7 +141,7 @@
       "label": "3-bit Shifter",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 31 },
+      "position": { "x": 0, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -165,7 +149,7 @@
       "label": "Parity Checker",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 31 },
+      "position": { "x": 5, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -173,7 +157,7 @@
       "label": "Majority Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 31 },
+      "position": { "x": 10, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -182,7 +166,7 @@
       "label": "Fixed 2-to-4 Decoder",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 36 },
+      "position": { "x": 0, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -190,7 +174,7 @@
       "label": "2-to-4 Decoder",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 36 },
+      "position": { "x": 5, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -198,7 +182,7 @@
       "label": "Enable Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 36 },
+      "position": { "x": 10, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -207,7 +191,7 @@
       "label": "Priority Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 41 },
+      "position": { "x": 0, "y": 40 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -215,7 +199,7 @@
       "label": "2-bit Max Selector",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 41 },
+      "position": { "x": 5, "y": 40 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -223,7 +207,7 @@
       "label": "4-to-1 MUX",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 41 },
+      "position": { "x": 10, "y": 40 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -232,7 +216,7 @@
       "label": "Half Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 31 },
+      "position": { "x": 16, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -240,7 +224,7 @@
       "label": "Full Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 31 },
+      "position": { "x": 21, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -248,7 +232,7 @@
       "label": "Overflow Detector",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 31 },
+      "position": { "x": 26, "y": 30 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -257,7 +241,7 @@
       "label": "Mod 3 Remainder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 36 },
+      "position": { "x": 16, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -265,7 +249,7 @@
       "label": "2-bit Comparator",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 36 },
+      "position": { "x": 21, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -273,7 +257,7 @@
       "label": "2-bit Subtractor",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 36 },
+      "position": { "x": 26, "y": 35 },
       "size": { "w": 3, "h": 3 }
     },
 
@@ -282,7 +266,7 @@
       "label": "2-bit Multiplier",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 41 },
+      "position": { "x": 16, "y": 40 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -290,7 +274,7 @@
       "label": "2-bit Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 41 },
+      "position": { "x": 21, "y": 40 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -298,7 +282,7 @@
       "label": "2's complement",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 41 },
+      "position": { "x": 26, "y": 40 },
       "size": { "w": 3, "h": 3 }
     }
   ],
@@ -309,16 +293,13 @@
       "to": "tutorial",
       "style": "orthogonal",
       "waypoints": [
-        { "x": 4, "y": 1 }
+        { "x": 9, "y": 3 }
       ]
     },
     {
-      "from": "bit_solver",
-      "to": "story",
-      "style": "orthogonal",
-      "waypoints": [
-        { "x": 24, "y": 1 }
-      ]
+      "from": "story",
+      "to": "bit_solver",
+      "style": "orthogonal"
     },
 
     { "from": "tutorial", "to": "not", "style": "orthogonal" },
@@ -329,10 +310,7 @@
     { "from": "and",      "to": "xor", "style": "orthogonal" },
     { "from": "xor",      "to": "fixed_xor", "style": "orthogonal" },
     { "from": "fixed_xor","to": "crossroad", "style": "orthogonal" },
-    { "from": "xor","to": "bit_wiser", "style": "orthogonal" },
-
-    { "from": "story",       "to": "leaderboard", "style": "orthogonal" },
-    { "from": "leaderboard", "to": "credits",     "style": "orthogonal" },
+    { "from": "xor","to": "bit_wiser", "style": "orthogonal","waypoints": [{ "x": 19, "y": 24 }] },
 
     { "from": "bit_wiser", "to": "lab",                 "style": "orthogonal" },
     { "from": "bit_wiser", "to": "user_created_stages","style": "orthogonal" },
@@ -358,7 +336,7 @@
     { "from": "two_bit_adder",     "to": "two_bit_multiplier","style": "orthogonal" },
     { "from": "two_bit_adder",     "to": "twos_complement","style": "orthogonal" },
 
-    { "from": "mux_4to1",          "to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 11, "y": 49 }] },
-    { "from": "two_bit_multiplier","to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 17, "y": 49 }]  }
+    { "from": "mux_4to1",          "to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 11, "y": 47 }] },
+    { "from": "two_bit_multiplier","to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 17, "y": 47 }]  }
   ]
 }

@@ -508,10 +508,13 @@ export async function showClearedModal(level, options = {}) {
     getLevelTitles,
     returnToEditScreen,
     returnToLevels,
-    stageMapCelebrate
+    stageMapCelebrate,
+    isCustomProblem = false,
+    customTitle = null,
+    onClearCustomProblem
   } = options;
 
-  if (typeof loadClearedLevelsFromDb === 'function') {
+  if (typeof loadClearedLevelsFromDb === 'function' && !isCustomProblem) {
     await loadClearedLevelsFromDb();
   }
 
@@ -519,8 +522,13 @@ export async function showClearedModal(level, options = {}) {
   if (!modal) return;
 
   const tr = resolveTranslator(translate);
-  const titles = typeof getLevelTitles === 'function' ? getLevelTitles() : null;
-  const resolvedStageTitle = titles?.[level] ?? translateText(tr, 'stageUntitled', 'Untitled stage');
+  let resolvedStageTitle;
+  if (isCustomProblem && customTitle) {
+    resolvedStageTitle = customTitle;
+  } else {
+    const titles = typeof getLevelTitles === 'function' ? getLevelTitles() : null;
+    resolvedStageTitle = titles?.[level] ?? translateText(tr, 'stageUntitled', 'Untitled stage');
+  }
   const stageTitleEl = document.querySelector(stageTitleSelector);
   if (stageTitleEl) stageTitleEl.textContent = resolvedStageTitle;
 
@@ -534,7 +542,9 @@ export async function showClearedModal(level, options = {}) {
     continueBtn.disabled = false;
   }
 
-  db.ref(`rankings/${level}`)
+  const rankingPath = isCustomProblem ? `problems/${level}/ranking` : `rankings/${level}`;
+
+  db.ref(rankingPath)
     .orderByChild('timestamp')
     .once('value')
     .then(snapshot => {
@@ -576,20 +586,33 @@ export async function showClearedModal(level, options = {}) {
         continueBtn.onclick = async () => {
           continueBtn.disabled = true;
           modal.style.display = 'none';
-          try {
+          
+          if (isCustomProblem) {
             if (typeof returnToEditScreen === 'function') {
               returnToEditScreen();
             }
             if (typeof returnToLevels === 'function') {
-              await returnToLevels();
+              await returnToLevels({
+                isCustomProblemActive: true,
+                onClearCustomProblem
+              });
             }
-            await loadClearedLevelsFromDb();
-            document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
-          } catch (err) {
-            console.error('레벨 선택 화면으로 이동 실패:', err);
-          }
-          if (typeof stageMapCelebrate === 'function') {
-            stageMapCelebrate(level);
+          } else {
+            try {
+              if (typeof returnToEditScreen === 'function') {
+                returnToEditScreen();
+              }
+              if (typeof returnToLevels === 'function') {
+                await returnToLevels();
+              }
+              await loadClearedLevelsFromDb();
+              document.dispatchEvent(new CustomEvent('stageMap:progressUpdated'));
+            } catch (err) {
+              console.error('레벨 선택 화면으로 이동 실패:', err);
+            }
+            if (typeof stageMapCelebrate === 'function') {
+              stageMapCelebrate(level);
+            }
           }
           continueBtn.disabled = false;
         };

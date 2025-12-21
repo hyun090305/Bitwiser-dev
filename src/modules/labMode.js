@@ -141,7 +141,33 @@ function removeLabResizeHandler() {
   }
 }
 
-function createLabController({ preserveCircuit = false } = {}) {
+function applyCameraOptions(camera, options) {
+  if (!camera || !options) return;
+  
+  if (Number.isFinite(options.scale)) {
+    camera.setScale(options.scale);
+  }
+  
+  const state = camera.getState();
+  const currentOriginX = state.originX;
+  const currentOriginY = state.originY;
+  const currentScale = state.scale;
+  
+  const targetOriginX = Number.isFinite(options.originX) ? options.originX : currentOriginX;
+  const targetOriginY = Number.isFinite(options.originY) ? options.originY : currentOriginY;
+  
+  // Calculate dx, dy required to move from current to target
+  // pan(dx, dy) -> origin -= dx/scale
+  // dx = (current - target) * scale
+  const dx = (currentOriginX - targetOriginX) * currentScale;
+  const dy = (currentOriginY - targetOriginY) * currentScale;
+  
+  if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+    camera.pan(dx, dy);
+  }
+}
+
+function createLabController({ preserveCircuit = false, cameraOptions = null } = {}) {
   const bgCanvas = document.getElementById('labBgCanvas');
   const contentCanvas = document.getElementById('labContentCanvas');
   const overlayCanvas = document.getElementById('labOverlayCanvas');
@@ -163,6 +189,11 @@ function createLabController({ preserveCircuit = false } = {}) {
     labController.resizeCanvas?.(innerWidth, innerHeight);
     labController.attachKeyboardHandlers?.();
     labController.setCopyPasteEnabled?.(true);
+    
+    // Even if reusing, we might want to apply camera options if provided (e.g. re-entering from stage map)
+    if (cameraOptions && labCamera) {
+      applyCameraOptions(labCamera, cameraOptions);
+    }
     return;
   }
 
@@ -172,6 +203,10 @@ function createLabController({ preserveCircuit = false } = {}) {
 
   if (!labCamera) {
     labCamera = createCamera({ panelWidth: 220 });
+  }
+  
+  if (cameraOptions) {
+    applyCameraOptions(labCamera, cameraOptions);
   }
 
   const paletteGroups = collectPaletteGroups(labCircuit);
@@ -225,29 +260,67 @@ function createLabController({ preserveCircuit = false } = {}) {
   labController.attachKeyboardHandlers?.();
 }
 
-function showLabModeUI() {
+function showLabModeUI(options = {}) {
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
   hideStageMapScreen();
   moveRightPanelInto(labScreen);
   revealLabScreen();
+
+  // Apply entry animations
+  const rightPanel = document.getElementById('rightPanel');
+  if (rightPanel) {
+    rightPanel.classList.remove('lab-ui-slide-in-right');
+    void rightPanel.offsetWidth; // Trigger reflow
+    rightPanel.classList.add('lab-ui-slide-in-right');
+  }
+
   const titleEl = document.getElementById('gameTitle');
   if (titleEl) {
     if (!originalGameTitleText) {
       originalGameTitleText = titleEl.textContent || '';
     }
     titleEl.textContent = '🔬 Lab Mode';
+    titleEl.classList.remove('lab-ui-fade-in');
+    void titleEl.offsetWidth;
+    titleEl.classList.add('lab-ui-fade-in');
+    titleEl.style.animationDelay = '0.1s';
   }
-  createLabController({ preserveCircuit: labInitialized });
+  createLabController({ 
+    preserveCircuit: labInitialized,
+    cameraOptions: options.camera
+  });
   labInitialized = true;
 }
 
 function hideLabModeUI() {
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
+  
+  // Capture camera state before destroying controller
+  let returnCameraState = null;
+  if (labCamera) {
+    const { originX, originY, scale } = labCamera.getState();
+    // Convert Lab Origin to Stage Map Origin
+    // StageOriginX = LabOriginX - 220/Scale
+    const stageOriginX = originX - 220 / scale;
+    returnCameraState = {
+      scale,
+      originX: stageOriginX,
+      originY
+    };
+  }
+
   concealLabScreen();
   restoreRightPanel();
   showStageMapScreen();
+  
+  if (returnCameraState) {
+    document.dispatchEvent(new CustomEvent('stageMap:returnFromLab', {
+      detail: { camera: returnCameraState }
+    }));
+  }
+
   removeLabResizeHandler();
   labController?.destroy?.();
   labController = null;
@@ -309,7 +382,7 @@ export function initializeLabMode() {
   });
 
   exitBtn?.addEventListener('click', () => {
-    hideLabModeUI();
+    startExitSequence();
   });
 
   initializeCircuitCommunity({
@@ -320,6 +393,53 @@ export function initializeLabMode() {
   });
 }
 
-export function openLabModeFromShortcut() {
-  showLabModeUI();
+function startExitSequence() {
+  if (!labCamera || !labController) {
+    hideLabModeUI();
+    return;
+  }
+
+  const state = labCamera.getState();
+  const currentScale = state.scale;
+  const targetScale = 0.8; // Minimum scale for smooth transition to Stage Map
+
+  if (currentScale >= targetScale) {
+    hideLabModeUI();
+    return;
+  }
+
+  // Animate zoom to targetScale
+  const startTime = performance.now();
+  const duration = 300;
+  const startScale = currentScale;
+  
+  // Zoom towards center of viewport
+  const viewportW = state.viewportWidth || window.innerWidth;
+  const viewportH = state.viewportHeight || window.innerHeight;
+  const panelW = state.panelWidth || 220;
+  const pivotX = panelW + (viewportW - panelW) / 2;
+  const pivotY = viewportH / 2;
+
+  function animate(now) {
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    // Ease out cubic
+    const ease = 1 - Math.pow(1 - progress, 3);
+    
+    const nextScale = startScale + (targetScale - startScale) * ease;
+    labCamera.setScale(nextScale, pivotX, pivotY);
+    labController.refreshVisuals?.();
+
+    if (progress < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      hideLabModeUI();
+    }
+  }
+
+  requestAnimationFrame(animate);
+}
+
+export function openLabModeFromShortcut(options) {
+  showLabModeUI(options);
 }
