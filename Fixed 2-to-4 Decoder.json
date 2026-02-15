@@ -1,0 +1,1446 @@
+{
+  "creator": "이현준",
+  "description": "IN1, IN2에 따라 출력 블록이 1개씩 켜집니다.",
+  "difficulty": 3,
+  "fixIO": true,
+  "grid": [
+    {
+      "index": 5,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 9,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 7,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 35,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 37,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 39,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 52,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 82,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 76,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 88,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 3,
+      "name": "IN1",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 11,
+      "name": "IN2",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 92,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 96,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 98,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 102,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 94,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 122,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 124,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 126,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 128,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 130,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 132,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 100,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 139,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 145,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 169,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 151,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 181,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 211,
+      "name": "OUT1",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 215,
+      "name": "OUT2",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 219,
+      "name": "OUT3",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 223,
+      "name": "OUT4",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 185,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 172,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 175,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 189,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 178,
+      "name": "AND",
+      "type": "AND"
+    }
+  ],
+  "gridCols": 15,
+  "gridRows": 15,
+  "inputCount": 2,
+  "outputCount": 4,
+  "ranking": {
+    "-OgBWT2FDhQIFkeHEY6L": {
+      "blockCounts": {
+        "AND": 12,
+        "INPUT": 2,
+        "JUNCTION": 12,
+        "NOT": 4,
+        "OR": 4,
+        "OUTPUT": 4
+      },
+      "hintsUsed": 0,
+      "nickname": "이현준",
+      "timestamp": "2025-12-11T08:27:38.989Z",
+      "usedWires": 85
+    }
+  },
+  "table": [
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 1
+    }
+  ],
+  "timestamp": "2025-12-11T08:27:38.989Z",
+  "title": "Fixed 2-to-4 Decoder",
+  "wires": [
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 6,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 9,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 1
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 7,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 6,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 9,
+      "y": 3
+    },
+    {
+      "dir": "left",
+      "x": 8,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 4
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 11,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 10,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 11,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 12,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 4
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 13,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 12,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "dir": "left",
+      "x": 4,
+      "y": 8
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 7
+    },
+    {
+      "dir": "right",
+      "x": 8,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 9,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 12,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 11,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 10,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 10,
+      "y": 7
+    },
+    {
+      "dir": "left",
+      "x": 10,
+      "y": 8
+    },
+    {
+      "dir": "left",
+      "x": 9,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 12,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 12,
+      "y": 7
+    },
+    {
+      "dir": "right",
+      "x": 10,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 11,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 9
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 8
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 8,
+      "y": 9
+    },
+    {
+      "dir": "right",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 12,
+      "y": 8
+    },
+    {
+      "dir": "left",
+      "x": 12,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 11,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 10
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 4,
+      "y": 11
+    },
+    {
+      "dir": "up",
+      "x": 3,
+      "y": 11
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 10
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 10
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 10
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 13
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 10
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 11
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 13
+    },
+    {
+      "dir": "down",
+      "x": 10,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 10,
+      "y": 10
+    },
+    {
+      "dir": "left",
+      "x": 10,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 11
+    },
+    {
+      "dir": "right",
+      "x": 7,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 11
+    },
+    {
+      "dir": "right",
+      "x": 8,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 13
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 8
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 10
+    },
+    {
+      "dir": "right",
+      "x": 10,
+      "y": 11
+    },
+    {
+      "dir": "right",
+      "x": 11,
+      "y": 11
+    },
+    {
+      "dir": "right",
+      "x": 12,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 11
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 12
+    },
+    {
+      "dir": "down",
+      "x": 13,
+      "y": 13
+    }
+  ],
+  "wiresObj": [
+    {
+      "endIdx": 7,
+      "pathIdxs": [
+        5,
+        6,
+        7
+      ],
+      "startIdx": 5
+    },
+    {
+      "endIdx": 7,
+      "pathIdxs": [
+        9,
+        8,
+        7
+      ],
+      "startIdx": 9
+    },
+    {
+      "endIdx": 35,
+      "pathIdxs": [
+        5,
+        20,
+        35
+      ],
+      "startIdx": 5
+    },
+    {
+      "endIdx": 37,
+      "pathIdxs": [
+        7,
+        22,
+        37
+      ],
+      "startIdx": 7
+    },
+    {
+      "endIdx": 35,
+      "pathIdxs": [
+        37,
+        36,
+        35
+      ],
+      "startIdx": 37
+    },
+    {
+      "endIdx": 39,
+      "pathIdxs": [
+        9,
+        24,
+        39
+      ],
+      "startIdx": 9
+    },
+    {
+      "endIdx": 39,
+      "pathIdxs": [
+        37,
+        38,
+        39
+      ],
+      "startIdx": 37
+    },
+    {
+      "endIdx": 52,
+      "pathIdxs": [
+        35,
+        50,
+        51,
+        52
+      ],
+      "startIdx": 35
+    },
+    {
+      "endIdx": 52,
+      "pathIdxs": [
+        39,
+        54,
+        53,
+        52
+      ],
+      "startIdx": 39
+    },
+    {
+      "endIdx": 82,
+      "pathIdxs": [
+        52,
+        67,
+        82
+      ],
+      "startIdx": 52
+    },
+    {
+      "endIdx": 5,
+      "pathIdxs": [
+        3,
+        4,
+        5
+      ],
+      "startIdx": 3
+    },
+    {
+      "endIdx": 9,
+      "pathIdxs": [
+        11,
+        10,
+        9
+      ],
+      "startIdx": 11
+    },
+    {
+      "endIdx": 88,
+      "pathIdxs": [
+        11,
+        12,
+        13,
+        28,
+        43,
+        58,
+        73,
+        88
+      ],
+      "startIdx": 11
+    },
+    {
+      "endIdx": 76,
+      "pathIdxs": [
+        3,
+        2,
+        1,
+        16,
+        31,
+        46,
+        61,
+        76
+      ],
+      "startIdx": 3
+    },
+    {
+      "endIdx": 96,
+      "pathIdxs": [
+        82,
+        81,
+        96
+      ],
+      "startIdx": 82
+    },
+    {
+      "endIdx": 92,
+      "pathIdxs": [
+        76,
+        77,
+        92
+      ],
+      "startIdx": 76
+    },
+    {
+      "endIdx": 98,
+      "pathIdxs": [
+        82,
+        83,
+        98
+      ],
+      "startIdx": 82
+    },
+    {
+      "endIdx": 102,
+      "pathIdxs": [
+        88,
+        87,
+        102
+      ],
+      "startIdx": 88
+    },
+    {
+      "endIdx": 94,
+      "pathIdxs": [
+        92,
+        93,
+        94
+      ],
+      "startIdx": 92
+    },
+    {
+      "endIdx": 94,
+      "pathIdxs": [
+        96,
+        95,
+        94
+      ],
+      "startIdx": 96
+    },
+    {
+      "endIdx": 122,
+      "pathIdxs": [
+        92,
+        107,
+        122
+      ],
+      "startIdx": 92
+    },
+    {
+      "endIdx": 124,
+      "pathIdxs": [
+        94,
+        109,
+        124
+      ],
+      "startIdx": 94
+    },
+    {
+      "endIdx": 122,
+      "pathIdxs": [
+        124,
+        123,
+        122
+      ],
+      "startIdx": 124
+    },
+    {
+      "endIdx": 126,
+      "pathIdxs": [
+        124,
+        125,
+        126
+      ],
+      "startIdx": 124
+    },
+    {
+      "endIdx": 126,
+      "pathIdxs": [
+        96,
+        111,
+        126
+      ],
+      "startIdx": 96
+    },
+    {
+      "endIdx": 100,
+      "pathIdxs": [
+        98,
+        99,
+        100
+      ],
+      "startIdx": 98
+    },
+    {
+      "endIdx": 100,
+      "pathIdxs": [
+        102,
+        101,
+        100
+      ],
+      "startIdx": 102
+    },
+    {
+      "endIdx": 128,
+      "pathIdxs": [
+        98,
+        113,
+        128
+      ],
+      "startIdx": 98
+    },
+    {
+      "endIdx": 130,
+      "pathIdxs": [
+        100,
+        115,
+        130
+      ],
+      "startIdx": 100
+    },
+    {
+      "endIdx": 128,
+      "pathIdxs": [
+        130,
+        129,
+        128
+      ],
+      "startIdx": 130
+    },
+    {
+      "endIdx": 132,
+      "pathIdxs": [
+        102,
+        117,
+        132
+      ],
+      "startIdx": 102
+    },
+    {
+      "endIdx": 132,
+      "pathIdxs": [
+        130,
+        131,
+        132
+      ],
+      "startIdx": 130
+    },
+    {
+      "endIdx": 139,
+      "pathIdxs": [
+        122,
+        137,
+        138,
+        139
+      ],
+      "startIdx": 122
+    },
+    {
+      "endIdx": 139,
+      "pathIdxs": [
+        126,
+        141,
+        140,
+        139
+      ],
+      "startIdx": 126
+    },
+    {
+      "endIdx": 145,
+      "pathIdxs": [
+        128,
+        143,
+        144,
+        145
+      ],
+      "startIdx": 128
+    },
+    {
+      "endIdx": 145,
+      "pathIdxs": [
+        132,
+        147,
+        146,
+        145
+      ],
+      "startIdx": 132
+    },
+    {
+      "endIdx": 169,
+      "pathIdxs": [
+        139,
+        154,
+        169
+      ],
+      "startIdx": 139
+    },
+    {
+      "endIdx": 151,
+      "pathIdxs": [
+        76,
+        91,
+        106,
+        121,
+        136,
+        151
+      ],
+      "startIdx": 76
+    },
+    {
+      "endIdx": 151,
+      "pathIdxs": [
+        169,
+        168,
+        153,
+        152,
+        151
+      ],
+      "startIdx": 169
+    },
+    {
+      "endIdx": 181,
+      "pathIdxs": [
+        151,
+        166,
+        181
+      ],
+      "startIdx": 151
+    },
+    {
+      "endIdx": 211,
+      "pathIdxs": [
+        181,
+        196,
+        211
+      ],
+      "startIdx": 181
+    },
+    {
+      "endIdx": 185,
+      "pathIdxs": [
+        169,
+        170,
+        185
+      ],
+      "startIdx": 169
+    },
+    {
+      "endIdx": 172,
+      "pathIdxs": [
+        82,
+        97,
+        112,
+        127,
+        142,
+        157,
+        172
+      ],
+      "startIdx": 82
+    },
+    {
+      "endIdx": 185,
+      "pathIdxs": [
+        172,
+        171,
+        186,
+        185
+      ],
+      "startIdx": 172
+    },
+    {
+      "endIdx": 215,
+      "pathIdxs": [
+        185,
+        200,
+        215
+      ],
+      "startIdx": 185
+    },
+    {
+      "endIdx": 175,
+      "pathIdxs": [
+        145,
+        160,
+        175
+      ],
+      "startIdx": 145
+    },
+    {
+      "endIdx": 189,
+      "pathIdxs": [
+        175,
+        174,
+        189
+      ],
+      "startIdx": 175
+    },
+    {
+      "endIdx": 189,
+      "pathIdxs": [
+        172,
+        173,
+        188,
+        189
+      ],
+      "startIdx": 172
+    },
+    {
+      "endIdx": 219,
+      "pathIdxs": [
+        189,
+        204,
+        219
+      ],
+      "startIdx": 189
+    },
+    {
+      "endIdx": 178,
+      "pathIdxs": [
+        88,
+        103,
+        118,
+        133,
+        148,
+        163,
+        178
+      ],
+      "startIdx": 88
+    },
+    {
+      "endIdx": 178,
+      "pathIdxs": [
+        175,
+        176,
+        177,
+        178
+      ],
+      "startIdx": 175
+    },
+    {
+      "endIdx": 223,
+      "pathIdxs": [
+        178,
+        193,
+        208,
+        223
+      ],
+      "startIdx": 178
+    }
+  ]
+}

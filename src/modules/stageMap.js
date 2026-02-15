@@ -790,7 +790,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
 
   const textColor = spec.textColor || TITLE_BADGE_BASE.textColor;
   const subtitleColor = spec.subtitleColor || TITLE_BADGE_BASE.subtitleColor;
-  const mainFontSize = 20 * scale;
+  const mainFontSize = rect.h * 0.2;
   const subtitleSize = 13 * scale;
 
   ctx.textAlign = 'center';
@@ -830,7 +830,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
   };
 
   const titleText = clampText(node.title, rect.w * 0.84);
-  ctx.fillText(titleText, rect.x + rect.w / 2, rect.y + rect.h / 2 - Math.max(4 * scale, 6));
+  ctx.fillText(titleText, rect.x + rect.w / 2, rect.y + rect.h / 2);
 
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
@@ -1020,7 +1020,12 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
       : stageStyle.textColor
     : baseStyle.text;
   ctx.fillStyle = titleColor;
-  ctx.font = `700 ${16 * scale}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  
+  let fontSize = 18 * scale;
+  if (node.id === 'story') fontSize = height * 0.2;
+  else if (['lab', 'user_created_stages'].includes(node.id)) fontSize = 22 * scale;
+
+  ctx.font = `700 ${fontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
@@ -1028,38 +1033,56 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   const paddingY = 10 * scale;
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
-  const maxTextWidth = Math.max(8, width - paddingX * 2);
-  function fitText(t) {
-    if (!t) return '';
-    if (ctx.measureText(t).width <= maxTextWidth) return t;
-    let lo = 0;
-    let hi = t.length;
-    let result = t;
-    while (lo < hi) {
-      const mid = Math.ceil((lo + hi) / 2);
-      const cand = t.slice(0, mid) + '…';
-      if (ctx.measureText(cand).width <= maxTextWidth) {
-        lo = mid;
-        result = cand;
-      } else {
-        hi = mid - 1;
-      }
-    }
-    if (ctx.measureText(result).width > maxTextWidth) {
-      let s = t;
-      while (s.length && ctx.measureText(s + '…').width > maxTextWidth) s = s.slice(0, -1);
-      result = s + (s.length < t.length ? '…' : '');
-    }
-    return result;
+
+  const isCenteredNode = ['story', 'lab', 'user_created_stages'].includes(node.id);
+
+  if (isCenteredNode) {
+    ctx.textAlign = 'center';
+    textX = topLeft.x + width / 2;
+    textY = topLeft.y + height / 2;
   }
 
-  const titleText = fitText(node.title);
-  ctx.fillText(titleText, textX, textY);
+  const maxTextWidth = Math.max(8, width - paddingX * 2);
+  
+  function wrapText(text) {
+    if (!text) return [];
+    const words = text.split(' ');
+    const lines = [];
+    let currentLine = words[0];
+
+    for (let i = 1; i < words.length; i++) {
+      const word = words[i];
+      const width = ctx.measureText(currentLine + " " + word).width;
+      if (width < maxTextWidth) {
+        currentLine += " " + word;
+      } else {
+        lines.push(currentLine);
+        currentLine = word;
+      }
+    }
+    lines.push(currentLine);
+    return lines;
+  }
+
+  const titleLines = wrapText(node.title);
+  const lineHeight = fontSize * 1.1;
+
+  if (isCenteredNode) {
+    textY -= (titleLines.length - 1) * lineHeight / 2;
+  }
+
+  titleLines.forEach((line, i) => {
+    ctx.fillText(line, textX, textY + i * lineHeight);
+  });
+
+  if (!isCenteredNode) {
+    textY += (titleLines.length - 1) * lineHeight;
+  }
 
   ctx.font = `500 ${12 * scale}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   textY += 18 * scale;
 
-  const chapterText = fitText(node.chapterName || '');
+  const chapterText = ''; // Chapter text is hidden now
   if (stageStyle) {
     const prevAlpha = ctx.globalAlpha;
     ctx.fillStyle = stageCleared

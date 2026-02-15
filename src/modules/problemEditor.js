@@ -661,25 +661,17 @@ function updateGridSizePreview() {
 }
 
 export function collectProblemData() {
-  const circuit = getProblemCircuit();
-  const cols = getGridCols();
   const [gridRows, gridCols] = getGridDimensions();
   const { inputs, outputs } = getCurrentIOState();
-  const wiresObj = circuit
-    ? Object.values(circuit.wires).map(wire => ({
-        startIdx:
-          circuit.blocks[wire.startBlockId].pos.r * cols +
-          circuit.blocks[wire.startBlockId].pos.c,
-        endIdx:
-          circuit.blocks[wire.endBlockId].pos.r * cols +
-          circuit.blocks[wire.endBlockId].pos.c,
-        pathIdxs: wire.path.map(p => p.r * cols + p.c)
-      }))
-    : [];
 
   const titleInput = document.getElementById('problemTitleInput');
   const descInput = document.getElementById('problemDescInput');
   const fixIOCheck = document.getElementById('fixIOCheck');
+  const fixIO = Boolean(fixIOCheck?.checked);
+
+  const grid = fixIO
+    ? getProblemGridData().filter(b => b.type === 'INPUT' || b.type === 'OUTPUT')
+    : null;
 
   return {
     title: titleInput ? titleInput.value.trim() : '',
@@ -689,11 +681,9 @@ export function collectProblemData() {
     outputCount: outputs.length,
     gridRows,
     gridCols,
-    fixIO: Boolean(fixIOCheck?.checked),
+    fixIO,
     table: getProblemTruthTable(inputs, outputs),
-    grid: getProblemGridData(),
-    wires: getProblemWireData(),
-    wiresObj,
+    grid,
     creator: getUsername() || '익명',
     timestamp: new Date().toISOString()
   };

@@ -20,18 +20,16 @@
     "17": "2-bit Multiplier",
     "18": "4-bit Mod 3 Remainder",
     "19": "7 x 7 crossroad",
-    "20": "Fixed XOR Gate"
+    "20": "Fixed XOR Gate",
+    "21": "3-bit Shifter",
+    "22": "Fixed 2-to-4 Decoder",
+    "23": "Priority Gate",
+    "24": "2's complement"
   },
   "levelGridSizes": {
     "0": [6, 6],
     "1": [6, 6],
     "2": [6, 6],
-    },
-    {
-      "id": "community",
-      "name": "Community Stages",
-      "desc": "Take on circuits curated from player creations.",
-      "stages": [19, 20]
     "3": [6, 6],
     "4": [6, 6],
     "5": [6, 6],
@@ -49,9 +47,45 @@
     "17": [12, 12],
     "18": [15, 15],
     "19": [7, 7],
-    "20": [7, 7]
+    "20": [7, 7],
+    "21": [8, 8],
+    "22": [15, 15],
+    "23": [9, 7],
+    "24": [10, 10]
   },
   "levelBlockSets": {
+    "0": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "NOT" },
+      { "type": "AND" }
+    ],
+    "1": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "NOT" }
+    ],
+    "2": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OR" }
+    ],
+    "3": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "AND" }
+    ],
+    "4": [
+      { "type": "INPUT", "name": "IN1" },
+      { "type": "INPUT", "name": "IN2" },
+      { "type": "OUTPUT", "name": "OUT1" },
+      { "type": "OR" },
+      { "type": "NOT" }
+    ],
+    "5": [
       { "type": "INPUT", "name": "IN1" },
       { "type": "INPUT", "name": "IN2" },
       { "type": "OUTPUT", "name": "OUT1" },
@@ -224,7 +258,60 @@
   { "type": "NOT" },
   { "type": "AND" },
   { "type": "OR" }
-]
+],
+  "21": [
+    { "type": "INPUT", "name": "IN1" },
+    { "type": "INPUT", "name": "IN2" },
+    { "type": "INPUT", "name": "IN3" },
+    { "type": "INPUT", "name": "IN4" },
+    { "type": "OUTPUT", "name": "OUT1" },
+    { "type": "OUTPUT", "name": "OUT2" },
+    { "type": "OUTPUT", "name": "OUT3" },
+    { "type": "AND" },
+    { "type": "OR" },
+    { "type": "NOT" },
+    { "type": "JUNCTION" }
+  ],
+  "22": [
+    { "type": "INPUT", "name": "IN1" },
+    { "type": "INPUT", "name": "IN2" },
+    { "type": "OUTPUT", "name": "OUT1" },
+    { "type": "OUTPUT", "name": "OUT2" },
+    { "type": "OUTPUT", "name": "OUT3" },
+    { "type": "OUTPUT", "name": "OUT4" },
+    { "type": "AND" },
+    { "type": "OR" },
+    { "type": "NOT" },
+    { "type": "JUNCTION" }
+  ],
+  "23": [
+    { "type": "INPUT", "name": "IN1" },
+    { "type": "INPUT", "name": "IN2" },
+    { "type": "INPUT", "name": "IN3" },
+    { "type": "INPUT", "name": "IN4" },
+    { "type": "OUTPUT", "name": "OUT1" },
+    { "type": "OUTPUT", "name": "OUT2" },
+    { "type": "OUTPUT", "name": "OUT3" },
+    { "type": "OUTPUT", "name": "OUT4" },
+    { "type": "AND" },
+    { "type": "OR" },
+    { "type": "NOT" },
+    { "type": "JUNCTION" }
+  ],
+  "24": [
+    { "type": "INPUT", "name": "IN1" },
+    { "type": "INPUT", "name": "IN2" },
+    { "type": "INPUT", "name": "IN3" },
+    { "type": "INPUT", "name": "IN4" },
+    { "type": "OUTPUT", "name": "OUT1" },
+    { "type": "OUTPUT", "name": "OUT2" },
+    { "type": "OUTPUT", "name": "OUT3" },
+    { "type": "OUTPUT", "name": "OUT4" },
+    { "type": "AND" },
+    { "type": "OR" },
+    { "type": "NOT" },
+    { "type": "JUNCTION" }
+  ]
   },
   "levelFixedIO": {
     "19": {
@@ -242,6 +329,30 @@
         { "index": 0, "type": "INPUT", "name": "IN1" },
         { "index": 42, "type": "INPUT", "name": "IN2" },
         { "index": 6, "type": "OUTPUT", "name": "OUT1" }
+      ]
+    },
+    "22": {
+      "fixIO": true,
+      "grid": [
+        { "index": 3, "type": "INPUT", "name": "IN1" },
+        { "index": 11, "type": "INPUT", "name": "IN2" },
+        { "index": 211, "type": "OUTPUT", "name": "OUT1" },
+        { "index": 215, "type": "OUTPUT", "name": "OUT2" },
+        { "index": 219, "type": "OUTPUT", "name": "OUT3" },
+        { "index": 223, "type": "OUTPUT", "name": "OUT4" }
+      ]
+    },
+    "23": {
+      "fixIO": true,
+      "grid": [
+        { "index": 0, "type": "INPUT", "name": "IN1" },
+        { "index": 2, "type": "INPUT", "name": "IN2" },
+        { "index": 4, "type": "INPUT", "name": "IN3" },
+        { "index": 6, "type": "INPUT", "name": "IN4" },
+        { "index": 56, "type": "OUTPUT", "name": "OUT1" },
+        { "index": 58, "type": "OUTPUT", "name": "OUT2" },
+        { "index": 60, "type": "OUTPUT", "name": "OUT3" },
+        { "index": 62, "type": "OUTPUT", "name": "OUT4" }
       ]
     }
   },
@@ -408,26 +519,6 @@
         "A<B": 0
       }
       },
-        "19": {
-          "title": "Stage 19: 7 x 7 crossroad",
-          "desc": "Unravel the 7x7 crossroad so IN1 reaches OUT1 and IN2 reaches OUT2 without getting mixed up.",
-          "table": [
-            { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
-            { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1 },
-            { "IN1": 1, "IN2": 0, "OUT1": 1, "OUT2": 0 },
-            { "IN1": 1, "IN2": 1, "OUT1": 1, "OUT2": 1 }
-          ]
-        },
-        "20": {
-          "title": "Stage 20: Fixed XOR Gate",
-          "desc": "Use the fixed layout to produce OUT1 = IN1 XOR IN2 in as few moves as possible.",
-          "table": [
-            { "IN1": 0, "IN2": 0, "OUT1": 0 },
-            { "IN1": 0, "IN2": 1, "OUT1": 1 },
-            { "IN1": 1, "IN2": 0, "OUT1": 1 },
-            { "IN1": 1, "IN2": 1, "OUT1": 0 }
-          ]
-        }
     {
       "inputs": {
         "A1": 0,
@@ -1307,6 +1398,66 @@
     { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 1 } },
     { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 1 } },
     { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0 } }
+  ],
+  "21": [
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 1 } }
+  ],
+  "22": [
+    { "inputs": { "IN1": 0, "IN2": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 } }
+  ],
+  "23": [
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } }
+  ],
+  "24": [
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 1, "OUT4": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 1 } },
+    { "inputs": { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 1, "OUT4": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 0, "OUT4": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 0, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 1, "OUT3": 0, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 1, "OUT4": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 0, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 1, "OUT4": 0 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 0 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 1 } },
+    { "inputs": { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1 }, "expected": { "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 } }
   ]
 
   },
@@ -1517,7 +1668,67 @@
     { "A3": 1, "A2": 0, "A1": 0, "A0": 1, "R1": 0, "R0": 0 },  
     { "A3": 1, "A2": 0, "A1": 1, "A0": 0, "R1": 0, "R0": 1 }   
   ]
-}
+},
+  "19": {
+    "title": "Crossroad",
+    "desc": "Design a crossroad where IN1 goes to OUT1 and IN2 goes to OUT2.",
+    "table": [
+      { "IN1": 0, "IN2": 0, "OUT1": 0, "OUT2": 0 },
+      { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1 },
+      { "IN1": 1, "IN2": 0, "OUT1": 1, "OUT2": 0 },
+      { "IN1": 1, "IN2": 1, "OUT1": 1, "OUT2": 1 }
+    ]
+  },
+  "20": {
+    "title": "Fixed XOR",
+    "desc": "Create an XOR gate with fixed IN/OUT.",
+    "table": [
+      { "IN1": 0, "IN2": 0, "OUT1": 0 },
+      { "IN1": 0, "IN2": 1, "OUT1": 1 },
+      { "IN1": 1, "IN2": 0, "OUT1": 1 },
+      { "IN1": 1, "IN2": 1, "OUT1": 0 }
+    ]
+  },
+  "21": {
+    "title": "3-bit Shifter",
+    "desc": "If IN4=1, (IN1, IN2, IN3)=(OUT2, OUT3, OUT1)\nIf IN4=0, (IN1, IN2, IN3)=(OUT1, OUT2, OUT3)",
+    "table": [
+      { "IN4": 0, "IN1": 1, "IN2": 0, "IN3": 0, "OUT1": 1, "OUT2": 0, "OUT3": 0 },
+      { "IN4": 1, "IN1": 1, "IN2": 0, "IN3": 0, "OUT1": 0, "OUT2": 1, "OUT3": 0 },
+      { "IN4": 1, "IN1": 0, "IN2": 1, "IN3": 0, "OUT1": 0, "OUT2": 0, "OUT3": 1 },
+      { "IN4": 1, "IN1": 0, "IN2": 0, "IN3": 1, "OUT1": 1, "OUT2": 0, "OUT3": 0 }
+    ]
+  },
+  "22": {
+    "title": "Fixed 2-to-4 Decoder",
+    "desc": "Only one output block turns on based on IN1, IN2.",
+    "table": [
+      { "IN1": 0, "IN2": 0, "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 },
+      { "IN1": 0, "IN2": 1, "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 },
+      { "IN1": 1, "IN2": 0, "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 },
+      { "IN1": 1, "IN2": 1, "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 }
+    ]
+  },
+  "23": {
+    "title": "Priority Gate",
+    "desc": "Output 1 only at the position of the first 1 among IN1~IN4. (IN1 has highest priority)",
+    "table": [
+      { "IN1": 1, "IN2": 1, "IN3": 1, "IN4": 1, "OUT1": 1, "OUT2": 0, "OUT3": 0, "OUT4": 0 },
+      { "IN1": 0, "IN2": 1, "IN3": 1, "IN4": 1, "OUT1": 0, "OUT2": 1, "OUT3": 0, "OUT4": 0 },
+      { "IN1": 0, "IN2": 0, "IN3": 1, "IN4": 1, "OUT1": 0, "OUT2": 0, "OUT3": 1, "OUT4": 0 },
+      { "IN1": 0, "IN2": 0, "IN3": 0, "IN4": 1, "OUT1": 0, "OUT2": 0, "OUT3": 0, "OUT4": 1 }
+    ]
+  },
+  "24": {
+    "title": "2's complement",
+    "desc": "Calculate the 2's complement (OUT4 OUT3 OUT2 OUT1) of the 4-bit binary number (IN4 IN3 IN2 IN1).",
+    "table": [
+      { "IN4": 0, "IN3": 0, "IN2": 0, "IN1": 0, "OUT4": 0, "OUT3": 0, "OUT2": 0, "OUT1": 0 },
+      { "IN4": 0, "IN3": 0, "IN2": 0, "IN1": 1, "OUT4": 1, "OUT3": 1, "OUT2": 1, "OUT1": 1 },
+      { "IN4": 0, "IN3": 0, "IN2": 1, "IN1": 0, "OUT4": 1, "OUT3": 1, "OUT2": 1, "OUT1": 0 },
+      { "IN4": 1, "IN3": 0, "IN2": 0, "IN1": 0, "OUT4": 1, "OUT3": 0, "OUT2": 0, "OUT1": 0 }
+    ]
+  }
   },
   "levelHints": {
     "stage6": {

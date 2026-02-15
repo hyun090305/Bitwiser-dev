@@ -1,0 +1,778 @@
+{
+  "creator": "이현준",
+  "description": "IN1, IN2, IN3, IN4 중 가장 번호가 작은 1만을 OUTPUT으로 그대로 출력합니다.",
+  "difficulty": 2,
+  "fixIO": true,
+  "grid": [
+    {
+      "index": 0,
+      "name": "IN1",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 2,
+      "name": "IN2",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "index": 4,
+      "name": "IN3",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 6,
+      "name": "IN4",
+      "type": "INPUT",
+      "value": "1"
+    },
+    {
+      "index": 14,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 16,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 18,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 20,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 32,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 30,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 28,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 38,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 46,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 34,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 40,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 48,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 36,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 44,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 56,
+      "name": "OUT1",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 58,
+      "name": "OUT2",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 60,
+      "name": "OUT3",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 62,
+      "name": "OUT4",
+      "type": "OUTPUT"
+    }
+  ],
+  "gridCols": 7,
+  "gridRows": 9,
+  "inputCount": 4,
+  "outputCount": 4,
+  "ranking": {
+    "-OfrZ4E3VcWm4Khpb9NF": {
+      "blockCounts": {
+        "AND": 3,
+        "INPUT": 4,
+        "JUNCTION": 5,
+        "NOT": 3,
+        "OR": 3,
+        "OUTPUT": 4
+      },
+      "hintsUsed": 0,
+      "nickname": "이현준",
+      "timestamp": "2025-12-07T06:47:02.363Z",
+      "usedWires": 26
+    }
+  },
+  "table": [
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 1
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    }
+  ],
+  "timestamp": "2025-12-07T06:47:02.363Z",
+  "title": "Priority",
+  "wires": [
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 5
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 2,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 7
+    }
+  ],
+  "wiresObj": [
+    {
+      "endIdx": 14,
+      "pathIdxs": [
+        0,
+        7,
+        14
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 16,
+      "pathIdxs": [
+        2,
+        9,
+        16
+      ],
+      "startIdx": 2
+    },
+    {
+      "endIdx": 16,
+      "pathIdxs": [
+        14,
+        15,
+        16
+      ],
+      "startIdx": 14
+    },
+    {
+      "endIdx": 18,
+      "pathIdxs": [
+        4,
+        11,
+        18
+      ],
+      "startIdx": 4
+    },
+    {
+      "endIdx": 18,
+      "pathIdxs": [
+        16,
+        17,
+        18
+      ],
+      "startIdx": 16
+    },
+    {
+      "endIdx": 20,
+      "pathIdxs": [
+        6,
+        13,
+        20
+      ],
+      "startIdx": 6
+    },
+    {
+      "endIdx": 20,
+      "pathIdxs": [
+        18,
+        19,
+        20
+      ],
+      "startIdx": 18
+    },
+    {
+      "endIdx": 32,
+      "pathIdxs": [
+        18,
+        25,
+        32
+      ],
+      "startIdx": 18
+    },
+    {
+      "endIdx": 30,
+      "pathIdxs": [
+        16,
+        23,
+        30
+      ],
+      "startIdx": 16
+    },
+    {
+      "endIdx": 28,
+      "pathIdxs": [
+        14,
+        21,
+        28
+      ],
+      "startIdx": 14
+    },
+    {
+      "endIdx": 38,
+      "pathIdxs": [
+        30,
+        31,
+        38
+      ],
+      "startIdx": 30
+    },
+    {
+      "endIdx": 46,
+      "pathIdxs": [
+        38,
+        45,
+        46
+      ],
+      "startIdx": 38
+    },
+    {
+      "endIdx": 46,
+      "pathIdxs": [
+        32,
+        39,
+        46
+      ],
+      "startIdx": 32
+    },
+    {
+      "endIdx": 34,
+      "pathIdxs": [
+        20,
+        27,
+        34
+      ],
+      "startIdx": 20
+    },
+    {
+      "endIdx": 40,
+      "pathIdxs": [
+        32,
+        33,
+        40
+      ],
+      "startIdx": 32
+    },
+    {
+      "endIdx": 48,
+      "pathIdxs": [
+        40,
+        47,
+        48
+      ],
+      "startIdx": 40
+    },
+    {
+      "endIdx": 48,
+      "pathIdxs": [
+        34,
+        41,
+        48
+      ],
+      "startIdx": 34
+    },
+    {
+      "endIdx": 36,
+      "pathIdxs": [
+        28,
+        29,
+        36
+      ],
+      "startIdx": 28
+    },
+    {
+      "endIdx": 44,
+      "pathIdxs": [
+        36,
+        43,
+        44
+      ],
+      "startIdx": 36
+    },
+    {
+      "endIdx": 44,
+      "pathIdxs": [
+        30,
+        37,
+        44
+      ],
+      "startIdx": 30
+    },
+    {
+      "endIdx": 56,
+      "pathIdxs": [
+        28,
+        35,
+        42,
+        49,
+        56
+      ],
+      "startIdx": 28
+    },
+    {
+      "endIdx": 58,
+      "pathIdxs": [
+        44,
+        51,
+        58
+      ],
+      "startIdx": 44
+    },
+    {
+      "endIdx": 60,
+      "pathIdxs": [
+        46,
+        53,
+        60
+      ],
+      "startIdx": 46
+    },
+    {
+      "endIdx": 62,
+      "pathIdxs": [
+        48,
+        55,
+        62
+      ],
+      "startIdx": 48
+    }
+  ]
+}

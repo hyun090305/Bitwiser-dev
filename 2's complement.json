@@ -1,0 +1,1009 @@
+{
+  "creator": "이현준",
+  "description": "네 자리 이진수 (IN4 IN3 IN2 IN1)의 2의 보수 (OUT4 OUT3 OUT2 OUT1)를 구합니다.",
+  "difficulty": 3,
+  "fixIO": false,
+  "grid": [
+    {
+      "index": 0,
+      "name": "IN1",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 40,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 31,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 22,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 11,
+      "name": "OUT2",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 20,
+      "name": "OUT1",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 52,
+      "name": "IN2",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 43,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 55,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 7,
+      "name": "IN3",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 15,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 26,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 37,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 46,
+      "name": "OUT3",
+      "type": "OUTPUT"
+    },
+    {
+      "index": 28,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 69,
+      "name": "JUNC",
+      "type": "JUNCTION"
+    },
+    {
+      "index": 92,
+      "name": "IN4",
+      "type": "INPUT",
+      "value": "0"
+    },
+    {
+      "index": 63,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 94,
+      "name": "OR",
+      "type": "OR"
+    },
+    {
+      "index": 74,
+      "name": "NOT",
+      "type": "NOT"
+    },
+    {
+      "index": 85,
+      "name": "AND",
+      "type": "AND"
+    },
+    {
+      "index": 87,
+      "name": "OUT4",
+      "type": "OUTPUT"
+    }
+  ],
+  "gridCols": 10,
+  "gridRows": 10,
+  "inputCount": 4,
+  "outputCount": 4,
+  "ranking": {
+    "-OgzJIroxZXQmGXXzpKQ": {
+      "blockCounts": {
+        "AND": 6,
+        "INPUT": 4,
+        "JUNCTION": 2,
+        "NOT": 3,
+        "OR": 3,
+        "OUTPUT": 4
+      },
+      "hintsUsed": 0,
+      "nickname": "이현준",
+      "timestamp": "2025-12-21T05:10:47.474Z",
+      "usedWires": 58
+    }
+  },
+  "table": [
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 1
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 1
+    },
+    {
+      "IN1": 0,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 1,
+      "OUT4": 1
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 1
+    },
+    {
+      "IN1": 0,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 0,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 1,
+      "OUT3": 1,
+      "OUT4": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 1,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 0,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 1,
+      "OUT3": 0,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 0,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 1,
+      "OUT4": 0
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 0,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 1
+    },
+    {
+      "IN1": 1,
+      "IN2": 1,
+      "IN3": 1,
+      "IN4": 1,
+      "OUT1": 1,
+      "OUT2": 0,
+      "OUT3": 0,
+      "OUT4": 0
+    }
+  ],
+  "timestamp": "2025-12-21T05:10:47.474Z",
+  "title": "2's complement",
+  "wires": [
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 1,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 2
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 0,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 0,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 1,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 3
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 3,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 3
+    },
+    {
+      "dir": "left",
+      "x": 2,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 1,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 0,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 4,
+      "y": 4
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 3
+    },
+    {
+      "dir": "up",
+      "x": 5,
+      "y": 2
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 0
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 0
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 1
+    },
+    {
+      "dir": "down",
+      "x": 6,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 6,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 3
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 4
+    },
+    {
+      "dir": "right",
+      "x": 7,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 0
+    },
+    {
+      "dir": "down",
+      "x": 8,
+      "y": 1
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 6,
+      "y": 5
+    },
+    {
+      "dir": "right",
+      "x": 7,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 8,
+      "y": 5
+    },
+    {
+      "dir": "up",
+      "x": 8,
+      "y": 4
+    },
+    {
+      "dir": "up",
+      "x": 8,
+      "y": 3
+    },
+    {
+      "dir": "left",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 7,
+      "y": 2
+    },
+    {
+      "dir": "right",
+      "x": 8,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 2
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 3
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 4
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 5
+    },
+    {
+      "dir": "left",
+      "x": 9,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 8,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 6
+    },
+    {
+      "dir": "left",
+      "x": 4,
+      "y": 6
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 9
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 8
+    },
+    {
+      "dir": "up",
+      "x": 2,
+      "y": 7
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 2,
+      "y": 9
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 6
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 9,
+      "y": 8
+    },
+    {
+      "dir": "left",
+      "x": 9,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 8,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 7,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 6,
+      "y": 9
+    },
+    {
+      "dir": "left",
+      "x": 5,
+      "y": 9
+    },
+    {
+      "dir": "down",
+      "x": 3,
+      "y": 6
+    },
+    {
+      "dir": "right",
+      "x": 3,
+      "y": 7
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 7
+    },
+    {
+      "dir": "down",
+      "x": 5,
+      "y": 7
+    },
+    {
+      "dir": "up",
+      "x": 4,
+      "y": 9
+    },
+    {
+      "dir": "right",
+      "x": 4,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 5,
+      "y": 8
+    },
+    {
+      "dir": "right",
+      "x": 6,
+      "y": 8
+    }
+  ],
+  "wiresObj": [
+    {
+      "endIdx": 31,
+      "pathIdxs": [
+        40,
+        41,
+        31
+      ],
+      "startIdx": 40
+    },
+    {
+      "endIdx": 22,
+      "pathIdxs": [
+        31,
+        21,
+        22
+      ],
+      "startIdx": 31
+    },
+    {
+      "endIdx": 11,
+      "pathIdxs": [
+        22,
+        12,
+        11
+      ],
+      "startIdx": 22
+    },
+    {
+      "endIdx": 20,
+      "pathIdxs": [
+        0,
+        10,
+        20
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 40,
+      "pathIdxs": [
+        20,
+        30,
+        40
+      ],
+      "startIdx": 20
+    },
+    {
+      "endIdx": 43,
+      "pathIdxs": [
+        0,
+        1,
+        2,
+        3,
+        13,
+        23,
+        33,
+        43
+      ],
+      "startIdx": 0
+    },
+    {
+      "endIdx": 43,
+      "pathIdxs": [
+        52,
+        53,
+        43
+      ],
+      "startIdx": 52
+    },
+    {
+      "endIdx": 22,
+      "pathIdxs": [
+        43,
+        42,
+        32,
+        22
+      ],
+      "startIdx": 43
+    },
+    {
+      "endIdx": 40,
+      "pathIdxs": [
+        52,
+        51,
+        50,
+        40
+      ],
+      "startIdx": 52
+    },
+    {
+      "endIdx": 55,
+      "pathIdxs": [
+        43,
+        44,
+        54,
+        55
+      ],
+      "startIdx": 43
+    },
+    {
+      "endIdx": 15,
+      "pathIdxs": [
+        55,
+        45,
+        35,
+        25,
+        15
+      ],
+      "startIdx": 55
+    },
+    {
+      "endIdx": 15,
+      "pathIdxs": [
+        7,
+        6,
+        5,
+        15
+      ],
+      "startIdx": 7
+    },
+    {
+      "endIdx": 26,
+      "pathIdxs": [
+        15,
+        16,
+        26
+      ],
+      "startIdx": 15
+    },
+    {
+      "endIdx": 37,
+      "pathIdxs": [
+        26,
+        36,
+        37
+      ],
+      "startIdx": 26
+    },
+    {
+      "endIdx": 46,
+      "pathIdxs": [
+        37,
+        47,
+        46
+      ],
+      "startIdx": 37
+    },
+    {
+      "endIdx": 28,
+      "pathIdxs": [
+        7,
+        8,
+        18,
+        28
+      ],
+      "startIdx": 7
+    },
+    {
+      "endIdx": 28,
+      "pathIdxs": [
+        55,
+        56,
+        57,
+        58,
+        48,
+        38,
+        28
+      ],
+      "startIdx": 55
+    },
+    {
+      "endIdx": 37,
+      "pathIdxs": [
+        28,
+        27,
+        37
+      ],
+      "startIdx": 28
+    },
+    {
+      "endIdx": 69,
+      "pathIdxs": [
+        28,
+        29,
+        39,
+        49,
+        59,
+        69
+      ],
+      "startIdx": 28
+    },
+    {
+      "endIdx": 63,
+      "pathIdxs": [
+        69,
+        68,
+        67,
+        66,
+        65,
+        64,
+        63
+      ],
+      "startIdx": 69
+    },
+    {
+      "endIdx": 63,
+      "pathIdxs": [
+        92,
+        82,
+        72,
+        62,
+        63
+      ],
+      "startIdx": 92
+    },
+    {
+      "endIdx": 94,
+      "pathIdxs": [
+        92,
+        93,
+        94
+      ],
+      "startIdx": 92
+    },
+    {
+      "endIdx": 94,
+      "pathIdxs": [
+        69,
+        79,
+        89,
+        99,
+        98,
+        97,
+        96,
+        95,
+        94
+      ],
+      "startIdx": 69
+    },
+    {
+      "endIdx": 74,
+      "pathIdxs": [
+        63,
+        73,
+        74
+      ],
+      "startIdx": 63
+    },
+    {
+      "endIdx": 85,
+      "pathIdxs": [
+        74,
+        75,
+        85
+      ],
+      "startIdx": 74
+    },
+    {
+      "endIdx": 85,
+      "pathIdxs": [
+        94,
+        84,
+        85
+      ],
+      "startIdx": 94
+    },
+    {
+      "endIdx": 87,
+      "pathIdxs": [
+        85,
+        86,
+        87
+      ],
+      "startIdx": 85
+    }
+  ]
+}

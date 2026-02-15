@@ -17,15 +17,16 @@ export const STAGE_NODE_LEVEL_MAP = {
   story: null,
   lab: null,
   user_created_stages: null,
-  three_bit_shifter: null,
+  three_bit_shifter: 21,
   parity_checker: 8,
   decoder_2to4: 11,
-  fixed_decoder_2to4: null,
+  fixed_decoder_2to4: 22,
   enable_gate_left_bottom: null,
   majority_gate: 7,
   enable_gate_center: null,
   mux_4to1: 12,
   two_bit_max_selector: 16,
+  priority_gate: 23,
   bit_master: null,
   half_adder: 9,
   full_adder: 10,
@@ -35,27 +36,23 @@ export const STAGE_NODE_LEVEL_MAP = {
   two_bit_subtractor: 15,
   two_bit_multiplier: 17,
   two_bit_adder: 14,
-  twos_complement: null
+  twos_complement: 24
 };
 
 export const STAGE_TYPE_META = {
   stage: {
-    labelKey: 'stageTypeLogic',
     color: '#38bdf8',
     accent: '#0ea5e9'
   },
   rank: {
-    labelKey: 'stageTypeTitle',
     color: '#f59e0b',
     accent: '#f97316'
   },
   feature: {
-    labelKey: 'stageTypeMode',
     color: '#F6F6F6',
     accent: '#E5E7EB'
   },
   mode: {
-    labelKey: 'stageTypeMode',
     color: '#22c55e',
     accent: '#16a34a'
   }
