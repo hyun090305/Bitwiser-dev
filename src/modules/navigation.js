@@ -1,3 +1,5 @@
+import { setBgmMode } from './bgm.js';
+
 let stageMapScreenEl = null;
 let gameScreenEl = null;
 let labScreenEl = null;
@@ -75,6 +77,7 @@ export function showStageMapScreen() {
   ensureScreens();
   toggleScreen(stageMapScreenEl, true, 'flex');
   stageMapScreenEl?.setAttribute('aria-hidden', 'false');
+  setBgmMode('ambient');
 }
 
 export function hideStageMapScreen() {
@@ -90,12 +93,16 @@ export function showGameScreen() {
   ensureScreens();
   toggleScreen(gameScreenEl, true, 'flex');
   document.body.classList.add('game-active');
+  const introModal = document.getElementById('levelIntroModal');
+  const isIntroOpen = Boolean(introModal && introModal.style.display !== 'none');
+  setBgmMode(isIntroOpen ? 'ambient' : 'gameplay');
 }
 
 export function hideGameScreen() {
   ensureScreens();
   toggleScreen(gameScreenEl, false);
   document.body.classList.remove('game-active');
+  setBgmMode('ambient');
 }
 
 export function showLabScreen() {

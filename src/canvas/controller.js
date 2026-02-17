@@ -9,6 +9,11 @@ import {
   CELL_CORNER_RADIUS
 } from './renderer.js';
 import { evaluateCircuit, markCircuitDirty, startEngine } from './engine.js';
+import {
+  playItemDropSound,
+  playItemPickupSound,
+  playWirePlacingSound
+} from '../modules/bgm.js';
 
 let keydownHandler = null;
 let keyupHandler = null;
@@ -1895,6 +1900,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         );
         if (item) {
           state.draggingBlock = { type: item.type, name: item.label, value: false };
+          playItemPickupSound();
           handled = true;
         }
       } else if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
@@ -2180,6 +2186,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     } else if (state.draggingBlock) {
       let placed = false;
+      let shouldPlayDropSound = false;
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToBoundedCell(x, y);
         if (!cell) {
@@ -2220,6 +2227,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             });
             if (replaced) {
               placed = true;
+              shouldPlayDropSound = true;
             }
           }
           if (!placed) {
@@ -2233,6 +2241,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               pos: target,
             });
             placed = true;
+            shouldPlayDropSound = !collision;
             if (
               target.r === state.draggingBlock.origPos.r &&
               target.c === state.draggingBlock.origPos.c &&
@@ -2257,6 +2266,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               pos: cell,
             });
             placed = true;
+            shouldPlayDropSound = true;
           } else if (existingBlock) {
             const replaced = replaceExistingBlock(existingBlock, {
               type: state.draggingBlock.type,
@@ -2264,6 +2274,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               value: state.draggingBlock.value,
             });
             placed = replaced;
+            if (replaced) {
+              shouldPlayDropSound = true;
+            }
           }
           if (
             placed &&
@@ -2289,6 +2302,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const removedExistingBlock =
         !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
+        if (shouldPlayDropSound) {
+          playItemDropSound();
+        }
         renderContent(
           contentCtx,
           circuit,
@@ -2428,6 +2444,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           setMode('idle');
           return false;
         }
+        playWirePlacingSound();
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       overlayCtx.save();
@@ -2480,6 +2497,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               origPos: b.pos,
               wires: removedWires
             };
+            playItemPickupSound();
             delete circuit.blocks[state.dragCandidate.id];
             renderContent(
               contentCtx,
@@ -2633,6 +2651,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function startBlockDrag(type, name) {
     state.draggingBlock = { type, name, value: false };
+    playItemPickupSound();
   }
 
   function moveCircuit(dx, dy) {

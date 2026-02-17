@@ -1,7 +1,8 @@
 import { setupGrid, setGridDimensions, destroyPlayContext, getPlayController } from './grid.js';
 import { getUsername, setLastAccessedLevel } from './storage.js';
 import { fetchOverallStats } from './rank.js';
-import { showStageMapScreen } from './navigation.js';
+import { showStageMapScreen, hideGameScreen } from './navigation.js';
+import { playStageIntroSound, setBgmMode } from './bgm.js';
 
 const translate =
   typeof window !== 'undefined' && typeof window.t === 'function'
@@ -150,7 +151,8 @@ export async function startLevel(level, { onIntroComplete } = {}) {
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {
       onIntroComplete();
-    } else if (typeof dependencies.onLevelIntroComplete === 'function') {
+    }
+    if (typeof dependencies.onLevelIntroComplete === 'function') {
       dependencies.onLevelIntroComplete();
     }
   });
@@ -186,12 +188,7 @@ export async function returnToLevels({
   onClearCustomProblem
 } = {}) {
   destroyPlayContext();
-  document.body.classList.remove('game-active');
-
-  const gameScreen = document.getElementById('gameScreen');
-  if (gameScreen) {
-    gameScreen.style.display = 'none';
-  }
+  hideGameScreen();
 
   if (isCustomProblemActive) {
     if (typeof onClearCustomProblem === 'function') {
@@ -351,12 +348,15 @@ function showLevelIntro(level, callback) {
     table.appendChild(tr);
   });
 
+  setBgmMode('ambient');
+  playStageIntroSound();
   modal.style.display = 'flex';
   modal.style.backgroundColor = 'white';
   const startBtn = document.getElementById('startLevelBtn');
   if (startBtn) {
     startBtn.onclick = () => {
       modal.style.display = 'none';
+      setBgmMode('gameplay');
       callback();
     };
   }

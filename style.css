@@ -12,6 +12,23 @@
     text-align: center;
   }
 
+/* START 버튼: 테두리/배경 제거, Press Start 2P 폰트, 크기 확대 */
+#loadingStartBtn {
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 1.15rem;
+  padding: 0.25rem 0.5rem;
+  cursor: pointer;
+  box-shadow: none;
+  outline: none;
+}
+#loadingStartBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 body.game-active {
   background-color: #0f172a;
 }
@@ -2842,23 +2859,98 @@ html, body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #f0f0f0;
+  gap: 20px;
+  background: radial-gradient(circle at top, #0f172a 0%, #020617 58%, #01030a 100%);
   z-index: 9999;
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 720ms ease, visibility 720ms ease, filter 720ms ease;
 }
 
-.loader {
-  border: 8px solid #e0e0e0;
-  border-top: 8px solid #3b82f6;
-  border-radius: 50%;
-  width: 64px;
-  height: 64px;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+.bitwiser-loader {
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.45);
+  border: 1px solid rgba(148, 163, 184, 0.22);
+  box-shadow: 0 12px 34px rgba(2, 6, 23, 0.55);
 }
 
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+.bitwiser-loader__dots {
+  --dot-size: 9.6px;
+  --dot-gap: 4.8px;
+  display: grid;
+  gap: var(--dot-gap);
+}
+
+.bitwiser-loader__pixel {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 2px;
+  background: rgba(148, 163, 184, 0.16);
+  border: 1px solid rgba(148, 163, 184, 0.12);
+  transition: background-color 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.bitwiser-loader__pixel.on {
+  background: #60a5fa;
+  border-color: rgba(186, 230, 253, 0.8);
+  box-shadow:
+    0 0 8px rgba(96, 165, 250, 0.9),
+    0 0 16px rgba(56, 189, 248, 0.5);
+}
+
+#loadingText {
+  margin: 0;
+  color: #e2e8f0;
+  font-size: 15px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  opacity: 1;
+  transition: opacity 260ms ease;
+}
+
+#loadingScreen.is-complete #loadingText {
+  opacity: 0;
+}
+
+#loadingStartBtn {
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  color: #e2e8f0;
+  font-size: 25px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  box-shadow: none;
+  transition: opacity 620ms ease, transform 620ms ease, color 200ms ease;
+}
+
+#loadingScreen.is-complete #loadingStartBtn {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#loadingStartBtn:hover,
+#loadingStartBtn:focus-visible {
+  color: #bae6fd;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+#loadingScreen.is-dissolving {
+  opacity: 0;
+  visibility: hidden;
+  filter: blur(1.5px);
+  pointer-events: none;
 }
 
 /* ----- Saved circuit thumbnails ----- */
@@ -3690,18 +3782,25 @@ body.lab-mode-active {
 #settingsModal .settings-section:first-of-type {
   margin-top: 0.75rem;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 0.75rem;
 }
 
 .settings-checkbox {
-  margin: auto;
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   font-weight: 600;
   color: #1f2937;
   font-size: 0.95rem;
+}
+
+.settings-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .settings-checkbox input {

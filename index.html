@@ -18,6 +18,9 @@
     <link
       href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap"
       rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap"
+      rel="stylesheet" />
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#ffffff">
     <meta name="description" content="논리 회로 퍼즐 게임 - 블록을 조합해 회로를 구현하세요!">
@@ -28,8 +31,11 @@
   <body>
     <canvas id="backgroundCanvas"></canvas>
     <div id="loadingScreen">
-      <div class="loader"></div>
-      <p id="loadingText">데이터 불러오는 중...</p>
+      <div class="bitwiser-loader" aria-hidden="true">
+        <div id="bitwiserDots" class="bitwiser-loader__dots"></div>
+      </div>
+      <p id="loadingText">loading...</p>
+      <button id="loadingStartBtn" type="button" aria-label="Start game" disabled>Start</button>
     </div>
     <div id="usernameModal" class="modal" style="display:none;">
       <div class="modal-content">
@@ -81,10 +87,16 @@
             <input type="checkbox" id="autoSaveCheckbox">
             <span id="autoSaveLabel"></span>
           </label>
-          <label class="settings-checkbox">
-            <input type="checkbox" id="backgroundAnimationCheckbox">
-            <span id="backgroundAnimationLabel"></span>
-          </label>
+          <div class="settings-checkbox-row">
+            <label class="settings-checkbox">
+              <input type="checkbox" id="bgmCheckbox">
+              <span id="bgmLabel"></span>
+            </label>
+            <label class="settings-checkbox">
+              <input type="checkbox" id="sfxCheckbox">
+              <span id="sfxLabel"></span>
+            </label>
+          </div>
         </div>
         <div class="settings-section">
           <div class="settings-section__header">

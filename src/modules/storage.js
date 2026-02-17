@@ -3,6 +3,8 @@ const USERNAME_RESERVATION_KEY = 'usernameReservationKey';
 const HINT_COOLDOWN_KEY = 'hintCooldownUntil';
 const AUTO_SAVE_KEY = 'autoSaveCircuit';
 const BACKGROUND_ANIMATION_KEY = 'backgroundAnimationEnabled';
+const BGM_ENABLED_KEY = 'bgmEnabled';
+const SFX_ENABLED_KEY = 'sfxEnabled';
 const LAST_ACCESSED_LEVEL_KEY = 'lastAccessedLevel';
 
 function safeGetItem(key) {
@@ -85,6 +87,26 @@ export function getBackgroundAnimationSetting() {
 
 export function setBackgroundAnimationSetting(enabled) {
   safeSetItem(BACKGROUND_ANIMATION_KEY, String(Boolean(enabled)));
+}
+
+export function getBgmEnabledSetting() {
+  const raw = safeGetItem(BGM_ENABLED_KEY);
+  if (raw === null) return true;
+  return raw !== 'false';
+}
+
+export function setBgmEnabledSetting(enabled) {
+  safeSetItem(BGM_ENABLED_KEY, String(Boolean(enabled)));
+}
+
+export function getSfxEnabledSetting() {
+  const raw = safeGetItem(SFX_ENABLED_KEY);
+  if (raw === null) return true;
+  return raw !== 'false';
+}
+
+export function setSfxEnabledSetting(enabled) {
+  safeSetItem(SFX_ENABLED_KEY, String(Boolean(enabled)));
 }
 
 function googleKey(prefix, uid) {
