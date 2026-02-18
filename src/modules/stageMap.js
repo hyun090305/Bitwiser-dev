@@ -1,4 +1,4 @@
-import {
+﻿import {
   lockOrientationLandscape,
   hideStageMapScreen,
   showGameScreen,
@@ -29,6 +29,9 @@ const CHAPTER_FADE_NODE_OPACITY = 0.22;
 const CHAPTER_FADE_EDGE_OPACITY = 0.2;
 const CHAPTER_GLOBAL_NODE_OPACITY = 0.55;
 const CHAPTER_GLOBAL_EDGE_OPACITY = 0.5;
+const STAGE_FOCUS_VERTICAL_ANCHOR = 0.42;
+const STAGE_FOCUS_SCALE_FACTOR = 0.5;
+const CHAPTER_FOCUS_VERTICAL_ANCHOR = 0.43;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const easeOutCubic = value => 1 - Math.pow(1 - clamp(value, 0, 1), 3);
@@ -129,12 +132,12 @@ const RANK_TITLE_BADGES = {
       stops: [
         { offset: 0, color: '#141b2e' },
         { offset: 0.5, color: '#2a2f3c' },
-        { offset: 1, color: '#302b25' }
+        { offset: 1, color: '#252930' }
       ]
     },
-    border: { width: 1.1, color: 'rgba(205, 177, 121, 0.86)' },
+    border: { width: 1.1, color: 'rgba(121, 181, 205, 0.86)' },
     pattern: { lines: 3, alpha: 0.085 },
-    accentLine: { color: 'rgba(238, 210, 153, 0.58)', y: 0.2 },
+    accentLine: { color: 'rgba(153, 191, 238, 0.58)', y: 0.2 },
     textShadow: { color: 'rgba(0, 0, 0, 0.28)', offsetY: 1, blur: 2.2 }
   },
   bit_master: {
@@ -143,11 +146,11 @@ const RANK_TITLE_BADGES = {
       angle: 90,
       stops: [
         { offset: 0, color: '#1b2235' },
-        { offset: 0.46, color: '#2f2f39' },
-        { offset: 1, color: '#3c3128' }
+        { offset: 0.46, color: '#37392f' },
+        { offset: 1, color: '#3c3c28' }
       ]
     },
-    border: { width: 1.2, color: 'rgba(220, 189, 129, 0.9)' },
+    border: { width: 1.2, color: 'rgba(240, 237, 70, 0.9)' },
     pattern: { lines: 3, alpha: 0.09 },
     accentLine: { color: 'rgba(247, 219, 159, 0.62)', y: 0.2 },
     textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.3 }
@@ -607,9 +610,9 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
     ctx.lineWidth = 4 * camera.getScale();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'rgba(246, 203, 77, 0.18)';
-    ctx.shadowColor = 'rgba(246, 203, 77, 0.35)';
-    ctx.shadowBlur = 12;
+    ctx.strokeStyle = 'rgba(207, 251, 244, 0.3)';
+    ctx.shadowColor = 'rgba(207, 251, 244, 0.65)';
+    ctx.shadowBlur = 18;
     ctx.globalAlpha = opacity;
     ctx.stroke();
 
@@ -631,9 +634,9 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
     const p0 = screenPoints[0];
     const p1 = screenPoints[screenPoints.length - 1];
     const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
-    grad.addColorStop(0, '#fbbf24');
-    grad.addColorStop(0.5, '#fb923c');
-    grad.addColorStop(1, '#f97316');
+    grad.addColorStop(0, '#CFFBF4');
+    grad.addColorStop(0.5, '#B9F7EE');
+    grad.addColorStop(1, '#9DEFE4');
 
     ctx.lineWidth = 3 * camera.getScale();
     ctx.strokeStyle = grad;
@@ -673,9 +676,9 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
       ctx.lineWidth = 4.4 * camera.getScale();
-      ctx.strokeStyle = 'rgba(255, 213, 128, 1)';
-      ctx.shadowColor = `rgba(255, 200, 92, ${0.45 * alpha})`;
-      ctx.shadowBlur = 24 * alpha;
+      ctx.strokeStyle = 'rgba(207, 251, 244, 1)';
+      ctx.shadowColor = `rgba(207, 251, 244, ${0.55 * alpha})`;
+      ctx.shadowBlur = 26 * alpha;
       ctx.globalCompositeOperation = 'lighter';
       ctx.globalAlpha = alpha * opacity;
       ctx.stroke();
@@ -1304,6 +1307,15 @@ export function initializeStageMap({
   const panelButtonByPanel = new Map();
   const panelBackdrop = document.getElementById('stagePanelBackdrop');
 
+  // Zoom controls are intentionally disabled on the stage map.
+  [zoomInBtn, zoomOutBtn, zoomResetBtn].forEach(btn => {
+    if (!btn) return;
+    btn.disabled = true;
+    btn.hidden = true;
+    btn.setAttribute('aria-hidden', 'true');
+    btn.setAttribute('tabindex', '-1');
+  });
+
   if (!screenEl || !canvas || !surface) {
     return null;
   }
@@ -1515,10 +1527,11 @@ export function initializeStageMap({
     const frameWidth = (frame.maxX - frame.minX) * scale;
     const frameHeight = (frame.maxY - frame.minY) * scale;
     const frameRadius = Math.min(4.5 * scale, Math.min(frameWidth, frameHeight) / 10);
+    const chapterFrameColor = RANK_TITLE_BADGES[chapter.rankNodeId]?.border?.color || 'rgba(220, 192, 132, 0.82)';
 
     ctx.save();
     ctx.globalAlpha = alphaBase;
-    ctx.strokeStyle = 'rgba(220, 192, 132, 0.82)';
+    ctx.strokeStyle = chapterFrameColor;
     ctx.lineWidth = Math.max(1.1 * scale, 0.9);
 
     ctx.beginPath();
@@ -1531,7 +1544,7 @@ export function initializeStageMap({
 
     ctx.beginPath();
     ctx.arc(lineEnd.x, lineEnd.y, Math.max(1.5 * scale, 1.2), 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(232, 210, 160, 0.8)';
+    ctx.fillStyle = chapterFrameColor;
     ctx.fill();
     ctx.restore();
   }
@@ -1994,11 +2007,20 @@ export function initializeStageMap({
     executeNextFrame(() => {
       ensureCanvasInitialized();
       const { scale, viewportWidth, viewportHeight } = camera.getState();
-      const widthWorld = (viewportWidth || canvas.clientWidth || 1) / Math.max(scale, 1e-6);
-      const heightWorld = (viewportHeight || canvas.clientHeight || 1) / Math.max(scale, 1e-6);
+      const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
+      const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
+      let nextScale = scale;
+      if (node.nodeType === 'stage') {
+        nextScale = Math.max(0.2, Math.min(2.2, scale * STAGE_FOCUS_SCALE_FACTOR));
+        if (Number.isFinite(nextScale) && Math.abs(nextScale - scale) > 1e-4) {
+          camera.setScale(nextScale, safeViewportWidth / 2, safeViewportHeight / 2);
+        }
+      }
+      const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
+      const heightWorld = safeViewportHeight / Math.max(nextScale, 1e-6);
       const rawTarget = {
         x: node.center.x - widthWorld / 2,
-        y: node.center.y - heightWorld / 2
+        y: node.center.y - heightWorld * STAGE_FOCUS_VERTICAL_ANCHOR
       };
       // ?댁쟾?먮뒗 留?寃쎄퀎(`state.mapBounds`)??留욎떠 ?대옩??clamp)?섏뿬
       // 酉고룷?멸? 留?諛뽰쑝濡??섍?吏 ?딅룄濡??덉뒿?덈떎. ?붿껌???곕씪
@@ -2142,17 +2164,25 @@ export function initializeStageMap({
     executeNextFrame(() => {
       ensureCanvasInitialized();
       const bounds = state.chapterBounds.get(chapter.id);
+      const focusBounds = bounds
+        ? {
+          minX: bounds.minX,
+          minY: bounds.minY - CELL * 0.9,
+          maxX: bounds.maxX,
+          maxY: bounds.maxY + CELL * 0.35
+        }
+        : null;
       const anchor = getChapterAnchorWorld(chapter);
-      if (!anchor && !bounds) return;
+      if (!anchor && !focusBounds) return;
       const { scale, viewportWidth, viewportHeight } = camera.getState();
       const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
       const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
       let nextScale = scale;
 
-      if (bounds) {
-        const boundsWidth = Math.max(bounds.maxX - bounds.minX, CELL);
-        const boundsHeight = Math.max(bounds.maxY - bounds.minY, CELL);
-        const fitPadding = 1.12;
+      if (focusBounds) {
+        const boundsWidth = Math.max(focusBounds.maxX - focusBounds.minX, CELL);
+        const boundsHeight = Math.max(focusBounds.maxY - focusBounds.minY, CELL);
+        const fitPadding = 1.18;
         const fitScaleX = safeViewportWidth / (boundsWidth * fitPadding);
         const fitScaleY = safeViewportHeight / (boundsHeight * fitPadding);
         nextScale = Math.max(0.2, Math.min(2.2, Math.min(fitScaleX, fitScaleY)));
@@ -2161,10 +2191,10 @@ export function initializeStageMap({
         }
       }
 
-      const focusCenter = bounds
+      const focusCenter = focusBounds
         ? {
-          x: (bounds.minX + bounds.maxX) / 2,
-          y: (bounds.minY + bounds.maxY) / 2
+          x: (focusBounds.minX + focusBounds.maxX) / 2,
+          y: (focusBounds.minY + focusBounds.maxY) / 2
         }
         : anchor;
       const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
@@ -2172,7 +2202,7 @@ export function initializeStageMap({
       panToOrigin(
         {
           x: focusCenter.x - widthWorld / 2,
-          y: focusCenter.y - heightWorld / 2
+          y: focusCenter.y - heightWorld * CHAPTER_FOCUS_VERTICAL_ANCHOR
         },
         { animate, duration: 520 }
       );
@@ -2641,10 +2671,8 @@ export function initializeStageMap({
   }
 
   function handleWheel(event) {
-    if (!event.ctrlKey) {
-      event.preventDefault();
-      handleZoom(event.deltaY > 0 ? -0.08 : 0.08, event.clientX, event.clientY);
-    }
+    // Keep wheel from triggering page scroll, but disable map zoom.
+    event.preventDefault();
   }
 
   function handlePointerHover(event) {
@@ -2751,9 +2779,6 @@ export function initializeStageMap({
   setupPanels();
   window.addEventListener('resize', onResize);
 
-  if (zoomInBtn) zoomInBtn.addEventListener('click', () => handleZoom(0.1));
-  if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => handleZoom(-0.1));
-  if (zoomResetBtn) zoomResetBtn.addEventListener('click', resetView);
   if (infoToggleBtn) {
     setStageMapInfoVisible(false);
     infoToggleBtn.addEventListener('click', () => {
@@ -3027,6 +3052,8 @@ function lerpColor(c1, c2, t) {
   const a = start.a + (end.a - start.a) * t;
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
+
+
 
 
 
