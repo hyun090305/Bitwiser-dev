@@ -91,23 +91,19 @@ const STAGE_BLOCK_STYLE_FALLBACK = {
 
 const TITLE_BADGE_BASE = {
   dropShadow: {
-    color: 'rgba(13, 16, 23, 0.55)',
-    blur: 14,
+    color: 'rgba(3, 8, 20, 0.45)',
+    blur: 10,
     offsetX: 0,
-    offsetY: 4
+    offsetY: 3
   },
-  highlight: {
-    heightRatio: 0.2,
-    color: 'rgba(255, 255, 255, 0.32)'
-  },
-  textColor: '#000000',
+  textColor: '#e9d9ad',
+  chapterLabelColor: 'rgba(214, 196, 150, 0.82)',
   textShadow: {
-    color: 'rgba(0, 0, 0, 0.35)',
+    color: 'rgba(0, 0, 0, 0.32)',
     offsetX: 0,
-    offsetY: 2,
-    blur: 4
-  },
-  subtitleColor: '#000000'
+    offsetY: 1,
+    blur: 2
+  }
 };
 
 const RANK_TITLE_BADGES = {
@@ -116,106 +112,45 @@ const RANK_TITLE_BADGES = {
       type: 'linear',
       angle: 90,
       stops: [
-        { offset: 0, color: '#FFE6A2' },
-        { offset: 0.55, color: '#F2C15C' },
-        { offset: 1, color: '#D9A645' }
+        { offset: 0, color: '#0f1728' },
+        { offset: 0.45, color: '#1a2335' },
+        { offset: 1, color: '#232936' }
       ]
     },
-    glow: { color: 'rgba(255, 214, 138, 0.3)', blur: 26 },
-    bloom: { color: 'rgba(255, 244, 208, 0.15)' },
-    border: { width: 1.5, color: '#FFD58A' },
-    sparkle: {
-      baseOpacity: 0.12,
-      size: 6,
-      color: '#ffffff',
-      positions: [
-        { x: 0.2, y: 0.46, scale: 0.9 },
-        { x: 0.52, y: 0.32, scale: 1 },
-        { x: 0.78, y: 0.56, scale: 1.1 }
-      ]
-    },
-    textShadow: { color: '#C6933A', offsetY: 2, blur: 3 }
+    border: { width: 1.05, color: 'rgba(196, 170, 114, 0.82)' },
+    pattern: { lines: 3, alpha: 0.08 },
+    accentLine: { color: 'rgba(232, 205, 140, 0.55)', y: 0.19 },
+    textShadow: { color: 'rgba(0, 0, 0, 0.26)', offsetY: 1, blur: 2 }
   },
   bit_wiser: {
     gradient: {
       type: 'linear',
       angle: 90,
       stops: [
-        { offset: 0, color: '#FFECC5' },
-        { offset: 0.5, color: '#F7C96D' },
-        { offset: 1, color: '#C48A2D' }
+        { offset: 0, color: '#141b2e' },
+        { offset: 0.5, color: '#2a2f3c' },
+        { offset: 1, color: '#302b25' }
       ]
     },
-    glow: { color: 'rgba(255, 208, 130, 0.55)', blur: 32 },
-    bloom: { color: 'rgba(255, 244, 208, 0.25)' },
-    border: { width: 2.2, color: '#FFDE9B', inner: { inset: 2, color: 'rgba(255, 255, 255, 0.55)', width: 1 } },
-    sparkle: {
-      baseOpacity: 0.18,
-      size: 6.6,
-      color: '#fff7df',
-      twinkle: true,
-      period: 1500,
-      positions: [
-        { x: 0.16, y: 0.42, scale: 1 },
-        { x: 0.35, y: 0.28, scale: 1.1 },
-        { x: 0.55, y: 0.5, scale: 0.9 },
-        { x: 0.72, y: 0.34, scale: 1.05 },
-        { x: 0.86, y: 0.56, scale: 1.15 }
-      ]
-    },
-    metallicSheen: { opacity: 0.35 },
-    textShadow: { color: '#B87C1F', offsetY: 2, blur: 5 }
+    border: { width: 1.1, color: 'rgba(205, 177, 121, 0.86)' },
+    pattern: { lines: 3, alpha: 0.085 },
+    accentLine: { color: 'rgba(238, 210, 153, 0.58)', y: 0.2 },
+    textShadow: { color: 'rgba(0, 0, 0, 0.28)', offsetY: 1, blur: 2.2 }
   },
   bit_master: {
     gradient: {
       type: 'linear',
       angle: 90,
       stops: [
-        { offset: 0, color: '#FFF2D0' },
-        { offset: 0.3, color: '#FFD16F' },
-        { offset: 0.65, color: '#E1A23D' },
-        { offset: 1, color: '#8A5A16' }
+        { offset: 0, color: '#1b2235' },
+        { offset: 0.46, color: '#2f2f39' },
+        { offset: 1, color: '#3c3128' }
       ]
     },
-    glow: { color: 'rgba(255, 210, 120, 0.9)', blur: 38 },
-    bloom: { color: 'rgba(255, 220, 160, 0.4)' },
-    border: {
-      width: 3,
-      color: '#FFE298',
-      inner: { inset: 2.6, color: '#D49D3F', width: 1.4 }
-    },
-    halo: { color: 'rgba(255, 214, 147, 0.18)', radiusMultiplier: 2.2 },
-    sparkle: {
-      baseOpacity: 0.22,
-      size: 7.2,
-      color: '#fff7e1',
-      twinkle: true,
-      period: 1800,
-      positions: [
-        { x: 0.14, y: 0.4, scale: 1 },
-        { x: 0.3, y: 0.25, scale: 0.9 },
-        { x: 0.45, y: 0.55, scale: 1 },
-        { x: 0.62, y: 0.33, scale: 1.05 },
-        { x: 0.76, y: 0.52, scale: 1.12 },
-        { x: 0.88, y: 0.3, scale: 0.95 }
-      ]
-    },
-    particles: {
-      count: 10,
-      color: 'rgba(255, 242, 210, 0.12)',
-      radius: 3.2,
-      amplitude: 0.08,
-      period: 2800
-    },
-    sweep: {
-      period: 2500,
-      widthRatio: 0.25,
-      color: 'rgba(255, 255, 255, 0.35)',
-      fade: true,
-      fadePower: 1.2,
-      alpha: 1
-    },
-    textShadow: { color: '#7A4E14', offsetY: 3, blur: 6 }
+    border: { width: 1.2, color: 'rgba(220, 189, 129, 0.9)' },
+    pattern: { lines: 3, alpha: 0.09 },
+    accentLine: { color: 'rgba(247, 219, 159, 0.62)', y: 0.2 },
+    textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.3 }
   }
 };
 
@@ -752,7 +687,7 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
   }
 }
 
-function drawRankTitleNode(ctx, camera, node, status, t = 0) {
+function drawRankTitleNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed = false, highlight = null) {
   const spec = RANK_TITLE_BADGES[node.id];
   if (!spec || !status?.progressCleared) {
     return false;
@@ -761,25 +696,11 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
   const topLeft = camera.worldToScreen(node.rect.x, node.rect.y);
   const width = node.rect.w * scale;
   const height = node.rect.h * scale;
-  const radius = Math.min(18 * scale, Math.min(width, height) / 3);
+  const radius = Math.min(7 * scale, Math.min(width, height) / 6);
   const rect = { x: topLeft.x, y: topLeft.y, w: width, h: height };
   const pathBuilder = () => buildRoundedRectPath(ctx, rect.x, rect.y, rect.w, rect.h, radius);
 
   ctx.save();
-
-  if (spec.halo) {
-    const haloRadius = Math.max(width, height) * (spec.halo.radiusMultiplier ?? 2);
-    const centerX = rect.x + rect.w / 2;
-    const centerY = rect.y + rect.h / 2;
-    const haloGradient = ctx.createRadialGradient(centerX, centerY, Math.max(width, height) * 0.4, centerX, centerY, haloRadius);
-    haloGradient.addColorStop(0, spec.halo.color || 'rgba(255, 255, 255, 0.15)');
-    haloGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = haloGradient;
-    ctx.fillRect(centerX - haloRadius, centerY - haloRadius, haloRadius * 2, haloRadius * 2);
-    ctx.restore();
-  }
 
   applyScaledShadow(ctx, spec.dropShadow ?? TITLE_BADGE_BASE.dropShadow, scale);
   pathBuilder();
@@ -792,56 +713,39 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
   ctx.shadowOffsetX = 0;
   ctx.shadowOffsetY = 0;
 
-  const highlight = { ...TITLE_BADGE_BASE.highlight, ...(spec.highlight || {}) };
-  if (highlight) {
+  if (spec.pattern) {
     ctx.save();
     pathBuilder();
     ctx.clip();
-    const highlightHeight = rect.h * (highlight.heightRatio ?? 0.2);
-    const highlightGradient = ctx.createLinearGradient(rect.x, rect.y, rect.x, rect.y + highlightHeight);
-    highlightGradient.addColorStop(0, highlight.color || TITLE_BADGE_BASE.highlight.color);
-    highlightGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.fillStyle = highlightGradient;
-    ctx.fillRect(rect.x, rect.y, rect.w, highlightHeight);
+    const lineCount = Math.max(2, Math.min(4, spec.pattern.lines || 3));
+    const alpha = spec.pattern.alpha ?? 0.08;
+    ctx.strokeStyle = `rgba(255, 240, 205, ${alpha})`;
+    ctx.lineWidth = Math.max(0.8, 0.9 * scale);
+    for (let i = 0; i < lineCount; i += 1) {
+      const y = rect.y + rect.h * (0.36 + i * 0.16);
+      ctx.beginPath();
+      ctx.moveTo(rect.x + rect.w * 0.08, y);
+      ctx.lineTo(rect.x + rect.w * 0.92, y);
+      ctx.stroke();
+    }
     ctx.restore();
   }
 
-  if (spec.bloom) {
+  if (spec.accentLine) {
     ctx.save();
     pathBuilder();
     ctx.clip();
-    const centerX = rect.x + rect.w * 0.45;
-    const centerY = rect.y + rect.h * 0.5;
-    const bloomGradient = ctx.createRadialGradient(centerX, centerY, Math.min(rect.w, rect.h) * 0.12, centerX, centerY, Math.max(rect.w, rect.h));
-    bloomGradient.addColorStop(0, spec.bloom.color);
-    bloomGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = bloomGradient;
-    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-    ctx.restore();
-  }
-
-  if (spec.metallicSheen) {
-    ctx.save();
-    pathBuilder();
-    ctx.clip();
-    const sheen = ctx.createLinearGradient(rect.x, rect.y, rect.x + rect.w, rect.y + rect.h * 0.6);
-    sheen.addColorStop(0, 'rgba(255, 255, 255, 0)');
-    sheen.addColorStop(0.5, `rgba(255, 255, 255, ${spec.metallicSheen.opacity})`);
-    sheen.addColorStop(1, 'rgba(255, 255, 255, 0)');
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = sheen;
-    ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-    ctx.restore();
-  }
-
-  if (spec.glow) {
-    ctx.save();
-    pathBuilder();
-    ctx.shadowColor = spec.glow.color;
-    ctx.shadowBlur = (spec.glow.blur ?? 30) * scale;
-    ctx.lineWidth = Math.max((spec.glow.strokeWidth ?? 2) * scale, 0.8);
-    ctx.strokeStyle = spec.glow.strokeColor || spec.border?.color || '#fff7d6';
+    const y = rect.y + rect.h * (spec.accentLine.y ?? 0.2);
+    const accentGradient = ctx.createLinearGradient(rect.x, y, rect.x + rect.w, y);
+    accentGradient.addColorStop(0, 'rgba(255, 255, 255, 0)');
+    accentGradient.addColorStop(0.2, spec.accentLine.color || 'rgba(240, 214, 156, 0.56)');
+    accentGradient.addColorStop(0.8, spec.accentLine.color || 'rgba(240, 214, 156, 0.56)');
+    accentGradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+    ctx.strokeStyle = accentGradient;
+    ctx.lineWidth = Math.max(1, 1.1 * scale);
+    ctx.beginPath();
+    ctx.moveTo(rect.x + rect.w * 0.06, y);
+    ctx.lineTo(rect.x + rect.w * 0.94, y);
     ctx.stroke();
     ctx.restore();
   }
@@ -851,35 +755,25 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
     ctx.lineWidth = Math.max(spec.border.width * scale, 0.9);
     ctx.strokeStyle = spec.border.color;
     ctx.stroke();
-    if (spec.border.inner) {
-      const inner = spec.border.inner;
-      const innerWidth = Math.max((inner.width ?? 1) * scale, 0.6);
-      drawInsetRoundedRect(
-        ctx,
-        rect.x,
-        rect.y,
-        rect.w,
-        rect.h,
-        radius,
-        inner.inset ?? Math.max(1.5, inner.width || 1),
-        innerWidth,
-        inner.color || 'rgba(255, 255, 255, 0.45)'
-      );
-    }
   }
 
-  drawHighlightSweep(ctx, rect, spec.sweep, t, pathBuilder);
-
-  if (spec.particles) {
-    drawDriftingParticles(ctx, rect, spec.particles, scale, t);
+  const isActive = Boolean(isHovered || isPressed || (highlight && (highlight.alpha ?? 0) > 0));
+  if (isActive) {
+    const activeAlpha = clamp(highlight?.alpha ?? 0.85, 0.2, 1);
+    ctx.save();
+    pathBuilder();
+    ctx.lineWidth = Math.max(1.4 * scale, 1.2);
+    ctx.strokeStyle = `rgba(245, 221, 170, ${0.75 * activeAlpha})`;
+    ctx.shadowColor = `rgba(245, 221, 170, ${0.48 * activeAlpha})`;
+    ctx.shadowBlur = 14 * Math.max(scale, 0.8);
+    ctx.stroke();
+    ctx.restore();
   }
-
-  drawSparkles(ctx, rect, spec.sparkle, scale, t);
 
   const textColor = spec.textColor || TITLE_BADGE_BASE.textColor;
-  const subtitleColor = spec.subtitleColor || TITLE_BADGE_BASE.subtitleColor;
-  const mainFontSize = rect.h * 0.2;
-  const subtitleSize = 13 * scale;
+  const chapterLabelColor = spec.chapterLabelColor || TITLE_BADGE_BASE.chapterLabelColor;
+  const mainFontSize = rect.h * 0.31;
+  const chapterFontSize = Math.max(10, 11 * scale);
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -917,18 +811,26 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
     return result;
   };
 
-  const titleText = clampText(node.title, rect.w * 0.84);
-  ctx.fillText(titleText, rect.x + rect.w / 2, rect.y + rect.h / 2);
+  const chapterNumberMatch = String(node.chapterId || '').match(/chapter_(\d+)/i);
+  const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : '';
+  const chapterLabel = chapterNumber ? `CHAPTER ${chapterNumber}` : 'CHAPTER';
+  const chapterText = clampText(chapterLabel, rect.w * 0.82);
+  const titleText = clampText(String(node.title || '').toUpperCase(), rect.w * 0.88);
+  const chapterY = rect.y + rect.h * 0.3;
+  const titleY = rect.y + rect.h * 0.64;
+
+  ctx.globalAlpha = 0.9;
+  ctx.fillStyle = chapterLabelColor;
+  ctx.font = `600 ${chapterFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  ctx.fillText(chapterText, rect.x + rect.w / 2, chapterY);
+
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = textColor;
+  ctx.font = `900 ${mainFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
+  ctx.fillText(titleText, rect.x + rect.w / 2, titleY);
 
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
-  ctx.globalAlpha = 0.9;
-  ctx.fillStyle = subtitleColor;
-  ctx.font = `700 ${subtitleSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
-  const subtitle = clampText(node.chapterName || '', rect.w * 0.8);
-  if (subtitle) {
-    ctx.fillText(subtitle, rect.x + rect.w / 2, rect.y + rect.h - Math.max(12 * scale, 14));
-  }
   ctx.globalAlpha = 1;
 
   ctx.restore();
@@ -937,7 +839,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
 
 function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed = false, highlight = null) {
   if (node.nodeType === 'rank' && RANK_TITLE_BADGES[node.id]) {
-    const handled = drawRankTitleNode(ctx, camera, node, status, t);
+    const handled = drawRankTitleNode(ctx, camera, node, status, t, isHovered, isPressed, highlight);
     if (handled) {
       return;
     }
@@ -1574,6 +1476,70 @@ export function initializeStageMap({
     }
   }
 
+  function getChapterStageBounds(chapterId) {
+    if (!chapterId) return null;
+    const stageNodes = state.nodes.filter(node => node.chapterId === chapterId && node.nodeType === 'stage');
+    if (!stageNodes.length) return null;
+    return calculateBounds(stageNodes);
+  }
+
+  function drawChapterCircuitFrame(ctx, camera, chapter) {
+    if (!chapter?.id || !chapter.rankNodeId) return;
+    const rankNode = state.nodeLookup.get(chapter.rankNodeId);
+    if (!rankNode) return;
+    const stageBounds = getChapterStageBounds(chapter.id);
+    if (!stageBounds) return;
+
+    const alphaBase = (!state.currentChapterId || state.currentChapterId === chapter.id) ? 0.88 : 0.24;
+    const { scale } = camera.getState();
+    const padding = CELL * 0.7;
+    const frame = {
+      minX: stageBounds.minX - padding,
+      minY: stageBounds.minY - padding,
+      maxX: stageBounds.maxX + padding,
+      maxY: stageBounds.maxY + padding
+    };
+
+    const lineStartWorld = {
+      x: rankNode.rect.x + rankNode.rect.w / 2,
+      y: rankNode.rect.y + rankNode.rect.h
+    };
+    const lineEndWorld = {
+      x: (frame.minX + frame.maxX) / 2,
+      y: frame.minY
+    };
+
+    const lineStart = camera.worldToScreen(lineStartWorld.x, lineStartWorld.y);
+    const lineEnd = camera.worldToScreen(lineEndWorld.x, lineEndWorld.y);
+    const frameTopLeft = camera.worldToScreen(frame.minX, frame.minY);
+    const frameWidth = (frame.maxX - frame.minX) * scale;
+    const frameHeight = (frame.maxY - frame.minY) * scale;
+    const frameRadius = Math.min(4.5 * scale, Math.min(frameWidth, frameHeight) / 10);
+
+    ctx.save();
+    ctx.globalAlpha = alphaBase;
+    ctx.strokeStyle = 'rgba(220, 192, 132, 0.82)';
+    ctx.lineWidth = Math.max(1.1 * scale, 0.9);
+
+    ctx.beginPath();
+    ctx.moveTo(lineStart.x, lineStart.y);
+    ctx.lineTo(lineEnd.x, lineEnd.y);
+    ctx.stroke();
+
+    buildRoundedRectPath(ctx, frameTopLeft.x, frameTopLeft.y, frameWidth, frameHeight, frameRadius);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(lineEnd.x, lineEnd.y, Math.max(1.5 * scale, 1.2), 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(232, 210, 160, 0.8)';
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function drawChapterCircuitFrames(ctx, camera) {
+    (state.chapters || []).forEach(chapter => drawChapterCircuitFrame(ctx, camera, chapter));
+  }
+
   // Continuous render loop so wire animation flows smoothly.
   let _raf = null;
   let _lastVisible = true;
@@ -1697,6 +1663,8 @@ export function initializeStageMap({
       drawEdge(ctx, camera, edge, active, timestamp, highlight, edgeAlpha);
       ctx.globalAlpha = 1;
     });
+
+    drawChapterCircuitFrames(ctx, camera);
 
     state.nodes.forEach(node => {
       const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
