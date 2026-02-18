@@ -12,21 +12,21 @@
   "chapters": [
     {
       "id": "chapter_1",
-      "label": "Bit Solver",
+      "label": "Logic Core",
       "order": 1,
       "anchor": { "x": 0, "y": 0 },
       "rankNodeId": "bit_solver"
     },
     {
       "id": "chapter_2",
-      "label": "Bit Wiser",
+      "label": "Control Flow",
       "order": 2,
       "anchor": { "x": 36, "y": 0 },
       "rankNodeId": "bit_wiser"
     },
     {
       "id": "chapter_3",
-      "label": "Bit Master",
+      "label": "Arithmetic Unit",
       "order": 3,
       "anchor": { "x": 72, "y": 0 },
       "rankNodeId": "bit_master"
@@ -39,12 +39,12 @@
     }
   ],
   "globals": {
-    "nodes": ["story"]
+    "nodes": []
   },
   "nodes": [
     {
       "id": "bit_solver",
-      "label": "Bit Solver",
+      "label": "Logic Core",
       "nodeType": "rank",
       "category": "meta",
       "chapterId": "chapter_1",
@@ -53,7 +53,7 @@
     },
     {
       "id": "bit_wiser",
-      "label": "Bit Wiser",
+      "label": "Control Flow",
       "nodeType": "rank",
       "category": "meta",
       "chapterId": "chapter_2",
@@ -62,7 +62,7 @@
     },
     {
       "id": "bit_master",
-      "label": "Bit Master",
+      "label": "Arithmetic Unit",
       "nodeType": "rank",
       "category": "meta",
       "chapterId": "chapter_3",
@@ -75,7 +75,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 8, "y": 8 },
+      "position": { "x": 3, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -84,7 +84,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 13, "y": 8 },
+      "position": { "x": 8, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -93,7 +93,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 18, "y": 8 },
+      "position": { "x": 18, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -102,7 +102,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 8, "y": 13 },
+      "position": { "x": 13, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -111,7 +111,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 13, "y": 13 },
+      "position": { "x": 13, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -120,7 +120,7 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 18, "y": 13 },
+      "position": { "x": 18, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -128,8 +128,8 @@
       "label": "Crossroad",
       "nodeType": "stage",
       "category": "basic_logic",
-      "chapterId": "chapter_1",
-      "position": { "x": 8, "y": 18 },
+      "chapterId": "chapter_2",
+      "position": { "x": 40, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -137,8 +137,8 @@
       "label": "Fixed XOR",
       "nodeType": "stage",
       "category": "basic_logic",
-      "chapterId": "chapter_1",
-      "position": { "x": 13, "y": 18 },
+      "chapterId": "chapter_2",
+      "position": { "x": 40, "y": 21 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -147,17 +147,8 @@
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 18, "y": 18 },
+      "position": { "x": 23, "y": 8 },
       "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "story",
-      "label": "Story",
-      "nodeType": "feature",
-      "category": "meta",
-      "chapterId": "global",
-      "position": { "x": 2, "y": -3 },
-      "size": { "w": 25, "h": 3 }
     },
     {
       "id": "lab",
@@ -341,19 +332,6 @@
     }
   ],
   "edges": [
-    {
-      "from": "bit_solver",
-      "to": "tutorial",
-      "style": "orthogonal",
-      "edgeType": "chapter_unlock",
-      "waypoints": [{ "x": 9, "y": 3 }]
-    },
-    {
-      "from": "story",
-      "to": "bit_solver",
-      "style": "orthogonal",
-      "edgeType": "meta"
-    },
     { "from": "tutorial", "to": "not", "style": "orthogonal", "edgeType": "progression" },
     { "from": "not", "to": "or", "style": "orthogonal", "edgeType": "progression" },
     { "from": "or", "to": "nor", "style": "orthogonal", "edgeType": "progression" },
@@ -362,27 +340,6 @@
     { "from": "and", "to": "xor", "style": "orthogonal", "edgeType": "progression" },
     { "from": "xor", "to": "fixed_xor", "style": "orthogonal", "edgeType": "progression" },
     { "from": "fixed_xor", "to": "crossroad", "style": "orthogonal", "edgeType": "progression" },
-    {
-      "from": "xor",
-      "to": "bit_wiser",
-      "style": "orthogonal",
-      "edgeType": "chapter_unlock",
-      "waypoints": [{ "x": 19, "y": 2 }]
-    },
-    {
-      "from": "bit_wiser",
-      "to": "majority_gate",
-      "style": "orthogonal",
-      "edgeType": "chapter_unlock",
-      "waypoints": [{ "x": 47, "y": 3 }]
-    },
-    {
-      "from": "bit_wiser",
-      "to": "half_adder",
-      "style": "orthogonal",
-      "edgeType": "chapter_unlock",
-      "waypoints": [{ "x": 73, "y": 3 }]
-    },
     { "from": "parity_checker", "to": "three_bit_shifter", "style": "orthogonal", "edgeType": "progression" },
     { "from": "majority_gate", "to": "parity_checker", "style": "orthogonal", "edgeType": "progression" },
     { "from": "parity_checker", "to": "decoder_2to4", "style": "orthogonal", "edgeType": "progression" },

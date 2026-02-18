@@ -17,7 +17,6 @@ import {
   gridSizeToWorldSize,
   gridToWorldPoint
 } from './stageMapLayout.js';
-import { openStoryModal } from './story.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
@@ -535,9 +534,9 @@ function normalizeChapters(spec = {}, nodes = []) {
   const hasControl = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_2');
   const hasArithmetic = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_3');
   const fallback = [];
-  if (hasBasic) fallback.push({ id: 'chapter_1', label: 'Bit Solver', order: 1, anchor: { x: 0, y: 0 }, rankNodeId: 'bit_solver' });
-  if (hasControl) fallback.push({ id: 'chapter_2', label: 'Bit Wiser', order: 2, anchor: { x: 36, y: 0 }, rankNodeId: 'bit_wiser' });
-  if (hasArithmetic) fallback.push({ id: 'chapter_3', label: 'Bit Master', order: 3, anchor: { x: 72, y: 0 }, rankNodeId: 'bit_master' });
+  if (hasBasic) fallback.push({ id: 'chapter_1', label: 'Logic Core', order: 1, anchor: { x: 0, y: 0 }, rankNodeId: 'bit_solver' });
+  if (hasControl) fallback.push({ id: 'chapter_2', label: 'Control Flow', order: 2, anchor: { x: 36, y: 0 }, rankNodeId: 'bit_wiser' });
+  if (hasArithmetic) fallback.push({ id: 'chapter_3', label: 'Arithmetic Unit', order: 3, anchor: { x: 72, y: 0 }, rankNodeId: 'bit_master' });
   return fallback;
 }
 
@@ -1111,9 +1110,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   ctx.fillStyle = titleColor;
   
   let fontSize = 18 * scale;
-  if (node.id === 'story') {
-    fontSize = height * 0.2;
-  } else if (node.id === 'lab' || node.id === 'user_created_stages') {
+  if (node.id === 'lab' || node.id === 'user_created_stages') {
     fontSize = 22 * scale;
   }
 
@@ -1126,8 +1123,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
 
-  const isCenteredNode = node.id === 'story'
-    || node.id === 'lab'
+  const isCenteredNode = node.id === 'lab'
     || node.id === 'user_created_stages';
 
   if (isCenteredNode) {
@@ -2351,15 +2347,6 @@ export function initializeStageMap({
     }
   }
 
-  function handleFeatureShortcut(node) {
-    if (!node) return;
-    if (node.id === 'story') {
-      closeOpenPanel();
-      openStoryModal();
-      return;
-    }
-  }
-
   function markModeNodeCleared(nodeId) {
     if (state.specialClears.has(nodeId)) return;
     state.specialClears.add(nodeId);
@@ -2404,10 +2391,6 @@ export function initializeStageMap({
 
     if (node.nodeType === 'mode') {
       handleModeShortcut(node);
-      return;
-    }
-    if (node.nodeType === 'feature') {
-      handleFeatureShortcut(node);
       return;
     }
     if (node.level == null) return;
