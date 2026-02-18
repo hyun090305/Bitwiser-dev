@@ -1158,7 +1158,12 @@ document.addEventListener("DOMContentLoaded", () => {
   setLoadingMilestone(32);
 
   const uname = getUsername();
-  if (uname) document.getElementById("guestUsername").textContent = uname;
+  if (uname) {
+    const guestUsernameEl = document.getElementById('guestUsername');
+    if (guestUsernameEl) {
+      guestUsernameEl.textContent = uname;
+    }
+  }
 
   const overallRankingPromise = showOverallRanking(); // Load rankings without blocking the UI
   if (overallRankingPromise && typeof overallRankingPromise.then === 'function') {

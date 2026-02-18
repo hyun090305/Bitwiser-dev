@@ -98,6 +98,10 @@ body.safe-mode .stage-map-surface {
   gap: 1rem;
 }
 
+.stage-map-info.stage-map-info--hidden {
+  display: none;
+}
+
 .stage-map-profile {
   width: 100%;
   border-top: 1px solid rgba(15, 23, 42, 0.08);
@@ -183,6 +187,46 @@ body.safe-mode .stage-map-surface {
   background: #0ea5e9;
   color: #fff;
   border-color: #0ea5e9;
+}
+
+.stage-map-chapter-nav {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 3;
+  padding: 0.4rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.stage-map-chapter-nav button {
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(248, 250, 252, 0.92);
+  color: #0f172a;
+  padding: 0.4rem 0.8rem;
+  min-width: 44px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.stage-map-chapter-nav button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.stage-map-chapter-label {
+  min-width: 220px;
+  text-align: center;
+  color: #f8fafc;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
 
 .stage-map-panels {

@@ -1,4 +1,4 @@
-const translations = {
+﻿const translations = {
   ko: {
     loadingText: {text: "데이터 불러오는 중..."},
     loginTitle: {text: "로그인 또는 게스트 플레이"},
@@ -225,6 +225,13 @@ const translations = {
     orientationTipText: {text: "Tip: [홈 화면에 추가 → 설치]를 통해 Bitwiser 앱을 설치할 수 있어요!"},
     closeOrientationBtn: {text: "닫기"},
     mainTagline: {text: "Play bitwise. Become bit wiser."},
+    stageMapChapterLabelPrefix: {text: "Chapter"},
+    stageMapChapterPrev: {text: "이전"},
+    stageMapChapterNext: {text: "다음"},
+    stageMapChapterPrevAria: {text: "이전 챕터"},
+    stageMapChapterNextAria: {text: "다음 챕터"},
+    stageMapInfoShowAria: {text: "정보 패널 열기"},
+    stageMapInfoHideAria: {text: "정보 패널 닫기"},
     mobileNavRankingText: {text: "랭킹"},
     mobileNavRankingIcon: {alt: "랭킹"},
     mobileNavHomeText: {text: "메인"},
@@ -551,6 +558,13 @@ const translations = {
     orientationTipText: {text: "Tip: Install Bitwiser via [Add to Home Screen → Install]!"},
     closeOrientationBtn: {text: "Close"},
     mainTagline: {text: "Play bitwise. Become bit wiser."},
+    stageMapChapterLabelPrefix: {text: "Chapter"},
+    stageMapChapterPrev: {text: "Prev"},
+    stageMapChapterNext: {text: "Next"},
+    stageMapChapterPrevAria: {text: "Previous chapter"},
+    stageMapChapterNextAria: {text: "Next chapter"},
+    stageMapInfoShowAria: {text: "Open info panel"},
+    stageMapInfoHideAria: {text: "Close info panel"},
     mobileNavRankingText: {text: "Ranking"},
     mobileNavRankingIcon: {alt: "Ranking"},
     mobileNavHomeText: {text: "Home"},

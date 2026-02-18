@@ -18,7 +18,6 @@ import {
   gridToWorldPoint
 } from './stageMapLayout.js';
 import { openStoryModal } from './story.js';
-import { getLastAccessedLevel } from './storage.js';
 
 const translate = typeof window !== 'undefined' && typeof window.t === 'function'
   ? window.t
@@ -26,6 +25,11 @@ const translate = typeof window !== 'undefined' && typeof window.t === 'function
 
 const SPECIAL_NODE_KEY = 'stageMapSpecialClears';
 const STAGE_MAP_SPEC_PATH = 'stage_map.json';
+const GLOBAL_CHAPTER_ID = 'global';
+const CHAPTER_FADE_NODE_OPACITY = 0.22;
+const CHAPTER_FADE_EDGE_OPACITY = 0.2;
+const CHAPTER_GLOBAL_NODE_OPACITY = 0.55;
+const CHAPTER_GLOBAL_EDGE_OPACITY = 0.5;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const easeOutCubic = value => 1 - Math.pow(1 - clamp(value, 0, 1), 3);
@@ -504,6 +508,77 @@ function calculateBounds(nodes) {
   });
 }
 
+function inferChapterIdFromNode(node) {
+  if (!node) return GLOBAL_CHAPTER_ID;
+  if (node.id === 'bit_solver' || node.category === 'basic_logic') return 'chapter_1';
+  if (node.id === 'bit_wiser' || node.category === 'control_logic') return 'chapter_2';
+  if (node.id === 'bit_master' || node.category === 'arithmetic') return 'chapter_3';
+  return GLOBAL_CHAPTER_ID;
+}
+
+function normalizeChapters(spec = {}, nodes = []) {
+  const explicit = Array.isArray(spec.chapters) ? spec.chapters : [];
+  if (explicit.length) {
+    return explicit
+      .map(ch => ({
+        id: ch.id,
+        label: ch.label || ch.id,
+        order: Number.isFinite(ch.order) ? ch.order : 0,
+        anchor: ch.anchor || null,
+        rankNodeId: ch.rankNodeId || null
+      }))
+      .filter(ch => ch.id)
+      .sort((a, b) => a.order - b.order);
+  }
+
+  const hasBasic = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_1');
+  const hasControl = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_2');
+  const hasArithmetic = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_3');
+  const fallback = [];
+  if (hasBasic) fallback.push({ id: 'chapter_1', label: 'Bit Solver', order: 1, anchor: { x: 0, y: 0 }, rankNodeId: 'bit_solver' });
+  if (hasControl) fallback.push({ id: 'chapter_2', label: 'Bit Wiser', order: 2, anchor: { x: 36, y: 0 }, rankNodeId: 'bit_wiser' });
+  if (hasArithmetic) fallback.push({ id: 'chapter_3', label: 'Bit Master', order: 3, anchor: { x: 72, y: 0 }, rankNodeId: 'bit_master' });
+  return fallback;
+}
+
+function buildChapterState({ spec, nodes, nodeLookup }) {
+  const chapters = normalizeChapters(spec, nodes);
+  const chapterLookup = new Map(chapters.map(ch => [ch.id, ch]));
+  const globals = new Set(Array.isArray(spec?.globals?.nodes) ? spec.globals.nodes : []);
+  const nodesByChapter = new Map();
+
+  nodes.forEach(node => {
+    let chapterId = node.chapterId;
+    if (globals.has(node.id)) chapterId = GLOBAL_CHAPTER_ID;
+    if (!chapterId || (!chapterLookup.has(chapterId) && chapterId !== GLOBAL_CHAPTER_ID)) {
+      chapterId = chapters.length ? inferChapterIdFromNode(node) : GLOBAL_CHAPTER_ID;
+    }
+    if (!chapterId || (!chapterLookup.has(chapterId) && chapterId !== GLOBAL_CHAPTER_ID)) {
+      chapterId = GLOBAL_CHAPTER_ID;
+    }
+    node.chapterId = chapterId;
+    if (!nodesByChapter.has(chapterId)) nodesByChapter.set(chapterId, []);
+    nodesByChapter.get(chapterId).push(node);
+    if (chapterId === GLOBAL_CHAPTER_ID) globals.add(node.id);
+  });
+
+  const chapterBounds = new Map();
+  chapters.forEach(chapter => {
+    const chapterNodes = nodesByChapter.get(chapter.id) || [];
+    if (chapterNodes.length) {
+      chapterBounds.set(chapter.id, calculateBounds(chapterNodes));
+    }
+  });
+
+  return {
+    chapters,
+    chapterLookup,
+    nodesByChapter,
+    chapterBounds,
+    globalNodeIds: globals
+  };
+}
+
 function buildNode(node, nodeTypes, getLevelTitle) {
   const defaultSize = nodeTypes[node.nodeType]?.defaultSize || {};
   const size = {
@@ -518,6 +593,7 @@ function buildNode(node, nodeTypes, getLevelTitle) {
   const comingSoon = node.nodeType === 'stage' && level == null && !node.isUserProblem;
   return {
     ...node,
+    chapterId: node.chapterId || GLOBAL_CHAPTER_ID,
     level,
     size,
     rect,
@@ -532,6 +608,7 @@ function buildGraph(spec, { getLevelTitle } = {}) {
   const nodeTypes = spec?.nodeTypes || {};
   const nodes = (spec?.nodes || []).map(node => buildNode(node, nodeTypes, getLevelTitle));
   const nodeLookup = new Map(nodes.map(n => [n.id, n]));
+  const chapterState = buildChapterState({ spec, nodes, nodeLookup });
   const dependencies = new Map();
   nodes.forEach(n => dependencies.set(n.id, []));
 
@@ -549,12 +626,24 @@ function buildGraph(spec, { getLevelTitle } = {}) {
     return {
       ...edge,
       id: edgeId,
+      edgeType: edge.edgeType || 'progression',
       points
     };
   }).filter(Boolean);
 
   const bounds = calculateBounds(nodes);
-  return { nodes, edges, nodeLookup, dependencies, bounds };
+  return {
+    nodes,
+    edges,
+    nodeLookup,
+    dependencies,
+    bounds,
+    chapters: chapterState.chapters,
+    chapterLookup: chapterState.chapterLookup,
+    nodesByChapter: chapterState.nodesByChapter,
+    chapterBounds: chapterState.chapterBounds,
+    globalNodeIds: chapterState.globalNodeIds
+  };
 }
 
 function updatePanelState(panel, isOpen, backdrop) {
@@ -811,7 +900,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
     let result = text;
     while (low < high) {
       const mid = Math.ceil((low + high) / 2);
-      const candidate = text.slice(0, mid) + '…';
+      const candidate = `${text.slice(0, mid)}...`;
       if (ctx.measureText(candidate).width <= maxWidth) {
         low = mid;
         result = candidate;
@@ -821,10 +910,10 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0) {
     }
     if (ctx.measureText(result).width > maxWidth) {
       let shortened = text;
-      while (shortened.length && ctx.measureText(shortened + '…').width > maxWidth) {
+      while (shortened.length && ctx.measureText(`${shortened}...`).width > maxWidth) {
         shortened = shortened.slice(0, -1);
       }
-      result = shortened + (shortened.length < text.length ? '…' : '');
+      result = shortened + (shortened.length < text.length ? '...' : '');
     }
     return result;
   };
@@ -905,7 +994,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
       ctx.fillStyle = 'rgba(255, 246, 225, 0.96)';
       ctx.fill();
 
-      // clear direct shadow before radial glow
+      // Clear direct shadow before radial glow.
       ctx.shadowColor = 'transparent';
       ctx.shadowBlur = 0;
       ctx.shadowOffsetX = 0;
@@ -1022,8 +1111,11 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   ctx.fillStyle = titleColor;
   
   let fontSize = 18 * scale;
-  if (node.id === 'story') fontSize = height * 0.2;
-  else if (['lab', 'user_created_stages'].includes(node.id)) fontSize = 22 * scale;
+  if (node.id === 'story') {
+    fontSize = height * 0.2;
+  } else if (node.id === 'lab' || node.id === 'user_created_stages') {
+    fontSize = 22 * scale;
+  }
 
   ctx.font = `700 ${fontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.textBaseline = 'middle';
@@ -1034,7 +1126,9 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
 
-  const isCenteredNode = ['story', 'lab', 'user_created_stages'].includes(node.id);
+  const isCenteredNode = node.id === 'story'
+    || node.id === 'lab'
+    || node.id === 'user_created_stages';
 
   if (isCenteredNode) {
     ctx.textAlign = 'center';
@@ -1232,6 +1326,7 @@ function injectUserProblems(spec, userProblems) {
             label: prob.title,
             nodeType: 'stage',
             category: 'user',
+            chapterId: userStagesNode.chapterId || GLOBAL_CHAPTER_ID,
             position: { x: pos.x, y: pos.y },
             size: { w: NODE_SIZE, h: NODE_SIZE },
             isUserProblem: true,
@@ -1267,6 +1362,7 @@ function injectUserProblems(spec, userProblems) {
         label: prob.title,
         nodeType: 'stage',
         category: 'user',
+        chapterId: userStagesNode.chapterId || GLOBAL_CHAPTER_ID,
         position: { x: testX, y: testY },
         size: { w: NODE_SIZE, h: NODE_SIZE },
         isUserProblem: true,
@@ -1299,7 +1395,12 @@ export function initializeStageMap({
   const zoomInBtn = document.getElementById('stageMapZoomIn');
   const zoomOutBtn = document.getElementById('stageMapZoomOut');
   const zoomResetBtn = document.getElementById('stageMapZoomReset');
+  const chapterPrevBtn = document.getElementById('stageMapChapterPrev');
+  const chapterNextBtn = document.getElementById('stageMapChapterNext');
+  const chapterLabelEl = document.getElementById('stageMapChapterLabel');
+  const infoToggleBtn = document.getElementById('stageMapInfoToggleBtn');
   const surface = document.getElementById('stageMapSurface');
+  const stageMapInfoEl = surface?.querySelector('.stage-map-info') || null;
   const panels = Array.from(document.querySelectorAll('.stage-panel'));
   const panelButtons = document.querySelectorAll('[data-panel-target]');
   const panelButtonByPanel = new Map();
@@ -1338,6 +1439,14 @@ export function initializeStageMap({
     pressedNode: null,
     dragging: false,
     edgesBySource: new Map(),
+    chapters: [],
+    chapterLookup: new Map(),
+    nodesByChapter: new Map(),
+    chapterBounds: new Map(),
+    globalNodeIds: new Set(),
+    currentChapterId: null,
+    pointerWorld: null,
+    pointerType: null,
     focusHighlight: null,
     edgeHighlights: new Map(),
     pendingFocus: null,
@@ -1377,7 +1486,7 @@ export function initializeStageMap({
     const baseWidth = Math.max(1, Math.floor(containerRect.width || window.innerWidth || 1));
     const baseHeight = Math.max(1, Math.floor(containerRect.height || window.innerHeight || 1));
 
-    // Compute expected internal pixel buffer size (CSS size × DPR).
+    // Compute expected internal pixel buffer size (CSS size 횞 DPR).
     const expectedInternalWidth = Math.floor(baseWidth * dpr);
     const expectedInternalHeight = Math.floor(baseHeight * dpr);
 
@@ -1484,10 +1593,10 @@ export function initializeStageMap({
     updateCameraAnimation(timestamp);
 
     const defaultGridStyle = {
-      background: 'rgba(15, 23, 42, 0.92)',
-      gridFillA: 'rgba(226, 232, 240, 0.035)',
-      gridFillB: 'rgba(148, 163, 184, 0.05)',
-      gridStroke: 'rgba(148, 163, 184, 0.35)'
+      background: 'rgba(15, 23, 42, 0.96)',
+      gridFillA: 'rgba(226, 232, 240, 0.008)',
+      gridFillB: 'rgba(148, 163, 184, 0.014)',
+      gridStroke: 'rgba(148, 163, 184, 0.12)'
     };
 
     let gridStyle = defaultGridStyle;
@@ -1539,6 +1648,31 @@ export function initializeStageMap({
       ...gridStyle
     });
 
+    if (state.pointerWorld && state.pointerType !== 'touch') {
+      const pointerScreen = camera.worldToScreen(state.pointerWorld.x, state.pointerWorld.y);
+      ctx.save();
+      const gaussianRadius = 360;
+      const gaussian = ctx.createRadialGradient(
+        pointerScreen.x,
+        pointerScreen.y,
+        0,
+        pointerScreen.x,
+        pointerScreen.y,
+        gaussianRadius
+      );
+      // Multi-stop falloff approximates gaussian distribution without a hard edge.
+      gaussian.addColorStop(0, 'rgba(248, 250, 252, 0.11)');
+      gaussian.addColorStop(0.12, 'rgba(241, 245, 249, 0.09)');
+      gaussian.addColorStop(0.3, 'rgba(226, 232, 240, 0.06)');
+      gaussian.addColorStop(0.55, 'rgba(203, 213, 225, 0.03)');
+      gaussian.addColorStop(0.78, 'rgba(148, 163, 184, 0.012)');
+      gaussian.addColorStop(1, 'rgba(148, 163, 184, 0)');
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = gaussian;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.restore();
+    }
+
     state.edges.forEach(edge => {
       const fromStatus = state.nodeStatus.get(edge.from);
       // Only render wires when the source node is cleared
@@ -1550,6 +1684,7 @@ export function initializeStageMap({
       const active = Boolean(fromStatus?.progressCleared || isUserEdge);
       let highlight = resolveEdgeHighlight(edge.id, timestamp);
 
+      let edgeAlpha = resolveEdgeOpacity(edge);
       if (state.transition.active) {
         const elapsed = timestamp - state.transition.startTime;
         const isTargetSource = state.transition.targetNode && edge.from === state.transition.targetNode.id;
@@ -1559,11 +1694,11 @@ export function initializeStageMap({
           highlight = { progress: (elapsed / 280), alpha: 1 };
         } else if (elapsed >= 120 && !isTargetSource) {
           // Fade out others
-          ctx.globalAlpha = 0.15;
+          edgeAlpha *= 0.15;
         }
       }
 
-      drawEdge(ctx, camera, edge, active, timestamp, highlight);
+      drawEdge(ctx, camera, edge, active, timestamp, highlight, edgeAlpha);
       ctx.globalAlpha = 1;
     });
 
@@ -1573,6 +1708,7 @@ export function initializeStageMap({
       const isPressed = Boolean(state.pressedNode && state.pressedNode.id === node.id);
       let highlight = resolveNodeHighlight(node.id, timestamp);
 
+      let nodeAlpha = resolveNodeOpacity(node);
       if (state.transition.active) {
         const elapsed = timestamp - state.transition.startTime;
         const isTarget = state.transition.targetNode && node.id === state.transition.targetNode.id;
@@ -1582,10 +1718,11 @@ export function initializeStageMap({
           highlight = { pulse: 1.0 + 0.1 * Math.sin((elapsed / 120) * Math.PI) };
         } else if (elapsed >= 120 && !isTarget) {
           // Fade out others
-          ctx.globalAlpha = 0.15;
+          nodeAlpha *= 0.15;
         }
       }
 
+      ctx.globalAlpha = nodeAlpha;
       drawNode(ctx, camera, node, status, timestamp, isHovered, isPressed, highlight);
       ctx.globalAlpha = 1;
     });
@@ -1697,6 +1834,12 @@ export function initializeStageMap({
     state.edges = graph.edges;
     state.nodeLookup = graph.nodeLookup;
     state.dependencies = graph.dependencies;
+    state.chapters = Array.isArray(graph.chapters) ? graph.chapters : [];
+    state.chapterLookup = graph.chapterLookup || new Map();
+    state.nodesByChapter = graph.nodesByChapter || new Map();
+    state.chapterBounds = graph.chapterBounds || new Map();
+    state.globalNodeIds = graph.globalNodeIds || new Set();
+    state.currentChapterId = state.chapters[0]?.id || null;
     state.mapBounds = graph.bounds;
     state.focusHighlight = null;
     state.edgeHighlights = new Map();
@@ -1709,6 +1852,7 @@ export function initializeStageMap({
     });
     clearHoverNode();
     clearPressedNode();
+    refreshChapterNav();
     refreshNodeStates();
     if (state.pendingFocus) {
       const pending = state.pendingFocus;
@@ -1718,7 +1862,7 @@ export function initializeStageMap({
     // Defer centering until the next animation frame so that the
     // canvas and layout have settled (prevents tiny bounding rects
     // when the stage map is being shown/animated). This avoids the
-    // intermittent "minimized 2×2" appearance caused by centering
+    // intermittent "minimized 2횞2" appearance caused by centering
     // against an incorrect/too-small viewport.
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
       window.requestAnimationFrame(() => {
@@ -1730,14 +1874,12 @@ export function initializeStageMap({
           console.warn('ensureCanvasInitialized failed during attachGraph RAF', e);
         }
         
-        const lastLevel = getLastAccessedLevel();
-        const lastLevelNode = lastLevel ? state.nodes.find(n => n.level === Number(lastLevel)) : null;
+        const chapterOne = state.chapterLookup.get('chapter_1');
         const bitSolverNode = state.nodes.find(n => n.id === 'bit_solver');
+        const targetChapterId = chapterOne?.id || bitSolverNode?.chapterId || state.chapters[0]?.id || null;
 
-        if (lastLevelNode) {
-          focusNode(lastLevelNode, { animate: false });
-        } else if (bitSolverNode) {
-          focusNode(bitSolverNode, { animate: false });
+        if (targetChapterId) {
+          focusChapter(targetChapterId, { animate: false });
         } else {
           centerMap();
         }
@@ -1745,14 +1887,12 @@ export function initializeStageMap({
       });
     } else {
       ensureCanvasInitialized();
-      const lastLevel = getLastAccessedLevel();
-      const lastLevelNode = lastLevel ? state.nodes.find(n => n.level === Number(lastLevel)) : null;
+      const chapterOne = state.chapterLookup.get('chapter_1');
       const bitSolverNode = state.nodes.find(n => n.id === 'bit_solver');
+      const targetChapterId = chapterOne?.id || bitSolverNode?.chapterId || state.chapters[0]?.id || null;
 
-      if (lastLevelNode) {
-        focusNode(lastLevelNode, { animate: false });
-      } else if (bitSolverNode) {
-        focusNode(bitSolverNode, { animate: false });
+      if (targetChapterId) {
+        focusChapter(targetChapterId, { animate: false });
       } else {
         centerMap();
       }
@@ -1896,10 +2036,10 @@ export function initializeStageMap({
         x: node.center.x - widthWorld / 2,
         y: node.center.y - heightWorld / 2
       };
-      // 이전에는 맵 경계(`state.mapBounds`)에 맞춰 클램프(clamp)하여
-      // 뷰포트가 맵 밖으로 나가지 않도록 했습니다. 요청에 따라
-      // 맵 경계와 비교하지 않고 원래 계산한 목표 위치(`rawTarget`)를
-      // 그대로 사용하도록 변경합니다.
+      // ?댁쟾?먮뒗 留?寃쎄퀎(`state.mapBounds`)??留욎떠 ?대옩??clamp)?섏뿬
+      // 酉고룷?멸? 留?諛뽰쑝濡??섍?吏 ?딅룄濡??덉뒿?덈떎. ?붿껌???곕씪
+      // 留?寃쎄퀎? 鍮꾧탳?섏? ?딄퀬 ?먮옒 怨꾩궛??紐⑺몴 ?꾩튂(`rawTarget`)瑜?
+      // 洹몃?濡??ъ슜?섎룄濡?蹂寃쏀빀?덈떎.
       const targetOrigin = rawTarget;
       panToOrigin(targetOrigin, { animate, duration: 650 });
       if (celebrate) {
@@ -1918,6 +2058,18 @@ export function initializeStageMap({
     }
     const node = state.nodes.find(n => n.level === normalizedLevel);
     if (!node) return;
+    const targetChapterId = node.chapterId;
+    if (targetChapterId && state.currentChapterId && targetChapterId !== state.currentChapterId) {
+      focusChapter(targetChapterId, { animate: opts.animate });
+      executeNextFrame(() => {
+        setTimeout(() => focusNode(node, { ...opts, animate: false }), 180);
+      });
+      return;
+    }
+    if (targetChapterId && !state.currentChapterId) {
+      setCurrentChapter(targetChapterId);
+      refreshChapterNav();
+    }
     focusNode(node, opts);
   }
 
@@ -1931,6 +2083,156 @@ export function initializeStageMap({
     }
   }
 
+  function isGlobalNode(node) {
+    if (!node) return false;
+    return node.chapterId === GLOBAL_CHAPTER_ID || state.globalNodeIds.has(node.id);
+  }
+
+  function isCurrentChapterNode(node) {
+    if (!node) return false;
+    if (!state.currentChapterId) return true;
+    return node.chapterId === state.currentChapterId;
+  }
+
+  function resolveNodeOpacity(node) {
+    if (!state.currentChapterId) return 1;
+    if (isCurrentChapterNode(node)) return 1;
+    if (isGlobalNode(node)) return CHAPTER_GLOBAL_NODE_OPACITY;
+    return CHAPTER_FADE_NODE_OPACITY;
+  }
+
+  function resolveEdgeOpacity(edge) {
+    if (!state.currentChapterId) return 1;
+    const fromNode = state.nodeLookup.get(edge.from);
+    const toNode = state.nodeLookup.get(edge.to);
+    const fromGlobal = isGlobalNode(fromNode);
+    const toGlobal = isGlobalNode(toNode);
+    if (fromGlobal || toGlobal) return CHAPTER_GLOBAL_EDGE_OPACITY;
+    if (fromNode?.chapterId === state.currentChapterId && toNode?.chapterId === state.currentChapterId) {
+      return 1;
+    }
+    return CHAPTER_FADE_EDGE_OPACITY;
+  }
+
+  function refreshChapterNav() {
+    const chapters = state.chapters || [];
+    const active = chapters.find(ch => ch.id === state.currentChapterId) || chapters[0] || null;
+    const activeIndex = active ? chapters.findIndex(ch => ch.id === active.id) : -1;
+    if (chapterLabelEl) {
+      const prefix = translate('stageMapChapterLabelPrefix') || 'Chapter';
+      chapterLabelEl.textContent = active ? `${prefix} ${active.order}: ${active.label}` : '';
+    }
+    if (chapterPrevBtn) {
+      chapterPrevBtn.textContent = translate('stageMapChapterPrev') || 'Prev';
+      chapterPrevBtn.disabled = !active || activeIndex <= 0;
+      chapterPrevBtn.setAttribute('aria-label', translate('stageMapChapterPrevAria') || 'Previous chapter');
+    }
+    if (chapterNextBtn) {
+      chapterNextBtn.textContent = translate('stageMapChapterNext') || 'Next';
+      chapterNextBtn.disabled = !active || activeIndex < 0 || activeIndex >= chapters.length - 1;
+      chapterNextBtn.setAttribute('aria-label', translate('stageMapChapterNextAria') || 'Next chapter');
+    }
+  }
+
+  function setCurrentChapter(chapterId) {
+    const next = chapterId && state.chapterLookup.has(chapterId)
+      ? chapterId
+      : (state.chapters[0]?.id || null);
+    if (state.currentChapterId === next) {
+      refreshChapterNav();
+      return;
+    }
+    state.currentChapterId = next;
+    refreshChapterNav();
+    document.dispatchEvent(new CustomEvent('stageMap:chapterChanged', {
+      detail: {
+        chapterId: next,
+        chapter: next ? state.chapterLookup.get(next) : null
+      }
+    }));
+  }
+
+  function getChapterAnchorWorld(chapter) {
+    if (!chapter) return null;
+    const rankNode = chapter.rankNodeId ? state.nodeLookup.get(chapter.rankNodeId) : null;
+    if (rankNode) return { x: rankNode.center.x, y: rankNode.center.y };
+    if (chapter.anchor) {
+      const pt = gridPointToWorldCenter(chapter.anchor);
+      return { x: pt.x, y: pt.y };
+    }
+    const bounds = state.chapterBounds.get(chapter.id);
+    if (bounds) {
+      return {
+        x: (bounds.minX + bounds.maxX) / 2,
+        y: (bounds.minY + bounds.maxY) / 2
+      };
+    }
+    return null;
+  }
+
+  function focusChapter(chapterId, { animate = true } = {}) {
+    if (!state.chapters.length) return;
+    const chapter = state.chapterLookup.get(chapterId) || state.chapters[0];
+    if (!chapter) return;
+    setCurrentChapter(chapter.id);
+    executeNextFrame(() => {
+      ensureCanvasInitialized();
+      const bounds = state.chapterBounds.get(chapter.id);
+      const anchor = getChapterAnchorWorld(chapter);
+      if (!anchor && !bounds) return;
+      const { scale, viewportWidth, viewportHeight } = camera.getState();
+      const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
+      const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
+      let nextScale = scale;
+
+      if (bounds) {
+        const boundsWidth = Math.max(bounds.maxX - bounds.minX, CELL);
+        const boundsHeight = Math.max(bounds.maxY - bounds.minY, CELL);
+        const fitPadding = 1.12;
+        const fitScaleX = safeViewportWidth / (boundsWidth * fitPadding);
+        const fitScaleY = safeViewportHeight / (boundsHeight * fitPadding);
+        nextScale = Math.max(0.2, Math.min(2.2, Math.min(fitScaleX, fitScaleY)));
+        if (Number.isFinite(nextScale) && Math.abs(nextScale - scale) > 1e-4) {
+          camera.setScale(nextScale, safeViewportWidth / 2, safeViewportHeight / 2);
+        }
+      }
+
+      const focusCenter = bounds
+        ? {
+          x: (bounds.minX + bounds.maxX) / 2,
+          y: (bounds.minY + bounds.maxY) / 2
+        }
+        : anchor;
+      const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
+      const heightWorld = safeViewportHeight / Math.max(nextScale, 1e-6);
+      panToOrigin(
+        {
+          x: focusCenter.x - widthWorld / 2,
+          y: focusCenter.y - heightWorld / 2
+        },
+        { animate, duration: 520 }
+      );
+      requestRender();
+    });
+  }
+
+  function shiftChapter(delta, options = {}) {
+    if (!state.chapters.length) return;
+    const chapters = state.chapters;
+    const currentIndex = Math.max(0, chapters.findIndex(ch => ch.id === state.currentChapterId));
+    const nextIndex = clamp(currentIndex + delta, 0, chapters.length - 1);
+    const nextChapter = chapters[nextIndex];
+    if (!nextChapter) return;
+    focusChapter(nextChapter.id, options);
+  }
+
+  function prevChapter(options = {}) {
+    shiftChapter(-1, options);
+  }
+
+  function nextChapter(options = {}) {
+    shiftChapter(1, options);
+  }
   function handleZoom(delta, pivotX, pivotY) {
     const current = camera.getScale();
     const next = Math.max(0.2, Math.min(2.2, current + delta));
@@ -1941,7 +2243,11 @@ export function initializeStageMap({
 
   function resetView() {
     camera.reset();
-    centerMap();
+    if (state.currentChapterId) {
+      focusChapter(state.currentChapterId, { animate: false });
+    } else {
+      centerMap();
+    }
     refreshZoomIndicator();
   }
 
@@ -2087,6 +2393,9 @@ export function initializeStageMap({
     if (!node) return;
     const status = state.nodeStatus.get(node.id);
     if (status?.locked) return;
+    if (node.chapterId && node.chapterId !== GLOBAL_CHAPTER_ID) {
+      setCurrentChapter(node.chapterId);
+    }
 
     if (node.isUserProblem) {
       previewUserProblem(node.problemKey);
@@ -2270,6 +2579,8 @@ export function initializeStageMap({
   function handlePointerDown(event) {
     canvas.setPointerCapture(event.pointerId);
     addActivePointer(event);
+    state.pointerType = event.pointerType || state.pointerType;
+    state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
 
     if (state.activePointers.size >= 2) {
       beginPinchGesture();
@@ -2298,6 +2609,8 @@ export function initializeStageMap({
     }
 
     updateActivePointer(event);
+    state.pointerType = event.pointerType || state.pointerType;
+    state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
 
     if (state.activePointers.size >= 2 || state.pinchState) {
       if (!state.pinchState && state.activePointers.size >= 2) {
@@ -2312,19 +2625,15 @@ export function initializeStageMap({
     if (!state.pointerStart) return;
     const dx = event.clientX - state.pointerStart.x;
     const dy = event.clientY - state.pointerStart.y;
-    if (!state.dragging && Math.hypot(dx, dy) > 4) {
-      state.dragging = true;
+    if (!state.pointerStart.moved && Math.hypot(dx, dy) > 4) {
+      state.pointerStart.moved = true;
       clearHoverNode();
       clearPressedNode();
       updateCanvasCursor();
     }
-    if (state.dragging) {
-      camera.pan(dx, dy);
-      state.pointerStart.x = event.clientX;
-      state.pointerStart.y = event.clientY;
-      requestRender();
-      return;
-    }
+    state.pointerStart.x = event.clientX;
+    state.pointerStart.y = event.clientY;
+    if (state.pointerStart.moved) return;
     const hovered = updateHoverFromPoint(event.clientX, event.clientY);
     if (hovered) {
       setPressedNode(hovered);
@@ -2335,7 +2644,7 @@ export function initializeStageMap({
 
   function handlePointerUp(event) {
     const start = state.pointerStart;
-    const wasDragging = state.dragging;
+    const wasDragging = Boolean(state.dragging || start?.moved);
     const hadPinch = Boolean(state.pinchState);
 
     if (state.activePointers.has(event.pointerId)) {
@@ -2364,6 +2673,7 @@ export function initializeStageMap({
 
     state.dragging = false;
     state.pointerStart = null;
+    state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
     updateCanvasCursor();
 
     if (!start || wasDragging) {
@@ -2387,6 +2697,9 @@ export function initializeStageMap({
   }
 
   function handlePointerHover(event) {
+    state.pointerType = event.pointerType || state.pointerType;
+    state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
+    requestRender();
     if (state.pointerStart || state.pinchState) {
       return;
     }
@@ -2401,8 +2714,26 @@ export function initializeStageMap({
       return;
     }
     if (state.pointerStart || state.pinchState) return;
+    state.pointerWorld = null;
+    requestRender();
     clearHoverNode();
     clearPressedNode();
+  }
+
+  function setStageMapInfoVisible(visible) {
+    if (!stageMapInfoEl) return;
+    const nextVisible = Boolean(visible);
+    stageMapInfoEl.classList.toggle('stage-map-info--hidden', !nextVisible);
+    if (infoToggleBtn) {
+      infoToggleBtn.setAttribute('aria-pressed', nextVisible ? 'true' : 'false');
+      infoToggleBtn.setAttribute('aria-expanded', nextVisible ? 'true' : 'false');
+      const labelKey = nextVisible ? 'stageMapInfoHideAria' : 'stageMapInfoShowAria';
+      const label = translate(labelKey);
+      if (label && label !== labelKey) {
+        infoToggleBtn.setAttribute('aria-label', label);
+        infoToggleBtn.setAttribute('title', label);
+      }
+    }
   }
 
   function handlePointerCancel(event) {
@@ -2427,8 +2758,12 @@ export function initializeStageMap({
     }
 
     updateCanvasCursor();
+    if (state.activePointers.size === 0) {
+      state.pointerWorld = null;
+    }
     clearHoverNode();
     clearPressedNode();
+    requestRender();
   }
 
   function setupCanvasInteractions() {
@@ -2468,6 +2803,29 @@ export function initializeStageMap({
   if (zoomInBtn) zoomInBtn.addEventListener('click', () => handleZoom(0.1));
   if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => handleZoom(-0.1));
   if (zoomResetBtn) zoomResetBtn.addEventListener('click', resetView);
+  if (infoToggleBtn) {
+    setStageMapInfoVisible(false);
+    infoToggleBtn.addEventListener('click', () => {
+      const hidden = stageMapInfoEl?.classList.contains('stage-map-info--hidden');
+      setStageMapInfoVisible(Boolean(hidden));
+    });
+  }
+  if (chapterPrevBtn) chapterPrevBtn.addEventListener('click', () => prevChapter({ animate: true }));
+  if (chapterNextBtn) chapterNextBtn.addEventListener('click', () => nextChapter({ animate: true }));
+
+  document.addEventListener('keydown', event => {
+    if (event.defaultPrevented) return;
+    if (!screenEl || screenEl.getAttribute('aria-hidden') === 'true') return;
+    const tag = (event.target?.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || event.target?.isContentEditable) return;
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      prevChapter({ animate: true });
+    } else if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      nextChapter({ animate: true });
+    }
+  });
 
   Promise.all([loadStageMapSpec(), getUserProblems()])
     .then(([spec, userProblems]) => {
@@ -2538,7 +2896,7 @@ export function initializeStageMap({
     
     const el = document.createElement('div');
     el.className = 'memory-restored-anim';
-    el.textContent = `기억 #${storyNumber} 복원됨`;
+    el.textContent = `Memory #${storyNumber} restored`;
     Object.assign(el.style, {
       position: 'absolute',
       transform: 'translate(-50%, -50%)',
@@ -2657,6 +3015,9 @@ export function initializeStageMap({
       refreshNodeStates();
     },
     focusLevel,
+    focusChapter,
+    prevChapter,
+    nextChapter,
     celebrateLevel,
     triggerMemoryRestoredAnimation
   };
@@ -2715,4 +3076,7 @@ function lerpColor(c1, c2, t) {
   const a = start.a + (end.a - start.a) * t;
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
+
+
+
 

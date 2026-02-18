@@ -5,9 +5,41 @@
   },
   "nodeTypes": {
     "stage": { "defaultSize": { "w": 3, "h": 3 } },
-    "rank":  { "defaultSize": { "w": 29, "h": 3 } },
+    "rank": { "defaultSize": { "w": 29, "h": 3 } },
     "feature": { "defaultSize": { "w": 9, "h": 3 } },
-    "mode":  { "defaultSize": { "w": 6, "h": 3 } }
+    "mode": { "defaultSize": { "w": 6, "h": 3 } }
+  },
+  "chapters": [
+    {
+      "id": "chapter_1",
+      "label": "Bit Solver",
+      "order": 1,
+      "anchor": { "x": 0, "y": 0 },
+      "rankNodeId": "bit_solver"
+    },
+    {
+      "id": "chapter_2",
+      "label": "Bit Wiser",
+      "order": 2,
+      "anchor": { "x": 36, "y": 0 },
+      "rankNodeId": "bit_wiser"
+    },
+    {
+      "id": "chapter_3",
+      "label": "Bit Master",
+      "order": 3,
+      "anchor": { "x": 72, "y": 0 },
+      "rankNodeId": "bit_master"
+    },
+    {
+      "id": "chapter_4",
+      "label": "Community",
+      "order": 4,
+      "anchor": { "x": 102, "y": 0 }
+    }
+  ],
+  "globals": {
+    "nodes": ["story"]
   },
   "nodes": [
     {
@@ -15,6 +47,7 @@
       "label": "Bit Solver",
       "nodeType": "rank",
       "category": "meta",
+      "chapterId": "chapter_1",
       "position": { "x": 2, "y": 2 },
       "size": { "w": 25, "h": 3 }
     },
@@ -23,7 +56,8 @@
       "label": "Bit Wiser",
       "nodeType": "rank",
       "category": "meta",
-      "position": { "x": 2, "y": 24 },
+      "chapterId": "chapter_2",
+      "position": { "x": 38, "y": 2 },
       "size": { "w": 25, "h": 3 }
     },
     {
@@ -31,15 +65,16 @@
       "label": "Bit Master",
       "nodeType": "rank",
       "category": "meta",
-      "position": { "x": 2, "y": 46 },
+      "chapterId": "chapter_3",
+      "position": { "x": 74, "y": 2 },
       "size": { "w": 25, "h": 3 }
     },
-
     {
       "id": "tutorial",
       "label": "Tutorial",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 8, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
@@ -48,6 +83,7 @@
       "label": "NOT",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 13, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
@@ -56,15 +92,16 @@
       "label": "NAND",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 18, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "nor",
       "label": "NOR",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 8, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
@@ -73,6 +110,7 @@
       "label": "OR",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 13, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
@@ -81,15 +119,16 @@
       "label": "AND",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 18, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "crossroad",
       "label": "Crossroad",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 8, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
@@ -98,6 +137,7 @@
       "label": "Fixed XOR",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 13, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
@@ -106,25 +146,26 @@
       "label": "XOR",
       "nodeType": "stage",
       "category": "basic_logic",
+      "chapterId": "chapter_1",
       "position": { "x": 18, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "story",
       "label": "Story",
       "nodeType": "feature",
       "category": "meta",
+      "chapterId": "global",
       "position": { "x": 2, "y": -3 },
       "size": { "w": 25, "h": 3 }
     },
-
     {
       "id": "lab",
       "label": "Lab",
       "nodeType": "mode",
       "category": "meta",
-      "position": { "x": -6, "y": 23 },
+      "chapterId": "chapter_4",
+      "position": { "x": 102, "y": 8 },
       "size": { "w": 5, "h": 5 }
     },
     {
@@ -132,16 +173,17 @@
       "label": "User Created Stages",
       "nodeType": "mode",
       "category": "meta",
-      "position": { "x": 30, "y": 23 },
+      "chapterId": "chapter_4",
+      "position": { "x": 102, "y": 15 },
       "size": { "w": 5, "h": 5 }
     },
-
     {
       "id": "three_bit_shifter",
       "label": "3-bit Shifter",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 30 },
+      "chapterId": "chapter_2",
+      "position": { "x": 36, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -149,7 +191,8 @@
       "label": "Parity Checker",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 30 },
+      "chapterId": "chapter_2",
+      "position": { "x": 41, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -157,16 +200,17 @@
       "label": "Majority Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 30 },
+      "chapterId": "chapter_2",
+      "position": { "x": 46, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "fixed_decoder_2to4",
       "label": "Fixed 2-to-4 Decoder",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 35 },
+      "chapterId": "chapter_2",
+      "position": { "x": 36, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -174,7 +218,8 @@
       "label": "2-to-4 Decoder",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 35 },
+      "chapterId": "chapter_2",
+      "position": { "x": 41, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -182,16 +227,17 @@
       "label": "Enable Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 35 },
+      "chapterId": "chapter_2",
+      "position": { "x": 46, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "priority_gate",
       "label": "Priority Gate",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 0, "y": 40 },
+      "chapterId": "chapter_2",
+      "position": { "x": 36, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -199,7 +245,8 @@
       "label": "2-bit Max Selector",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 5, "y": 40 },
+      "chapterId": "chapter_2",
+      "position": { "x": 41, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -207,16 +254,17 @@
       "label": "4-to-1 MUX",
       "nodeType": "stage",
       "category": "control_logic",
-      "position": { "x": 10, "y": 40 },
+      "chapterId": "chapter_2",
+      "position": { "x": 46, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "half_adder",
       "label": "Half Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 30 },
+      "chapterId": "chapter_3",
+      "position": { "x": 72, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -224,7 +272,8 @@
       "label": "Full Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 30 },
+      "chapterId": "chapter_3",
+      "position": { "x": 77, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -232,16 +281,17 @@
       "label": "Overflow Detector",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 30 },
+      "chapterId": "chapter_3",
+      "position": { "x": 82, "y": 8 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "mod3_remainder",
       "label": "Mod 3 Remainder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 35 },
+      "chapterId": "chapter_3",
+      "position": { "x": 72, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -249,7 +299,8 @@
       "label": "2-bit Comparator",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 35 },
+      "chapterId": "chapter_3",
+      "position": { "x": 77, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -257,16 +308,17 @@
       "label": "2-bit Subtractor",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 35 },
+      "chapterId": "chapter_3",
+      "position": { "x": 82, "y": 13 },
       "size": { "w": 3, "h": 3 }
     },
-
     {
       "id": "two_bit_multiplier",
       "label": "2-bit Multiplier",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 16, "y": 40 },
+      "chapterId": "chapter_3",
+      "position": { "x": 72, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -274,7 +326,8 @@
       "label": "2-bit Adder",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 21, "y": 40 },
+      "chapterId": "chapter_3",
+      "position": { "x": 77, "y": 18 },
       "size": { "w": 3, "h": 3 }
     },
     {
@@ -282,61 +335,95 @@
       "label": "2's complement",
       "nodeType": "stage",
       "category": "arithmetic",
-      "position": { "x": 26, "y": 40 },
+      "chapterId": "chapter_3",
+      "position": { "x": 82, "y": 18 },
       "size": { "w": 3, "h": 3 }
     }
   ],
-
   "edges": [
     {
       "from": "bit_solver",
       "to": "tutorial",
       "style": "orthogonal",
-      "waypoints": [
-        { "x": 9, "y": 3 }
-      ]
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 9, "y": 3 }]
     },
     {
       "from": "story",
       "to": "bit_solver",
-      "style": "orthogonal"
+      "style": "orthogonal",
+      "edgeType": "meta"
     },
-
-    { "from": "tutorial", "to": "not", "style": "orthogonal" },
-    { "from": "not",      "to": "or",  "style": "orthogonal" },
-    { "from": "or",       "to": "nor", "style": "orthogonal" },
-    { "from": "or",       "to": "and", "style": "orthogonal" },
-    { "from": "and",     "to": "nand", "style": "orthogonal" },
-    { "from": "and",      "to": "xor", "style": "orthogonal" },
-    { "from": "xor",      "to": "fixed_xor", "style": "orthogonal" },
-    { "from": "fixed_xor","to": "crossroad", "style": "orthogonal" },
-    { "from": "xor","to": "bit_wiser", "style": "orthogonal","waypoints": [{ "x": 19, "y": 24 }] },
-
-    { "from": "bit_wiser", "to": "lab",                 "style": "orthogonal" },
-    { "from": "bit_wiser", "to": "user_created_stages","style": "orthogonal" },
-    { "from": "bit_wiser", "to": "majority_gate",  "style": "orthogonal","waypoints": [{ "x": 11, "y": 25 }] },
-    { "from": "bit_wiser", "to": "half_adder",         "style": "orthogonal","waypoints": [{ "x": 17, "y": 25 }]  },
-
-    { "from": "parity_checker",    "to": "three_bit_shifter", "style": "orthogonal" },
-    { "from": "majority_gate",     "to": "parity_checker",  "style": "orthogonal" },
-    { "from": "parity_checker",    "to": "decoder_2to4",   "style": "orthogonal" },
-    { "from": "decoder_2to4",      "to": "fixed_decoder_2to4",   "style": "orthogonal" },
-    { "from": "decoder_2to4",      "to": "two_bit_max_selector", "style": "orthogonal" },
-    { "from": "two_bit_max_selector",      "to": "priority_gate", "style": "orthogonal" },
-    { "from": "majority_gate",     "to": "enable_gate", "style": "orthogonal" },
-    { "from": "two_bit_max_selector","to": "mux_4to1", "style": "orthogonal" },
-
-    { "from": "half_adder",        "to": "full_adder",        "style": "orthogonal" },
-    { "from": "full_adder",        "to": "overflow_detector","style": "orthogonal" },
-    { "from": "twos_complement",   "to": "two_bit_subtractor",   "style": "orthogonal" },
-
-    { "from": "two_bit_multiplier",        "to": "mod3_remainder",    "style": "orthogonal" },
-    { "from": "full_adder",        "to": "two_bit_comparator","style": "orthogonal" },
-    { "from": "two_bit_comparator","to": "two_bit_adder",     "style": "orthogonal" },
-    { "from": "two_bit_adder",     "to": "two_bit_multiplier","style": "orthogonal" },
-    { "from": "two_bit_adder",     "to": "twos_complement","style": "orthogonal" },
-
-    { "from": "mux_4to1",          "to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 11, "y": 47 }] },
-    { "from": "two_bit_multiplier","to": "bit_master",        "style": "orthogonal","waypoints": [{ "x": 17, "y": 47 }]  }
+    { "from": "tutorial", "to": "not", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "not", "to": "or", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "or", "to": "nor", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "or", "to": "and", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "and", "to": "nand", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "and", "to": "xor", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "xor", "to": "fixed_xor", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "fixed_xor", "to": "crossroad", "style": "orthogonal", "edgeType": "progression" },
+    {
+      "from": "xor",
+      "to": "bit_wiser",
+      "style": "orthogonal",
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 19, "y": 2 }]
+    },
+    {
+      "from": "bit_wiser",
+      "to": "majority_gate",
+      "style": "orthogonal",
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 47, "y": 3 }]
+    },
+    {
+      "from": "bit_wiser",
+      "to": "half_adder",
+      "style": "orthogonal",
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 73, "y": 3 }]
+    },
+    { "from": "parity_checker", "to": "three_bit_shifter", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "majority_gate", "to": "parity_checker", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "parity_checker", "to": "decoder_2to4", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "decoder_2to4", "to": "fixed_decoder_2to4", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "decoder_2to4", "to": "two_bit_max_selector", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_max_selector", "to": "priority_gate", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "majority_gate", "to": "enable_gate", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_max_selector", "to": "mux_4to1", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "half_adder", "to": "full_adder", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "full_adder", "to": "overflow_detector", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "twos_complement", "to": "two_bit_subtractor", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_multiplier", "to": "mod3_remainder", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "full_adder", "to": "two_bit_comparator", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_comparator", "to": "two_bit_adder", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_adder", "to": "two_bit_multiplier", "style": "orthogonal", "edgeType": "progression" },
+    { "from": "two_bit_adder", "to": "twos_complement", "style": "orthogonal", "edgeType": "progression" },
+    {
+      "from": "mux_4to1",
+      "to": "bit_master",
+      "style": "orthogonal",
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 47, "y": 3 }]
+    },
+    {
+      "from": "two_bit_multiplier",
+      "to": "bit_master",
+      "style": "orthogonal",
+      "edgeType": "chapter_unlock",
+      "waypoints": [{ "x": 73, "y": 3 }]
+    },
+    {
+      "from": "bit_master",
+      "to": "lab",
+      "style": "orthogonal",
+      "edgeType": "meta"
+    },
+    {
+      "from": "bit_master",
+      "to": "user_created_stages",
+      "style": "orthogonal",
+      "edgeType": "meta"
+    }
   ]
 }
