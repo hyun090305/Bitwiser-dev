@@ -296,45 +296,116 @@ function buildMissionBrief(title, desc) {
   const safeTitle = (title || 'UNKNOWN').toString().trim() || 'UNKNOWN';
   const source = (desc || '').toString().trim();
   if (source) {
-    return `입력 신호 패턴을 분석하고 LOGIC NODE: ${safeTitle}를 복구하십시오.`;
+    return source;
   }
   return `LOGIC NODE: ${safeTitle}의 출력 패턴을 복구하십시오.`;
 }
 
-function parseLogicRows(dataTable = []) {
+function formatSignalLabel(signalName) {
+  return (signalName || '').toString();
+}
+
+function getSignalGroupKey(signalLabel) {
+  const raw = (signalLabel || '').toString();
+  const match = raw.match(/[A-Za-z]/);
+  if (match) return match[0].toUpperCase();
+  return raw.charAt(0).toUpperCase();
+}
+
+function parseLogicRows(level, dataTable = []) {
   if (!Array.isArray(dataTable) || !dataTable.length) return [];
-  const keys = Object.keys(dataTable[0]);
-  if (!keys.length) return [];
-  const outputKey = keys[keys.length - 1];
-  const inputKeys = keys.slice(0, -1);
+  const firstRow = dataTable[0];
+  const rowKeys = Object.keys(firstRow);
+  if (!rowKeys.length) return [];
+
+  const blockSet = levelBlockSets[level] || [];
+  const inputKeys = blockSet
+    .filter(block => block.type === 'INPUT' && rowKeys.includes(block.name))
+    .map(block => block.name);
+  const outputKeys = blockSet
+    .filter(block => block.type === 'OUTPUT' && rowKeys.includes(block.name))
+    .map(block => block.name);
+
+  const fallbackOutputKey = rowKeys[rowKeys.length - 1];
+  const resolvedInputKeys = inputKeys.length ? inputKeys : rowKeys.slice(0, -1);
+  const resolvedOutputKeys = outputKeys.length ? outputKeys : [fallbackOutputKey];
+
   return dataTable.map((row, index) => {
-    const inputBits = inputKeys.map(key => row[key]).join('');
+    const inputSignals = resolvedInputKeys.map(key => ({
+      label: formatSignalLabel(key),
+      value: `${row[key] ?? ''}`.trim()
+    }));
+    const outputSignals = resolvedOutputKeys.map(key => ({
+      label: formatSignalLabel(key),
+      value: `${row[key] ?? ''}`.trim()
+    }));
+
     return {
       id: `case-${index}`,
-      inputBits,
-      outputBit: `${row[outputKey] ?? ''}`.trim()
+      inputSignals,
+      outputSignals
     };
   });
 }
 
 function renderLogicCards(tableEl, rows) {
   tableEl.innerHTML = '';
+
+  const createSignalGroup = (signals, sideClassName) => {
+    const side = document.createElement('div');
+    side.className = `level-intro-case__side ${sideClassName}`;
+
+    if (!signals.length) {
+      const empty = document.createElement('span');
+      empty.className = 'level-intro-case__empty';
+      empty.textContent = '-';
+      side.appendChild(empty);
+      return side;
+    }
+
+    signals.forEach(signal => {
+      const bit = document.createElement('div');
+      bit.className = 'level-intro-case__bit';
+      if (signal.value === '1') {
+        bit.classList.add('level-intro-case__bit--active');
+      }
+      const currentGroup = getSignalGroupKey(signal.label);
+      const previousBit = side.lastElementChild;
+      if (previousBit) {
+        const previousGroup = previousBit.getAttribute('data-group-key') || '';
+        if (previousGroup && previousGroup !== currentGroup) {
+          bit.classList.add('level-intro-case__bit--group-start');
+        }
+      }
+      bit.setAttribute('data-group-key', currentGroup);
+
+      const label = document.createElement('span');
+      label.className = 'level-intro-case__bit-label';
+      label.textContent = signal.label;
+
+      const value = document.createElement('span');
+      value.className = 'level-intro-case__bit-value';
+      value.textContent = signal.value || '-';
+
+      bit.append(label, value);
+      side.appendChild(bit);
+    });
+
+    return side;
+  };
+
   rows.forEach((row, index) => {
     const card = document.createElement('article');
     card.className = 'level-intro-case';
     card.style.setProperty('--case-delay', `${index * 90}ms`);
 
-    const lhs = document.createElement('span');
-    lhs.className = 'level-intro-case__input';
-    lhs.textContent = row.inputBits || '--';
+    const lhs = createSignalGroup(row.inputSignals || [], 'level-intro-case__side--input');
 
     const arrow = document.createElement('span');
     arrow.className = 'level-intro-case__arrow';
-    arrow.textContent = '->';
+    arrow.textContent = '→';
 
-    const rhs = document.createElement('span');
-    rhs.className = 'level-intro-case__output';
-    rhs.textContent = row.outputBit || '-';
+    const rhs = createSignalGroup(row.outputSignals || [], 'level-intro-case__side--output');
 
     card.append(lhs, arrow, rhs);
     tableEl.appendChild(card);
@@ -359,7 +430,7 @@ function prepareIntroScreen(level, data) {
     logicDataLabel.textContent = (translate('introLogicData') || 'LOGIC DATA').toString();
   }
 
-  const rows = parseLogicRows(data.table);
+  const rows = parseLogicRows(level, data.table);
   renderLogicCards(table, rows);
   startBtn.disabled = true;
   startBtn.textContent = translate('startLevelBtn');

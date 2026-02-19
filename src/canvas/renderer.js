@@ -1,5 +1,6 @@
 import { CELL, GAP } from './model.js';
 import { getActiveTheme, getThemeAccent } from '../themes.js';
+import { formatBlockLabels } from '../blockLabel.js';
 
 export const CELL_CORNER_RADIUS = 3;
 
@@ -840,7 +841,11 @@ export function drawBlock(
   ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(block.name || block.type, x + size / 2, y + size / 2);
+  ctx.fillText(
+    formatBlockLabels(block.name || block.type),
+    x + size / 2,
+    y + size / 2
+  );
   ctx.restore();
 }
 
@@ -964,7 +969,11 @@ function drawTutorialHighlights(ctx, highlights, phase, offsetX, camera, theme) 
       ctx.font = `600 ${fontSize}px "Noto Sans KR", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(label, rect.x + rect.size / 2, rect.y + rect.size / 2);
+      ctx.fillText(
+        formatBlockLabels(label),
+        rect.x + rect.size / 2,
+        rect.y + rect.size / 2
+      );
     }
     ctx.restore();
   });
@@ -1165,7 +1174,11 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, groups = [], opt
     ctx.font = 'bold 14px "Noto Sans KR", sans-serif';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(item.label || item.type, item.x + item.w / 2, item.y + item.h / 2);
+    ctx.fillText(
+      formatBlockLabels(item.label || item.type),
+      item.x + item.w / 2,
+      item.y + item.h / 2
+    );
     ctx.restore();
   });
 }

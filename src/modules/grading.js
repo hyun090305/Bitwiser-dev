@@ -1,4 +1,5 @@
 import { triggerConfetti } from './confetti.js';
+import { formatBlockLabelList, formatBlockLabels } from '../blockLabel.js';
 
 const WAIT_BETWEEN_TESTS = 320;
 
@@ -44,7 +45,12 @@ function ensureRequiredOutputs({
 }) {
   const missing = requiredOutputs.filter(name => !actualOutputNames.includes(name));
   if (missing.length > 0) {
-    alertFn(t('outputMissingAlert').replace('{list}', missing.join(', ')));
+    alertFn(
+      t('outputMissingAlert').replace(
+        '{list}',
+        formatBlockLabelList(missing).join(', ')
+      )
+    );
     return false;
   }
   return true;
@@ -71,13 +77,13 @@ function setInlineStatus(ui, { title, percent, text, detail, state }) {
   if (!ui || !ui.container) return;
   ui.container.hidden = false;
   ui.container.dataset.state = state || 'running';
-  if (ui.title && typeof title === 'string') ui.title.textContent = title;
+  if (ui.title && typeof title === 'string') ui.title.textContent = formatBlockLabels(title);
   if (ui.percent && Number.isFinite(percent)) ui.percent.textContent = `${percent}%`;
   if (ui.fill && Number.isFinite(percent)) {
     ui.fill.style.width = `${percent}%`;
   }
-  if (ui.text && typeof text === 'string') ui.text.textContent = text;
-  if (ui.detail && typeof detail === 'string') ui.detail.textContent = detail;
+  if (ui.text && typeof text === 'string') ui.text.textContent = formatBlockLabels(text);
+  if (ui.detail && typeof detail === 'string') ui.detail.textContent = formatBlockLabels(detail);
 }
 
 function getCircuitStats(circuit) {
