@@ -610,9 +610,9 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
     ctx.lineWidth = 4 * camera.getScale();
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'rgba(207, 251, 244, 0.3)';
-    ctx.shadowColor = 'rgba(207, 251, 244, 0.65)';
-    ctx.shadowBlur = 18;
+    ctx.strokeStyle = 'rgba(56, 96, 104, 0.6)';
+    ctx.shadowColor = 'rgba(28, 58, 64, 0.45)';
+    ctx.shadowBlur = 10;
     ctx.globalAlpha = opacity;
     ctx.stroke();
 
@@ -622,21 +622,12 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
       else ctx.lineTo(screen.x, screen.y);
     });
 
-    const baseDash = 18 * camera.getScale();
-    try {
-      ctx.setLineDash([baseDash, baseDash]);
-    } catch (e) {
-      // Ignore dash errors silently to keep compatibility with older canvases.
-    }
-    // Scale the offset speed so it matches the visual scale of the dash
-    ctx.lineDashOffset = (-((t || 0) * 0.06) % 36) * camera.getScale();
-
     const p0 = screenPoints[0];
     const p1 = screenPoints[screenPoints.length - 1];
     const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
-    grad.addColorStop(0, '#CFFBF4');
-    grad.addColorStop(0.5, '#B9F7EE');
-    grad.addColorStop(1, '#9DEFE4');
+    grad.addColorStop(0, '#27464D');
+    grad.addColorStop(0.5, '#2F5861');
+    grad.addColorStop(1, '#396D77');
 
     ctx.lineWidth = 3 * camera.getScale();
     ctx.strokeStyle = grad;
@@ -645,9 +636,80 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
     ctx.globalAlpha = opacity;
     ctx.stroke();
 
-    try {
-      ctx.setLineDash([]);
-    } catch (e) {}
+    let totalLength = 0;
+    for (let i = 1; i < screenPoints.length; i += 1) {
+      const prev = screenPoints[i - 1];
+      const current = screenPoints[i];
+      totalLength += Math.hypot(current.x - prev.x, current.y - prev.y);
+    }
+
+    if (totalLength > 0) {
+      const scale = camera.getScale();
+      const pulseLength = Math.max(44 * scale, totalLength * 0.14);
+      const cycleLength = totalLength + pulseLength;
+      const pulseHead = ((t || 0) * 0.15) % cycleLength;
+      if (pulseHead > 0 && pulseHead < cycleLength) {
+        const pulseStart = pulseHead - pulseLength;
+        const visibleStart = clamp(pulseStart, 0, totalLength);
+        const visibleEnd = clamp(pulseHead, 0, totalLength);
+        const visibleLength = visibleEnd - visibleStart;
+        if (visibleLength > 0.5) {
+          const drawPulseSegment = (start, end, width, color, alpha) => {
+            const segmentLength = end - start;
+            if (segmentLength <= 0.25) return;
+            ctx.beginPath();
+            screenPoints.forEach((screen, idx) => {
+              if (idx === 0) ctx.moveTo(screen.x, screen.y);
+              else ctx.lineTo(screen.x, screen.y);
+            });
+            try {
+              ctx.setLineDash([segmentLength, totalLength]);
+              ctx.lineDashOffset = -start;
+            } catch (e) {}
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.lineWidth = width;
+            ctx.strokeStyle = color;
+            ctx.globalAlpha = alpha * opacity;
+            ctx.stroke();
+          };
+
+          ctx.globalCompositeOperation = 'source-over';
+          const pulseCenter = (visibleStart + visibleEnd) / 2;
+          const sigma = Math.max(visibleLength * 0.24, 6 * scale);
+          const segmentCount = Math.max(12, Math.min(30, Math.round(visibleLength / Math.max(4 * scale, 1))));
+          const segmentStep = visibleLength / segmentCount;
+
+          for (let i = 0; i < segmentCount; i += 1) {
+            const start = visibleStart + segmentStep * i;
+            const end = (i === segmentCount - 1) ? visibleEnd : start + segmentStep;
+            const mid = (start + end) / 2;
+            const normalized = (mid - pulseCenter) / sigma;
+            const density = Math.exp(-0.5 * normalized * normalized);
+            if (density < 0.03) continue;
+
+            drawPulseSegment(
+              start,
+              end,
+              Math.max(2.6 * scale, 1.8),
+              'rgba(207, 251, 244, 0.95)',
+              Math.min(1, 0.08 + density * 0.92)
+            );
+            drawPulseSegment(
+              start,
+              end,
+              Math.max(1.05 * scale, 0.9),
+              'rgba(240, 255, 252, 0.95)',
+              Math.min(1, Math.pow(density, 1.15) * 0.95)
+            );
+          }
+
+          try {
+            ctx.setLineDash([]);
+          } catch (e) {}
+        }
+      }
+    }
 
     ctx.restore();
   }
