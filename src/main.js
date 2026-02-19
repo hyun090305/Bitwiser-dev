@@ -20,8 +20,6 @@ import {
   setGridDimensions,
   clearGrid,
   moveCircuit,
-  setupMenuToggle,
-  collapseMenuBarForMobile,
   onCircuitModified,
   getActiveCircuit,
   getActiveController,
@@ -709,7 +707,8 @@ function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
 
 const overlay = document.getElementById('gridOverlay');
 const rightPanel = document.getElementById('rightPanel');
-const gradingArea = document.getElementById('gradingArea');
+const gradingInlineStatus = document.getElementById('gradingInlineStatus');
+const gradeButton = document.getElementById('gradeButton');
 
 const gradingController = createGradingController({
   getPlayCircuit,
@@ -740,7 +739,8 @@ const gradingController = createGradingController({
   elements: {
     overlay,
     rightPanel,
-    gradingArea,
+    gradeButton,
+    gradingInlineStatus,
     toast: toastApi
   }
 });
@@ -763,7 +763,6 @@ configureLevelModule({
   setIsScoring: gradingController.setIsScoring
 });
 
-const gradeButton = document.getElementById('gradeButton');
 if (gradeButton) {
   gradeButton.addEventListener('click', () => {
     if (circuitHasError) {
@@ -795,7 +794,6 @@ initializeRankingUI({
 
 configureLevelModule({
   onLevelIntroComplete: () => {
-    collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
     guidedTutorial?.handleLevelStart?.(getCurrentLevel());
   }
 });
@@ -841,16 +839,13 @@ function isColorDark(color) {
 
 function syncGameAreaBackground(theme) {
   const gameArea = document.getElementById('gameArea');
-  const gameScreen = document.getElementById('gameScreen');
+  const hasConsoleFrame = Boolean(document.getElementById('consoleFrame'));
   const color = getThemeGridBackground(theme);
   if (gameArea) {
-    gameArea.style.backgroundColor = color || '';
+    gameArea.style.backgroundColor = hasConsoleFrame ? '' : (color || '');
     const isDarkTheme = color ? isColorDark(color) : false;
     gameArea.style.color = isDarkTheme ? '#e2e8f0' : '';
     gameArea.classList.toggle('game-area--dark', isDarkTheme);
-  }
-  if (gameScreen) {
-    gameScreen.style.backgroundColor = color || '';
   }
 }
 
@@ -1115,27 +1110,68 @@ function setupSettings() {
   });
 }
 
-function updatePadding() {
-  const menuBar = document.getElementById('menuBar');
-  const gameArea = document.getElementById('gameArea');
-  if (!menuBar) return;
+function setupSystemMenuDrawer() {
+  const button = document.getElementById('systemMenuBtn');
+  const drawer = document.getElementById('systemMenuDrawer');
+  const backdrop = document.getElementById('systemMenuBackdrop');
+  const drawerItems = drawer ? Array.from(drawer.querySelectorAll('button')) : [];
+  if (!button || !drawer || !backdrop) return;
 
-  const menuHeight = menuBar.offsetHeight;
-  document.documentElement.style.setProperty('--menu-bar-height', `${menuHeight}px`);
+  const updateLabel = () => {
+    const expanded = button.getAttribute('aria-expanded') === 'true';
+    const key = expanded ? 'systemMenuClose' : 'systemMenuOpen';
+    const label = translate(key);
+    button.setAttribute('aria-label', label);
+    button.setAttribute('title', label);
+  };
 
-  if (!gameArea) return;
+  const open = () => {
+    backdrop.hidden = false;
+    drawer.hidden = false;
+    document.body.classList.add('system-menu-open');
+    button.setAttribute('aria-expanded', 'true');
+    updateLabel();
+  };
 
-  if (window.matchMedia('(max-width: 1024px)').matches) {
-    gameArea.style.paddingBottom = '';
-  } else {
-    gameArea.style.paddingBottom = menuHeight + 'px';
-  }
-}
+  const close = () => {
+    backdrop.hidden = true;
+    drawer.hidden = true;
+    document.body.classList.remove('system-menu-open');
+    button.setAttribute('aria-expanded', 'false');
+    updateLabel();
+  };
 
-function setupGameAreaPadding() {
-  window.addEventListener('load', updatePadding);
-  updatePadding();
-  window.addEventListener('resize', updatePadding);
+  const toggle = () => {
+    if (drawer.hidden) {
+      open();
+    } else {
+      close();
+    }
+  };
+
+  button.addEventListener('click', event => {
+    event.stopPropagation();
+    toggle();
+  });
+
+  drawerItems.forEach(item => {
+    item.addEventListener('click', () => {
+      close();
+    });
+  });
+
+  backdrop.addEventListener('click', () => {
+    close();
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape' && !drawer.hidden) {
+      close();
+      button.focus();
+    }
+  });
+
+  close();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -1206,11 +1242,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   setupKeyToggles();
-  setupMenuToggle();
+  setupSystemMenuDrawer();
   setupSettings();
   syncGameAreaBackground(getThemeById(getActiveThemeId()));
   onThemeChange(syncGameAreaBackground);
-  setupGameAreaPadding();
   setLoadingMilestone(72);
   Promise.all(criticalTasks).then(() => {
     setLoadingMilestone(90);
@@ -1302,7 +1337,6 @@ async function startCustomProblem(key, problem) {
   
   showProblemIntro(problem, () => {
     document.body.classList.add('game-active');
-    collapseMenuBarForMobile({ onAfterCollapse: updatePadding });
   });
 }
 

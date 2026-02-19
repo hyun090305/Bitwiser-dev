@@ -5,7 +5,8 @@ const TRACKS = {
   stageIntro: 'assets/Swoosh.wav',
   itemPickup: 'assets/Item Pickup.wav',
   itemDrop: 'assets/Item Drop.wav',
-  wirePlacing: 'assets/Wire Placing.wav'
+  wirePlacing: 'assets/Wire Placing.wav',
+  remove: 'assets/Remove.wav'
 };
 
 let initialized = false;
@@ -18,6 +19,7 @@ let stageIntroAudio = null;
 let itemPickupAudio = null;
 let itemDropAudio = null;
 let wirePlacingAudio = null;
+let removeAudio = null;
 let unlockBound = false;
 let uiSoundBound = false;
 let bgmEnabled = true;
@@ -114,6 +116,17 @@ export function playWirePlacingSound() {
   tryPlay(wirePlacingAudio);
 }
 
+export function playRemoveSound() {
+  if (!sfxEnabled) return;
+  if (!removeAudio) return;
+  try {
+    removeAudio.currentTime = 0;
+  } catch (_) {
+    // Ignore seek failures from interrupted playbacks.
+  }
+  tryPlay(removeAudio);
+}
+
 function applyMode() {
   if (!initialized) return;
   if (!bgmEnabled) {
@@ -172,6 +185,7 @@ export function initializeBgm() {
   itemPickupAudio = createEffectAudio(TRACKS.itemPickup);
   itemDropAudio = createEffectAudio(TRACKS.itemDrop);
   wirePlacingAudio = createEffectAudio(TRACKS.wirePlacing);
+  removeAudio = createEffectAudio(TRACKS.remove);
   initialized = true;
   bindUnlockHandlers();
   bindUiButtonSound();

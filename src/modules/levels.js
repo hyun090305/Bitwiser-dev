@@ -130,6 +130,14 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     const fallbackTitle = localizedUntitled !== 'stageUntitled' ? localizedUntitled : 'Untitled stage';
     title.textContent = levelTitles[level] ?? fallbackTitle;
   }
+  const gradingInlineStatus = document.getElementById('gradingInlineStatus');
+  if (gradingInlineStatus) {
+    gradingInlineStatus.hidden = true;
+  }
+  const gradeButton = document.getElementById('gradeButton');
+  if (gradeButton) {
+    gradeButton.style.display = '';
+  }
 
   // 이전/다음 스테이지 버튼이 제거되어 관련 UI 조정 로직을 삭제함
 
@@ -168,9 +176,11 @@ export function returnToEditScreen() {
   if (overlay) overlay.style.display = 'none';
 
   const rightPanel = document.getElementById('rightPanel');
-  const gradingArea = document.getElementById('gradingArea');
   if (rightPanel) rightPanel.style.display = 'block';
-  if (gradingArea) gradingArea.style.display = 'none';
+  const gradingInlineStatus = document.getElementById('gradingInlineStatus');
+  if (gradingInlineStatus) gradingInlineStatus.hidden = true;
+  const gradeButton = document.getElementById('gradeButton');
+  if (gradeButton) gradeButton.style.display = '';
 }
 
 export function markLevelCleared(level) {
@@ -275,91 +285,123 @@ export function isLevelUnlocked(level) {
   return Boolean(levelTitles[level]);
 }
 
-export function showIntroModal(level) {
+function getStageCode(level) {
+  if (Number.isInteger(level)) {
+    return `STAGE ${String(level).padStart(2, '0')}`;
+  }
+  return 'STAGE --';
+}
+
+function buildMissionBrief(title, desc) {
+  const safeTitle = (title || 'UNKNOWN').toString().trim() || 'UNKNOWN';
+  const source = (desc || '').toString().trim();
+  if (source) {
+    return `입력 신호 패턴을 분석하고 LOGIC NODE: ${safeTitle}를 복구하십시오.`;
+  }
+  return `LOGIC NODE: ${safeTitle}의 출력 패턴을 복구하십시오.`;
+}
+
+function parseLogicRows(dataTable = []) {
+  if (!Array.isArray(dataTable) || !dataTable.length) return [];
+  const keys = Object.keys(dataTable[0]);
+  if (!keys.length) return [];
+  const outputKey = keys[keys.length - 1];
+  const inputKeys = keys.slice(0, -1);
+  return dataTable.map((row, index) => {
+    const inputBits = inputKeys.map(key => row[key]).join('');
+    return {
+      id: `case-${index}`,
+      inputBits,
+      outputBit: `${row[outputKey] ?? ''}`.trim()
+    };
+  });
+}
+
+function renderLogicCards(tableEl, rows) {
+  tableEl.innerHTML = '';
+  rows.forEach((row, index) => {
+    const card = document.createElement('article');
+    card.className = 'level-intro-case';
+    card.style.setProperty('--case-delay', `${index * 90}ms`);
+
+    const lhs = document.createElement('span');
+    lhs.className = 'level-intro-case__input';
+    lhs.textContent = row.inputBits || '--';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'level-intro-case__arrow';
+    arrow.textContent = '->';
+
+    const rhs = document.createElement('span');
+    rhs.className = 'level-intro-case__output';
+    rhs.textContent = row.outputBit || '-';
+
+    card.append(lhs, arrow, rhs);
+    tableEl.appendChild(card);
+  });
+}
+
+function prepareIntroScreen(level, data) {
   const modal = document.getElementById('levelIntroModal');
   const title = document.getElementById('introTitle');
   const desc = document.getElementById('introDesc');
+  const stageCode = document.getElementById('introStageCode');
+  const logicDataLabel = document.getElementById('introLogicDataLabel');
   const table = document.getElementById('truthTable');
+  const startBtn = document.getElementById('startLevelBtn');
+  if (!modal || !title || !desc || !stageCode || !table || !startBtn) return null;
 
-  const data = levelDescriptions[level];
-  if (!data) return;
+  const nodeTitle = `LOGIC NODE: ${(data.title || '').toString().trim()}`;
+  title.textContent = nodeTitle;
+  desc.textContent = buildMissionBrief(data.title, data.desc);
+  stageCode.textContent = getStageCode(level);
+  if (logicDataLabel) {
+    logicDataLabel.textContent = (translate('introLogicData') || 'LOGIC DATA').toString();
+  }
 
-  title.textContent = data.title;
-  desc.textContent = data.desc;
-
-  const keys = Object.keys(data.table[0]);
-  table.innerHTML = '';
-
-  const headerRow = document.createElement('tr');
-  keys.forEach(k => {
-    const th = document.createElement('th');
-    th.textContent = k;
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  data.table.forEach(row => {
-    const tr = document.createElement('tr');
-    keys.forEach(k => {
-      const td = document.createElement('td');
-      td.textContent = row[k];
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
+  const rows = parseLogicRows(data.table);
+  renderLogicCards(table, rows);
+  startBtn.disabled = true;
+  startBtn.textContent = translate('startLevelBtn');
 
   modal.style.display = 'flex';
-  modal.style.backgroundColor = 'rgba(0, 0, 0, 0.4)';
+  modal.classList.remove('level-intro-screen--active');
+  void modal.offsetWidth;
+  modal.classList.add('level-intro-screen--active');
+
+  window.setTimeout(() => {
+    startBtn.disabled = false;
+  }, 520);
+
+  return { modal, startBtn };
+}
+
+export function showIntroModal(level) {
+  const data = levelDescriptions[level];
+  if (!data) return;
+  prepareIntroScreen(level, data);
 }
 
 function showLevelIntro(level, callback) {
-  const modal = document.getElementById('levelIntroModal');
-  const title = document.getElementById('introTitle');
-  const desc = document.getElementById('introDesc');
-  const table = document.getElementById('truthTable');
-
   const data = levelDescriptions[level];
   if (!data) {
     callback();
     return;
   }
-
-  title.textContent = data.title;
-  desc.textContent = data.desc;
-
-  const keys = Object.keys(data.table[0]);
-  table.innerHTML = '';
-
-  const headerRow = document.createElement('tr');
-  keys.forEach(k => {
-    const th = document.createElement('th');
-    th.textContent = k;
-    headerRow.appendChild(th);
-  });
-  table.appendChild(headerRow);
-
-  data.table.forEach(row => {
-    const tr = document.createElement('tr');
-    keys.forEach(k => {
-      const td = document.createElement('td');
-      td.textContent = row[k];
-      tr.appendChild(td);
-    });
-    table.appendChild(tr);
-  });
+  const intro = prepareIntroScreen(level, data);
+  if (!intro) {
+    callback();
+    return;
+  }
 
   setBgmMode('ambient');
   playStageIntroSound();
-  modal.style.display = 'flex';
-  modal.style.backgroundColor = 'white';
-  const startBtn = document.getElementById('startLevelBtn');
-  if (startBtn) {
-    startBtn.onclick = () => {
-      modal.style.display = 'none';
-      setBgmMode('gameplay');
-      callback();
-    };
-  }
+  intro.startBtn.onclick = () => {
+    intro.modal.style.display = 'none';
+    intro.modal.classList.remove('level-intro-screen--active');
+    setBgmMode('gameplay');
+    callback();
+  };
 }
 
 export function buildPaletteGroups(blocks) {

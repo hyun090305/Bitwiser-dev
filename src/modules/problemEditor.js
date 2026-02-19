@@ -1384,23 +1384,60 @@ export function showProblemIntro(problem, callback) {
   const modal = document.getElementById('levelIntroModal');
   const title = document.getElementById('introTitle');
   const desc = document.getElementById('introDesc');
+  const stageCode = document.getElementById('introStageCode');
+  const logicDataLabel = document.getElementById('introLogicDataLabel');
   const table = document.getElementById('truthTable');
   if (!modal || !title || !desc || !table) return;
 
-  title.textContent = problem.title || '';
-  desc.textContent = problem.description || '';
+  const nodeTitle = (problem?.title || 'CUSTOM').toString().trim() || 'CUSTOM';
+  title.textContent = `LOGIC NODE: ${nodeTitle}`;
+  desc.textContent = `목표 출력 패턴을 유지하도록 ${nodeTitle} 노드를 복구하십시오.`;
+  if (stageCode) stageCode.textContent = 'CUSTOM NODE';
+  if (logicDataLabel) {
+    logicDataLabel.textContent = translate('introLogicData', 'LOGIC DATA');
+  }
+
   const keys = Object.keys(problem.table?.[0] || {});
-  table.innerHTML = `
-    <tr>${keys.map(key => `<th>${key}</th>`).join('')}</tr>
-    ${(problem.table || []).map(row => `<tr>${keys.map(key => `<td>${row[key]}</td>`).join('')}</tr>`).join('')}
-  `;
+  const outputKey = keys[keys.length - 1];
+  const inputKeys = keys.slice(0, -1);
+  table.innerHTML = '';
+  (problem.table || []).forEach((row, index) => {
+    const card = document.createElement('article');
+    card.className = 'level-intro-case';
+    card.style.setProperty('--case-delay', `${index * 90}ms`);
+
+    const lhs = document.createElement('span');
+    lhs.className = 'level-intro-case__input';
+    lhs.textContent = inputKeys.map(key => row[key]).join('') || '--';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'level-intro-case__arrow';
+    arrow.textContent = '->';
+
+    const rhs = document.createElement('span');
+    rhs.className = 'level-intro-case__output';
+    rhs.textContent = `${row[outputKey] ?? '-'}`;
+
+    card.append(lhs, arrow, rhs);
+    table.appendChild(card);
+  });
+
   modal.style.display = 'flex';
-  modal.style.backgroundColor = 'white';
+  modal.classList.remove('level-intro-screen--active');
+  void modal.offsetWidth;
+  modal.classList.add('level-intro-screen--active');
   const btn = document.getElementById('startLevelBtn');
   if (!btn) return;
-  btn.textContent = callback ? '시작하기' : '닫기';
+  btn.disabled = true;
+  btn.textContent = callback
+    ? translate('startLevelBtn', '회로 구성 시작')
+    : translate('closeBtn', '닫기');
+  window.setTimeout(() => {
+    btn.disabled = false;
+  }, 520);
   btn.onclick = () => {
     modal.style.display = 'none';
+    modal.classList.remove('level-intro-screen--active');
     if (callback) callback();
   };
 }

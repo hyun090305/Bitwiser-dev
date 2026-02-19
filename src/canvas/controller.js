@@ -12,6 +12,7 @@ import { evaluateCircuit, markCircuitDirty, startEngine } from './engine.js';
 import {
   playItemDropSound,
   playItemPickupSound,
+  playRemoveSound,
   playWirePlacingSound
 } from '../modules/bgm.js';
 
@@ -1066,6 +1067,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     });
 
     if (deleted) {
+      playRemoveSound();
       renderContent(
         contentCtx,
         circuit,
@@ -1959,6 +1961,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           );
           updateUsageCounts();
           if (deleted) {
+            playRemoveSound();
             clearSelection();
             snapshot();
           }
@@ -2633,6 +2636,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       state.draggingBlock = null;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       if (removedExistingBlock) {
+        playRemoveSound();
         snapshot();
       }
     }

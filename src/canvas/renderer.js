@@ -720,6 +720,22 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   if (borderColor && borderWidth > 0) {
     const innerWidth = width - 2 * GAP;
     const innerHeight = height - 2 * GAP;
+    const edgeGlow = ctx.createLinearGradient(offsetX, 0, offsetX + width, height);
+    edgeGlow.addColorStop(0, 'rgba(56, 189, 248, 0.2)');
+    edgeGlow.addColorStop(0.5, 'rgba(14, 165, 233, 0.3)');
+    edgeGlow.addColorStop(1, 'rgba(56, 189, 248, 0.18)');
+    ctx.save();
+    ctx.strokeStyle = edgeGlow;
+    ctx.lineWidth = Math.max(borderWidth + 2, 2);
+    ctx.shadowColor = 'rgba(14, 165, 233, 0.35)';
+    ctx.shadowBlur = 14;
+    ctx.strokeRect(
+      offsetX + GAP - (borderWidth + 2) / 2,
+      GAP - (borderWidth + 2) / 2,
+      innerWidth + borderWidth + 2,
+      innerHeight + borderWidth + 2
+    );
+    ctx.restore();
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
     ctx.strokeRect(

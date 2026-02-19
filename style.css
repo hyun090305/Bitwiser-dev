@@ -1,4 +1,4 @@
-  body {
+﻿  body {
     min-height: 100vh;
     margin: 0;
     display: flex;
@@ -780,10 +780,6 @@ html, body {
   overflow-x: auto;
 }
 
-:root {
-  --menu-bar-height: 96px;
-}
-
 #controls {
   margin: 15px;
 }
@@ -796,8 +792,22 @@ html, body {
   overflow-x: auto;
   width: 100%;
   position: relative;
-  padding-bottom: var(--menu-bar-height);
+  padding-bottom: 0;
   box-sizing: border-box;
+  background:
+    radial-gradient(circle at 50% 8%, rgba(30, 64, 175, 0.18), transparent 42%),
+    radial-gradient(circle at 50% 72%, rgba(15, 23, 42, 0.66), rgba(2, 6, 23, 0.96) 72%);
+}
+
+#gameScreen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(115deg, rgba(148, 163, 184, 0.07), transparent 28%),
+    radial-gradient(circle at 70% 30%, rgba(56, 189, 248, 0.1), transparent 45%);
+  z-index: 0;
 }
 
 .tutorial-stage {
@@ -806,24 +816,22 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: calc(100vh - var(--menu-bar-height));
+  min-height: 100vh;
   padding: 2rem 1.5rem;
   box-sizing: border-box;
+  position: relative;
+  z-index: 1;
 }
 
   #gameLayout {
     flex: 1;
-    /* 상단 h1과 하단 메뉴바 사이를 쭉 채움 */
     display: flex;
     justify-content: center;
-    /* 좌우 중앙 */
     align-items: center;
-    /* 상하 중앙 */
-    gap: 2rem;
+    gap: 1rem;
     margin: 0 auto;
-    /* 메뉴바 높이에 맞춰 조정 */
     box-sizing: border-box;
-    width: max-content;
+    width: min(1600px, 100%);
   }
 
   #circuitError {
@@ -841,6 +849,7 @@ html, body {
 
 
   .rightPanel {
+    display: flex;
     flex-direction: column;
     align-items: center;
     gap: 1rem;
@@ -849,7 +858,7 @@ html, body {
 
   #gameTitle {
     cursor: pointer;
-    margin-bottom: 2rem;
+    margin-bottom: 0.35rem;
   }
 
   #gameTitle:hover {
@@ -911,40 +920,6 @@ html, body {
     /* 스크롤바와 내용이 붙지 않도록 여유 */
   }
 
-#menuBar {
-  width: 100%;
-  background-color: #ddd;
-  padding: 10px;
-  text-align: center;
-  position: fixed;
-  bottom: 0;
-  left: 0;
-}
-
-  #menuBar button:not(#menuToggleBtn) {
-    margin: 0 5px;
-    padding: 6px 10px;
-    cursor: pointer;
-    transition: background-color 0.2s, color 0.2s;
-  }
-
-  #menuToggleBtn {
-    display: none;
-    background: transparent;
-    border: none;
-    color: inherit;
-  }
-
-  #menuBar button:not(#menuToggleBtn):hover:not(:disabled) {
-    background-color: #eee;
-  }
-
-  #menuBar button:not(#menuToggleBtn):disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
-
-
   #gridContainer,
   #canvasContainer,
   #problemCanvasContainer {
@@ -952,15 +927,40 @@ html, body {
     display: flex;
     justify-content: center;
     align-items: center;
-    /* 메뉴바 높이에 맞춰 조정 */
     box-sizing: border-box;
     position: relative;
+  }
+
+  #canvasContainer,
+  #problemCanvasContainer {
+    background:
+      linear-gradient(180deg, rgba(15, 23, 42, 0.56), rgba(2, 6, 23, 0.62)),
+      repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.05) 0, rgba(148, 163, 184, 0.05) 1px, transparent 1px, transparent 16px);
+    border: 1px solid rgba(71, 85, 105, 0.78);
+    border-radius: 10px;
+    box-shadow:
+      inset 0 0 0 1px rgba(148, 163, 184, 0.11),
+      inset 0 20px 40px rgba(2, 6, 23, 0.38),
+      0 18px 36px rgba(2, 6, 23, 0.34);
+    overflow: hidden;
+  }
+
+  #canvasContainer::after,
+  #problemCanvasContainer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 180px;
+    width: 1px;
+    background: linear-gradient(180deg, transparent, rgba(56, 189, 248, 0.24), transparent);
+    pointer-events: none;
   }
 
 #gameArea {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     flex: 1;
 }
 
@@ -981,6 +981,288 @@ html, body {
   color: #f8fafc;
 }
 
+:root {
+  --console-border: rgba(71, 85, 105, 0.86);
+  --console-glass-bg: linear-gradient(165deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
+  --console-shadow-outer: 0 28px 60px rgba(2, 6, 23, 0.64);
+  --console-shadow-inner: inset 0 1px 0 rgba(148, 163, 184, 0.15), inset 0 -1px 0 rgba(2, 6, 23, 0.8);
+}
+
+.console-frame {
+  width: min(1480px, 96vw);
+  min-height: min(88vh, 940px);
+  display: grid;
+  grid-template-columns: 1fr minmax(260px, 22%);
+  gap: 0;
+  border-radius: 26px;
+  border: 3px solid var(--console-border);
+  background: var(--console-glass-bg);
+  box-shadow: var(--console-shadow-outer), var(--console-shadow-inner);
+  backdrop-filter: blur(10px);
+  overflow: hidden;
+  position: relative;
+}
+
+.console-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 25% 0%, rgba(148, 163, 184, 0.16), transparent 44%),
+    linear-gradient(180deg, rgba(30, 41, 59, 0.22), transparent 42%);
+  pointer-events: none;
+}
+
+.console-frame__core {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.65rem;
+  border-right: 1px solid rgba(100, 116, 139, 0.45);
+  box-shadow: inset -10px 0 26px rgba(2, 6, 23, 0.42);
+}
+
+.console-frame__core::before {
+  content: '';
+  position: absolute;
+  inset: 0.4rem;
+  border: 1px solid rgba(51, 65, 85, 0.55);
+  border-radius: 14px;
+  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.09);
+  pointer-events: none;
+}
+
+.console-right-panel {
+  padding: 1rem 0.9rem;
+  justify-content: flex-start;
+  background:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.94)),
+    repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0, rgba(56, 189, 248, 0.05) 1px, transparent 1px, transparent 14px);
+  border-left: 1px solid rgba(100, 116, 139, 0.5);
+  box-shadow: inset 10px 0 26px rgba(2, 6, 23, 0.6);
+  position: relative;
+}
+
+.console-right-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 14% 14%, rgba(14, 165, 233, 0.15), transparent 26%),
+    radial-gradient(circle at 80% 72%, rgba(14, 165, 233, 0.08), transparent 32%);
+  mix-blend-mode: screen;
+}
+
+.console-meta {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.55rem;
+  position: relative;
+}
+
+
+.console-subtext {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #94a3b8;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.system-menu-btn {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.45);
+  background: linear-gradient(165deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  color: #bae6fd;
+  font-size: 1.12rem;
+  font-weight: 800;
+  padding: 0.55rem 0.7rem;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(125, 211, 252, 0.16);
+}
+
+.system-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(2, 6, 23, 0.52);
+  z-index: 1600;
+}
+
+.system-menu-backdrop[hidden] {
+  display: none;
+}
+
+.system-menu-drawer {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(560px, calc(100vw - 2rem));
+  max-height: min(86vh, 760px);
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  padding: 1.15rem;
+  border-radius: 18px;
+  border: 1px solid rgba(125, 211, 252, 0.35);
+  background:
+    linear-gradient(165deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.9)),
+    radial-gradient(circle at 12% 8%, rgba(56, 189, 248, 0.16), transparent 38%);
+  box-shadow: 0 28px 56px rgba(2, 6, 23, 0.62), inset 0 1px 0 rgba(226, 232, 240, 0.12);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 1601;
+  animation: systemMenuIn 190ms cubic-bezier(0.2, 0.9, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.system-menu-drawer[hidden] {
+  display: none;
+}
+
+.system-menu-drawer::before {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: 24px;
+  pointer-events: none;
+  box-shadow:
+    0 48px 90px rgba(2, 6, 23, 0.64),
+    0 16px 38px rgba(14, 165, 233, 0.2),
+    inset 0 0 0 1px rgba(226, 232, 240, 0.06);
+}
+
+.system-menu-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.system-menu-header h2 {
+  margin: 0;
+  font-size: 1.02rem;
+  letter-spacing: 0.08em;
+  color: #e2e8f0;
+}
+
+.system-menu-shortcut {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #bae6fd;
+  opacity: 0.9;
+}
+
+.system-menu-drawer section h3 {
+  margin: 0 0 0.55rem;
+  text-align: left;
+  font-size: 0.85rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7dd3fc;
+}
+
+.system-menu-drawer section + section {
+  margin-top: 0.2rem;
+}
+
+.system-menu-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.system-menu-note {
+  margin: 0;
+  text-align: left;
+  color: #cbd5e1;
+  font-size: 0.86rem;
+}
+
+.system-menu-footer {
+  margin-top: 0.2rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(100, 116, 139, 0.4);
+}
+
+.system-menu-drawer button {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(56, 189, 248, 0.26);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.92));
+  padding: 0.5rem 0.6rem;
+  color: #e2e8f0;
+  cursor: pointer;
+}
+
+.system-menu-drawer button:hover {
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.5), rgba(2, 132, 199, 0.42));
+  border-color: rgba(56, 189, 248, 0.52);
+}
+
+.system-menu-danger {
+  border-color: rgba(248, 113, 113, 0.45) !important;
+  background: linear-gradient(180deg, rgba(69, 10, 10, 0.78), rgba(127, 29, 29, 0.74)) !important;
+}
+
+.system-menu-danger:hover {
+  border-color: rgba(252, 165, 165, 0.72) !important;
+  background: linear-gradient(180deg, rgba(127, 29, 29, 0.88), rgba(153, 27, 27, 0.86)) !important;
+}
+
+body.system-menu-open {
+  overflow: hidden;
+}
+
+@keyframes systemMenuIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -48%) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+}
+
+@media (max-width: 560px) {
+  .system-menu-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.console-right-panel #gradeButton {
+  width: 100%;
+  font-size: 1.15rem;
+  font-weight: 800;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  border-color: rgba(56, 189, 248, 0.5);
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.74), rgba(3, 105, 161, 0.72));
+  color: #e0f2fe;
+  box-shadow: 0 14px 30px rgba(2, 132, 199, 0.28), inset 0 0 0 1px rgba(125, 211, 252, 0.2);
+}
+
+#gridStageVignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.09) 0%, rgba(2, 6, 23, 0.32) 100%),
+    radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, transparent 56%);
+  box-shadow: inset 0 0 54px rgba(2, 132, 199, 0.24);
+}
+
+.problem-console-frame {
+  min-height: unset;
+}
+
 #gameArea.game-area--dark .main-button {
   background-color: rgba(30, 41, 59, 0.75);
   border-color: rgba(148, 163, 184, 0.7);
@@ -989,6 +1271,24 @@ html, body {
 
 #gameArea.game-area--dark .main-button:hover {
   background-color: rgba(46, 60, 88, 0.9);
+}
+
+.console-right-panel .status-toolbar__button {
+  border: 1px solid rgba(51, 65, 85, 0.95);
+  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.44), inset 0 0 0 1px rgba(125, 211, 252, 0.08);
+}
+
+.console-right-panel .status-toolbar__button:hover,
+.console-right-panel .status-toolbar__button:focus-visible {
+  border-color: rgba(56, 189, 248, 0.72);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.24), 0 12px 24px rgba(2, 132, 199, 0.32);
+}
+
+.console-right-panel .status-toolbar__button.active {
+  border-color: rgba(56, 189, 248, 0.85);
+  background: linear-gradient(180deg, rgba(14, 116, 144, 0.78), rgba(3, 105, 161, 0.72));
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3), 0 14px 24px rgba(2, 132, 199, 0.32);
 }
 
   .toggle-key {
@@ -1228,85 +1528,97 @@ html, body {
   }
 
 
-  #gradingTable {
-    width: 100%;
-    border-collapse: collapse;
-    margin-top: 1rem;
+  .grading-inline-status {
+    padding: 0.7rem 0.75rem;
+    border: 1px solid rgba(56, 189, 248, 0.36);
+    border-radius: 10px;
+    background:
+      linear-gradient(155deg, rgba(10, 16, 30, 0.88), rgba(6, 10, 22, 0.78)),
+      radial-gradient(120% 160% at 0% 0%, rgba(56, 189, 248, 0.14), rgba(0, 0, 0, 0));
+    box-shadow:
+      inset 0 1px 0 rgba(148, 163, 184, 0.12),
+      0 10px 24px rgba(2, 8, 23, 0.42);
   }
 
-  #gradingTable th,
-  #gradingTable td {
-    border: 1px solid #ccc;
-    padding: 8px 12px;
-    text-align: center;
-  }
-
-  #gradingTable th {
-    background-color: #f9f9f9;
-  }
-
-  #gradingTable tr.correct td {
-    background-color: #eaffea;
-  }
-
-  #gradingTable tr.wrong td {
-    background-color: #ffeaea;
-  }
-
-  #gradingArea {
-    overflow-y: auto;
-    width: 100%;
-    max-height: 80vh;
-    background: #ffffff;
-    border-top: 2px solid #ccc;
-    padding: 1.5rem;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    text-align: left;
-  }
-
-  .gradeRow {
+  .grading-inline-status__row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 6px 0;
-    border-bottom: 1px solid #eee;
+    gap: 0.75rem;
+    margin-bottom: 0.45rem;
+    font-size: 0.92rem;
+    color: #dbeafe;
+    letter-spacing: 0.02em;
   }
 
-  .gradeRow.correct::after {
-    content: "✔️ 정답";
-    color: green;
-    font-weight: bold;
+  .grading-inline-status__bar {
+    width: 100%;
+    height: 10px;
+    border-radius: 999px;
+    background: rgba(15, 23, 42, 0.88);
+    border: 1px solid rgba(56, 189, 248, 0.2);
+    overflow: hidden;
   }
 
-  .gradeRow.wrong::after {
-    content: "❌ 오답";
-    color: red;
-    font-weight: bold;
+  .grading-inline-status__fill {
+    height: 100%;
+    width: 0%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, #22d3ee, #4ade80);
+    transition: width 180ms ease-out;
+    box-shadow: 0 0 10px rgba(34, 211, 238, 0.55);
   }
 
-  #gradeResultSummary {
-    margin-top: 1rem;
-    font-size: 1.2rem;
-    font-weight: bold;
-    text-align: center;
-    color: #333;
+  .grading-inline-status__text,
+  .grading-inline-status__case {
+    margin: 0.45rem 0 0;
+    font-size: 0.84rem;
+    color: #cbd5e1;
+    line-height: 1.35;
+    word-break: break-word;
+    white-space: pre-line;
   }
 
-  #returnToEditBtn {
-    margin-top: 1.5rem;
-    padding: 10px 16px;
-    background: #555;
-    color: white;
-    border: none;
-    border-radius: 6px;
+  .grading-inline-status__text {
+    font-weight: 600;
+  }
+
+  .grading-inline-status[data-state='failed'] .grading-inline-status__fill {
+    background: linear-gradient(90deg, #ff4d6d, #ff1744);
+    box-shadow:
+      0 0 8px rgba(255, 23, 68, 0.75),
+      0 0 18px rgba(255, 23, 68, 0.45);
+  }
+
+  .grading-inline-status[data-state='passed'] .grading-inline-status__fill {
+    background: linear-gradient(90deg, #34d399, #22c55e);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.55);
+  }
+
+  .grading-inline-status[data-state='failed'] .grading-inline-status__text,
+  .grading-inline-status[data-state='failed'] .grading-inline-status__case {
+    color: #fecaca;
+    font-family: "IBM Plex Mono", "Consolas", "Courier New", monospace;
+    text-shadow: 0 0 6px rgba(254, 202, 202, 0.12);
+  }
+
+  .grading-inline-status__back-btn {
+    margin-top: 0.6rem;
+    width: 100%;
+    border: 1px solid rgba(71, 85, 105, 0.7);
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.92), rgba(15, 23, 42, 0.92));
+    color: #e2e8f0;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
     cursor: pointer;
+    transition: border-color 140ms ease, box-shadow 140ms ease, background 140ms ease;
   }
 
-  #returnToEditBtn:hover {
-    background: #333;
+  .grading-inline-status__back-btn:hover {
+    border-color: rgba(56, 189, 248, 0.62);
+    background: linear-gradient(180deg, rgba(30, 41, 59, 0.98), rgba(15, 23, 42, 0.98));
+    box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.34), 0 0 14px rgba(56, 189, 248, 0.2);
   }
 
   #guestbookArea {
@@ -1403,6 +1715,168 @@ html, body {
     margin-top: 0;
   }
 
+.level-intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  box-sizing: border-box;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(56, 189, 248, 0.16), transparent 42%),
+    radial-gradient(circle at 82% 86%, rgba(16, 185, 129, 0.14), transparent 45%),
+    linear-gradient(140deg, rgba(2, 6, 23, 0.68), rgba(2, 6, 23, 0.82));
+  backdrop-filter: blur(7px);
+  -webkit-backdrop-filter: blur(7px);
+}
+
+.level-intro-screen__panel {
+  width: min(680px, 100%);
+  text-align: left;
+  color: #ecfeff;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.45);
+  background:
+    linear-gradient(145deg, rgba(15, 23, 42, 0.88), rgba(2, 6, 23, 0.9)),
+    rgba(2, 6, 23, 0.6);
+  box-shadow: 0 26px 56px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: clamp(1.2rem, 2.5vw, 2rem);
+  transform: scale(0.98);
+  opacity: 0;
+  transition: transform 0.36s ease, opacity 0.36s ease;
+}
+
+.level-intro-screen--active .level-intro-screen__panel {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.level-intro-screen__code {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: #67e8f9;
+  font-weight: 700;
+}
+
+.level-intro-screen__title {
+  margin: 0;
+  font-size: clamp(1.3rem, 3vw, 1.9rem);
+  letter-spacing: 0.03em;
+  color: #f8fafc;
+}
+
+.level-intro-screen__mission {
+  margin: 0.8rem 0 0;
+  line-height: 1.5;
+  font-size: 0.96rem;
+  color: #cbd5e1;
+}
+
+.level-intro-screen__logic {
+  margin-top: 1rem;
+}
+
+.level-intro-screen__logic-label {
+  margin: 0 0 0.55rem;
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  font-weight: 700;
+  color: #38bdf8;
+}
+
+.level-intro-screen__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.level-intro-case {
+  border-radius: 12px;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: linear-gradient(140deg, rgba(15, 23, 42, 0.88), rgba(15, 23, 42, 0.62));
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
+  min-height: 56px;
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.7rem;
+  color: #cffafe;
+  opacity: 0;
+  transform: translateY(6px);
+  animation: level-intro-case-in 240ms ease forwards;
+  animation-delay: var(--case-delay, 0ms);
+}
+
+.level-intro-case__input,
+.level-intro-case__output {
+  color: #f0fdfa;
+}
+
+.level-intro-case__arrow {
+  color: #22d3ee;
+  font-size: 0.65rem;
+}
+
+.level-intro-screen__action {
+  margin-top: 1.15rem;
+  width: 100%;
+  min-height: 52px;
+  border-radius: 12px;
+  border: 1px solid rgba(45, 212, 191, 0.66);
+  background: linear-gradient(140deg, #0f766e, #0f172a);
+  color: #f0fdfa;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.18s ease, opacity 0.2s ease;
+  box-shadow: 0 14px 28px rgba(13, 148, 136, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.level-intro-screen__action:hover:not(:disabled) {
+  box-shadow: 0 0 24px rgba(45, 212, 191, 0.55), 0 16px 34px rgba(13, 148, 136, 0.46);
+}
+
+.level-intro-screen__action:active:not(:disabled) {
+  transform: translateY(1px) scale(0.99);
+}
+
+.level-intro-screen__action:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+@keyframes level-intro-case-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .level-intro-screen {
+    padding: 0.85rem;
+  }
+
+  .level-intro-screen__grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .level-intro-case {
+    font-size: 0.62rem;
+  }
+}
+
   #shareText {
     font-family: monospace;
     resize: none;
@@ -1419,14 +1893,13 @@ html, body {
   /* tutorial modal styles removed */
 
 #truthTableContainer {
-  max-height: calc(100vh - 200px);
-  overflow-y: auto;
-  margin: 10px auto;
+  max-height: unset;
+  overflow: visible;
+  margin: 0;
 }
 
 #truthTable {
   width: 100%;
-  border-collapse: collapse;
 }
 
 #gifModal {
@@ -1486,7 +1959,9 @@ html, body {
   }
 
   #problem-screen {
-    background: #e2e8f0;
+    background:
+      radial-gradient(circle at 50% 6%, rgba(30, 64, 175, 0.16), transparent 38%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.98));
     padding: 0;
     align-items: stretch;
     justify-content: flex-start;
@@ -1738,17 +2213,18 @@ html, body {
   }
 
   .problem-screen-panel {
-    flex-direction: row;
-    align-items: stretch;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 2rem;
-    flex-wrap: wrap;
+    gap: 1rem;
     width: 100%;
     max-width: none;
     margin: 0;
-    padding: 2rem 3rem;
+    padding: 1.25rem;
     min-height: 100%;
-    background: #f8fafc;
+    background:
+      radial-gradient(circle at 32% 0%, rgba(30, 64, 175, 0.12), transparent 40%),
+      linear-gradient(180deg, rgba(15, 23, 42, 0.7), rgba(2, 6, 23, 0.82));
     border-radius: 0;
     box-shadow: none;
     backdrop-filter: none;
@@ -1759,15 +2235,18 @@ html, body {
 
   @media (max-width: 1200px) {
     .problem-screen-panel {
-      flex-direction: column;
       align-items: stretch;
       justify-content: flex-start;
-      padding: 1.5rem;
+      padding: 0.75rem;
     }
 
     #problem-screen {
       overflow-x: hidden;
     }
+  }
+
+  #problemConsoleFrame {
+    width: min(1480px, 96vw);
   }
 
   .problem-screen-panel #problemCanvasContainer {
@@ -3035,124 +3514,30 @@ html, body {
 
 
 @media (max-width: 1024px) {
-  :root {
-    --menuBarWidth: 34vh;
+  .tutorial-stage {
+    padding: 1rem 0.5rem;
   }
 
-  #menuBar {
-    margin-top: 0.5rem;
-    position: fixed;
-    top: 0;
-    right: 0;
-    /* Ensure any earlier `left` value is cleared so the bar stays on the right */
-    left: auto;
-    /* When positioned at the top/right, clear bottom to avoid conflicts */
-    bottom: auto;
-    /* margin-right: 0.5rem; */
-    /* transform: translateY(-50%); */
-    width: var(--menuBarWidth);
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-    padding: 5px;
-    /* border: 2px solid #1d4ed8; */
-    /* border-radius: 10px; */
-    background-color: transparent;
-    overflow: hidden;
-    transition: width 0.3s ease;
-  }
-
-  #menuBar button:not(#menuToggleBtn) {
+  .console-frame {
     width: 100%;
-    word-break: keep-all;
-    font-size: 1.6vw;
-    height: 4vw;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    background-color: #fff;
-    border: 2px solid #1d4ed8;
+    min-height: 0;
+    border-radius: 18px;
+    grid-template-columns: 1fr;
+  }
+
+  .console-frame__core {
     border-right: none;
-    border-radius: 8px 0 0 8px;
-    color: #1d4ed8;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    text-align: center;
-    transition: height 0.3s ease, opacity 0.3s ease;
-    overflow: hidden;
-    opacity: 1;
+    border-bottom: 1px solid rgba(71, 85, 105, 0.35);
+    padding: 0.7rem;
   }
 
-  #menuToggleBtn {
-    text-align: right;
-    display: block;
-    height: 6vh;
-    font-size: 4vh;
-    background: transparent;
-    border: none;
-    color: inherit;
-    cursor: pointer;
+  .console-right-panel {
+    border-left: none;
+    border-top: 1px solid rgba(71, 85, 105, 0.3);
+    padding: 0.85rem 0.7rem 1rem;
   }
 
-  #menuBar button:not(#menuToggleBtn):hover:not(:disabled) {
-    background-color: #1d4ed8;
-    color: #fff;
-  }
-
-  #menuBar button:not(#menuToggleBtn):disabled {
-    background-color: #ccc;
-    border-color: #aaa;
-    color: #666;
-    cursor: not-allowed;
-    opacity: 0.6;
-  }
-
-  #menuBar.collapsed {
-    width: 6vh;
-    height: auto;
-    padding: 5px;
-  }
-
-  #menuBar.collapsed button:not(#menuToggleBtn) {
-    color: transparent;
-    /* position: fixed; */
-    /* right: -10px; */
-    /* height: 0; */
-    opacity: 0;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    pointer-events: none;
-  }
-
-  #menuBar.collapsed #menuToggleBtn {
-    width: 100%;
-    /* height: 100%; */
-  }
-
-
-  #backToLevelsBtn {
-    width: 100%;
-  }
-
-  #gameArea {
-    /* margin-left: calc(var(--menuBarWidth) + 1rem); */
-    padding-bottom: 0;
-  }
-
-  /* When the menu bar is displayed vertically (mobile), remove the
-     bottom padding on the main game screen so content doesn't leave
-     an unnecessary gap at the bottom. */
-  #gameScreen {
-    padding-bottom: 0;
-  }
-
-  #gridContainer,
-  #canvasContainer,
-  #problemCanvasContainer {
+  #gameTitle {
     margin-bottom: 0;
   }
 }
@@ -4146,4 +4531,5 @@ body.lab-mode-active {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
 

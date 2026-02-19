@@ -1,6 +1,6 @@
 import { triggerConfetti } from './confetti.js';
 
-const WAIT_BETWEEN_TESTS = 100;
+const WAIT_BETWEEN_TESTS = 320;
 
 function defaultTranslate(t) {
   return typeof t === 'function' ? t : key => key;
@@ -50,103 +50,34 @@ function ensureRequiredOutputs({
   return true;
 }
 
-function hideElement(el) {
-  if (el) el.style.display = 'none';
+function translateOrFallback(t, key, fallback) {
+  const value = typeof t === 'function' ? t(key) : null;
+  return typeof value === 'string' && value !== key ? value : fallback;
 }
 
-function showElement(el, displayValue = 'block') {
-  if (el) el.style.display = displayValue;
+function getInlineStatusElements(inlineStatus) {
+  if (!inlineStatus) return null;
+  return {
+    container: inlineStatus,
+    title: inlineStatus.querySelector('#gradingStatusTitle'),
+    percent: inlineStatus.querySelector('#gradingStatusPercent'),
+    fill: inlineStatus.querySelector('#gradingStatusFill'),
+    text: inlineStatus.querySelector('#gradingStatusText'),
+    detail: inlineStatus.querySelector('#gradingStatusCase')
+  };
 }
 
-function prepareGradingArea({ rightPanel, gradingArea, t }) {
-  hideElement(rightPanel);
-  if (gradingArea) {
-    showElement(gradingArea, 'block');
-    const heading = typeof t === 'function' ? t('gradingResultsHeading') : null;
-    gradingArea.innerHTML = typeof heading === 'string' && heading !== 'gradingResultsHeading'
-      ? heading
-      : '<b>채점 결과:</b><br><br>';
+function setInlineStatus(ui, { title, percent, text, detail, state }) {
+  if (!ui || !ui.container) return;
+  ui.container.hidden = false;
+  ui.container.dataset.state = state || 'running';
+  if (ui.title && typeof title === 'string') ui.title.textContent = title;
+  if (ui.percent && Number.isFinite(percent)) ui.percent.textContent = `${percent}%`;
+  if (ui.fill && Number.isFinite(percent)) {
+    ui.fill.style.width = `${percent}%`;
   }
-}
-
-function getOrCreateTable(gradingArea, t) {
-  if (!gradingArea) return null;
-  let table = gradingArea.querySelector('#gradingTable');
-  if (!table) {
-    gradingArea.innerHTML += `
-      <table id="gradingTable">
-        <thead>
-          <tr>
-            <th>${t('thInput')}</th>
-            <th>${t('thExpected')}</th>
-            <th>${t('thActual')}</th>
-            <th>${t('thResult')}</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>`;
-    table = gradingArea.querySelector('#gradingTable');
-  }
-  return table;
-}
-
-function appendTestResultRow({
-  tbody,
-  inputText,
-  expectedText,
-  actualText,
-  correct,
-  t
-}) {
-  if (!tbody) return;
-  const tr = document.createElement('tr');
-  tr.className = correct ? 'correct' : 'wrong';
-
-  const tdInput = document.createElement('td');
-  tdInput.textContent = inputText;
-  const tdExpected = document.createElement('td');
-  tdExpected.textContent = expectedText;
-  const tdActual = document.createElement('td');
-  tdActual.textContent = actualText;
-  const tdResult = document.createElement('td');
-  tdResult.style.fontWeight = 'bold';
-  tdResult.style.color = correct ? 'green' : 'red';
-  if (typeof t === 'function') {
-    tdResult.textContent = correct
-      ? t('gradingCorrect')
-      : t('gradingIncorrect');
-  } else {
-    tdResult.textContent = correct ? '✅ 정답' : '❌ 오답';
-  }
-
-  tr.append(tdInput, tdExpected, tdActual, tdResult);
-  tbody.appendChild(tr);
-}
-
-function appendSummary(gradingArea, allCorrect, t) {
-  if (!gradingArea) return;
-  const summary = document.createElement('div');
-  summary.id = 'gradeResultSummary';
-  if (typeof t === 'function') {
-    summary.textContent = allCorrect
-      ? t('gradingAllPassed')
-      : t('gradingSomeFailed');
-  } else {
-    summary.textContent = allCorrect
-      ? '🎉 모든 테스트를 통과했습니다!'
-      : '😢 일부 테스트에 실패했습니다.';
-  }
-  gradingArea.appendChild(summary);
-}
-
-function appendReturnButton({ gradingArea, t, returnToEditScreen }) {
-  if (!gradingArea) return;
-  const returnBtn = document.createElement('button');
-  returnBtn.id = 'returnToEditBtn';
-  returnBtn.textContent = t('returnToEditBtn');
-  const handler = typeof returnToEditScreen === 'function' ? returnToEditScreen : () => {};
-  returnBtn.addEventListener('click', handler);
-  gradingArea.appendChild(returnBtn);
+  if (ui.text && typeof text === 'string') ui.text.textContent = text;
+  if (ui.detail && typeof detail === 'string') ui.detail.textContent = detail;
 }
 
 function getCircuitStats(circuit) {
@@ -223,15 +154,57 @@ async function runTestCases({
   circuit,
   testCases,
   evaluateCircuit,
-  gradingArea,
+  inlineStatus,
   t
 }) {
   const blocks = collectBlocks(circuit);
   const inputs = blocks.filter(block => block.type === 'INPUT');
   const outputs = blocks.filter(block => block.type === 'OUTPUT');
-  let allCorrect = true;
+  const totalTests = testCases.length;
+  let passedCount = 0;
+  const ui = getInlineStatusElements(inlineStatus);
+  const inputLabel = translateOrFallback(t, 'thInput', 'Input');
+  const expectedLabel = translateOrFallback(t, 'thExpected', 'Expected');
+  const actualLabel = translateOrFallback(t, 'thActual', 'Actual');
+  const passedLabel = translateOrFallback(t, 'gradingCorrect', '✅ Correct');
+  const failedLabel = translateOrFallback(t, 'gradingIncorrect', '❌ Incorrect');
+  const passSummary = translateOrFallback(t, 'gradingAllPassed', '🎉 All simulation cases passed!');
+  const progressTitle = translateOrFallback(t, 'gradingResultsHeading', '시뮬레이션 진행');
+  const safeTotal = Math.max(1, totalTests);
 
-  for (const test of testCases) {
+  setInlineStatus(ui, {
+    title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+    percent: 0,
+    text: `${totalTests} cases`,
+    detail: '',
+    state: 'running'
+  });
+
+  if (totalTests === 0) {
+    setInlineStatus(ui, {
+      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+      percent: 100,
+      text: passSummary,
+      detail: '',
+      state: 'passed'
+    });
+    return true;
+  }
+
+  for (let index = 0; index < totalTests; index += 1) {
+    const test = testCases[index];
+    const caseNumber = index + 1;
+    const inputText = Object.entries(test.inputs)
+      .map(([name, value]) => `${name}=${value}`)
+      .join(', ');
+    setInlineStatus(ui, {
+      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+      percent: Math.floor((passedCount / safeTotal) * 100),
+      text: `Case ${caseNumber}/${totalTests}`,
+      detail: `${inputLabel}: ${inputText}`,
+      state: 'running'
+    });
+
     inputs.forEach(input => {
       input.value = test.inputs[input.name] ?? 0;
     });
@@ -257,28 +230,35 @@ async function runTestCases({
     const expectedText = Object.entries(test.expected)
       .map(([name, value]) => `${name}=${value}`)
       .join(', ');
-    const inputText = Object.entries(test.inputs)
-      .map(([name, value]) => `${name}=${value}`)
-      .join(', ');
-
-    const table = getOrCreateTable(gradingArea, t);
-    const tbody = table ? table.querySelector('tbody') : null;
-    appendTestResultRow({
-      tbody,
-      inputText,
-      expectedText,
-      actualText,
-      correct,
-      t
-    });
 
     if (!correct) {
-      allCorrect = false;
+      setInlineStatus(ui, {
+        title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+        percent: Math.floor((passedCount / safeTotal) * 100),
+        text: `${failedLabel} (${caseNumber}/${totalTests})`,
+        detail: `${inputLabel}: ${inputText}\n${expectedLabel}: ${expectedText}\n${actualLabel}: ${actualText}`,
+        state: 'failed'
+      });
+      return false;
     }
+    passedCount += 1;
+    setInlineStatus(ui, {
+      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+      percent: Math.floor((passedCount / safeTotal) * 100),
+      text: `${passedLabel} (${caseNumber}/${totalTests})`,
+      detail: `${inputLabel}: ${inputText}\n${expectedLabel}: ${expectedText}\n${actualLabel}: ${actualText}`,
+      state: 'running'
+    });
   }
 
-  appendSummary(gradingArea, allCorrect, t);
-  return allCorrect;
+  setInlineStatus(ui, {
+    title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
+    percent: 100,
+    text: passSummary,
+    detail: '',
+    state: 'passed'
+  });
+  return true;
 }
 
 export function createGradingController(config = {}) {
@@ -317,14 +297,30 @@ export function createGradingController(config = {}) {
         }
       };
   const overlay = elements.overlay || null;
+  const gradeButton = elements.gradeButton || null;
+  const inlineStatus = elements.gradingInlineStatus || null;
+  const inlineBackButton = inlineStatus?.querySelector('#gradingInlineBackBtn') || null;
   let isScoring = false;
+  let inlineStatusOpen = false;
   let pendingClearedLevel = null;
   const shownClearedLevels = new Set();
 
-  function showOverlay(show) {
+  function syncOverlay() {
+    const statusVisible = inlineStatus ? !inlineStatus.hidden : inlineStatusOpen;
     if (overlay) {
-      overlay.style.display = show ? 'block' : 'none';
+      overlay.style.display = isScoring || statusVisible ? 'block' : 'none';
     }
+  }
+
+  function setInlineStatusOpen(open) {
+    inlineStatusOpen = Boolean(open);
+    if (inlineStatus) {
+      inlineStatus.hidden = !inlineStatusOpen;
+    }
+    if (gradeButton) {
+      gradeButton.style.display = inlineStatusOpen ? 'none' : '';
+    }
+    syncOverlay();
   }
 
   function setIsScoring(value) {
@@ -332,9 +328,16 @@ export function createGradingController(config = {}) {
     if (typeof window !== 'undefined') {
       window.isScoring = Boolean(value);
     }
-    if (!isScoring) {
-      showOverlay(false);
-    }
+    syncOverlay();
+  }
+
+  if (inlineBackButton) {
+    inlineBackButton.textContent = translateOrFallback(translate, 'returnToEditBtn', '🛠 Back to Edit');
+    inlineBackButton.addEventListener('click', () => {
+      setInlineStatusOpen(false);
+      const handler = typeof returnToEditScreen === 'function' ? returnToEditScreen : null;
+      if (handler) handler();
+    });
   }
 
   async function gradeLevel(level) {
@@ -362,23 +365,16 @@ export function createGradingController(config = {}) {
     })) {
       return;
     }
-
-    prepareGradingArea({
-      rightPanel: elements.rightPanel,
-      gradingArea: elements.gradingArea,
-      t: translate
-    });
+    setInlineStatusOpen(true);
 
     const { evaluateCircuit } = await import('../canvas/engine.js');
     const allCorrect = await runTestCases({
       circuit,
       testCases,
       evaluateCircuit,
-      gradingArea: elements.gradingArea,
+      inlineStatus,
       t: translate
     });
-
-    appendReturnButton({ gradingArea: elements.gradingArea, t: translate, returnToEditScreen });
 
     if (!allCorrect) {
       return;
@@ -525,12 +521,7 @@ export function createGradingController(config = {}) {
     })) {
       return;
     }
-
-    prepareGradingArea({
-      rightPanel: elements.rightPanel,
-      gradingArea: elements.gradingArea,
-      t: translate
-    });
+    setInlineStatusOpen(true);
 
     const testCases = problem.table.map(row => ({
       inputs: Object.fromEntries(inNames.map(name => [name, row[name]])),
@@ -542,11 +533,9 @@ export function createGradingController(config = {}) {
       circuit,
       testCases,
       evaluateCircuit,
-      gradingArea: elements.gradingArea,
+      inlineStatus,
       t: translate
     });
-
-    appendReturnButton({ gradingArea: elements.gradingArea, t: translate, returnToEditScreen });
 
     if (!allCorrect || !key) {
       return;
@@ -578,7 +567,6 @@ export function createGradingController(config = {}) {
     if (!customProblem && level == null) return;
 
     setIsScoring(true);
-    showOverlay(true);
     try {
       if (customProblem) {
         await gradeCustomProblem();

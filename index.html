@@ -363,12 +363,15 @@
 
     <div id="problem-screen" class="screen" style="display:none;">
       <div class="panel-overlay problem-screen-panel">
-        <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
-          <canvas id="problemBgCanvas" style="position:relative;"></canvas>
-          <canvas id="problemContentCanvas"></canvas>
-          <canvas id="problemOverlayCanvas"></canvas>
-        </div>
-        <div class="rightPanel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
+        <div id="problemConsoleFrame" class="console-frame problem-console-frame">
+          <div class="console-frame__core">
+            <div id="problemCanvasContainer" class="problem-grid-container" style="position:relative;margin:auto;">
+              <canvas id="problemBgCanvas" style="position:relative;"></canvas>
+              <canvas id="problemContentCanvas"></canvas>
+              <canvas id="problemOverlayCanvas"></canvas>
+            </div>
+          </div>
+          <div class="rightPanel console-right-panel" id="problemRightPanel" style="display:flex; flex-direction:column; gap:0.5rem; margin: auto 0;">
           <h1 id="problemCreatorTitle">📝 문제 출제</h1>
           <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
             <button
@@ -540,6 +543,7 @@
             <button id="backToMainFromProblem" class="btn-back">← 메인으로</button>
             <button id="saveProblemBtn" class="btn-back" style="margin-left:20px;">문제 저장</button>
           </div>
+          </div>
         </div>
       </div>
     </div>
@@ -703,22 +707,74 @@
           <div id="tutorialCalloutLayer" aria-hidden="true"></div>
           <div id="gameArea">
 
-        <!-- 전체 게임 영역: 좌측 메뉴 + 중앙 그리드 + 우측 안내 -->
+        <!-- 전체 게임 영역: 콘솔 프레임 -->
         <div id="gameLayout">
+          <div id="consoleFrame" class="console-frame">
+            <div class="console-frame__core">
+              <div id="canvasContainer" style="position: relative;">
+                <canvas id="bgCanvas" style="position: relative;"></canvas>
+                <canvas id="contentCanvas"></canvas>
+                <canvas id="overlayCanvas"></canvas>
+                <div id="gridOverlay"></div>
+                <div id="gridStageVignette" aria-hidden="true"></div>
+              </div>
+            </div>
 
-          <div id="canvasContainer" style="position: relative;">
-          <canvas id="bgCanvas" style="position: relative;"></canvas>
-          <canvas id="contentCanvas"></canvas>
-          <canvas id="overlayCanvas"></canvas>
-          <div id="gridOverlay"></div>
-        </div>
+            <div class="rightPanel console-right-panel" id="rightPanel"
+              style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
+              <div class="console-meta">
+                <button id="systemMenuBtn" class="system-menu-btn" type="button" aria-expanded="false" aria-controls="systemMenuDrawer" aria-haspopup="dialog">≡</button>
+                <div id="systemMenuBackdrop" class="system-menu-backdrop" hidden></div>
+                <div id="systemMenuDrawer" class="system-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="systemMenuTitle" hidden>
+                  <div class="system-menu-header">
+                    <h2 id="systemMenuTitle">SYSTEM MENU</h2>
+                    <p class="system-menu-shortcut">ESC 닫기</p>
+                  </div>
 
-        <!-- 우측: 시뮬레이트 + 안내 + 삭제 -->
-        <div class="rightPanel" id="rightPanel"
-          style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
-          <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
-          <button id="gradeButton" class="main-button">채점하기</button>
-          <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
+                  <section aria-labelledby="systemMenuProgressHeading">
+                    <h3 id="systemMenuProgressHeading">Progress</h3>
+                    <div class="system-menu-grid">
+                      <button id="viewRankingBtn">🏆 랭킹</button>
+                      <button id="viewSavedBtn">💾 저장된 회로</button>
+                    </div>
+                  </section>
+
+                  <section aria-labelledby="systemMenuToolsHeading">
+                    <h3 id="systemMenuToolsHeading">Tools</h3>
+                    <div class="system-menu-grid">
+                      <button id="saveCircuitBtn">💾 회로 저장</button>
+                      <button id="exportGifBtn">📷 회로 내보내기</button>
+                    </div>
+                  </section>
+
+                  <section aria-labelledby="systemMenuHelpHeading">
+                    <h3 id="systemMenuHelpHeading">Help</h3>
+                    <div class="system-menu-grid">
+                      <button id="showIntroBtn">ℹ️ 스테이지 안내</button>
+                      <button id="hintBtn">💡 힌트</button>
+                    </div>
+                  </section>
+
+                  <div class="system-menu-footer">
+                    <button id="backToLevelsBtn" class="system-menu-danger">← 레벨 선택으로</button>
+                  </div>
+                </div>
+                <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
+              </div>
+              <button id="gradeButton" class="main-button">회로 실행</button>
+              <div id="gradingInlineStatus" class="grading-inline-status" hidden>
+                <div class="grading-inline-status__row">
+                  <strong id="gradingStatusTitle">시뮬레이션 진행</strong>
+                  <span id="gradingStatusPercent">0%</span>
+                </div>
+                <div class="grading-inline-status__bar" aria-hidden="true">
+                  <div id="gradingStatusFill" class="grading-inline-status__fill"></div>
+                </div>
+                <p id="gradingStatusText" class="grading-inline-status__text"></p>
+                <p id="gradingStatusCase" class="grading-inline-status__case"></p>
+                <button id="gradingInlineBackBtn" class="grading-inline-status__back-btn" type="button">🛠 편집으로 돌아가기</button>
+              </div>
+              <div class="edit-toolbar" role="toolbar" aria-label="회로 복사 및 붙여넣기" hidden>
             <button
               id="copySelectionBtn"
               class="toolbar__button has-tooltip"
@@ -742,7 +798,7 @@
               <img src="assets/icon_paste.svg" alt="" class="toolbar__icon" />
             </button>
           </div>
-          <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
+              <div class="status-toolbar" role="toolbar" aria-label="회로 편집 단축키 안내">
             <button id="wireMoveInfo" class="status-toolbar__button has-tooltip" type="button"
               data-tooltip="기본 상태" aria-label="기본 상태">
               <img src="assets/icon_move.svg" alt="" class="status-toolbar__icon">
@@ -764,7 +820,7 @@
               <img src="assets/icon_reset.svg" alt="" class="status-toolbar__icon">
             </button>
           </div>
-          <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
+              <div class="history-toolbar" role="group" aria-label="되돌리기 및 다시 실행">
             <button
               id="undoBtn"
               class="status-toolbar__button has-tooltip"
@@ -786,7 +842,7 @@
               <img src="assets/icon_redo.svg" alt="" class="status-toolbar__icon">
             </button>
           </div>
-          <div id="usageSection" style="width:100%;">
+              <div id="usageSection" style="width:100%;">
             <table id="usageTable">
               <tr>
                 <td class="rank-cell">
@@ -800,33 +856,18 @@
               </tr>
             </table>
           </div>
-          <div id="labCommunityControls" class="lab-community-controls" style="display:none;">
+              <div id="labCommunityControls" class="lab-community-controls" style="display:none;">
             <h2 class="lab-community-title" id="labCommunityTitle"></h2>
             <button id="labShareCommunityBtn" class="main-button" type="button" style="width:auto;"></button>
             <button id="labOpenCommunityBtn" class="main-button" type="button" style="width:auto;"></button>
             <p id="labCommunityStatus" class="lab-community-status" role="status" aria-live="polite"></p>
             <p id="labCommunityLoginHint" class="lab-community-hint" hidden></p>
+              </div>
+            </div>
           </div>
-        </div>
-        <div id="gradingArea" style="display:none">
-          <button id="returnToEditBtn">🛠 편집으로 돌아가기</button>
-        </div>
         </div>
         <div id="circuitError"></div>
       </div>
-      </div>
-    </div>
-      <!-- 메뉴바 -->
-      <div id="menuBar">
-        <button id="menuToggleBtn">☰</button>
-        <button id="saveCircuitBtn">💾 회로 저장</button>
-        <button id="viewSavedBtn">💾 저장된 회로</button>
-        <button id="viewRankingBtn">🏆 랭킹</button>
-        <button id="showIntroBtn">ℹ️ 스테이지 안내</button>
-        <button id="hintBtn">💡 힌트</button>
-        <button id="exportGifBtn">📷 회로 내보내기</button>
-        <!-- 이전/다음 스테이지 버튼 제거됨 -->
-        <button id="backToLevelsBtn">← 스테이지 맵으로</button>
       </div>
     </div>
     <!-- tutorial modal removed -->
@@ -908,16 +949,18 @@
     <script src="background.js"></script>
     <script type="module" src="src/main.js"></script>
 
-    <div id="levelIntroModal" style="display:none" class="modal">
-      <div class="modal-content">
-        <h2 id="introTitle"></h2>
-        <p id="introDesc"></p>
-        <div id="truthTableContainer">
-          <table id="truthTable" border="1"></table>
+    <section id="levelIntroModal" style="display:none" class="level-intro-screen" aria-labelledby="introTitle">
+      <div class="level-intro-screen__panel">
+        <p id="introStageCode" class="level-intro-screen__code">STAGE 00</p>
+        <h2 id="introTitle" class="level-intro-screen__title"></h2>
+        <p id="introDesc" class="level-intro-screen__mission"></p>
+        <div id="truthTableContainer" class="level-intro-screen__logic">
+          <p id="introLogicDataLabel" class="level-intro-screen__logic-label">LOGIC DATA</p>
+          <div id="truthTable" class="level-intro-screen__grid" aria-live="polite"></div>
         </div>
-        <button id="startLevelBtn">시작하기</button>
+        <button id="startLevelBtn" class="level-intro-screen__action">회로 구성 시작</button>
       </div>
-    </div>
+    </section>
     <script>
       (function () {
         let lastTouchEnd = 0;

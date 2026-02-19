@@ -162,32 +162,14 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   let availableWidth = window.innerWidth - margin * 2;
   let availableHeight = window.innerHeight - margin * 2;
 
-  if (containerId === 'canvasContainer') {
-    const menuBar = document.getElementById('menuBar');
-    if (menuBar) {
-      const menuRect = menuBar.getBoundingClientRect();
-      const computedStyle = window.getComputedStyle(menuBar);
-      const isVertical = menuRect.height > menuRect.width;
-
-      let ignoreMenuWidth = false;
-      if (isVertical) {
-        const isFixed = computedStyle.position === 'fixed';
-        const top = parseFloat(computedStyle.top || '');
-        const right = parseFloat(computedStyle.right || '');
-        const left = parseFloat(computedStyle.left || '');
-        const isAnchoredToSide = Number.isFinite(right) ? Math.abs(right) < 0.5 : Number.isFinite(left) && Math.abs(left) < 0.5;
-        const isAnchoredToTop = Number.isFinite(top) && Math.abs(top) < 0.5;
-        ignoreMenuWidth = isFixed && isAnchoredToSide && isAnchoredToTop;
-      }
-
-      if (isVertical && ignoreMenuWidth) {
-        // On mobile layouts the vertical menu floats above the grid, so
-        // subtracting its width incorrectly shrinks the canvas.
-      } else if (isVertical) {
-        availableWidth -= menuRect.width;
-      } else {
-        availableHeight -= menuRect.height;
-      }
+  const consoleFrame = gridContainer.closest('.console-frame');
+  if (consoleFrame) {
+    const frameRect = consoleFrame.getBoundingClientRect();
+    if (Number.isFinite(frameRect.width) && frameRect.width > 0) {
+      availableWidth = Math.max(1, frameRect.width - margin * 2);
+    }
+    if (Number.isFinite(frameRect.height) && frameRect.height > 0) {
+      availableHeight = Math.max(1, frameRect.height - margin * 2);
     }
   }
 
@@ -223,6 +205,8 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
   if (camera && typeof controller?.resizeCanvas === 'function') {
     const MIN_CAMERA_SCALE = 0.1;
+    const MAX_CAMERA_SCALE = 1.28;
+    const SCALE_BOOST = 1.2;
     const resolvedPanelWidth = Number.isFinite(panelWidth)
       ? panelWidth
       : Math.max(0, baseWidth - (Number.isFinite(baseGridWidth) ? baseGridWidth : 0));
@@ -259,9 +243,8 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
       scale = MIN_CAMERA_SCALE;
     }
 
-    if (scale > 1) {
-      scale = 1;
-    }
+    scale *= SCALE_BOOST;
+    scale = Math.min(scale, MAX_CAMERA_SCALE);
 
     if (scale < MIN_CAMERA_SCALE) {
       scale = MIN_CAMERA_SCALE;
@@ -289,7 +272,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
   const scale = Math.min(
     availableWidth / baseWidth,
     availableHeight / baseHeight,
-    1
+    1.28
   );
 
   gridContainer.querySelectorAll('canvas').forEach(c => {
@@ -496,37 +479,11 @@ export function moveCircuit(dx, dy, { isProblemFixed = false } = {}) {
 }
 
 export function setupMenuToggle() {
-  const menuBar = document.getElementById('menuBar');
-  const gameArea = document.getElementById('gameArea');
-  const toggleBtn = document.getElementById('menuToggleBtn');
-  if (!menuBar || !gameArea || !toggleBtn) return;
-
-  menuBar.addEventListener('transitionend', e => {
-    if (e.propertyName === 'width') {
-      adjustGridZoom();
-    }
-  });
-
-  toggleBtn.addEventListener('click', () => {
-    menuBar.classList.toggle('collapsed');
-    gameArea.classList.toggle('menu-collapsed');
-    adjustGridZoom();
-  });
+  // Compatibility no-op. Legacy menu bar was removed.
 }
 
 export function collapseMenuBarForMobile({ onAfterCollapse } = {}) {
-  const menuBar = document.getElementById('menuBar');
-  const gameArea = document.getElementById('gameArea');
-  if (!menuBar || !gameArea) return;
-
-  if (window.matchMedia('(max-width: 1024px)').matches) {
-    menuBar.classList.add('collapsed');
-    gameArea.classList.add('menu-collapsed');
-  } else {
-    menuBar.classList.remove('collapsed');
-    gameArea.classList.remove('menu-collapsed');
-  }
-
+  // Compatibility no-op. Legacy menu bar was removed.
   adjustGridZoom();
   onAfterCollapse?.();
 }

@@ -68,11 +68,11 @@ export function createGuidedTutorial({
     },
     {
       id: 'grade',
-      titleKo: '채점 버튼 누르기',
-      titleEn: 'Press the grade button',
+      titleKo: '회로 실행 버튼 누르기',
+      titleEn: 'Press the Run Circuit button',
       hint: {
-        ko: "'채점하기' 버튼을 눌러 결과를 확인하세요.",
-        en: "Press 'Grade' to check your result."
+        ko: "'회로 실행' 버튼을 눌러 결과를 확인하세요.",
+        en: "Press 'Run Circuit' to check the result."
       }
     }
   ];
