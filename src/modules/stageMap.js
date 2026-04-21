@@ -30,7 +30,8 @@ const CHAPTER_FADE_EDGE_OPACITY = 0.2;
 const CHAPTER_GLOBAL_NODE_OPACITY = 0.55;
 const CHAPTER_GLOBAL_EDGE_OPACITY = 0.5;
 const STAGE_FOCUS_VERTICAL_ANCHOR = 0.42;
-const STAGE_FOCUS_SCALE_FACTOR = 0.5;
+// Keep scale unchanged when focusing a stage (avoid automatic zoom-out)
+const STAGE_FOCUS_SCALE_FACTOR = 1.0;
 const CHAPTER_FOCUS_VERTICAL_ANCHOR = 0.43;
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -2066,30 +2067,11 @@ export function initializeStageMap({
 
   function focusNode(node, { animate = true, celebrate = false } = {}) {
     if (!node) return;
+    // Keep the stage-map camera fixed. Do not change scale or pan when
+    // focusing a node. Only trigger visual celebration/highlight when
+    // requested.
     executeNextFrame(() => {
       ensureCanvasInitialized();
-      const { scale, viewportWidth, viewportHeight } = camera.getState();
-      const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
-      const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
-      let nextScale = scale;
-      if (node.nodeType === 'stage') {
-        nextScale = Math.max(0.2, Math.min(2.2, scale * STAGE_FOCUS_SCALE_FACTOR));
-        if (Number.isFinite(nextScale) && Math.abs(nextScale - scale) > 1e-4) {
-          camera.setScale(nextScale, safeViewportWidth / 2, safeViewportHeight / 2);
-        }
-      }
-      const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
-      const heightWorld = safeViewportHeight / Math.max(nextScale, 1e-6);
-      const rawTarget = {
-        x: node.center.x - widthWorld / 2,
-        y: node.center.y - heightWorld * STAGE_FOCUS_VERTICAL_ANCHOR
-      };
-      // ?댁쟾?먮뒗 留?寃쎄퀎(`state.mapBounds`)??留욎떠 ?대옩??clamp)?섏뿬
-      // 酉고룷?멸? 留?諛뽰쑝濡??섍?吏 ?딅룄濡??덉뒿?덈떎. ?붿껌???곕씪
-      // 留?寃쎄퀎? 鍮꾧탳?섏? ?딄퀬 ?먮옒 怨꾩궛??紐⑺몴 ?꾩튂(`rawTarget`)瑜?
-      // 洹몃?濡??ъ슜?섎룄濡?蹂寃쏀빀?덈떎.
-      const targetOrigin = rawTarget;
-      panToOrigin(targetOrigin, { animate, duration: 650 });
       if (celebrate) {
         triggerHighlightForNode(node);
       }

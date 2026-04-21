@@ -190,7 +190,15 @@ export function markLevelCleared(level) {
     if (typeof dependencies.triggerMemoryRestoredAnimation === 'function') {
       dependencies.triggerMemoryRestoredAnimation(level, clearedLevelsFromDb.length);
     }
+    return {
+      wasNew: true,
+      clearedCount: clearedLevelsFromDb.length
+    };
   }
+  return {
+    wasNew: false,
+    clearedCount: clearedLevelsFromDb.length
+  };
 }
 
 export async function returnToLevels({

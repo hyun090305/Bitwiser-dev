@@ -81,7 +81,10 @@ import {
 } from './modules/rank.js';
 import { initializeLabMode } from './modules/labMode.js';
 import { initializeStageMap } from './modules/stageMap.js';
-import { initializeStory } from './modules/story.js';
+import {
+  initializeStory,
+  playStoryFragmentForClearCount
+} from './modules/story.js';
 import {
   getAvailableThemes,
   getActiveThemeId,
@@ -729,6 +732,7 @@ const gradingController = createGradingController({
   showClearedModal,
   showClearedModalOptions: clearedModalOptions,
   markLevelCleared,
+  playStoryFragmentForClearCount,
   saveRanking,
   saveProblemRanking,
   getUsername,

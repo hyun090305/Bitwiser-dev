@@ -237,6 +237,40 @@
     </section>
 
     <div
+      id="storyPlaybackOverlay"
+      class="story-playback-overlay"
+      aria-hidden="true"
+      data-open="false"
+    >
+      <section
+        class="story-playback"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="storyPlaybackTitle"
+      >
+        <header class="story-playback__header">
+          <p class="story-playback__kicker">NEURAL FRAGMENT</p>
+          <div class="story-playback__title-row">
+            <h2 id="storyPlaybackTitle" class="story-playback__title"></h2>
+            <span id="storyPlaybackCount" class="story-playback__count"></span>
+          </div>
+        </header>
+
+        <div
+          id="storyPlaybackVisual"
+          class="story-playback__visual"
+          aria-hidden="true"
+        ></div>
+
+        <div
+          id="storyPlaybackText"
+          class="story-playback__text"
+          aria-live="polite"
+        ></div>
+      </section>
+    </div>
+
+    <div
       id="storyModalOverlay"
       class="story-modal-overlay"
       aria-hidden="true"

@@ -284,6 +284,7 @@ export function createGradingController(config = {}) {
     showClearedModal,
     showClearedModalOptions,
     markLevelCleared,
+    playStoryFragmentForClearCount,
     saveRanking,
     saveProblemRanking,
     getUsername,
@@ -410,10 +411,22 @@ export function createGradingController(config = {}) {
       ? getUsername() || anonymousLabel
       : anonymousLabel;
 
-    // Mark cleared now and show modal immediately
+    // Mark cleared now; new clears unlock a story reward before the cleared modal.
     pendingClearedLevel = level;
+    let clearResult = null;
     if (typeof markLevelCleared === 'function') {
-      markLevelCleared(level);
+      clearResult = markLevelCleared(level);
+    }
+    if (
+      clearResult?.wasNew
+      && Number.isFinite(Number(clearResult.clearedCount))
+      && typeof playStoryFragmentForClearCount === 'function'
+    ) {
+      try {
+        await playStoryFragmentForClearCount(clearResult.clearedCount);
+      } catch (err) {
+        console.warn('Story reward playback failed', err);
+      }
     }
     if (typeof showClearedModal === 'function') {
       try {
