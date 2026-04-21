@@ -846,6 +846,11 @@ function syncGameAreaBackground(theme) {
     const isDarkTheme = color ? isColorDark(color) : false;
     gameArea.style.color = isDarkTheme ? '#e2e8f0' : '';
     gameArea.classList.toggle('game-area--dark', isDarkTheme);
+    try {
+      document.body.classList.toggle('theme--dark', isDarkTheme);
+    } catch (err) {
+      // ignore in non-DOM environments
+    }
   }
 }
 

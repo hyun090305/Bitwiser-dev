@@ -33,6 +33,16 @@ body.game-active {
   background-color: #0f172a;
 }
 
+/* Dark theme: invert raster SVG icons to keep them visible on dark backgrounds */
+.theme--dark img.toolbar__icon,
+.theme--dark .status-toolbar__icon,
+.theme--dark .hud-button img,
+.theme--dark .toolbar__icon,
+.theme--dark img[alt][class*="icon"] {
+  filter: invert(1) brightness(1.6) saturate(1.1);
+}
+
+
 /* Stage map layout */
 .stage-map-screen {
   position: relative;
@@ -4583,6 +4593,154 @@ body.lab-mode-active {
   0% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.45); }
   70% { box-shadow: 0 0 0 16px rgba(14, 165, 233, 0); }
   100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0); }
+}
+/* Single mission overlay that floats above the console frame */
+.tutorial-mission-overlay {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1220;
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-width: 280px;
+  max-width: 420px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(20,26,36,0.96));
+  color: #f8fafc;
+  box-shadow: 0 18px 48px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
+  border: 1px solid rgba(148,163,184,0.06);
+  pointer-events: auto;
+}
+.tutorial-mission-overlay .tutorial-mission-title.single {
+  margin: 0;
+  font-size: 0.98rem;
+  font-weight: 800;
+  color: #fff;
+  width: 100%;
+  text-align: center;
+}
+.tutorial-mission-overlay .tutorial-mission-hint.single {
+  margin: 0;
+  font-size: 0.86rem;
+  color: rgba(226,232,240,0.9);
+  line-height: 1.3;
+  width: 100%;
+  text-align: center;
+}
+.tutorial-mission-overlay .tutorial-mission-hint__en.single {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  color: rgba(203,213,225,0.8);
+  width: 100%;
+  text-align: center;
+}
+
+/* Final completion card shown when all missions finished */
+.tutorial-complete-final {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 2px dashed rgba(148,163,184,0.38);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(20,26,36,0.94));
+  box-shadow: 0 10px 30px rgba(2,6,23,0.5);
+}
+.tutorial-complete-final__check {
+  width: 48px;
+  height: 48px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(34,197,94,0.95), rgba(16,185,129,0.95));
+  color: #052e19;
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: 0 8px 20px rgba(34,197,94,0.22), inset 0 1px 0 rgba(255,255,255,0.25);
+}
+.tutorial-complete-final__text {
+  font-weight: 800;
+  color: #e6fff2;
+  font-size: 1rem;
+  text-align: center;
+}
+
+/* small entrance for the final card */
+.tutorial-complete-final {
+  animation: tutorial-final-in 360ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes tutorial-final-in {
+  from { transform: translateY(6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Complete effect: green glow and flip/slide */
+.tutorial-mission-overlay.tutorial-complete {
+  box-shadow: 0 22px 64px rgba(16,185,129,0.28), 0 0 28px rgba(16,185,129,0.12), inset 0 1px 0 rgba(255,255,255,0.02);
+  border-color: rgba(34,197,94,0.6);
+}
+
+.tutorial-mission-overlay.tutorial-out {
+  animation: tutorial-out 360ms cubic-bezier(0.2, 0, 0.08, 1) forwards;
+}
+
+.tutorial-mission-overlay.tutorial-in {
+  animation: tutorial-in 320ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes tutorial-out {
+  0% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+  60% {
+    transform: translateX(-50%) translateY(-6px) scale(0.997);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateX(-50%) translateY(-12px) scale(0.995);
+    opacity: 0;
+  }
+}
+
+@keyframes tutorial-in {
+  0% {
+    transform: translateX(-50%) translateY(6px) scale(0.997);
+    opacity: 0;
+  }
+  60% {
+    transform: translateX(-50%) translateY(2px) scale(0.998);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translateX(-50%) translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* small pulse when marking complete */
+.tutorial-mission-overlay.tutorial-complete::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 16px;
+  box-shadow: 0 0 0 0 rgba(34,197,94,0.25);
+  animation: tutorial-complete-pulse 820ms ease-out 1;
+  pointer-events: none;
+}
+
+@keyframes tutorial-complete-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(34,197,94,0.28); }
+  60% { box-shadow: 0 0 32px 12px rgba(34,197,94,0.10); }
+  100% { box-shadow: 0 0 0 0 rgba(34,197,94,0); }
 }
 /* Lab Mode Entry Animations */
 .lab-ui-slide-in-left {

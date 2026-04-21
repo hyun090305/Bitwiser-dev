@@ -964,11 +964,23 @@ function drawTutorialHighlights(ctx, highlights, phase, offsetX, camera, theme) 
     applyShadow(ctx, null);
     const label = typeof hint?.label === 'string' ? hint.label : '';
     if (label) {
-      ctx.fillStyle = 'rgba(30, 41, 59, 0.55)';
       const fontSize = Math.max(12, 16 * rect.scale);
       ctx.font = `600 ${fontSize}px "Noto Sans KR", sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
+      const themeId = theme && theme.id ? String(theme.id) : '';
+      const isDarkTheme = /midnight|dark|neon|night/i.test(themeId);
+      const fill = isDarkTheme ? 'rgba(255,255,255,0.95)' : 'rgba(30,41,59,0.95)';
+      const stroke = isDarkTheme ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.65)';
+      // small outline to improve legibility on varying cell backgrounds
+      ctx.lineWidth = Math.max(1, Math.round(rect.scale));
+      ctx.strokeStyle = stroke;
+      ctx.strokeText(
+        formatBlockLabels(label),
+        rect.x + rect.size / 2,
+        rect.y + rect.size / 2
+      );
+      ctx.fillStyle = fill;
       ctx.fillText(
         formatBlockLabels(label),
         rect.x + rect.size / 2,
@@ -1081,13 +1093,14 @@ export function renderContent(
     ? Object.values(circuit.blocks).filter(b => rectIntersects(contentBounds, blockWorldRect(b)))
     : Object.values(circuit.blocks);
   wires.forEach(w => drawWire(ctx, w, phase, offsetX, camera, styleOptions));
-  blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
+  // Draw tutorial wire guides below blocks so they don't obscure block visuals.
   const themeForTutorial = styleOptions.theme || getActiveTheme();
-  if (tutorialHighlights.length) {
-    drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);
-  }
   if (tutorialWireGuides.length) {
     drawTutorialWireGuides(ctx, tutorialWireGuides, phase, offsetX, camera, themeForTutorial);
+  }
+  blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
+  if (tutorialHighlights.length) {
+    drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);
   }
   ctx.restore();
 }

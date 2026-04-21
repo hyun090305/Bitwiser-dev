@@ -8,6 +8,7 @@ import {
   roundRect,
   CELL_CORNER_RADIUS
 } from './renderer.js';
+import { getActiveTheme } from '../themes.js';
 import { evaluateCircuit, markCircuitDirty, startEngine } from './engine.js';
 import {
   playItemDropSound,
@@ -2451,7 +2452,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       overlayCtx.save();
-      overlayCtx.strokeStyle = 'rgba(17,17,17,0.4)';
+      const activeTheme = getActiveTheme();
+      const isDarkTheme = /midnight|dark|neon|night/i.test(String(activeTheme?.id || ''));
+      overlayCtx.strokeStyle = isDarkTheme ? 'rgba(255,255,255,0.9)' : 'rgba(17,17,17,0.4)';
       const lineScale = getScale();
       overlayCtx.lineWidth = 2 * lineScale;
       overlayCtx.setLineDash([8 * lineScale, 8 * lineScale]);

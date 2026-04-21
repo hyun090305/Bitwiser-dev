@@ -46,6 +46,8 @@ export function createGuidedTutorial({
   let active = false;
   let currentStepIndex = 0;
   let unsubscribeCircuit = null;
+  let overlayEl = null;
+  let isTransitioning = false;
 
   const steps = [
     {
@@ -62,8 +64,8 @@ export function createGuidedTutorial({
       titleKo: '도선 그리기',
       titleEn: 'Draw the wires',
       hint: {
-        ko: 'Shift를 누른 채 드래그하여 도선을 설치하세요.',
-        en: 'Hold Shift and drag to lay wires.'
+        ko: 'Ctrl을 누른 채 드래그하여 도선을 설치하세요.',
+        en: 'Hold Ctrl and drag to lay wires.'
       }
     },
     {
@@ -194,38 +196,123 @@ export function createGuidedTutorial({
   }
 
   function setPanelVisible(visible) {
-    if (missionPanel) {
-      missionPanel.style.display = visible ? 'flex' : 'none';
+    // Prefer overlay inside the console frame. Create lazily.
+    try {
+      if (!overlayEl) {
+        const parent = document.querySelector('#consoleFrame .console-frame__core') || document.getElementById('consoleFrame') || document.body;
+        overlayEl = document.createElement('div');
+        overlayEl.className = 'tutorial-mission-overlay';
+        overlayEl.style.display = 'none';
+        // Ensure parent is positioned to contain absolutely positioned overlay
+        try {
+          const computed = window.getComputedStyle(parent);
+          if (computed.position === 'static') parent.style.position = 'relative';
+        } catch (e) {}
+        parent.appendChild(overlayEl);
+      }
+      overlayEl.style.display = visible ? 'flex' : 'none';
+    } catch (err) {
+      if (missionPanel) missionPanel.style.display = visible ? 'flex' : 'none';
     }
   }
-
   function renderMissionList() {
-    if (!missionList) return;
-    missionList.innerHTML = '';
-    steps.forEach((step, index) => {
-      const item = document.createElement('li');
-      item.className = 'tutorial-mission-item';
-      if (index < currentStepIndex) {
-        item.classList.add('tutorial-mission-item--done');
-      } else if (index === currentStepIndex) {
-        item.classList.add('tutorial-mission-item--active');
+    // Render only current mission into the overlay element (or missionList if provided).
+    const step = steps[currentStepIndex];
+    if (!step) {
+      // All steps complete — render final completion card
+      try {
+        if (!overlayEl) {
+          const parent = document.querySelector('#consoleFrame .console-frame__core') || document.getElementById('consoleFrame') || document.body;
+          overlayEl = document.createElement('div');
+          overlayEl.className = 'tutorial-mission-overlay';
+          overlayEl.style.display = 'none';
+          try {
+            const computed = window.getComputedStyle(parent);
+            if (computed.position === 'static') parent.style.position = 'relative';
+          } catch (e) {}
+          parent.appendChild(overlayEl);
+        }
+        overlayEl.innerHTML = '';
+        const container = document.createElement('div');
+        container.className = 'tutorial-complete-final';
+        const check = document.createElement('div');
+        check.className = 'tutorial-complete-final__check';
+        check.textContent = '✓';
+        const text = document.createElement('div');
+        text.className = 'tutorial-complete-final__text';
+        text.textContent = '미션 완료! / Mission complete!';
+        container.appendChild(check);
+        container.appendChild(text);
+        overlayEl.appendChild(container);
+      } catch (err) {
+        if (!missionList) return;
+        missionList.innerHTML = '';
+        const item = document.createElement('li');
+        item.className = 'tutorial-mission-item tutorial-mission-item--done';
+        const title = document.createElement('div');
+        title.className = 'tutorial-mission-title';
+        title.textContent = '미션 완료! / Mission complete!';
+        item.appendChild(title);
+        missionList.appendChild(item);
       }
+      return;
+    }
+    const titleText = `${currentStepIndex + 1}. ${step.titleKo} / ${step.titleEn}`;
+    const hintKo = step.hint?.ko || '';
+    const hintEn = step.hint?.en || '';
+
+    // Update overlay element if present
+    try {
+      if (!overlayEl) {
+        const parent = document.querySelector('#consoleFrame .console-frame__core') || document.getElementById('consoleFrame') || document.body;
+        overlayEl = document.createElement('div');
+        overlayEl.className = 'tutorial-mission-overlay';
+        overlayEl.style.display = 'none';
+        try {
+          const computed = window.getComputedStyle(parent);
+          if (computed.position === 'static') parent.style.position = 'relative';
+        } catch (e) {}
+        parent.appendChild(overlayEl);
+      }
+      overlayEl.innerHTML = '';
+      const title = document.createElement('div');
+      title.className = 'tutorial-mission-title single';
+      title.textContent = titleText;
+      overlayEl.appendChild(title);
+      if (hintKo || hintEn) {
+        const hint = document.createElement('div');
+        hint.className = 'tutorial-mission-hint single';
+        hint.textContent = hintKo;
+        if (hintEn) {
+          const hintEnEl = document.createElement('div');
+          hintEnEl.className = 'tutorial-mission-hint__en single';
+          hintEnEl.textContent = hintEn;
+          hint.appendChild(hintEnEl);
+        }
+        overlayEl.appendChild(hint);
+      }
+    } catch (err) {
+      // Fallback to previous list behavior if overlay can't be used
+      if (!missionList) return;
+      missionList.innerHTML = '';
+      const item = document.createElement('li');
+      item.className = 'tutorial-mission-item tutorial-mission-item--active';
       const title = document.createElement('div');
       title.className = 'tutorial-mission-title';
-      title.textContent = `${index + 1}. ${step.titleKo} / ${step.titleEn}`;
+      title.textContent = titleText;
       item.appendChild(title);
       if (step.hint) {
         const hint = document.createElement('p');
         hint.className = 'tutorial-mission-hint';
-        hint.textContent = step.hint.ko;
-        const hintEn = document.createElement('span');
-        hintEn.className = 'tutorial-mission-hint__en';
-        hintEn.textContent = step.hint.en;
-        hint.appendChild(hintEn);
+        hint.textContent = hintKo;
+        const hintEnEl = document.createElement('span');
+        hintEnEl.className = 'tutorial-mission-hint__en';
+        hintEnEl.textContent = hintEn;
+        hint.appendChild(hintEnEl);
         item.appendChild(hint);
       }
       missionList.appendChild(item);
-    });
+    }
   }
 
   function render() {
@@ -236,17 +323,104 @@ export function createGuidedTutorial({
     updateTutorialWireGuides();
   }
 
+  function triggerCompleteEffect(next) {
+    if (!overlayEl) {
+      try {
+        overlayEl = document.querySelector('#consoleFrame .console-frame__core .tutorial-mission-overlay') || document.querySelector('#consoleFrame .tutorial-mission-overlay');
+      } catch (e) {
+        overlayEl = null;
+      }
+    }
+    if (!overlayEl) {
+      // no overlay available; proceed immediately
+      if (typeof next === 'function') next();
+      return;
+    }
+    // prevent overlapping transitions
+    if (isTransitioning) {
+      if (typeof next === 'function') next();
+      return;
+    }
+    isTransitioning = true;
+    overlayEl.classList.add('tutorial-complete');
+    // animate out, then call next(), then animate in
+    function handleOutEnd(e) {
+      // ignore unrelated animations
+      if (e && e.animationName && e.animationName !== 'tutorial-out') return;
+      overlayEl.removeEventListener('animationend', handleOutEnd);
+      // cleanup out class so it doesn't keep the element hidden
+      overlayEl.classList.remove('tutorial-out');
+      // hide while content updates
+      overlayEl.style.visibility = 'hidden';
+      // slight delay to allow CSS glow to remain visible briefly
+      setTimeout(() => {
+        try {
+          if (typeof next === 'function') next();
+        } catch (err) {
+          console.error('Error advancing tutorial step', err);
+        }
+        // show and animate in
+        requestAnimationFrame(() => {
+          overlayEl.style.visibility = 'visible';
+          // force reflow to ensure animation plays
+          // eslint-disable-next-line no-unused-expressions
+          overlayEl.offsetHeight;
+          // ensure no leftover out class
+          overlayEl.classList.remove('tutorial-out');
+          overlayEl.classList.add('tutorial-in');
+          function handleInEnd(e2) {
+            if (e2 && e2.animationName && e2.animationName !== 'tutorial-in') return;
+            overlayEl.removeEventListener('animationend', handleInEnd);
+            overlayEl.classList.remove('tutorial-in');
+            // remove highlight class after in animation completes
+            overlayEl.classList.remove('tutorial-complete');
+            isTransitioning = false;
+          }
+          overlayEl.addEventListener('animationend', handleInEnd);
+        });
+      }, 90);
+    }
+    overlayEl.addEventListener('animationend', handleOutEnd);
+    // start out-animation
+    overlayEl.classList.add('tutorial-out');
+  }
+
   function maybeAdvance() {
-    if (!active || currentStepIndex >= steps.length) return;
-    updateTutorialHighlights();
-    updateTutorialWireGuides();
-    const step = steps[currentStepIndex];
-    if (step.id === 'place' && blocksPlaced()) {
-      currentStepIndex += 1;
+    // Reconcile tutorial state when circuit changes: advance or rollback
+    if (!active) return;
+    reconcileTutorialState();
+  }
+
+  function reconcileTutorialState() {
+    if (!active) return;
+    // compute highest satisfied step index
+    let desired = 0;
+    if (blocksPlaced()) desired = 1;
+    if (connectionsCompleted()) desired = 2;
+
+    // If desired is less than current, rollback immediately
+    if (desired < currentStepIndex) {
+      currentStepIndex = desired;
       render();
-    } else if (step.id === 'wire' && connectionsCompleted()) {
-      currentStepIndex += 1;
-      render();
+      return;
+    }
+
+    // If desired is greater, attempt to advance (with effect) unless transitioning
+    if (desired > currentStepIndex && !isTransitioning) {
+      // triggerCompleteEffect will call next to increment and render
+      triggerCompleteEffect(() => {
+        // advance only up to desired (in case multiple steps)
+        currentStepIndex = Math.min(desired, currentStepIndex + 1);
+        render();
+        // if there's still more to advance (rare), call reconcile again
+        requestAnimationFrame(() => {
+          if (desired > currentStepIndex) reconcileTutorialState();
+        });
+      });
+    } else {
+      // nothing to do but update highlights/guides
+      updateTutorialHighlights();
+      updateTutorialWireGuides();
     }
   }
 
@@ -255,8 +429,10 @@ export function createGuidedTutorial({
     if (currentStepIndex >= steps.length) return;
     const step = steps[currentStepIndex];
     if (step.id === 'grade') {
-      currentStepIndex += 1;
-      render();
+      triggerCompleteEffect(() => {
+        currentStepIndex += 1;
+        render();
+      });
     }
   }
 
