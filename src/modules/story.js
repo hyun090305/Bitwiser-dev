@@ -28,6 +28,11 @@ let playbackTextEl = null;
 let playbackResolve = null;
 let playbackTimers = [];
 let playbackActive = false;
+let archiveActive = false;
+let archiveIndex = 0;
+let archivePrevBtn = null;
+let archiveNextBtn = null;
+let archiveCloseBtn = null;
 let getClearedLevelsRef = () => [];
 let isLoading = false;
 let currentFragmentIndex = 0;
@@ -105,20 +110,26 @@ export function initializeStory({ getClearedLevels } = {}) {
   };
 }
 
-export function openStoryArchive({ reset = false } = {}) {
-  if (!overlayEl) return;
+export async function openStoryArchive({ reset = false } = {}) {
+  await ensureStoryDataLoaded();
+  if (!playbackOverlayEl || !playbackTitleEl || !playbackVisualEl || !playbackTextEl) return;
   if (reset) {
-    currentFragmentIndex = 0;
+    archiveIndex = Math.max(0, getArchiveMaxIndex());
+  } else if (archiveIndex > getArchiveMaxIndex()) {
+    archiveIndex = getArchiveMaxIndex();
   }
-  renderFragments();
-  overlayEl.dataset.open = 'true';
-  overlayEl.setAttribute('aria-hidden', 'false');
-  document.body.classList.add('story-modal-open');
+  archiveActive = true;
+  clearPlaybackTimers();
+  ensureArchiveControls();
+  renderArchiveFragment();
+  playbackOverlayEl.classList.remove('is-closing');
+  playbackOverlayEl.classList.add('story-playback-overlay--archive');
+  playbackOverlayEl.dataset.open = 'true';
+  playbackOverlayEl.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('story-playback-open');
   window.requestAnimationFrame(() => {
-    if (!modalEl) return;
-    modalEl.setAttribute('data-glitch', 'true');
-    setTimeout(() => modalEl?.setAttribute('data-glitch', 'false'), 140);
-    setTimeout(() => continueBtn?.focus(), 200);
+    playbackVisualEl?.classList.add('is-visible');
+    archiveNextBtn?.focus();
   });
 }
 
@@ -127,9 +138,14 @@ export function openStoryModal(options = {}) {
 }
 
 export function closeStoryModal() {
-  if (!overlayEl) return;
-  overlayEl.dataset.open = 'false';
-  overlayEl.setAttribute('aria-hidden', 'true');
+  if (archiveActive) {
+    closeStoryArchive();
+    return;
+  }
+  if (overlayEl) {
+    overlayEl.dataset.open = 'false';
+    overlayEl.setAttribute('aria-hidden', 'true');
+  }
   document.body.classList.remove('story-modal-open');
   hudBtn?.focus();
 }
@@ -184,6 +200,7 @@ function playStoryFragment(fragment, options = {}) {
       : '';
   }
   playbackTextEl.innerHTML = '';
+  renderPlaybackVisual(fragment);
   playbackVisualEl.classList.remove('is-visible');
   playbackOverlayEl.classList.remove('is-closing');
   playbackOverlayEl.dataset.open = 'true';
@@ -251,6 +268,10 @@ function finishStoryPlayback(shown) {
       playbackOverlayEl.classList.remove('is-closing');
     }
     playbackVisualEl?.classList.remove('is-visible');
+    if (playbackVisualEl) {
+      playbackVisualEl.innerHTML = '';
+      playbackVisualEl.removeAttribute('data-visual-type');
+    }
     if (playbackTextEl) {
       playbackTextEl.innerHTML = '';
     }
@@ -258,6 +279,31 @@ function finishStoryPlayback(shown) {
     const resolve = playbackResolve;
     playbackResolve = null;
     resolve?.(Boolean(shown));
+  }, PLAYBACK_TIMING.fadeOutMs);
+}
+
+function closeStoryArchive() {
+  if (!archiveActive) return;
+  archiveActive = false;
+  clearPlaybackTimers();
+  playbackOverlayEl?.classList.add('is-closing');
+  queuePlaybackTimer(() => {
+    if (playbackOverlayEl) {
+      playbackOverlayEl.dataset.open = 'false';
+      playbackOverlayEl.setAttribute('aria-hidden', 'true');
+      playbackOverlayEl.classList.remove('is-closing');
+      playbackOverlayEl.classList.remove('story-playback-overlay--archive');
+    }
+    playbackVisualEl?.classList.remove('is-visible');
+    if (playbackVisualEl) {
+      playbackVisualEl.innerHTML = '';
+      playbackVisualEl.removeAttribute('data-visual-type');
+    }
+    if (playbackTextEl) {
+      playbackTextEl.innerHTML = '';
+    }
+    document.body.classList.remove('story-playback-open');
+    hudBtn?.focus();
   }, PLAYBACK_TIMING.fadeOutMs);
 }
 
@@ -272,12 +318,412 @@ function clearPlaybackTimers() {
   playbackTimers = [];
 }
 
+function ensureArchiveControls() {
+  if (!playbackOverlayEl) return;
+  if (!archiveCloseBtn) {
+    archiveCloseBtn = document.createElement('button');
+    archiveCloseBtn.type = 'button';
+    archiveCloseBtn.className = 'story-archive__close';
+    archiveCloseBtn.setAttribute('aria-label', '스토리 닫기');
+    archiveCloseBtn.textContent = 'x';
+    archiveCloseBtn.addEventListener('click', closeStoryArchive);
+    playbackOverlayEl.appendChild(archiveCloseBtn);
+  }
+  if (!archivePrevBtn) {
+    archivePrevBtn = document.createElement('button');
+    archivePrevBtn.type = 'button';
+    archivePrevBtn.className = 'story-archive__nav story-archive__nav--prev';
+    archivePrevBtn.setAttribute('aria-label', '이전 Fragment');
+    archivePrevBtn.textContent = '<';
+    archivePrevBtn.addEventListener('click', () => moveArchive(-1));
+    playbackOverlayEl.appendChild(archivePrevBtn);
+  }
+  if (!archiveNextBtn) {
+    archiveNextBtn = document.createElement('button');
+    archiveNextBtn.type = 'button';
+    archiveNextBtn.className = 'story-archive__nav story-archive__nav--next';
+    archiveNextBtn.setAttribute('aria-label', '다음 Fragment');
+    archiveNextBtn.textContent = '>';
+    archiveNextBtn.addEventListener('click', () => moveArchive(1));
+    playbackOverlayEl.appendChild(archiveNextBtn);
+  }
+}
+
+function getArchiveMaxIndex() {
+  if (!fragments.length) return 0;
+  const unlocked = Math.min(getClearedCount(), fragments.length);
+  return Math.max(0, unlocked - 1);
+}
+
+function getArchiveFragment() {
+  if (!fragments.length) return null;
+  const maxIndex = getArchiveMaxIndex();
+  archiveIndex = Math.max(0, Math.min(archiveIndex, maxIndex));
+  if (getClearedCount() <= 0) return null;
+  return fragments[archiveIndex] || null;
+}
+
+function renderArchiveFragment() {
+  if (!playbackTitleEl || !playbackCountEl || !playbackVisualEl || !playbackTextEl) return;
+  const fragment = getArchiveFragment();
+  const unlocked = Math.min(getClearedCount(), fragments.length);
+  playbackTextEl.innerHTML = '';
+  playbackVisualEl.classList.remove('is-visible');
+
+  if (!fragment) {
+    playbackTitleEl.textContent = '기억을 복구하세요';
+    playbackCountEl.textContent = `00 / ${fragments.length || '--'}`;
+    playbackVisualEl.innerHTML = '';
+    playbackVisualEl.dataset.visualType = 'flat-plane';
+    const visual = document.createElement('div');
+    visual.className = 'story-visual story-visual--flat-plane';
+    visual.setAttribute('aria-hidden', 'true');
+    buildFlatPlaneVisual(visual);
+    playbackVisualEl.appendChild(visual);
+    renderArchiveLine('아직 복구된 Fragment가 없습니다.');
+  } else {
+    playbackTitleEl.textContent = fragment.title || '';
+    playbackCountEl.textContent = `${String(fragment.id).padStart(2, '0')} / ${fragments.length || '--'}`;
+    renderPlaybackVisual(fragment);
+    getPlaybackLines(fragment).forEach(renderArchiveLine);
+  }
+
+  updateArchiveControls(unlocked);
+  window.requestAnimationFrame(() => {
+    playbackVisualEl?.classList.add('is-visible');
+    playbackTextEl?.querySelectorAll('.story-playback__line').forEach(line => {
+      line.classList.add('is-visible');
+    });
+  });
+}
+
+function renderArchiveLine(text) {
+  if (!playbackTextEl) return;
+  const line = document.createElement('p');
+  line.className = 'story-playback__line is-visible';
+  line.textContent = text;
+  playbackTextEl.appendChild(line);
+}
+
+function updateArchiveControls(unlockedCount = Math.min(getClearedCount(), fragments.length)) {
+  const hasFragments = unlockedCount > 0;
+  const maxIndex = getArchiveMaxIndex();
+  if (archivePrevBtn) {
+    archivePrevBtn.disabled = !hasFragments || archiveIndex <= 0;
+  }
+  if (archiveNextBtn) {
+    archiveNextBtn.disabled = !hasFragments || archiveIndex >= maxIndex;
+  }
+}
+
+function moveArchive(delta) {
+  if (!archiveActive) return;
+  const nextIndex = archiveIndex + delta;
+  const maxIndex = getArchiveMaxIndex();
+  archiveIndex = Math.max(0, Math.min(nextIndex, maxIndex));
+  renderArchiveFragment();
+}
+
+function renderPlaybackVisual(fragment) {
+  if (!playbackVisualEl) return;
+  const type = normalizeVisualType(fragment?.visual?.type);
+  playbackVisualEl.innerHTML = '';
+  playbackVisualEl.dataset.visualType = type;
+
+  const visual = document.createElement('div');
+  visual.className = `story-visual story-visual--${type}`;
+  visual.setAttribute('aria-hidden', 'true');
+
+  const builders = {
+    'void-consciousness': buildVoidConsciousnessVisual,
+    'flat-plane': buildFlatPlaneVisual,
+    'collision-lines': buildCollisionLinesVisual,
+    'circuit-shadow': buildCircuitShadowVisual,
+    'first-link': buildFirstLinkVisual,
+    'constrained-path': buildConstrainedPathVisual,
+    blueprint: buildBlueprintVisual,
+    'sensory-ripple': buildSensoryRippleVisual,
+    'voice-wave': buildVoiceWaveVisual,
+    'equipment-hud': buildEquipmentHudVisual,
+    'choice-log': buildChoiceLogVisual,
+    'safe-mode': buildSafeModeVisual,
+    'broken-wire': buildBrokenWireVisual,
+    'world-bridge': buildWorldBridgeVisual,
+    'protocol-blueprint': buildProtocolBlueprintVisual,
+    'warning-signal': buildWarningSignalVisual,
+    'flatten-fall': buildFlattenFallVisual,
+    'signal-decay': buildSignalDecayVisual,
+    'thickening-link': buildThickeningLinkVisual,
+    'grid-collapse': buildGridCollapseVisual,
+    'dual-layer': buildDualLayerVisual,
+    'chosen-path': buildChosenPathVisual,
+    'stable-wave': buildStableWaveVisual,
+    'network-growth': buildNetworkGrowthVisual,
+    'near-complete-circuit': buildNearCompleteCircuitVisual,
+    'final-connection': buildFinalConnectionVisual,
+    'return-sequence': buildReturnSequenceVisual
+  };
+
+  const builder = builders[type] || buildFlatPlaneVisual;
+  builder(visual);
+  playbackVisualEl.appendChild(visual);
+}
+
+function normalizeVisualType(type) {
+  const value = String(type || '').trim().toLowerCase();
+  return value || 'flat-plane';
+}
+
+function appendVisualPart(parent, className, text = '') {
+  const part = document.createElement('span');
+  part.className = className;
+  if (text) part.textContent = text;
+  parent.appendChild(part);
+  return part;
+}
+
+function appendNode(parent, className, style = {}) {
+  const node = appendVisualPart(parent, `story-visual__node ${className}`);
+  Object.entries(style).forEach(([key, value]) => {
+    node.style.setProperty(key, value);
+  });
+  return node;
+}
+
+function appendWire(parent, className, style = {}) {
+  const wire = appendVisualPart(parent, `story-visual__wire ${className}`);
+  Object.entries(style).forEach(([key, value]) => {
+    wire.style.setProperty(key, value);
+  });
+  return wire;
+}
+
+function appendSignal(parent, className, style = {}) {
+  const signal = appendVisualPart(parent, `story-visual__signal ${className}`);
+  Object.entries(style).forEach(([key, value]) => {
+    signal.style.setProperty(key, value);
+  });
+  return signal;
+}
+
+function buildVoidConsciousnessVisual(visual) {
+  appendVisualPart(visual, 'story-visual__noise');
+  appendVisualPart(visual, 'story-visual__consciousness');
+  appendVisualPart(visual, 'story-visual__pulse');
+}
+
+function buildFlatPlaneVisual(visual) {
+  appendVisualPart(visual, 'story-visual__plane');
+  appendVisualPart(visual, 'story-visual__axis story-visual__axis--x');
+  appendVisualPart(visual, 'story-visual__axis story-visual__axis--y');
+  appendVisualPart(visual, 'story-visual__axis story-visual__axis--z', 'Z');
+  appendVisualPart(visual, 'story-visual__none-label', 'NONE');
+}
+
+function buildCollisionLinesVisual(visual) {
+  appendWire(visual, 'story-visual__wire--collision-a');
+  appendWire(visual, 'story-visual__wire--collision-b');
+  appendVisualPart(visual, 'story-visual__impact');
+}
+
+function buildCircuitShadowVisual(visual) {
+  buildNodeField(visual, { ghost: true });
+  appendVisualPart(visual, 'story-visual__pulse story-visual__pulse--wide');
+}
+
+function buildFirstLinkVisual(visual) {
+  appendNode(visual, 'story-visual__node--left');
+  appendNode(visual, 'story-visual__node--right');
+  appendWire(visual, 'story-visual__wire--horizontal');
+  appendSignal(visual, 'story-visual__signal--horizontal');
+  appendVisualPart(visual, 'story-visual__flash');
+}
+
+function buildConstrainedPathVisual(visual) {
+  appendWire(visual, 'story-visual__wire--blocked-a');
+  appendWire(visual, 'story-visual__wire--blocked-b');
+  appendWire(visual, 'story-visual__wire--bent-path');
+  appendVisualPart(visual, 'story-visual__impact story-visual__impact--small');
+}
+
+function buildBlueprintVisual(visual) {
+  buildNodeField(visual, { blueprint: true });
+  appendVisualPart(visual, 'story-visual__blueprint-sheet');
+}
+
+function buildSensoryRippleVisual(visual) {
+  buildFirstLinkVisual(visual);
+  appendVisualPart(visual, 'story-visual__ripple story-visual__ripple--one');
+  appendVisualPart(visual, 'story-visual__ripple story-visual__ripple--two');
+}
+
+function buildVoiceWaveVisual(visual) {
+  appendWaveform(visual, { glitched: true });
+}
+
+function buildEquipmentHudVisual(visual) {
+  appendVisualPart(visual, 'story-visual__hud-frame');
+  appendVisualPart(visual, 'story-visual__headset');
+  appendWaveform(visual, { compact: true });
+}
+
+function buildChoiceLogVisual(visual) {
+  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--one');
+  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--two');
+  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--three');
+  appendVisualPart(visual, 'story-visual__choice-marker');
+}
+
+function buildSafeModeVisual(visual) {
+  appendVisualPart(visual, 'story-visual__system-box', 'SAFE MODE');
+  appendVisualPart(visual, 'story-visual__shield');
+}
+
+function buildBrokenWireVisual(visual) {
+  appendNode(visual, 'story-visual__node--left');
+  appendNode(visual, 'story-visual__node--right');
+  appendWire(visual, 'story-visual__wire--broken-left');
+  appendWire(visual, 'story-visual__wire--broken-right');
+  appendSignal(visual, 'story-visual__signal--fade');
+}
+
+function buildWorldBridgeVisual(visual) {
+  appendVisualPart(visual, 'story-visual__world story-visual__world--left');
+  appendVisualPart(visual, 'story-visual__world story-visual__world--right');
+  appendWire(visual, 'story-visual__wire--bridge');
+  appendSignal(visual, 'story-visual__signal--bridge');
+}
+
+function buildProtocolBlueprintVisual(visual) {
+  buildBlueprintVisual(visual);
+  appendVisualPart(visual, 'story-visual__protocol-line story-visual__protocol-line--one');
+  appendVisualPart(visual, 'story-visual__protocol-line story-visual__protocol-line--two');
+}
+
+function buildWarningSignalVisual(visual) {
+  appendVisualPart(visual, 'story-visual__warning', 'WARNING');
+  appendWaveform(visual, { unstable: true });
+}
+
+function buildFlattenFallVisual(visual) {
+  appendVisualPart(visual, 'story-visual__cube');
+  appendVisualPart(visual, 'story-visual__plane story-visual__plane--flatten');
+}
+
+function buildSignalDecayVisual(visual) {
+  appendWire(visual, 'story-visual__wire--horizontal story-visual__wire--decay');
+  appendSignal(visual, 'story-visual__signal--decay');
+  appendVisualPart(visual, 'story-visual__decay-tail');
+}
+
+function buildThickeningLinkVisual(visual) {
+  appendNode(visual, 'story-visual__node--left');
+  appendNode(visual, 'story-visual__node--right');
+  appendWire(visual, 'story-visual__wire--horizontal story-visual__wire--thickening');
+  appendSignal(visual, 'story-visual__signal--horizontal story-visual__signal--strong');
+}
+
+function buildGridCollapseVisual(visual) {
+  appendVisualPart(visual, 'story-visual__collapse-grid');
+  appendVisualPart(visual, 'story-visual__void-cut story-visual__void-cut--one');
+  appendVisualPart(visual, 'story-visual__void-cut story-visual__void-cut--two');
+}
+
+function buildDualLayerVisual(visual) {
+  appendVisualPart(visual, 'story-visual__split story-visual__split--left');
+  appendVisualPart(visual, 'story-visual__split story-visual__split--right');
+  appendWire(visual, 'story-visual__wire--bridge story-visual__wire--split-link');
+}
+
+function buildChosenPathVisual(visual) {
+  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-a');
+  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-b');
+  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-c');
+  appendSignal(visual, 'story-visual__signal--choice');
+}
+
+function buildStableWaveVisual(visual) {
+  appendWaveform(visual, { stable: true });
+  appendVisualPart(visual, 'story-visual__noise-cleanse');
+}
+
+function buildNetworkGrowthVisual(visual) {
+  buildNodeField(visual, { network: true });
+  appendVisualPart(visual, 'story-visual__growth-ring');
+}
+
+function buildNearCompleteCircuitVisual(visual) {
+  buildNodeField(visual, { dense: true });
+  appendVisualPart(visual, 'story-visual__missing-link');
+}
+
+function buildFinalConnectionVisual(visual) {
+  buildWorldBridgeVisual(visual);
+  appendVisualPart(visual, 'story-visual__final-gap');
+}
+
+function buildReturnSequenceVisual(visual) {
+  buildNodeField(visual, { dense: true, active: true });
+  appendVisualPart(visual, 'story-visual__return-light');
+  appendVisualPart(visual, 'story-visual__dissolve-grid');
+}
+
+function buildNodeField(visual, options = {}) {
+  const className = [
+    'story-visual__node-field',
+    options.ghost ? 'story-visual__node-field--ghost' : '',
+    options.blueprint ? 'story-visual__node-field--blueprint' : '',
+    options.network ? 'story-visual__node-field--network' : '',
+    options.dense ? 'story-visual__node-field--dense' : '',
+    options.active ? 'story-visual__node-field--active' : ''
+  ].filter(Boolean).join(' ');
+  const field = appendVisualPart(visual, className);
+  for (let index = 0; index < 9; index += 1) {
+    appendVisualPart(field, 'story-visual__node-dot');
+  }
+}
+
+function appendWaveform(visual, options = {}) {
+  const className = [
+    'story-visual__waveform',
+    options.glitched ? 'story-visual__waveform--glitched' : '',
+    options.compact ? 'story-visual__waveform--compact' : '',
+    options.unstable ? 'story-visual__waveform--unstable' : '',
+    options.stable ? 'story-visual__waveform--stable' : ''
+  ].filter(Boolean).join(' ');
+  const wave = appendVisualPart(visual, className);
+  for (let index = 0; index < 18; index += 1) {
+    const bar = appendVisualPart(wave, 'story-visual__wave-bar');
+    bar.style.setProperty('--bar-index', index);
+  }
+}
+
 function handleKeydown(event) {
   if (playbackActive && isPlaybackSkipKey(event)) {
     event.preventDefault();
     event.stopPropagation();
     finishStoryPlayback(true);
     return;
+  }
+  if (archiveActive) {
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      closeStoryArchive();
+      return;
+    }
+    if (event.key === 'ArrowLeft') {
+      event.preventDefault();
+      event.stopPropagation();
+      moveArchive(-1);
+      return;
+    }
+    if (event.key === 'ArrowRight') {
+      event.preventDefault();
+      event.stopPropagation();
+      moveArchive(1);
+      return;
+    }
   }
   if (event.key === 'Escape' && overlayEl?.dataset.open === 'true') {
     closeStoryModal();
