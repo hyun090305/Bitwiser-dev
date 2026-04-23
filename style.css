@@ -1299,6 +1299,11 @@ body.story-playback-open {
   gap: 8px;
 }
 
+.story-metrics[data-metric-count="1"] .status-card,
+.story-metrics[data-metric-count="3"] .status-card--primary {
+  grid-column: 1 / -1;
+}
+
 .status-card {
   position: relative;
   overflow: hidden;
@@ -1454,7 +1459,8 @@ body.story-playback-open {
 
 .story-system__mode,
 .story-system__route,
-.story-system__operation {
+.story-system__operation,
+.story-system__change {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1481,6 +1487,17 @@ body.story-playback-open {
 .story-system__route {
   color: var(--story-restore);
   font-size: 0.7rem;
+}
+
+.story-system__change {
+  width: fit-content;
+  max-width: 100%;
+  border: 1px solid rgba(255, 184, 77, 0.38);
+  padding: 4px 7px;
+  color: var(--story-restore);
+  background: rgba(255, 184, 77, 0.08);
+  font-size: 0.65rem;
+  letter-spacing: 0.06em;
 }
 
 .story-system__note {
@@ -1542,6 +1559,15 @@ body.story-playback-open {
   stroke: var(--story-error);
   stroke-dasharray: 18 15;
   opacity: 0.82;
+}
+
+.story-path--highlighted {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 5px rgba(255, 184, 77, 0.42));
+}
+
+.story-path--broken.story-path--highlighted {
+  filter: drop-shadow(0 0 5px rgba(255, 92, 92, 0.38));
 }
 
 .story-connector-dot {
@@ -1654,6 +1680,14 @@ body.story-playback-open {
   stroke: var(--story-active);
   stroke-width: 2;
   stroke-linecap: square;
+}
+
+.story-node--highlighted .story-node__outer {
+  stroke-width: 3;
+}
+
+.story-node--highlighted .story-node__bracket {
+  stroke: var(--story-restore);
 }
 
 .story-broken-mark rect {
