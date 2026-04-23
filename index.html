@@ -256,11 +256,21 @@
           </div>
         </header>
 
-        <div
-          id="storyPlaybackVisual"
-          class="story-playback__visual"
-          aria-hidden="true"
-        ></div>
+        <div class="story-playback__main">
+          <aside class="story-playback__sidebar" aria-label="System status">
+            <div class="story-playback__status-head">
+              <span class="story-playback__status-label">SYSTEM STATUS</span>
+              <strong id="storyPlaybackSceneTitle">Diagnostics</strong>
+            </div>
+            <div id="storyPlaybackMetrics" class="story-metrics"></div>
+          </aside>
+
+          <div
+            id="storyPlaybackVisual"
+            class="story-playback__visual"
+            aria-hidden="true"
+          ></div>
+        </div>
 
         <div
           id="storyPlaybackText"

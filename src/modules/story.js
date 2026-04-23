@@ -1,9 +1,9 @@
 const STORY_SOURCE = 'storyFragments.json';
 
 const PLAYBACK_TIMING = {
-  visualDelayMs: 350,
-  lineIntervalMs: 1000,
-  holdAfterLastLineMs: 1200,
+  visualDelayMs: 260,
+  lineIntervalMs: 380,
+  holdAfterLastLineMs: 1400,
   fadeOutMs: 360
 };
 
@@ -25,6 +25,8 @@ let playbackTitleEl = null;
 let playbackCountEl = null;
 let playbackVisualEl = null;
 let playbackTextEl = null;
+let playbackMetricsEl = null;
+let playbackSceneTitleEl = null;
 let playbackResolve = null;
 let playbackTimers = [];
 let playbackActive = false;
@@ -56,6 +58,8 @@ export function initializeStory({ getClearedLevels } = {}) {
   playbackCountEl = document.getElementById('storyPlaybackCount');
   playbackVisualEl = document.getElementById('storyPlaybackVisual');
   playbackTextEl = document.getElementById('storyPlaybackText');
+  playbackMetricsEl = document.getElementById('storyPlaybackMetrics');
+  playbackSceneTitleEl = document.getElementById('storyPlaybackSceneTitle');
 
   if (!containerEl || !overlayEl || !modalEl) {
     return null;
@@ -242,8 +246,18 @@ function getPlaybackLines(fragment) {
 function renderPlaybackLine(text) {
   if (!playbackTextEl) return;
   const line = document.createElement('p');
-  line.className = 'story-playback__line';
-  line.textContent = text;
+  const type = getLogTypeForIndex(playbackTextEl.children.length);
+  line.className = `story-playback__line story-log-line--${type}`;
+
+  const code = document.createElement('span');
+  code.className = 'story-log-code';
+  code.textContent = `[${String(playbackTextEl.children.length + 1).padStart(2, '0')}]`;
+
+  const message = document.createElement('span');
+  message.className = 'story-log-message';
+  message.textContent = text;
+
+  line.append(code, message);
   playbackTextEl.appendChild(line);
   window.requestAnimationFrame(() => {
     line.classList.add('is-visible');
@@ -272,6 +286,7 @@ function finishStoryPlayback(shown) {
       playbackVisualEl.innerHTML = '';
       playbackVisualEl.removeAttribute('data-visual-type');
     }
+    resetPlaybackDiagnostics();
     if (playbackTextEl) {
       playbackTextEl.innerHTML = '';
     }
@@ -299,6 +314,7 @@ function closeStoryArchive() {
       playbackVisualEl.innerHTML = '';
       playbackVisualEl.removeAttribute('data-visual-type');
     }
+    resetPlaybackDiagnostics();
     if (playbackTextEl) {
       playbackTextEl.innerHTML = '';
     }
@@ -373,13 +389,7 @@ function renderArchiveFragment() {
   if (!fragment) {
     playbackTitleEl.textContent = '기억을 복구하세요';
     playbackCountEl.textContent = `00 / ${fragments.length || '--'}`;
-    playbackVisualEl.innerHTML = '';
-    playbackVisualEl.dataset.visualType = 'flat-plane';
-    const visual = document.createElement('div');
-    visual.className = 'story-visual story-visual--flat-plane';
-    visual.setAttribute('aria-hidden', 'true');
-    buildFlatPlaneVisual(visual);
-    playbackVisualEl.appendChild(visual);
+    renderPlaybackVisual(null, { locked: true });
     renderArchiveLine('아직 복구된 Fragment가 없습니다.');
   } else {
     playbackTitleEl.textContent = fragment.title || '';
@@ -400,8 +410,18 @@ function renderArchiveFragment() {
 function renderArchiveLine(text) {
   if (!playbackTextEl) return;
   const line = document.createElement('p');
-  line.className = 'story-playback__line is-visible';
-  line.textContent = text;
+  const type = getLogTypeForIndex(playbackTextEl.children.length);
+  line.className = `story-playback__line story-log-line--${type} is-visible`;
+
+  const code = document.createElement('span');
+  code.className = 'story-log-code';
+  code.textContent = `[${String(playbackTextEl.children.length + 1).padStart(2, '0')}]`;
+
+  const message = document.createElement('span');
+  message.className = 'story-log-message';
+  message.textContent = text;
+
+  line.append(code, message);
   playbackTextEl.appendChild(line);
 }
 
@@ -424,49 +444,17 @@ function moveArchive(delta) {
   renderArchiveFragment();
 }
 
-function renderPlaybackVisual(fragment) {
+function renderPlaybackVisual(fragment, options = {}) {
   if (!playbackVisualEl) return;
-  const type = normalizeVisualType(fragment?.visual?.type);
+  const type = options.locked ? 'locked' : normalizeVisualType(fragment?.visual?.type);
+  const scene = createStorySceneState(fragment, { ...options, type });
   playbackVisualEl.innerHTML = '';
   playbackVisualEl.dataset.visualType = type;
-
-  const visual = document.createElement('div');
-  visual.className = `story-visual story-visual--${type}`;
-  visual.setAttribute('aria-hidden', 'true');
-
-  const builders = {
-    'void-consciousness': buildVoidConsciousnessVisual,
-    'flat-plane': buildFlatPlaneVisual,
-    'collision-lines': buildCollisionLinesVisual,
-    'circuit-shadow': buildCircuitShadowVisual,
-    'first-link': buildFirstLinkVisual,
-    'constrained-path': buildConstrainedPathVisual,
-    blueprint: buildBlueprintVisual,
-    'sensory-ripple': buildSensoryRippleVisual,
-    'voice-wave': buildVoiceWaveVisual,
-    'equipment-hud': buildEquipmentHudVisual,
-    'choice-log': buildChoiceLogVisual,
-    'safe-mode': buildSafeModeVisual,
-    'broken-wire': buildBrokenWireVisual,
-    'world-bridge': buildWorldBridgeVisual,
-    'protocol-blueprint': buildProtocolBlueprintVisual,
-    'warning-signal': buildWarningSignalVisual,
-    'flatten-fall': buildFlattenFallVisual,
-    'signal-decay': buildSignalDecayVisual,
-    'thickening-link': buildThickeningLinkVisual,
-    'grid-collapse': buildGridCollapseVisual,
-    'dual-layer': buildDualLayerVisual,
-    'chosen-path': buildChosenPathVisual,
-    'stable-wave': buildStableWaveVisual,
-    'network-growth': buildNetworkGrowthVisual,
-    'near-complete-circuit': buildNearCompleteCircuitVisual,
-    'final-connection': buildFinalConnectionVisual,
-    'return-sequence': buildReturnSequenceVisual
-  };
-
-  const builder = builders[type] || buildFlatPlaneVisual;
-  builder(visual);
-  playbackVisualEl.appendChild(visual);
+  playbackVisualEl.appendChild(renderStorySystemVisualization(scene));
+  renderPlaybackMetrics(scene);
+  if (playbackSceneTitleEl) {
+    playbackSceneTitleEl.textContent = scene.title;
+  }
 }
 
 function normalizeVisualType(type) {
@@ -474,228 +462,583 @@ function normalizeVisualType(type) {
   return value || 'flat-plane';
 }
 
-function appendVisualPart(parent, className, text = '') {
-  const part = document.createElement('span');
-  part.className = className;
-  if (text) part.textContent = text;
-  parent.appendChild(part);
-  return part;
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+const STORY_SCENE_TYPE_GROUPS = {
+  boot: new Set([
+    'void-consciousness',
+    'flat-plane',
+    'collision-lines',
+    'circuit-shadow'
+  ]),
+  diagnostics: new Set([
+    'voice-wave',
+    'equipment-hud',
+    'choice-log',
+    'safe-mode',
+    'warning-signal',
+    'flatten-fall',
+    'grid-collapse',
+    'stable-wave'
+  ]),
+  pathway: new Set([
+    'first-link',
+    'constrained-path',
+    'sensory-ripple',
+    'broken-wire',
+    'world-bridge',
+    'signal-decay',
+    'thickening-link',
+    'dual-layer',
+    'chosen-path',
+    'final-connection'
+  ]),
+  reconstruction: new Set([
+    'blueprint',
+    'protocol-blueprint',
+    'network-growth',
+    'near-complete-circuit',
+    'return-sequence'
+  ])
+};
+
+function createStorySceneState(fragment, options = {}) {
+  if (options.locked) {
+    return createLockedSceneState();
+  }
+
+  const type = normalizeVisualType(options.type || fragment?.visual?.type);
+  const sequence = getFragmentSequence(fragment);
+  const progress = getFragmentProgress(sequence);
+  const family = getStorySceneFamily(type, sequence);
+  const base = {
+    family,
+    type,
+    title: getStorySceneTitle(family, type, fragment),
+    mode: getStorySceneMode(family, type),
+    routeLabel: getStoryRouteLabel(family, type, sequence),
+    metrics: buildStoryMetrics(progress, family, type),
+    nodes: [],
+    paths: []
+  };
+
+  if (family === 'boot') return buildBootScene(base, sequence, type);
+  if (family === 'diagnostics') return buildDiagnosticsScene(base, sequence, type, progress);
+  if (family === 'reconstruction') return buildReconstructionScene(base, sequence, type, progress);
+  return buildPathwayScene(base, sequence, type, progress);
 }
 
-function appendNode(parent, className, style = {}) {
-  const node = appendVisualPart(parent, `story-visual__node ${className}`);
-  Object.entries(style).forEach(([key, value]) => {
-    node.style.setProperty(key, value);
+function createLockedSceneState() {
+  return {
+    family: 'boot',
+    type: 'locked',
+    title: 'Recovery Locked',
+    mode: 'SAFE MODE / AWAITING CLEAR',
+    routeLabel: 'NO RESTORED FRAGMENT',
+    metrics: [
+      createMetric('integrity', 'SYSTEM INTEGRITY', 0, 'critical', 'I'),
+      createMetric('stability', 'SIGNAL STABILITY', 0, 'critical', 'S'),
+      createMetric('corruption', 'CORRUPTION LEVEL', 100, 'critical', 'X'),
+      createMetric('recovery', 'RECOVERY PROGRESS', 0, 'warning', 'R')
+    ],
+    nodes: [
+      { id: 'core', label: 'CORE N-0', state: 'inactive', x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', state: 'corrupted', x: 610, y: 190 }
+    ],
+    paths: [
+      { from: 'core', to: 'memory', state: 'broken', warning: true }
+    ]
+  };
+}
+
+function getFragmentSequence(fragment) {
+  const id = Number(fragment?.id);
+  if (Number.isFinite(id) && id > 0) return id;
+  const rewardSequence = Number(fragment?.rewardSequence);
+  if (Number.isFinite(rewardSequence) && rewardSequence > 0) return rewardSequence;
+  return 1;
+}
+
+function getFragmentProgress(sequence) {
+  const total = Math.max(1, fragments.length || 27);
+  if (total === 1) return 1;
+  return clampStoryNumber((sequence - 1) / (total - 1), 0, 1);
+}
+
+function getStorySceneFamily(type, sequence) {
+  if (STORY_SCENE_TYPE_GROUPS.boot.has(type) || sequence <= 3) return 'boot';
+  if (STORY_SCENE_TYPE_GROUPS.diagnostics.has(type)) return 'diagnostics';
+  if (STORY_SCENE_TYPE_GROUPS.reconstruction.has(type)) return 'reconstruction';
+  return 'pathway';
+}
+
+function getStorySceneTitle(family, type, fragment) {
+  if (type === 'return-sequence') return 'Recovery Complete';
+  if (family === 'boot') return 'Boot / Error Entry';
+  if (family === 'diagnostics') return 'Diagnostics Overview';
+  if (family === 'reconstruction') return 'Neural Reconstruction';
+  if (type === 'broken-wire' || type === 'signal-decay') return 'Link Recovery';
+  return 'Signal Pathway';
+}
+
+function getStorySceneMode(family, type) {
+  if (type === 'return-sequence') return 'RECOVERY MODE / EXIT READY';
+  if (type === 'warning-signal' || type === 'signal-decay') return 'SAFE MODE / DEGRADED LINK';
+  if (family === 'boot') return 'SAFE MODE / BOOT DIAGNOSTIC';
+  if (family === 'reconstruction') return 'SAFE MODE / RECONSTRUCTION';
+  return 'SAFE MODE / ROUTE ANALYSIS';
+}
+
+function getStoryRouteLabel(family, type, sequence) {
+  if (family === 'boot') return 'PRIMARY ROUTES OFFLINE';
+  if (family === 'diagnostics') return `DIAGNOSTIC SWEEP ${String(sequence).padStart(2, '0')}`;
+  if (family === 'reconstruction') return 'CORE TO FUNCTION BLOCKS';
+  return 'SOURCE: CORE N-0 / DEST: MEMORY M-01';
+}
+
+function buildStoryMetrics(progress, family, type) {
+  let integrity = 24 + progress * 72;
+  let stability = 30 + progress * 60;
+  let corruption = 78 - progress * 72;
+  let recovery = progress * 96;
+
+  if (family === 'boot') {
+    integrity -= 12;
+    stability -= 8;
+    corruption += 14;
+    recovery *= 0.55;
+  }
+  if (type === 'warning-signal' || type === 'signal-decay') {
+    stability -= 18;
+    corruption += 12;
+  }
+  if (type === 'stable-wave') {
+    stability += 14;
+    corruption -= 12;
+  }
+  if (type === 'return-sequence') {
+    integrity = 96;
+    stability = 94;
+    corruption = 3;
+    recovery = 100;
+  }
+
+  integrity = Math.round(clampStoryNumber(integrity, 0, 100));
+  stability = Math.round(clampStoryNumber(stability, 0, 100));
+  corruption = Math.round(clampStoryNumber(corruption, 0, 100));
+  recovery = Math.round(clampStoryNumber(recovery, 0, 100));
+
+  return [
+    createMetric('integrity', 'SYSTEM INTEGRITY', integrity, getPositiveMetricState(integrity), 'I'),
+    createMetric('stability', 'SIGNAL STABILITY', stability, getPositiveMetricState(stability), 'S'),
+    createMetric('corruption', 'CORRUPTION LEVEL', corruption, getCorruptionMetricState(corruption), 'X'),
+    createMetric('recovery', 'RECOVERY PROGRESS', recovery, recovery >= 90 ? 'normal' : 'updated', 'R')
+  ];
+}
+
+function createMetric(key, label, value, state, marker) {
+  return { key, label, value, state, marker };
+}
+
+function getPositiveMetricState(value) {
+  if (value < 42) return 'critical';
+  if (value < 70) return 'warning';
+  return 'normal';
+}
+
+function getCorruptionMetricState(value) {
+  if (value >= 56) return 'critical';
+  if (value >= 22) return 'warning';
+  return 'normal';
+}
+
+function buildBootScene(base, sequence, type) {
+  const coreState = sequence <= 1 ? 'selected' : 'restoring';
+  const memoryState = sequence >= 4 ? 'restoring' : 'corrupted';
+  return {
+    ...base,
+    nodes: [
+      { id: 'sensor', label: 'INPUT I-02', state: 'inactive', x: 180, y: 250 },
+      { id: 'core', label: 'CORE N-0', state: coreState, x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', state: memoryState, x: 620, y: 170 },
+      { id: 'logic', label: 'LOGIC L-02', state: sequence >= 3 ? 'restoring' : 'inactive', x: 620, y: 340 }
+    ],
+    paths: [
+      { from: 'sensor', to: 'core', state: sequence >= 2 ? 'restoring' : 'inactive', pulse: sequence >= 2 },
+      { from: 'core', to: 'memory', state: 'broken', warning: true },
+      { from: 'core', to: 'logic', state: sequence >= 3 ? 'restoring' : 'inactive', pulse: sequence >= 3 }
+    ]
+  };
+}
+
+function buildDiagnosticsScene(base, sequence, type, progress) {
+  const warning = type === 'warning-signal' || type === 'signal-decay';
+  const stable = type === 'stable-wave';
+  const memoryState = stable ? 'active' : (warning ? 'corrupted' : 'restoring');
+  const contextState = progress > 0.75 ? 'active' : 'restoring';
+  return {
+    ...base,
+    nodes: [
+      { id: 'core', label: 'CORE N-0', state: warning ? 'selected' : 'active', x: 250, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', state: memoryState, x: 520, y: 150 },
+      { id: 'logic', label: 'LOGIC L-02', state: 'active', x: 560, y: 280 },
+      { id: 'context', label: 'CONTEXT C-04', state: contextState, x: 430, y: 390 },
+      { id: 'temporal', label: 'TEMP T-03', state: warning ? 'corrupted' : 'inactive', x: 190, y: 390 }
+    ],
+    paths: [
+      { from: 'core', to: 'memory', state: memoryState === 'corrupted' ? 'broken' : 'restoring', warning: memoryState === 'corrupted', pulse: memoryState !== 'corrupted' },
+      { from: 'core', to: 'logic', state: 'active', pulse: !warning },
+      { from: 'core', to: 'context', state: contextState === 'active' ? 'active' : 'restoring', pulse: true },
+      { from: 'core', to: 'temporal', state: warning ? 'broken' : 'inactive', warning }
+    ]
+  };
+}
+
+function buildPathwayScene(base, sequence, type, progress) {
+  const decaying = type === 'signal-decay';
+  const broken = type === 'broken-wire' || type === 'final-connection' || decaying;
+  const restored = type === 'world-bridge' || type === 'thickening-link' || type === 'final-connection';
+  const destinationState = restored && !decaying ? 'active' : 'restoring';
+  const relayState = broken && !restored ? 'corrupted' : 'restoring';
+  return {
+    ...base,
+    nodes: [
+      { id: 'source', label: 'CORE N-0', state: 'active', x: 145, y: 250 },
+      { id: 'relayA', label: 'ROUTE R-12', state: relayState, x: 330, y: 155 },
+      { id: 'relayB', label: 'LINK L-07', state: restored ? 'restoring' : 'inactive', x: 500, y: 155 },
+      { id: 'buffer', label: 'BUFFER B-03', state: progress > 0.65 ? 'active' : 'inactive', x: 330, y: 345 },
+      { id: 'memory', label: 'MEMORY M-01', state: destinationState, x: 655, y: 300 }
+    ],
+    paths: [
+      { from: 'source', to: 'relayA', state: 'active', pulse: true, pulseDuration: '1.7s' },
+      { from: 'relayA', to: 'relayB', state: broken && !restored ? 'broken' : 'restoring', warning: broken && !restored, pulse: !broken || restored },
+      { from: 'relayB', to: 'memory', state: restored ? 'active' : 'restoring', pulse: true, pulseDuration: restored ? '1.4s' : '2s' },
+      { from: 'source', to: 'buffer', state: progress > 0.65 ? 'active' : 'inactive', pulse: progress > 0.65 },
+      { from: 'buffer', to: 'memory', state: decaying ? 'broken' : (progress > 0.75 ? 'restoring' : 'inactive'), warning: decaying, pulse: progress > 0.75 && !decaying }
+    ]
+  };
+}
+
+function buildReconstructionScene(base, sequence, type, progress) {
+  const complete = type === 'return-sequence';
+  const nearComplete = type === 'near-complete-circuit' || complete;
+  const memoryState = progress > 0.55 ? 'active' : 'restoring';
+  const temporalState = nearComplete ? 'active' : 'restoring';
+  const emotionState = complete ? 'active' : (progress > 0.85 ? 'restoring' : 'inactive');
+  return {
+    ...base,
+    nodes: [
+      { id: 'core', label: 'CORE N-0', state: complete ? 'selected' : 'active', x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY', state: memoryState, x: 400, y: 82 },
+      { id: 'logic', label: 'LOGIC', state: 'active', x: 635, y: 205 },
+      { id: 'context', label: 'CONTEXT', state: nearComplete ? 'active' : 'restoring', x: 590, y: 395 },
+      { id: 'temporal', label: 'TEMPORAL', state: temporalState, x: 280, y: 410 },
+      { id: 'perception', label: 'PERCEPTION', state: 'restoring', x: 160, y: 205 },
+      { id: 'emotion', label: 'EMOTION', state: emotionState, x: 275, y: 90 }
+    ],
+    paths: [
+      { from: 'core', to: 'memory', state: memoryState === 'active' ? 'active' : 'restoring', pulse: true },
+      { from: 'core', to: 'logic', state: 'active', pulse: true, pulseDuration: '1.5s' },
+      { from: 'core', to: 'context', state: nearComplete ? 'active' : 'restoring', pulse: true },
+      { from: 'core', to: 'temporal', state: temporalState === 'active' ? 'active' : 'restoring', pulse: true },
+      { from: 'core', to: 'perception', state: 'restoring', pulse: true },
+      { from: 'core', to: 'emotion', state: emotionState === 'inactive' ? 'inactive' : 'restoring', pulse: emotionState !== 'inactive' }
+    ]
+  };
+}
+
+function renderStorySystemVisualization(scene) {
+  const root = document.createElement('div');
+  root.className = `story-system story-system--${scene.family}`;
+  root.dataset.scene = scene.family;
+
+  const topLine = document.createElement('div');
+  topLine.className = 'story-system__topline';
+
+  const mode = document.createElement('span');
+  mode.className = 'story-system__mode';
+  mode.textContent = scene.mode;
+
+  const route = document.createElement('span');
+  route.className = 'story-system__route';
+  route.textContent = scene.routeLabel;
+
+  topLine.append(mode, route);
+  root.appendChild(topLine);
+
+  const svg = createSvgElement('svg', {
+    class: 'story-system__map',
+    viewBox: '0 0 800 500',
+    role: 'presentation',
+    focusable: 'false'
   });
-  return node;
+
+  const nodesById = new Map(scene.nodes.map(node => [node.id, node]));
+  scene.paths.forEach((path, index) => renderStoryPath(svg, path, index, nodesById));
+  scene.nodes.forEach(node => renderStoryNode(svg, node));
+  root.appendChild(svg);
+
+  return root;
 }
 
-function appendWire(parent, className, style = {}) {
-  const wire = appendVisualPart(parent, `story-visual__wire ${className}`);
-  Object.entries(style).forEach(([key, value]) => {
-    wire.style.setProperty(key, value);
+function renderPlaybackMetrics(scene) {
+  if (!playbackMetricsEl) return;
+  playbackMetricsEl.innerHTML = '';
+  scene.metrics.forEach(metric => {
+    const card = document.createElement('article');
+    card.className = `status-card status-card--${metric.state}`;
+
+    const top = document.createElement('div');
+    top.className = 'status-card__top';
+
+    const icon = document.createElement('span');
+    icon.className = 'status-card__icon';
+    icon.textContent = metric.marker;
+
+    const label = document.createElement('span');
+    label.className = 'status-card__label';
+    label.textContent = metric.label;
+
+    top.append(icon, label);
+
+    const value = document.createElement('strong');
+    value.className = 'status-card__value';
+    value.textContent = `${metric.value}%`;
+
+    const bar = document.createElement('div');
+    bar.className = 'status-card__bar';
+    const fill = document.createElement('span');
+    fill.style.width = `${metric.value}%`;
+    bar.appendChild(fill);
+
+    card.append(top, value, bar);
+    playbackMetricsEl.appendChild(card);
   });
-  return wire;
 }
 
-function appendSignal(parent, className, style = {}) {
-  const signal = appendVisualPart(parent, `story-visual__signal ${className}`);
-  Object.entries(style).forEach(([key, value]) => {
-    signal.style.setProperty(key, value);
+function resetPlaybackDiagnostics() {
+  if (playbackMetricsEl) playbackMetricsEl.innerHTML = '';
+  if (playbackSceneTitleEl) playbackSceneTitleEl.textContent = 'Diagnostics';
+}
+
+function renderStoryPath(svg, path, index, nodesById) {
+  const points = getStoryPathPoints(path, nodesById);
+  if (points.length < 2) return;
+
+  const id = `story-system-path-${index}`;
+  const d = buildSvgPathData(points);
+  const state = path.state || 'inactive';
+  const pathEl = createSvgElement('path', {
+    id,
+    class: `story-path story-path--${state}`,
+    d,
+    pathLength: '100'
   });
-  return signal;
-}
+  svg.appendChild(pathEl);
 
-function buildVoidConsciousnessVisual(visual) {
-  appendVisualPart(visual, 'story-visual__noise');
-  appendVisualPart(visual, 'story-visual__consciousness');
-  appendVisualPart(visual, 'story-visual__pulse');
-}
+  const start = points[0];
+  const end = points[points.length - 1];
+  svg.appendChild(createSvgElement('circle', {
+    class: `story-connector-dot story-connector-dot--${state}`,
+    cx: start.x,
+    cy: start.y,
+    r: 4
+  }));
+  svg.appendChild(createSvgElement('circle', {
+    class: `story-connector-dot story-connector-dot--${state}`,
+    cx: end.x,
+    cy: end.y,
+    r: 4
+  }));
 
-function buildFlatPlaneVisual(visual) {
-  appendVisualPart(visual, 'story-visual__plane');
-  appendVisualPart(visual, 'story-visual__axis story-visual__axis--x');
-  appendVisualPart(visual, 'story-visual__axis story-visual__axis--y');
-  appendVisualPart(visual, 'story-visual__axis story-visual__axis--z', 'Z');
-  appendVisualPart(visual, 'story-visual__none-label', 'NONE');
-}
+  if (path.warning || state === 'broken') {
+    renderBrokenPathMark(svg, points);
+  }
 
-function buildCollisionLinesVisual(visual) {
-  appendWire(visual, 'story-visual__wire--collision-a');
-  appendWire(visual, 'story-visual__wire--collision-b');
-  appendVisualPart(visual, 'story-visual__impact');
-}
-
-function buildCircuitShadowVisual(visual) {
-  buildNodeField(visual, { ghost: true });
-  appendVisualPart(visual, 'story-visual__pulse story-visual__pulse--wide');
-}
-
-function buildFirstLinkVisual(visual) {
-  appendNode(visual, 'story-visual__node--left');
-  appendNode(visual, 'story-visual__node--right');
-  appendWire(visual, 'story-visual__wire--horizontal');
-  appendSignal(visual, 'story-visual__signal--horizontal');
-  appendVisualPart(visual, 'story-visual__flash');
-}
-
-function buildConstrainedPathVisual(visual) {
-  appendWire(visual, 'story-visual__wire--blocked-a');
-  appendWire(visual, 'story-visual__wire--blocked-b');
-  appendWire(visual, 'story-visual__wire--bent-path');
-  appendVisualPart(visual, 'story-visual__impact story-visual__impact--small');
-}
-
-function buildBlueprintVisual(visual) {
-  buildNodeField(visual, { blueprint: true });
-  appendVisualPart(visual, 'story-visual__blueprint-sheet');
-}
-
-function buildSensoryRippleVisual(visual) {
-  buildFirstLinkVisual(visual);
-  appendVisualPart(visual, 'story-visual__ripple story-visual__ripple--one');
-  appendVisualPart(visual, 'story-visual__ripple story-visual__ripple--two');
-}
-
-function buildVoiceWaveVisual(visual) {
-  appendWaveform(visual, { glitched: true });
-}
-
-function buildEquipmentHudVisual(visual) {
-  appendVisualPart(visual, 'story-visual__hud-frame');
-  appendVisualPart(visual, 'story-visual__headset');
-  appendWaveform(visual, { compact: true });
-}
-
-function buildChoiceLogVisual(visual) {
-  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--one');
-  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--two');
-  appendVisualPart(visual, 'story-visual__log-line story-visual__log-line--three');
-  appendVisualPart(visual, 'story-visual__choice-marker');
-}
-
-function buildSafeModeVisual(visual) {
-  appendVisualPart(visual, 'story-visual__system-box', 'SAFE MODE');
-  appendVisualPart(visual, 'story-visual__shield');
-}
-
-function buildBrokenWireVisual(visual) {
-  appendNode(visual, 'story-visual__node--left');
-  appendNode(visual, 'story-visual__node--right');
-  appendWire(visual, 'story-visual__wire--broken-left');
-  appendWire(visual, 'story-visual__wire--broken-right');
-  appendSignal(visual, 'story-visual__signal--fade');
-}
-
-function buildWorldBridgeVisual(visual) {
-  appendVisualPart(visual, 'story-visual__world story-visual__world--left');
-  appendVisualPart(visual, 'story-visual__world story-visual__world--right');
-  appendWire(visual, 'story-visual__wire--bridge');
-  appendSignal(visual, 'story-visual__signal--bridge');
-}
-
-function buildProtocolBlueprintVisual(visual) {
-  buildBlueprintVisual(visual);
-  appendVisualPart(visual, 'story-visual__protocol-line story-visual__protocol-line--one');
-  appendVisualPart(visual, 'story-visual__protocol-line story-visual__protocol-line--two');
-}
-
-function buildWarningSignalVisual(visual) {
-  appendVisualPart(visual, 'story-visual__warning', 'WARNING');
-  appendWaveform(visual, { unstable: true });
-}
-
-function buildFlattenFallVisual(visual) {
-  appendVisualPart(visual, 'story-visual__cube');
-  appendVisualPart(visual, 'story-visual__plane story-visual__plane--flatten');
-}
-
-function buildSignalDecayVisual(visual) {
-  appendWire(visual, 'story-visual__wire--horizontal story-visual__wire--decay');
-  appendSignal(visual, 'story-visual__signal--decay');
-  appendVisualPart(visual, 'story-visual__decay-tail');
-}
-
-function buildThickeningLinkVisual(visual) {
-  appendNode(visual, 'story-visual__node--left');
-  appendNode(visual, 'story-visual__node--right');
-  appendWire(visual, 'story-visual__wire--horizontal story-visual__wire--thickening');
-  appendSignal(visual, 'story-visual__signal--horizontal story-visual__signal--strong');
-}
-
-function buildGridCollapseVisual(visual) {
-  appendVisualPart(visual, 'story-visual__collapse-grid');
-  appendVisualPart(visual, 'story-visual__void-cut story-visual__void-cut--one');
-  appendVisualPart(visual, 'story-visual__void-cut story-visual__void-cut--two');
-}
-
-function buildDualLayerVisual(visual) {
-  appendVisualPart(visual, 'story-visual__split story-visual__split--left');
-  appendVisualPart(visual, 'story-visual__split story-visual__split--right');
-  appendWire(visual, 'story-visual__wire--bridge story-visual__wire--split-link');
-}
-
-function buildChosenPathVisual(visual) {
-  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-a');
-  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-b');
-  appendWire(visual, 'story-visual__wire--choice story-visual__wire--choice-c');
-  appendSignal(visual, 'story-visual__signal--choice');
-}
-
-function buildStableWaveVisual(visual) {
-  appendWaveform(visual, { stable: true });
-  appendVisualPart(visual, 'story-visual__noise-cleanse');
-}
-
-function buildNetworkGrowthVisual(visual) {
-  buildNodeField(visual, { network: true });
-  appendVisualPart(visual, 'story-visual__growth-ring');
-}
-
-function buildNearCompleteCircuitVisual(visual) {
-  buildNodeField(visual, { dense: true });
-  appendVisualPart(visual, 'story-visual__missing-link');
-}
-
-function buildFinalConnectionVisual(visual) {
-  buildWorldBridgeVisual(visual);
-  appendVisualPart(visual, 'story-visual__final-gap');
-}
-
-function buildReturnSequenceVisual(visual) {
-  buildNodeField(visual, { dense: true, active: true });
-  appendVisualPart(visual, 'story-visual__return-light');
-  appendVisualPart(visual, 'story-visual__dissolve-grid');
-}
-
-function buildNodeField(visual, options = {}) {
-  const className = [
-    'story-visual__node-field',
-    options.ghost ? 'story-visual__node-field--ghost' : '',
-    options.blueprint ? 'story-visual__node-field--blueprint' : '',
-    options.network ? 'story-visual__node-field--network' : '',
-    options.dense ? 'story-visual__node-field--dense' : '',
-    options.active ? 'story-visual__node-field--active' : ''
-  ].filter(Boolean).join(' ');
-  const field = appendVisualPart(visual, className);
-  for (let index = 0; index < 9; index += 1) {
-    appendVisualPart(field, 'story-visual__node-dot');
+  if (path.pulse && state !== 'inactive' && state !== 'broken') {
+    const pulse = createSvgElement('circle', {
+      class: `story-pulse story-pulse--${state}`,
+      r: 5
+    });
+    const motion = createSvgElement('animateMotion', {
+      dur: path.pulseDuration || '1.8s',
+      repeatCount: 'indefinite',
+      rotate: 'auto'
+    });
+    const mpath = createSvgElement('mpath', { href: `#${id}` });
+    motion.appendChild(mpath);
+    pulse.appendChild(motion);
+    svg.appendChild(pulse);
   }
 }
 
-function appendWaveform(visual, options = {}) {
-  const className = [
-    'story-visual__waveform',
-    options.glitched ? 'story-visual__waveform--glitched' : '',
-    options.compact ? 'story-visual__waveform--compact' : '',
-    options.unstable ? 'story-visual__waveform--unstable' : '',
-    options.stable ? 'story-visual__waveform--stable' : ''
-  ].filter(Boolean).join(' ');
-  const wave = appendVisualPart(visual, className);
-  for (let index = 0; index < 18; index += 1) {
-    const bar = appendVisualPart(wave, 'story-visual__wave-bar');
-    bar.style.setProperty('--bar-index', index);
+function renderStoryNode(svg, node) {
+  const group = createSvgElement('g', {
+    class: `story-node story-node--${node.state || 'inactive'}`,
+    transform: `translate(${node.x} ${node.y})`
+  });
+
+  if (node.state === 'restoring') {
+    group.appendChild(createSvgElement('circle', {
+      class: 'story-node__restore-ring',
+      r: 31
+    }));
   }
+
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__outer',
+    r: 25
+  }));
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__inner',
+    r: 15
+  }));
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__core',
+    r: 5
+  }));
+
+  if (node.state === 'corrupted') {
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__fault',
+      x1: -10,
+      y1: -10,
+      x2: 10,
+      y2: 10
+    }));
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__fault',
+      x1: 10,
+      y1: -10,
+      x2: -10,
+      y2: 10
+    }));
+  }
+
+  if (node.state === 'selected') {
+    renderSelectedNodeBrackets(group);
+  }
+
+  const label = createSvgElement('text', {
+    class: 'story-node__label',
+    x: 0,
+    y: 44,
+    'text-anchor': 'middle'
+  });
+  label.textContent = node.label;
+  group.appendChild(label);
+
+  svg.appendChild(group);
+}
+
+function renderSelectedNodeBrackets(group) {
+  [
+    'M -37 -22 L -37 -37 L -22 -37',
+    'M 22 -37 L 37 -37 L 37 -22',
+    'M 37 22 L 37 37 L 22 37',
+    'M -22 37 L -37 37 L -37 22'
+  ].forEach(d => {
+    group.appendChild(createSvgElement('path', {
+      class: 'story-node__bracket',
+      d
+    }));
+  });
+}
+
+function renderBrokenPathMark(svg, points) {
+  const point = getPolylinePointAtRatio(points, 0.55);
+  const group = createSvgElement('g', {
+    class: 'story-broken-mark',
+    transform: `translate(${point.x} ${point.y})`
+  });
+  group.appendChild(createSvgElement('rect', {
+    x: -13,
+    y: -13,
+    width: 26,
+    height: 26,
+    rx: 2
+  }));
+  group.appendChild(createSvgElement('line', {
+    x1: -7,
+    y1: -7,
+    x2: 7,
+    y2: 7
+  }));
+  group.appendChild(createSvgElement('line', {
+    x1: 7,
+    y1: -7,
+    x2: -7,
+    y2: 7
+  }));
+  svg.appendChild(group);
+}
+
+function getStoryPathPoints(path, nodesById) {
+  if (Array.isArray(path.points) && path.points.length >= 2) return path.points;
+  const from = nodesById.get(path.from);
+  const to = nodesById.get(path.to);
+  if (!from || !to) return [];
+
+  const start = { x: from.x, y: from.y };
+  const end = { x: to.x, y: to.y };
+  const midX = Math.round((start.x + end.x) / 2);
+  const midY = Math.round((start.y + end.y) / 2);
+
+  if (Math.abs(start.x - end.x) > Math.abs(start.y - end.y)) {
+    return [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end];
+  }
+  return [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
+}
+
+function buildSvgPathData(points) {
+  return points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'} ${point.x} ${point.y}`)
+    .join(' ');
+}
+
+function getPolylinePointAtRatio(points, ratio) {
+  const segments = [];
+  let total = 0;
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const length = Math.hypot(end.x - start.x, end.y - start.y);
+    segments.push({ start, end, length });
+    total += length;
+  }
+  let distance = total * clampStoryNumber(ratio, 0, 1);
+  for (const segment of segments) {
+    if (distance <= segment.length || segment === segments[segments.length - 1]) {
+      const t = segment.length > 0 ? distance / segment.length : 0;
+      return {
+        x: segment.start.x + (segment.end.x - segment.start.x) * t,
+        y: segment.start.y + (segment.end.y - segment.start.y) * t
+      };
+    }
+    distance -= segment.length;
+  }
+  return points[0] || { x: 0, y: 0 };
+}
+
+function createSvgElement(tagName, attrs = {}) {
+  const element = document.createElementNS(SVG_NS, tagName);
+  Object.entries(attrs).forEach(([key, value]) => {
+    if (value !== null && value !== undefined) {
+      element.setAttribute(key, String(value));
+    }
+  });
+  return element;
+}
+
+function clampStoryNumber(value, min, max) {
+  return Math.max(min, Math.min(max, value));
+}
+
+function getLogTypeForIndex(index) {
+  if (index === 0) return 'info';
+  if (index === 1) return 'warning';
+  if (index >= 3) return 'success';
+  return 'info';
 }
 
 function handleKeydown(event) {
