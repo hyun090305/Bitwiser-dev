@@ -249,7 +249,7 @@
         aria-labelledby="storyPlaybackTitle"
       >
         <header class="story-playback__header">
-          <p class="story-playback__kicker">NEURAL FRAGMENT</p>
+          <p class="story-playback__kicker">STORY FRAGMENT</p>
           <div class="story-playback__title-row">
             <h2 id="storyPlaybackTitle" class="story-playback__title"></h2>
             <span id="storyPlaybackCount" class="story-playback__count"></span>
@@ -257,13 +257,23 @@
         </header>
 
         <div class="story-playback__main">
-          <aside class="story-playback__sidebar" aria-label="System status">
-            <div class="story-playback__status-head">
-              <span class="story-playback__status-label">SYSTEM STATUS</span>
+          <section class="story-playback__narrative" aria-labelledby="storyPlaybackTitle">
+            <div class="story-playback__narrative-head">
+              <span class="story-playback__narrative-label">CURRENT RECONSTRUCTION RECORD</span>
               <strong id="storyPlaybackSceneTitle">Diagnostics</strong>
             </div>
-            <div id="storyPlaybackMetrics" class="story-metrics"></div>
-          </aside>
+
+            <div
+              id="storyPlaybackText"
+              class="story-playback__text"
+              aria-live="polite"
+            ></div>
+
+            <div class="story-playback__support">
+              <span class="story-playback__support-label">SYSTEM STATUS</span>
+              <div id="storyPlaybackMetrics" class="story-metrics"></div>
+            </div>
+          </section>
 
           <div
             id="storyPlaybackVisual"
@@ -271,12 +281,6 @@
             aria-hidden="true"
           ></div>
         </div>
-
-        <div
-          id="storyPlaybackText"
-          class="story-playback__text"
-          aria-live="polite"
-        ></div>
       </section>
     </div>
 

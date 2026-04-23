@@ -2,8 +2,8 @@ const STORY_SOURCE = 'storyFragments.json';
 
 const PLAYBACK_TIMING = {
   visualDelayMs: 260,
-  lineIntervalMs: 380,
-  holdAfterLastLineMs: 1400,
+  lineIntervalMs: 960,
+  holdAfterLastLineMs: 3600,
   fadeOutMs: 360
 };
 
@@ -234,9 +234,9 @@ function playStoryFragment(fragment, options = {}) {
 }
 
 function getPlaybackLines(fragment) {
-  const source = Array.isArray(fragment?.lines) && fragment.lines.length
-    ? fragment.lines
-    : (Array.isArray(fragment?.body) ? fragment.body.slice(0, 3) : []);
+  const source = Array.isArray(fragment?.body) && fragment.body.length
+    ? fragment.body
+    : (Array.isArray(fragment?.lines) ? fragment.lines : []);
   return source
     .map(line => String(line || '').trim())
     .filter(Boolean)
@@ -246,18 +246,13 @@ function getPlaybackLines(fragment) {
 function renderPlaybackLine(text) {
   if (!playbackTextEl) return;
   const line = document.createElement('p');
-  const type = getLogTypeForIndex(playbackTextEl.children.length);
-  line.className = `story-playback__line story-log-line--${type}`;
+  const index = playbackTextEl.querySelectorAll('.story-playback__line').length;
+  line.className = [
+    'story-playback__line',
+    index === 0 ? 'story-playback__line--primary' : 'story-playback__line--detail'
+  ].join(' ');
 
-  const code = document.createElement('span');
-  code.className = 'story-log-code';
-  code.textContent = `[${String(playbackTextEl.children.length + 1).padStart(2, '0')}]`;
-
-  const message = document.createElement('span');
-  message.className = 'story-log-message';
-  message.textContent = text;
-
-  line.append(code, message);
+  line.textContent = text;
   playbackTextEl.appendChild(line);
   window.requestAnimationFrame(() => {
     line.classList.add('is-visible');
@@ -410,18 +405,14 @@ function renderArchiveFragment() {
 function renderArchiveLine(text) {
   if (!playbackTextEl) return;
   const line = document.createElement('p');
-  const type = getLogTypeForIndex(playbackTextEl.children.length);
-  line.className = `story-playback__line story-log-line--${type} is-visible`;
+  const index = playbackTextEl.querySelectorAll('.story-playback__line').length;
+  line.className = [
+    'story-playback__line',
+    index === 0 ? 'story-playback__line--primary' : 'story-playback__line--detail',
+    'is-visible'
+  ].join(' ');
 
-  const code = document.createElement('span');
-  code.className = 'story-log-code';
-  code.textContent = `[${String(playbackTextEl.children.length + 1).padStart(2, '0')}]`;
-
-  const message = document.createElement('span');
-  message.className = 'story-log-message';
-  message.textContent = text;
-
-  line.append(code, message);
+  line.textContent = text;
   playbackTextEl.appendChild(line);
 }
 
@@ -517,6 +508,10 @@ function createStorySceneState(fragment, options = {}) {
     title: getStorySceneTitle(family, type, fragment),
     mode: getStorySceneMode(family, type),
     routeLabel: getStoryRouteLabel(family, type, sequence),
+    operation: getStoryOperation(family, type, sequence),
+    diagramNote: getStoryDiagramNote(family, type),
+    phases: getStoryScenePhases(family, type),
+    focusMetric: 'recovery',
     metrics: buildStoryMetrics(progress, family, type),
     nodes: [],
     paths: []
@@ -535,6 +530,10 @@ function createLockedSceneState() {
     title: 'Recovery Locked',
     mode: 'SAFE MODE / AWAITING CLEAR',
     routeLabel: 'NO RESTORED FRAGMENT',
+    operation: '복구된 기억 조각이 없습니다.',
+    diagramNote: '스테이지를 클리어하면 첫 번째 기록과 복구 경로가 표시됩니다.',
+    phases: ['LOCKED', 'WAITING FOR CLEAR', 'NO ACTIVE ROUTE'],
+    focusMetric: 'recovery',
     metrics: [
       createMetric('integrity', 'SYSTEM INTEGRITY', 0, 'critical', 'I'),
       createMetric('stability', 'SIGNAL STABILITY', 0, 'critical', 'S'),
@@ -542,11 +541,11 @@ function createLockedSceneState() {
       createMetric('recovery', 'RECOVERY PROGRESS', 0, 'warning', 'R')
     ],
     nodes: [
-      { id: 'core', label: 'CORE N-0', state: 'inactive', x: 400, y: 250 },
-      { id: 'memory', label: 'MEMORY M-01', state: 'corrupted', x: 610, y: 190 }
+      { id: 'core', label: 'CORE N-0', detail: '자아의 중심', state: 'inactive', x: 320, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', detail: '기억 영역', state: 'corrupted', x: 560, y: 250 }
     ],
     paths: [
-      { from: 'core', to: 'memory', state: 'broken', warning: true }
+      { from: 'core', to: 'memory', state: 'broken', warning: true, label: 'LOCKED LINK' }
     ]
   };
 }
@@ -594,6 +593,38 @@ function getStoryRouteLabel(family, type, sequence) {
   if (family === 'diagnostics') return `DIAGNOSTIC SWEEP ${String(sequence).padStart(2, '0')}`;
   if (family === 'reconstruction') return 'CORE TO FUNCTION BLOCKS';
   return 'SOURCE: CORE N-0 / DEST: MEMORY M-01';
+}
+
+function getStoryOperation(family, type, sequence) {
+  if (type === 'return-sequence') return '복구된 연결을 통해 안전 모드 종료를 준비 중입니다.';
+  if (type === 'signal-decay') return '현실 신호가 약해지는 구간을 우회 복구 중입니다.';
+  if (type === 'broken-wire') return '끊어진 신경 브리지를 찾아 기억 영역으로 다시 잇는 중입니다.';
+  if (type === 'stable-wave') return '현실의 생체 신호가 안정권으로 돌아오는지 확인 중입니다.';
+  if (family === 'boot') return '안전 모드에서 의식 핵심과 기억 경로의 손상 여부를 확인 중입니다.';
+  if (family === 'diagnostics') return '현재 손상 상태를 진단하고 복구해야 할 경로를 표시합니다.';
+  if (family === 'reconstruction') return '자아의 중심에서 기억, 감각, 맥락 기능으로 연결을 재구성 중입니다.';
+  if (sequence >= 19) return '현실 감각 신호를 기억 영역으로 되돌리는 경로를 강화 중입니다.';
+  if (sequence >= 13) return '현실과 2D 안전 모드를 잇는 신경 브리지를 복구 중입니다.';
+  return '완성한 회로를 통해 첫 번째 기억 신호를 전달하는 중입니다.';
+}
+
+function getStoryDiagramNote(family, type) {
+  if (type === 'return-sequence') return '모든 주요 경로가 연결되면 2D 안전 모드는 종료 가능한 상태가 됩니다.';
+  if (type === 'signal-decay') return '붉은 표식은 신호가 사라지는 지점, 노란 경로는 복구 중인 우회로입니다.';
+  if (type === 'broken-wire') return '끊긴 구간을 복구해야 기억과 현실 감각이 다시 도달합니다.';
+  if (family === 'boot') return '흐린 노드는 아직 접근할 수 없는 기능, X 표식은 손상된 연결입니다.';
+  if (family === 'diagnostics') return '진단 결과는 어느 기능이 아직 손상되었는지와 무엇을 먼저 복구할지 보여줍니다.';
+  if (family === 'reconstruction') return '중앙 CORE에서 주변 기능 블록으로 연결이 복구될수록 자아가 현실에 가까워집니다.';
+  return '강조된 경로가 이번 장면의 핵심 사건입니다. 노란 점선은 복구 중, 청록 실선은 안정 연결입니다.';
+}
+
+function getStoryScenePhases(family, type) {
+  if (type === 'return-sequence') return ['BEFORE: fragmented', 'NOW: stable bridge', 'AFTER: exit ready'];
+  if (type === 'signal-decay') return ['BEFORE: signal loss', 'NOW: rerouting', 'AFTER: stabilize'];
+  if (family === 'boot') return ['BEFORE: unknown', 'NOW: safe mode', 'AFTER: route scan'];
+  if (family === 'diagnostics') return ['BEFORE: damaged', 'NOW: diagnose', 'AFTER: choose route'];
+  if (family === 'reconstruction') return ['BEFORE: isolated core', 'NOW: reconnecting', 'AFTER: restored self'];
+  return ['BEFORE: broken link', 'NOW: reconstruction', 'AFTER: partial access'];
 }
 
 function buildStoryMetrics(progress, family, type) {
@@ -658,15 +689,13 @@ function buildBootScene(base, sequence, type) {
   return {
     ...base,
     nodes: [
-      { id: 'sensor', label: 'INPUT I-02', state: 'inactive', x: 180, y: 250 },
-      { id: 'core', label: 'CORE N-0', state: coreState, x: 400, y: 250 },
-      { id: 'memory', label: 'MEMORY M-01', state: memoryState, x: 620, y: 170 },
-      { id: 'logic', label: 'LOGIC L-02', state: sequence >= 3 ? 'restoring' : 'inactive', x: 620, y: 340 }
+      { id: 'sensor', label: 'SIGNAL INPUT', detail: '외부 신호', state: 'inactive', x: 180, y: 250 },
+      { id: 'core', label: 'CORE N-0', detail: '자아의 중심', state: coreState, x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', detail: '기억 영역', state: memoryState, x: 620, y: 250 }
     ],
     paths: [
-      { from: 'sensor', to: 'core', state: sequence >= 2 ? 'restoring' : 'inactive', pulse: sequence >= 2 },
-      { from: 'core', to: 'memory', state: 'broken', warning: true },
-      { from: 'core', to: 'logic', state: sequence >= 3 ? 'restoring' : 'inactive', pulse: sequence >= 3 }
+      { from: 'sensor', to: 'core', state: sequence >= 2 ? 'restoring' : 'inactive', pulse: sequence >= 2, label: sequence >= 2 ? 'SAFE MODE SIGNAL' : '' },
+      { from: 'core', to: 'memory', state: 'broken', warning: true, label: 'BROKEN MEMORY LINK' }
     ]
   };
 }
@@ -679,17 +708,15 @@ function buildDiagnosticsScene(base, sequence, type, progress) {
   return {
     ...base,
     nodes: [
-      { id: 'core', label: 'CORE N-0', state: warning ? 'selected' : 'active', x: 250, y: 250 },
-      { id: 'memory', label: 'MEMORY M-01', state: memoryState, x: 520, y: 150 },
-      { id: 'logic', label: 'LOGIC L-02', state: 'active', x: 560, y: 280 },
-      { id: 'context', label: 'CONTEXT C-04', state: contextState, x: 430, y: 390 },
-      { id: 'temporal', label: 'TEMP T-03', state: warning ? 'corrupted' : 'inactive', x: 190, y: 390 }
+      { id: 'core', label: 'CORE N-0', detail: '자아의 중심', state: warning ? 'selected' : 'active', x: 230, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', detail: '기억 접근', state: memoryState, x: 555, y: 160 },
+      { id: 'context', label: 'CONTEXT C-04', detail: '상황 맥락', state: contextState, x: 555, y: 340 },
+      { id: 'temporal', label: 'TEMP T-03', detail: '시간 감각', state: warning ? 'corrupted' : 'inactive', x: 385, y: 430 }
     ],
     paths: [
-      { from: 'core', to: 'memory', state: memoryState === 'corrupted' ? 'broken' : 'restoring', warning: memoryState === 'corrupted', pulse: memoryState !== 'corrupted' },
-      { from: 'core', to: 'logic', state: 'active', pulse: !warning },
-      { from: 'core', to: 'context', state: contextState === 'active' ? 'active' : 'restoring', pulse: true },
-      { from: 'core', to: 'temporal', state: warning ? 'broken' : 'inactive', warning }
+      { from: 'core', to: 'memory', state: memoryState === 'corrupted' ? 'broken' : 'restoring', warning: memoryState === 'corrupted', pulse: memoryState !== 'corrupted', label: memoryState === 'corrupted' ? 'SIGNAL LOSS DETECTED' : 'UNDER RECONSTRUCTION' },
+      { from: 'core', to: 'context', state: contextState === 'active' ? 'active' : 'restoring', pulse: true, label: contextState === 'active' ? 'CONTEXT STABLE' : 'CONTEXT RESTORING' },
+      { from: 'core', to: 'temporal', state: warning ? 'broken' : 'inactive', warning, label: warning ? 'UNSTABLE ROUTE' : '' }
     ]
   };
 }
@@ -700,21 +727,17 @@ function buildPathwayScene(base, sequence, type, progress) {
   const restored = type === 'world-bridge' || type === 'thickening-link' || type === 'final-connection';
   const destinationState = restored && !decaying ? 'active' : 'restoring';
   const relayState = broken && !restored ? 'corrupted' : 'restoring';
+  const routeDetail = sequence >= 19 ? '현실 감각 경로' : '신경 브리지';
   return {
     ...base,
     nodes: [
-      { id: 'source', label: 'CORE N-0', state: 'active', x: 145, y: 250 },
-      { id: 'relayA', label: 'ROUTE R-12', state: relayState, x: 330, y: 155 },
-      { id: 'relayB', label: 'LINK L-07', state: restored ? 'restoring' : 'inactive', x: 500, y: 155 },
-      { id: 'buffer', label: 'BUFFER B-03', state: progress > 0.65 ? 'active' : 'inactive', x: 330, y: 345 },
-      { id: 'memory', label: 'MEMORY M-01', state: destinationState, x: 655, y: 300 }
+      { id: 'source', label: 'CORE N-0', detail: '자아의 중심', state: 'active', x: 165, y: 250 },
+      { id: 'route', label: 'ROUTE R-12', detail: routeDetail, state: relayState, x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY M-01', detail: '기억 영역', state: destinationState, x: 635, y: 250 }
     ],
     paths: [
-      { from: 'source', to: 'relayA', state: 'active', pulse: true, pulseDuration: '1.7s' },
-      { from: 'relayA', to: 'relayB', state: broken && !restored ? 'broken' : 'restoring', warning: broken && !restored, pulse: !broken || restored },
-      { from: 'relayB', to: 'memory', state: restored ? 'active' : 'restoring', pulse: true, pulseDuration: restored ? '1.4s' : '2s' },
-      { from: 'source', to: 'buffer', state: progress > 0.65 ? 'active' : 'inactive', pulse: progress > 0.65 },
-      { from: 'buffer', to: 'memory', state: decaying ? 'broken' : (progress > 0.75 ? 'restoring' : 'inactive'), warning: decaying, pulse: progress > 0.75 && !decaying }
+      { from: 'source', to: 'route', state: restored ? 'active' : 'restoring', pulse: true, pulseDuration: '1.7s', label: restored ? 'SIGNAL FLOW STABLE' : 'UNDER RECONSTRUCTION' },
+      { from: 'route', to: 'memory', state: decaying ? 'broken' : (restored ? 'active' : 'restoring'), warning: decaying, pulse: !decaying, pulseDuration: restored ? '1.4s' : '2s', label: decaying ? 'SIGNAL LOSS DETECTED' : (restored ? 'PARTIAL ACCESS RESTORED' : 'MEMORY ACCESS PARTIAL') }
     ]
   };
 }
@@ -724,25 +747,22 @@ function buildReconstructionScene(base, sequence, type, progress) {
   const nearComplete = type === 'near-complete-circuit' || complete;
   const memoryState = progress > 0.55 ? 'active' : 'restoring';
   const temporalState = nearComplete ? 'active' : 'restoring';
-  const emotionState = complete ? 'active' : (progress > 0.85 ? 'restoring' : 'inactive');
   return {
     ...base,
     nodes: [
-      { id: 'core', label: 'CORE N-0', state: complete ? 'selected' : 'active', x: 400, y: 250 },
-      { id: 'memory', label: 'MEMORY', state: memoryState, x: 400, y: 82 },
-      { id: 'logic', label: 'LOGIC', state: 'active', x: 635, y: 205 },
-      { id: 'context', label: 'CONTEXT', state: nearComplete ? 'active' : 'restoring', x: 590, y: 395 },
-      { id: 'temporal', label: 'TEMPORAL', state: temporalState, x: 280, y: 410 },
-      { id: 'perception', label: 'PERCEPTION', state: 'restoring', x: 160, y: 205 },
-      { id: 'emotion', label: 'EMOTION', state: emotionState, x: 275, y: 90 }
+      { id: 'core', label: 'CORE N-0', detail: '자아의 중심', state: complete ? 'selected' : 'active', x: 400, y: 250 },
+      { id: 'memory', label: 'MEMORY', detail: '기억', state: memoryState, x: 400, y: 82 },
+      { id: 'logic', label: 'LOGIC', detail: '판단', state: 'active', x: 635, y: 205 },
+      { id: 'context', label: 'CONTEXT', detail: '맥락', state: nearComplete ? 'active' : 'restoring', x: 590, y: 395 },
+      { id: 'temporal', label: 'TEMPORAL', detail: '시간', state: temporalState, x: 280, y: 410 },
+      { id: 'perception', label: 'PERCEPTION', detail: '감각', state: 'restoring', x: 160, y: 205 }
     ],
     paths: [
-      { from: 'core', to: 'memory', state: memoryState === 'active' ? 'active' : 'restoring', pulse: true },
-      { from: 'core', to: 'logic', state: 'active', pulse: true, pulseDuration: '1.5s' },
-      { from: 'core', to: 'context', state: nearComplete ? 'active' : 'restoring', pulse: true },
-      { from: 'core', to: 'temporal', state: temporalState === 'active' ? 'active' : 'restoring', pulse: true },
-      { from: 'core', to: 'perception', state: 'restoring', pulse: true },
-      { from: 'core', to: 'emotion', state: emotionState === 'inactive' ? 'inactive' : 'restoring', pulse: emotionState !== 'inactive' }
+      { from: 'core', to: 'memory', state: memoryState === 'active' ? 'active' : 'restoring', pulse: true, label: memoryState === 'active' ? 'MEMORY STABLE' : 'MEMORY RESTORING' },
+      { from: 'core', to: 'logic', state: 'active', pulse: true, pulseDuration: '1.5s', label: 'LOGIC STABLE' },
+      { from: 'core', to: 'context', state: nearComplete ? 'active' : 'restoring', pulse: true, label: nearComplete ? 'CONTEXT STABLE' : 'CONTEXT RESTORING' },
+      { from: 'core', to: 'temporal', state: temporalState === 'active' ? 'active' : 'restoring', pulse: true, label: temporalState === 'active' ? 'TIME STABLE' : '' },
+      { from: 'core', to: 'perception', state: 'restoring', pulse: true, label: 'SENSORY ROUTE' }
     ]
   };
 }
@@ -752,19 +772,36 @@ function renderStorySystemVisualization(scene) {
   root.className = `story-system story-system--${scene.family}`;
   root.dataset.scene = scene.family;
 
-  const topLine = document.createElement('div');
-  topLine.className = 'story-system__topline';
+  const briefing = document.createElement('div');
+  briefing.className = 'story-system__briefing';
 
   const mode = document.createElement('span');
   mode.className = 'story-system__mode';
-  mode.textContent = scene.mode;
+  mode.textContent = 'CURRENT OPERATION';
+
+  const operation = document.createElement('strong');
+  operation.className = 'story-system__operation';
+  operation.textContent = scene.operation;
 
   const route = document.createElement('span');
   route.className = 'story-system__route';
   route.textContent = scene.routeLabel;
 
-  topLine.append(mode, route);
-  root.appendChild(topLine);
+  const note = document.createElement('p');
+  note.className = 'story-system__note';
+  note.textContent = scene.diagramNote;
+
+  const phases = document.createElement('div');
+  phases.className = 'story-system__phases';
+  (scene.phases || []).forEach((phase, index) => {
+    const item = document.createElement('span');
+    item.className = index === 1 ? 'story-system__phase story-system__phase--current' : 'story-system__phase';
+    item.textContent = phase;
+    phases.appendChild(item);
+  });
+
+  briefing.append(mode, operation, route, note, phases);
+  root.appendChild(briefing);
 
   const svg = createSvgElement('svg', {
     class: 'story-system__map',
@@ -786,7 +823,11 @@ function renderPlaybackMetrics(scene) {
   playbackMetricsEl.innerHTML = '';
   scene.metrics.forEach(metric => {
     const card = document.createElement('article');
-    card.className = `status-card status-card--${metric.state}`;
+    card.className = [
+      'status-card',
+      `status-card--${metric.state}`,
+      metric.key === scene.focusMetric ? 'status-card--primary' : ''
+    ].filter(Boolean).join(' ');
 
     const top = document.createElement('div');
     top.className = 'status-card__top';
@@ -853,6 +894,10 @@ function renderStoryPath(svg, path, index, nodesById) {
 
   if (path.warning || state === 'broken') {
     renderBrokenPathMark(svg, points);
+  }
+
+  if (path.label) {
+    renderStoryPathLabel(svg, points, path.label, state);
   }
 
   if (path.pulse && state !== 'inactive' && state !== 'broken') {
@@ -922,12 +967,47 @@ function renderStoryNode(svg, node) {
   const label = createSvgElement('text', {
     class: 'story-node__label',
     x: 0,
-    y: 44,
+    y: 43,
     'text-anchor': 'middle'
   });
   label.textContent = node.label;
   group.appendChild(label);
 
+  if (node.detail) {
+    const detail = createSvgElement('text', {
+      class: 'story-node__detail',
+      x: 0,
+      y: 59,
+      'text-anchor': 'middle'
+    });
+    detail.textContent = node.detail;
+    group.appendChild(detail);
+  }
+
+  svg.appendChild(group);
+}
+
+function renderStoryPathLabel(svg, points, label, state) {
+  const point = getPolylinePointAtRatio(points, 0.5);
+  const width = Math.min(220, Math.max(88, label.length * 7.2 + 22));
+  const group = createSvgElement('g', {
+    class: `story-path-label story-path-label--${state}`,
+    transform: `translate(${point.x} ${point.y - 18})`
+  });
+  group.appendChild(createSvgElement('rect', {
+    x: -width / 2,
+    y: -13,
+    width,
+    height: 22,
+    rx: 3
+  }));
+  const text = createSvgElement('text', {
+    x: 0,
+    y: 2,
+    'text-anchor': 'middle'
+  });
+  text.textContent = label;
+  group.appendChild(text);
   svg.appendChild(group);
 }
 
@@ -1032,13 +1112,6 @@ function createSvgElement(tagName, attrs = {}) {
 
 function clampStoryNumber(value, min, max) {
   return Math.max(min, Math.min(max, value));
-}
-
-function getLogTypeForIndex(index) {
-  if (index === 0) return 'info';
-  if (index === 1) return 'warning';
-  if (index >= 3) return 'success';
-  return 'info';
 }
 
 function handleKeydown(event) {
