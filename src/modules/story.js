@@ -281,6 +281,7 @@ function finishStoryPlayback(shown) {
       playbackVisualEl.innerHTML = '';
       playbackVisualEl.removeAttribute('data-visual-type');
     }
+    playbackOverlayEl?.removeAttribute('data-story-weight');
     resetPlaybackDiagnostics();
     if (playbackTextEl) {
       playbackTextEl.innerHTML = '';
@@ -309,6 +310,7 @@ function closeStoryArchive() {
       playbackVisualEl.innerHTML = '';
       playbackVisualEl.removeAttribute('data-visual-type');
     }
+    playbackOverlayEl?.removeAttribute('data-story-weight');
     resetPlaybackDiagnostics();
     if (playbackTextEl) {
       playbackTextEl.innerHTML = '';
@@ -441,6 +443,7 @@ function renderPlaybackVisual(fragment, options = {}) {
   const scene = createStorySceneState(fragment, { ...options, type });
   playbackVisualEl.innerHTML = '';
   playbackVisualEl.dataset.visualType = type;
+  playbackOverlayEl?.setAttribute('data-story-weight', scene.visualWeight || 'full');
   playbackVisualEl.appendChild(renderStorySystemVisualization(scene));
   renderPlaybackMetrics(scene);
   if (playbackSceneTitleEl) {
@@ -463,7 +466,7 @@ const PROGRESSIVE_SYSTEM_NODES = [
     revealAt: 1,
     activeAt: 5,
     labels: [
-      { until: 3, label: 'UNIDENTIFIED SIGNAL', detail: '정체 불명' },
+      { until: 3, label: '', detail: '' },
       { until: 8, label: 'SIGNAL TRACE', detail: '연결 흔적' },
       { until: 27, label: 'NEURAL INPUT', detail: '외부 신호' }
     ]
@@ -472,7 +475,7 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'core',
     x: 390,
     y: 250,
-    revealAt: 2,
+    revealAt: 4,
     activeAt: 12,
     labels: [
       { until: 7, label: 'UNKNOWN NODE', detail: '중심 후보' },
@@ -484,7 +487,7 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'memory',
     x: 625,
     y: 170,
-    revealAt: 4,
+    revealAt: 6,
     activeAt: 15,
     corruptFrom: 6,
     corruptUntil: 13,
@@ -498,7 +501,7 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'perception',
     x: 625,
     y: 330,
-    revealAt: 8,
+    revealAt: 10,
     activeAt: 19,
     labels: [
       { until: 18, label: 'SENSORY TRACE', detail: '감각 흔적' },
@@ -509,10 +512,10 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'reality',
     x: 155,
     y: 390,
-    revealAt: 9,
+    revealAt: 14,
     activeAt: 23,
     labels: [
-      { until: 13, label: 'EXTERNAL TRACE', detail: '현실 신호' },
+      { until: 16, label: 'EXTERNAL TRACE', detail: '현실 신호' },
       { until: 22, label: 'REALITY ?', detail: '외부 세계' },
       { until: 27, label: 'REALITY LINK', detail: '현실 연결' }
     ]
@@ -521,8 +524,8 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'protocol',
     x: 390,
     y: 420,
-    revealAt: 15,
-    activeAt: 22,
+    revealAt: 20,
+    activeAt: 24,
     labels: [
       { until: 21, label: 'PROTOCOL ?', detail: '복구 절차' },
       { until: 27, label: 'CONTEXT C-04', detail: '맥락 영역' }
@@ -532,10 +535,10 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'logic',
     x: 560,
     y: 90,
-    revealAt: 15,
-    activeAt: 18,
+    revealAt: 22,
+    activeAt: 24,
     labels: [
-      { until: 17, label: 'SCHEMA TRACE', detail: '설계 흔적' },
+      { until: 23, label: 'SCHEMA TRACE', detail: '설계 흔적' },
       { until: 27, label: 'LOGIC L-02', detail: '판단 영역' }
     ]
   },
@@ -543,7 +546,7 @@ const PROGRESSIVE_SYSTEM_NODES = [
     id: 'temporal',
     x: 220,
     y: 90,
-    revealAt: 17,
+    revealAt: 18,
     activeAt: 26,
     corruptFrom: 18,
     corruptUntil: 20,
@@ -556,85 +559,79 @@ const PROGRESSIVE_SYSTEM_NODES = [
 
 const PROGRESSIVE_SYSTEM_PATHS = [
   {
+    id: 'signal-early-trace',
+    points: [
+      { x: 155, y: 250 },
+      { x: 255, y: 250 },
+      { x: 300, y: 220 }
+    ],
+    revealAt: 2,
+    revealUntil: 3,
+    activeAt: 4,
+    brokenFrom: 3,
+    brokenUntil: 3,
+    pulse: false,
+    showConnectors: false,
+    labels: {}
+  },
+  {
     id: 'signal-core',
     from: 'signal',
     to: 'core',
-    revealAt: 2,
+    revealAt: 4,
     activeAt: 5,
     labels: {
-      restoring: 'SIGNAL DETECTED',
-      active: 'FIRST ROUTE STABLE'
+      restoring: '신호가 중심을 향해 뻗는다',
+      active: '첫 연결이 숨을 쉰다'
     }
   },
   {
     id: 'core-memory',
     from: 'core',
     to: 'memory',
-    revealAt: 4,
+    revealAt: 6,
     activeAt: 15,
     brokenUntil: 6,
     labels: {
-      broken: 'BROKEN MEMORY LINK',
-      restoring: 'MEMORY ROUTE RESTORING',
-      active: 'MEMORY ACCESS RESTORED'
+      broken: '기억 앞에서 선이 끊어진다',
+      restoring: '기억으로 가는 길이 다시 이어진다',
+      active: '기억이 길을 타고 돌아온다'
     }
   },
   {
     id: 'core-perception',
     from: 'core',
     to: 'perception',
-    revealAt: 8,
+    revealAt: 10,
     activeAt: 19,
     labels: {
-      restoring: 'SENSORY ROUTE',
-      active: 'SENSORY FEEDBACK STABLE'
+      restoring: '감각이 희미하게 스며든다',
+      active: '감각이 또렷해진다'
     }
   },
   {
     id: 'signal-reality',
     from: 'signal',
     to: 'reality',
-    revealAt: 9,
+    revealAt: 14,
     activeAt: 23,
     labels: {
-      restoring: 'EXTERNAL TRACE',
-      active: 'REALITY LINK STABLE'
-    }
-  },
-  {
-    id: 'core-protocol',
-    from: 'core',
-    to: 'protocol',
-    revealAt: 15,
-    activeAt: 22,
-    labels: {
-      restoring: 'RECOVERY PROTOCOL',
-      active: 'CONTEXT ROUTE STABLE'
-    }
-  },
-  {
-    id: 'protocol-logic',
-    from: 'protocol',
-    to: 'logic',
-    revealAt: 15,
-    activeAt: 18,
-    labels: {
-      restoring: 'SCHEMA TRACE',
-      active: 'LOGIC STABLE'
+      restoring: '현실의 목소리가 다가온다',
+      active: '현실 쪽 문이 열린다'
     }
   },
   {
     id: 'core-temporal',
     from: 'core',
     to: 'temporal',
-    revealAt: 17,
+    revealAt: 18,
     activeAt: 26,
     brokenFrom: 18,
     brokenUntil: 20,
     labels: {
-      broken: 'SIGNAL DECAY',
-      restoring: 'TEMPORAL ROUTE',
-      active: 'EXIT WINDOW READY'
+      broken: '남은 시간이 짧아진다',
+      restoring: '무너지는 틈을 붙든다',
+      active: '돌아갈 순간이 열린다'
     }
   },
   {
@@ -644,51 +641,73 @@ const PROGRESSIVE_SYSTEM_PATHS = [
     revealAt: 19,
     activeAt: 25,
     labels: {
-      restoring: 'SENSORY DATA TO MEMORY',
-      active: 'SENSORY MEMORY BRIDGE'
+      restoring: '감각이 기억에 닿는다',
+      active: '몸의 기억이 돌아온다'
+    }
+  },
+  {
+    id: 'core-protocol',
+    from: 'core',
+    to: 'protocol',
+    revealAt: 20,
+    activeAt: 24,
+    labels: {
+      restoring: '남겨 둔 절차가 깨어난다',
+      active: '내가 만든 길이 나를 붙든다'
+    }
+  },
+  {
+    id: 'protocol-logic',
+    from: 'protocol',
+    to: 'logic',
+    revealAt: 22,
+    activeAt: 24,
+    labels: {
+      restoring: '선택의 이유가 선명해진다',
+      active: '판단이 제자리로 돌아온다'
     }
   },
   {
     id: 'protocol-memory',
     from: 'protocol',
     to: 'memory',
-    revealAt: 24,
+    revealAt: 25,
     activeAt: 27,
     labels: {
-      restoring: 'FINAL BRIDGE',
-      active: 'RETURN ROUTE COMPLETE'
+      restoring: '마지막 빈틈이 좁아진다',
+      active: '돌아갈 길이 맞물린다'
     }
   }
 ];
 
 const STORY_CHANGE_LABELS = {
-  1: 'UNIDENTIFIED SIGNAL',
-  2: '2D PLANE RESPONSE',
-  3: 'NO-CROSSING CONSTRAINT',
-  4: 'CIRCUIT TRACE',
-  5: 'FIRST MEMORY PULSE',
-  6: 'BROKEN ROUTE CONFIRMED',
-  7: 'PATTERN RECOGNITION',
-  8: 'SENSORY TRACE',
-  9: 'EXTERNAL VOICE TRACE',
-  10: 'INTERFACE EQUIPMENT',
-  11: 'VOLUNTARY ENTRY LOG',
-  12: 'SAFE MODE STRUCTURE',
-  13: 'REALITY BRIDGE DAMAGE',
-  14: 'NEURAL BRIDGE ROLE',
-  15: 'RECOVERY PROTOCOL',
-  16: 'RISK WARNING',
-  17: 'FLATTENED FALL RECORD',
-  18: 'SIGNAL DECAY',
-  19: 'SENSORY ROUTE STRENGTHENED',
-  20: '2D WORLD INSTABILITY',
-  21: 'DUAL-LAYER LINK',
-  22: 'RESPONSIBILITY TRACE',
-  23: 'BIO-SIGNAL STABLE',
-  24: 'FUTURE PROCEDURE',
-  25: 'FINAL BRIDGES',
-  26: 'EXIT BOUNDARY',
-  27: 'RETURN SEQUENCE'
+  1: '희미한 신호가 깜박인다',
+  2: '평면의 감각이 남는다',
+  3: '넘을 수 없는 선이 생긴다',
+  4: '회로의 그림자가 떠오른다',
+  5: '첫 기억이 짧게 스친다',
+  6: '끊어진 길이 눈에 밟힌다',
+  7: '익숙한 설계가 손끝에 남는다',
+  8: '감각이 아주 얇게 돌아온다',
+  9: '목소리의 조각이 닿는다',
+  10: '장치의 윤곽이 떠오른다',
+  11: '내 선택의 기록이 열린다',
+  12: '안전한 틈의 정체를 알아본다',
+  13: '끊어진 다리가 드러난다',
+  14: '회로가 다리였음을 깨닫는다',
+  15: '내가 남긴 설계가 떠오른다',
+  16: '외면한 경고가 돌아온다',
+  17: '추락의 순간이 되감긴다',
+  18: '남은 시간이 얇아진다',
+  19: '감각의 선이 두꺼워진다',
+  20: '이 세계가 흔들리기 시작한다',
+  21: '두 층이 한 몸처럼 겹친다',
+  22: '책임의 무게가 선명해진다',
+  23: '현실의 박동이 안정된다',
+  24: '돌아가야 할 이유가 생긴다',
+  25: '마지막 다리들이 놓인다',
+  26: '경계가 눈앞까지 다가온다',
+  27: '모든 연결이 맞물린다'
 };
 
 const STORY_FOCUS_NODE_BY_SEQUENCE = {
@@ -696,24 +715,24 @@ const STORY_FOCUS_NODE_BY_SEQUENCE = {
   2: 'signal',
   3: 'signal',
   4: 'core',
-  5: 'memory',
+  5: 'core',
   6: 'memory',
-  7: 'core',
-  8: 'perception',
-  9: 'reality',
-  10: 'reality',
-  11: 'reality',
+  7: 'memory',
+  8: 'memory',
+  9: 'memory',
+  10: 'perception',
+  11: 'perception',
   12: 'core',
   13: 'memory',
-  14: 'memory',
-  15: 'protocol',
-  16: 'logic',
-  17: 'temporal',
+  14: 'reality',
+  15: 'core',
+  16: 'core',
+  17: 'core',
   18: 'temporal',
   19: 'perception',
-  20: 'temporal',
-  21: 'reality',
-  22: 'protocol',
+  20: 'protocol',
+  21: 'protocol',
+  22: 'logic',
   23: 'reality',
   24: 'protocol',
   25: 'perception',
@@ -722,29 +741,29 @@ const STORY_FOCUS_NODE_BY_SEQUENCE = {
 };
 
 const STORY_FOCUS_PATH_BY_SEQUENCE = {
-  2: 'signal-core',
-  3: 'signal-core',
-  4: 'core-memory',
-  5: 'core-memory',
+  2: 'signal-early-trace',
+  3: 'signal-early-trace',
+  4: 'signal-core',
+  5: 'signal-core',
   6: 'core-memory',
   7: 'core-memory',
-  8: 'core-perception',
-  9: 'signal-reality',
-  10: 'signal-reality',
-  11: 'signal-reality',
-  12: 'core-memory',
+  8: 'core-memory',
+  9: 'core-memory',
+  10: 'core-perception',
+  11: 'core-perception',
+  12: 'core-perception',
   13: 'core-memory',
-  14: 'core-memory',
-  15: 'core-protocol',
-  16: 'protocol-logic',
-  17: 'core-temporal',
+  14: 'signal-reality',
+  15: 'core-memory',
+  16: 'signal-reality',
+  17: 'signal-reality',
   18: 'core-temporal',
   19: 'memory-perception',
-  20: 'core-temporal',
-  21: 'signal-reality',
+  20: 'core-protocol',
+  21: 'core-protocol',
   22: 'core-protocol',
   23: 'signal-reality',
-  24: 'protocol-memory',
+  24: 'protocol-logic',
   25: 'memory-perception',
   26: 'core-temporal',
   27: 'protocol-memory'
@@ -764,9 +783,10 @@ function createStorySceneState(fragment, options = {}) {
     type,
     title: phase.title,
     mode: phase.mode,
-    routeLabel: `SYSTEM REVEAL ${String(sequence).padStart(2, '0')} / ${fragments.length || 27}`,
+    routeLabel: getProgressiveRouteLabel(sequence),
     operation: getProgressiveOperation(sequence),
     diagramNote: getProgressiveDiagramNote(sequence),
+    visualWeight: getProgressiveVisualWeight(sequence),
     phases: getProgressiveScenePhases(phase),
     changeLabel: STORY_CHANGE_LABELS[sequence] || 'MEMORY TRACE UPDATED',
     focusMetric: getProgressiveFocusMetric(sequence),
@@ -785,11 +805,12 @@ function createLockedSceneState() {
     routeLabel: 'NO RESTORED FRAGMENT',
     operation: '복구된 기억 조각이 없습니다.',
     diagramNote: '스테이지를 클리어하면 첫 번째 기록과 복구 경로가 표시됩니다.',
+    visualWeight: 'locked',
     phases: ['LOCKED', 'WAITING FOR CLEAR', 'NO ACTIVE ROUTE'],
     focusMetric: 'recovery',
     changeLabel: 'NO ACTIVE TRACE',
     metrics: [
-      createMetric('signal', 'SIGNAL DETECTED', 0, 'critical', 'S')
+      createMetric('signal', '남은 신호', 0, 'critical', 'S')
     ],
     nodes: [
       { id: 'signal', label: 'NO SIGNAL', detail: '잠김', state: 'inactive', x: 390, y: 250 }
@@ -854,23 +875,38 @@ function getProgressivePhase(sequence) {
 }
 
 function getProgressiveOperation(sequence) {
-  if (sequence <= 3) return '식별되지 않은 신호 하나만 감지됩니다. 아직 시스템 구조는 드러나지 않았습니다.';
-  if (sequence <= 8) return '신호 주변에 연결 흔적이 생기며, 하나의 구조가 숨어 있음을 암시합니다.';
-  if (sequence <= 14) return '흩어진 흔적들이 CORE와 MEMORY를 중심으로 한 동일 시스템 일부였음이 드러납니다.';
-  if (sequence <= 18) return '복구 프로토콜이 열리며 CORE에서 주변 기능으로 연결을 재구성합니다.';
-  if (sequence <= 22) return '현실 감각과 기억 경로가 굵어지고, 안전 모드의 붕괴 지점도 함께 보입니다.';
-  if (sequence <= 26) return '주요 연결이 안정화되며, 귀환을 위한 마지막 다리들이 같은 맵 위에 추가됩니다.';
-  return '모든 주요 경로가 하나의 복구 네트워크로 이어지고, 안전 모드 종료 조건이 충족됩니다.';
+  if (sequence <= 3) return '아무것도 없는 곳에, 신호 하나가 혼자 깜박인다.';
+  if (sequence <= 8) return '신호 주변에, 아직 닿지 못한 연결들이 흔적으로 남아 있다.';
+  if (sequence <= 14) return '흩어져 있던 것들이, 하나의 중심으로 모이기 시작한다.';
+  if (sequence <= 18) return '내가 남겨 둔 길이, 어둠 속에서 다시 손에 잡힌다.';
+  if (sequence <= 22) return '기억과 감각이 굵어질수록, 무너지는 틈도 선명해진다.';
+  if (sequence <= 26) return '마지막 다리들이 이어지고, 돌아갈 곳의 온도가 가까워진다.';
+  return '모든 선이 맞물리는 순간, 나는 다시 나에게 닿는다.';
 }
 
 function getProgressiveDiagramNote(sequence) {
-  if (sequence <= 3) return '처음에는 노드 이름도, 지도도 없습니다. 작은 반응 하나가 이후 시스템의 출발점입니다.';
-  if (sequence <= 8) return '새로 드러난 점과 선만 강조됩니다. 이전에 보인 신호는 사라지지 않고 같은 위치에 남습니다.';
-  if (sequence <= 14) return '이제 CORE와 MEMORY 후보가 같은 좌표계 안에서 식별됩니다. 붉은 X는 아직 끊긴 연결입니다.';
-  if (sequence <= 18) return '프로토콜, 판단, 시간 신호가 추가되지만 아직 전체 맵은 완전히 안정되지 않았습니다.';
-  if (sequence <= 22) return '노란 경로는 복구 중인 구간, 청록 경로는 이전 fragment에서 안정화된 연결입니다.';
-  if (sequence <= 26) return '후반부에는 숨겨져 있던 기능 블록 대부분이 드러나며, 마지막 연결만 남습니다.';
-  return '이 화면은 새 다이어그램이 아니라 처음의 신호가 끝까지 확장된 동일 시스템입니다.';
+  if (sequence <= 8) return '';
+  if (sequence <= 14) return '끊어진 곳마다, 돌아가지 못한 시간이 남아 있다.';
+  if (sequence <= 18) return '내가 만든 절차가, 나를 다시 부른다.';
+  if (sequence <= 22) return '현실의 감각이 가까워질수록 이곳은 더 얇아진다.';
+  if (sequence <= 26) return '남은 공백은 이제 손이 닿을 만큼 좁다.';
+  return '처음의 작은 신호가, 돌아갈 문이 된다.';
+}
+
+function getProgressiveRouteLabel(sequence) {
+  if (sequence <= 3) return '공백 속에 남은 첫 반응';
+  if (sequence <= 8) return '연결되지 못한 기억의 가장자리';
+  if (sequence <= 14) return '흩어진 감각이 한곳으로 모인다';
+  if (sequence <= 18) return '내가 남긴 길이 깨어난다';
+  if (sequence <= 22) return '두 세계 사이가 다시 가까워진다';
+  if (sequence <= 26) return '돌아갈 다리가 거의 맞물린다';
+  return '귀환의 문이 열린다';
+}
+
+function getProgressiveVisualWeight(sequence) {
+  if (sequence <= 3) return 'early';
+  if (sequence <= 8) return 'quiet';
+  return 'full';
 }
 
 function getProgressiveScenePhases(phase) {
@@ -886,7 +922,7 @@ function getProgressiveFocusMetric(sequence) {
 function buildProgressiveMetrics(sequence, progress) {
   if (sequence <= 3) {
     return [
-      createMetric('signal', 'SIGNAL DETECTED', Math.round(8 + sequence * 7), 'updated', 'S')
+      createMetric('signal', '남은 신호', Math.round(8 + sequence * 7), 'updated', 'S')
     ];
   }
 
@@ -897,31 +933,31 @@ function buildProgressiveMetrics(sequence, progress) {
 
   if (sequence <= 8) {
     return [
-      createMetric('trace', 'TRACE CLARITY', Math.round(16 + progress * 58), 'updated', 'T'),
-      createMetric('recovery', 'RECOVERY PROGRESS', recovery, 'warning', 'R')
+      createMetric('trace', '흔적 선명도', Math.round(16 + progress * 58), 'updated', 'T'),
+      createMetric('recovery', '돌아오는 정도', recovery, 'warning', 'R')
     ];
   }
 
   if (sequence <= 14) {
     return [
-      createMetric('stability', 'SIGNAL STABILITY', stability, getPositiveMetricState(stability), 'S'),
-      createMetric('corruption', 'CORRUPTION LEVEL', corruption, getCorruptionMetricState(corruption), 'X'),
-      createMetric('recovery', 'RECOVERY PROGRESS', recovery, 'updated', 'R')
+      createMetric('stability', '신호의 결', stability, getPositiveMetricState(stability), 'S'),
+      createMetric('corruption', '끊어진 틈', corruption, getCorruptionMetricState(corruption), 'X'),
+      createMetric('recovery', '돌아오는 정도', recovery, 'updated', 'R')
     ];
   }
 
   return [
-    createMetric('integrity', 'SYSTEM INTEGRITY', integrity, getPositiveMetricState(integrity), 'I'),
-    createMetric('stability', 'SIGNAL STABILITY', stability, getPositiveMetricState(stability), 'S'),
-    createMetric('corruption', 'CORRUPTION LEVEL', corruption, getCorruptionMetricState(corruption), 'X'),
-    createMetric('recovery', 'RECOVERY PROGRESS', recovery, recovery >= 90 ? 'normal' : 'updated', 'R')
+    createMetric('integrity', '이어진 정도', integrity, getPositiveMetricState(integrity), 'I'),
+    createMetric('stability', '신호의 결', stability, getPositiveMetricState(stability), 'S'),
+    createMetric('corruption', '끊어진 틈', corruption, getCorruptionMetricState(corruption), 'X'),
+    createMetric('recovery', '돌아오는 정도', recovery, recovery >= 90 ? 'normal' : 'updated', 'R')
   ];
 }
 
 function buildProgressiveNodes(sequence) {
   const focusNodeId = STORY_FOCUS_NODE_BY_SEQUENCE[sequence] || null;
   return PROGRESSIVE_SYSTEM_NODES
-    .filter(node => sequence >= node.revealAt)
+    .filter(node => sequence >= node.revealAt && (!node.revealUntil || sequence <= node.revealUntil))
     .map(node => {
       const label = getProgressiveNodeLabel(node, sequence);
       const baseState = getProgressiveNodeState(node, sequence);
@@ -942,19 +978,21 @@ function buildProgressiveNodes(sequence) {
 function buildProgressivePaths(sequence) {
   const focusPathId = STORY_FOCUS_PATH_BY_SEQUENCE[sequence] || null;
   return PROGRESSIVE_SYSTEM_PATHS
-    .filter(path => sequence >= path.revealAt)
+    .filter(path => sequence >= path.revealAt && (!path.revealUntil || sequence <= path.revealUntil))
     .map(path => {
       const state = getProgressivePathState(path, sequence);
       const highlighted = path.id === focusPathId || sequence === path.revealAt || sequence === path.activeAt;
       return {
         from: path.from,
         to: path.to,
+        points: path.points,
         state,
         warning: state === 'broken',
-        pulse: state !== 'broken',
+        pulse: path.pulse !== false && state !== 'broken',
         pulseDuration: highlighted ? '1.35s' : '1.9s',
         label: getProgressivePathLabel(path, state, highlighted),
-        highlighted
+        highlighted,
+        showConnectors: path.showConnectors
       };
     });
 }
@@ -974,7 +1012,7 @@ function getProgressiveNodeState(node, sequence) {
 }
 
 function getProgressivePathState(path, sequence) {
-  if (path.brokenUntil && sequence <= path.brokenUntil) return 'broken';
+  if (path.brokenUntil && !path.brokenFrom && sequence <= path.brokenUntil) return 'broken';
   if (path.brokenFrom && sequence >= path.brokenFrom && sequence <= (path.brokenUntil || path.brokenFrom)) return 'broken';
   if (sequence >= path.activeAt) return 'active';
   return 'restoring';
@@ -1011,7 +1049,7 @@ function renderStorySystemVisualization(scene) {
 
   const mode = document.createElement('span');
   mode.className = 'story-system__mode';
-  mode.textContent = 'CURRENT OPERATION';
+  mode.textContent = '지금 남은 흔적';
 
   const operation = document.createElement('strong');
   operation.className = 'story-system__operation';
@@ -1023,7 +1061,7 @@ function renderStorySystemVisualization(scene) {
 
   const change = document.createElement('span');
   change.className = 'story-system__change';
-  change.textContent = `NEWLY REVEALED: ${scene.changeLabel}`;
+  change.textContent = scene.changeLabel;
 
   const note = document.createElement('p');
   note.className = 'story-system__note';
@@ -1123,20 +1161,22 @@ function renderStoryPath(svg, path, index, nodesById) {
   });
   svg.appendChild(pathEl);
 
-  const start = points[0];
-  const end = points[points.length - 1];
-  svg.appendChild(createSvgElement('circle', {
-    class: `story-connector-dot story-connector-dot--${state}`,
-    cx: start.x,
-    cy: start.y,
-    r: 4
-  }));
-  svg.appendChild(createSvgElement('circle', {
-    class: `story-connector-dot story-connector-dot--${state}`,
-    cx: end.x,
-    cy: end.y,
-    r: 4
-  }));
+  if (path.showConnectors !== false) {
+    const start = points[0];
+    const end = points[points.length - 1];
+    svg.appendChild(createSvgElement('circle', {
+      class: `story-connector-dot story-connector-dot--${state}`,
+      cx: start.x,
+      cy: start.y,
+      r: 4
+    }));
+    svg.appendChild(createSvgElement('circle', {
+      class: `story-connector-dot story-connector-dot--${state}`,
+      cx: end.x,
+      cy: end.y,
+      r: 4
+    }));
+  }
 
   if (path.warning || state === 'broken') {
     renderBrokenPathMark(svg, points);
@@ -1240,7 +1280,7 @@ function renderStoryNode(svg, node) {
 
 function renderStoryPathLabel(svg, points, label, state) {
   const point = getPolylinePointAtRatio(points, 0.5);
-  const width = Math.min(220, Math.max(88, label.length * 7.2 + 22));
+  const width = Math.min(260, Math.max(92, label.length * 8.6 + 24));
   const group = createSvgElement('g', {
     class: `story-path-label story-path-label--${state}`,
     transform: `translate(${point.x} ${point.y - 18})`
