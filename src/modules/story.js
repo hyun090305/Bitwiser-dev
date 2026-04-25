@@ -460,33 +460,36 @@ const SVG_NS = 'http://www.w3.org/2000/svg';
 
 const PROGRESSIVE_SYSTEM_NODES = [
   {
-    id: 'signal',
-    x: 155,
-    y: 250,
+    id: 'input',
+    kind: 'input',
+    x: 390,
+    y: 420,
     revealAt: 1,
     activeAt: 5,
     labels: [
       { until: 3, label: '', detail: '' },
-      { until: 8, label: 'SIGNAL TRACE', detail: '연결 흔적' },
-      { until: 27, label: 'NEURAL INPUT', detail: '외부 신호' }
+      { until: 8, label: 'INPUT TRACE', detail: '외부 잔류 신호' },
+      { until: 27, label: 'INPUT', detail: '외부 신호 입력' }
     ]
   },
   {
     id: 'core',
+    kind: 'core',
     x: 390,
     y: 250,
     revealAt: 4,
-    activeAt: 12,
+    activeAt: 8,
     labels: [
-      { until: 7, label: 'UNKNOWN NODE', detail: '중심 후보' },
+      { until: 7, label: 'UNKNOWN CENTER', detail: '중심 후보' },
       { until: 11, label: 'CORE ?', detail: '자아 흔적' },
-      { until: 27, label: 'CORE N-0', detail: '자아의 중심' }
+      { until: 27, label: 'CORE', detail: '자아 중심 / 검증' }
     ]
   },
   {
     id: 'memory',
-    x: 625,
-    y: 170,
+    kind: 'memory',
+    x: 610,
+    y: 180,
     revealAt: 6,
     activeAt: 15,
     corruptFrom: 6,
@@ -494,188 +497,130 @@ const PROGRESSIVE_SYSTEM_NODES = [
     labels: [
       { until: 9, label: 'FRAGMENT STORE', detail: '기억 파편' },
       { until: 12, label: 'MEMORY ?', detail: '기억 후보' },
-      { until: 27, label: 'MEMORY M-01', detail: '기억 영역' }
+      { until: 27, label: 'MEMORY', detail: '기억 주소 포트' }
     ]
   },
   {
     id: 'perception',
-    x: 625,
+    kind: 'perception',
+    x: 610,
     y: 330,
-    revealAt: 10,
+    revealAt: 8,
     activeAt: 19,
     labels: [
       { until: 18, label: 'SENSORY TRACE', detail: '감각 흔적' },
-      { until: 27, label: 'PERCEPTION', detail: '감각 영역' }
+      { until: 27, label: 'PERCEPTION', detail: '현재 감각 포트' }
     ]
   },
   {
     id: 'reality',
-    x: 155,
-    y: 390,
+    kind: 'reality',
+    x: 390,
+    y: 80,
     revealAt: 14,
     activeAt: 23,
     labels: [
       { until: 16, label: 'EXTERNAL TRACE', detail: '현실 신호' },
-      { until: 22, label: 'REALITY ?', detail: '외부 세계' },
-      { until: 27, label: 'REALITY LINK', detail: '현실 연결' }
-    ]
-  },
-  {
-    id: 'protocol',
-    x: 390,
-    y: 420,
-    revealAt: 20,
-    activeAt: 24,
-    labels: [
-      { until: 21, label: 'PROTOCOL ?', detail: '복구 절차' },
-      { until: 27, label: 'CONTEXT C-04', detail: '맥락 영역' }
-    ]
-  },
-  {
-    id: 'logic',
-    x: 560,
-    y: 90,
-    revealAt: 22,
-    activeAt: 24,
-    labels: [
-      { until: 23, label: 'SCHEMA TRACE', detail: '설계 흔적' },
-      { until: 27, label: 'LOGIC L-02', detail: '판단 영역' }
-    ]
-  },
-  {
-    id: 'temporal',
-    x: 220,
-    y: 90,
-    revealAt: 18,
-    activeAt: 26,
-    corruptFrom: 18,
-    corruptUntil: 20,
-    labels: [
-      { until: 22, label: 'DECAY TIMER', detail: '남은 시간' },
-      { until: 27, label: 'TEMPORAL T-03', detail: '시간 영역' }
+      { until: 22, label: 'REALITY ?', detail: '현실 접점' },
+      { until: 27, label: 'REALITY SYNC', detail: '현실 동기화' }
     ]
   }
 ];
 
-const PROGRESSIVE_SYSTEM_PATHS = [
+const PROGRESSIVE_CONNECTIONS = [
   {
-    id: 'signal-early-trace',
+    id: 'input-core',
+    from: 'input',
+    to: 'core',
     points: [
-      { x: 155, y: 250 },
-      { x: 255, y: 250 },
-      { x: 300, y: 220 }
+      { x: 390, y: 420 },
+      { x: 390, y: 360 },
+      { x: 390, y: 300 },
+      { x: 390, y: 250 }
     ],
     revealAt: 2,
-    revealUntil: 3,
-    activeAt: 4,
-    brokenFrom: 3,
-    brokenUntil: 3,
-    pulse: false,
-    showConnectors: false,
-    labels: {}
-  },
-  {
-    id: 'signal-core',
-    from: 'signal',
-    to: 'core',
-    revealAt: 4,
-    activeAt: 5,
+    lockAt: 5,
+    particleCount: 26,
+    signalType: 'control',
     labels: {
-      restoring: '신호가 중심을 향해 뻗는다',
-      active: '첫 연결이 숨을 쉰다'
+      forming: '신호 조각이 중심을 향해 모인다',
+      locked: '첫 연결이 고정된다'
     }
   },
   {
     id: 'core-memory',
     from: 'core',
     to: 'memory',
+    points: [
+      { x: 390, y: 250 },
+      { x: 460, y: 250 },
+      { x: 530, y: 210 },
+      { x: 610, y: 180 }
+    ],
     revealAt: 6,
-    activeAt: 15,
-    brokenUntil: 6,
+    lockAt: 15,
+    particleCount: 30,
+    signalType: 'memory',
     labels: {
-      broken: '기억 앞에서 선이 끊어진다',
-      restoring: '기억으로 가는 길이 다시 이어진다',
-      active: '기억이 길을 타고 돌아온다'
+      forming: '기억 조각들이 경로를 찾는다',
+      locked: '기억 주소가 열린다'
     }
   },
   {
     id: 'core-perception',
     from: 'core',
     to: 'perception',
-    revealAt: 10,
-    activeAt: 19,
+    points: [
+      { x: 390, y: 250 },
+      { x: 450, y: 250 },
+      { x: 520, y: 300 },
+      { x: 610, y: 330 }
+    ],
+    revealAt: 8,
+    lockAt: 19,
+    particleCount: 20,
+    signalType: 'sensory',
     labels: {
-      restoring: '감각이 희미하게 스며든다',
-      active: '감각이 또렷해진다'
+      forming: '감각 신호가 정렬된다',
+      locked: '감각이 안정적으로 도달한다'
     }
   },
   {
-    id: 'signal-reality',
-    from: 'signal',
+    id: 'perception-reality',
+    from: 'perception',
     to: 'reality',
+    points: [
+      { x: 610, y: 330 },
+      { x: 390, y: 80 }
+    ],
     revealAt: 14,
-    activeAt: 23,
+    lockAt: 23,
+    particleCount: 20,
+    signalType: 'reality',
+    hasBarrier: true,
+    barrierAt: 0.58,
     labels: {
-      restoring: '현실의 목소리가 다가온다',
-      active: '현실 쪽 문이 열린다'
+      forming: '현실 신호가 경계에 닿는다',
+      locked: '현실 동기화가 열린다'
     }
   },
   {
-    id: 'core-temporal',
-    from: 'core',
-    to: 'temporal',
-    revealAt: 18,
-    activeAt: 26,
-    brokenFrom: 18,
-    brokenUntil: 20,
-    labels: {
-      broken: '남은 시간이 짧아진다',
-      restoring: '무너지는 틈을 붙든다',
-      active: '돌아갈 순간이 열린다'
-    }
-  },
-  {
-    id: 'memory-perception',
+    id: 'memory-perception-sync',
     from: 'memory',
     to: 'perception',
+    points: [
+      { x: 610, y: 180 },
+      { x: 652, y: 180 },
+      { x: 652, y: 330 },
+      { x: 610, y: 330 }
+    ],
     revealAt: 19,
-    activeAt: 25,
+    lockAt: 27,
+    particleCount: 30,
+    signalType: 'sync',
     labels: {
-      restoring: '감각이 기억에 닿는다',
-      active: '몸의 기억이 돌아온다'
-    }
-  },
-  {
-    id: 'core-protocol',
-    from: 'core',
-    to: 'protocol',
-    revealAt: 20,
-    activeAt: 24,
-    labels: {
-      restoring: '남겨 둔 절차가 깨어난다',
-      active: '내가 만든 길이 나를 붙든다'
-    }
-  },
-  {
-    id: 'protocol-logic',
-    from: 'protocol',
-    to: 'logic',
-    revealAt: 22,
-    activeAt: 24,
-    labels: {
-      restoring: '선택의 이유가 선명해진다',
-      active: '판단이 제자리로 돌아온다'
-    }
-  },
-  {
-    id: 'protocol-memory',
-    from: 'protocol',
-    to: 'memory',
-    revealAt: 25,
-    activeAt: 27,
-    labels: {
-      restoring: '마지막 빈틈이 좁아진다',
-      active: '돌아갈 길이 맞물린다'
+      forming: '기억과 감각이 같은 패턴으로 맞춰진다',
+      locked: '몸의 기억과 현재 감각이 일치한다'
     }
   }
 ];
@@ -711,62 +656,62 @@ const STORY_CHANGE_LABELS = {
 };
 
 const STORY_FOCUS_NODE_BY_SEQUENCE = {
-  1: 'signal',
-  2: 'signal',
-  3: 'signal',
+  1: 'input',
+  2: 'input',
+  3: 'input',
   4: 'core',
   5: 'core',
   6: 'memory',
   7: 'memory',
-  8: 'memory',
-  9: 'memory',
+  8: 'perception',
+  9: 'perception',
   10: 'perception',
-  11: 'perception',
+  11: 'core',
   12: 'core',
   13: 'memory',
   14: 'reality',
-  15: 'core',
-  16: 'core',
-  17: 'core',
-  18: 'temporal',
+  15: 'memory',
+  16: 'reality',
+  17: 'reality',
+  18: 'reality',
   19: 'perception',
-  20: 'protocol',
-  21: 'protocol',
-  22: 'logic',
+  20: 'reality',
+  21: 'reality',
+  22: 'reality',
   23: 'reality',
-  24: 'protocol',
+  24: 'memory',
   25: 'perception',
-  26: 'temporal',
+  26: 'reality',
   27: 'core'
 };
 
-const STORY_FOCUS_PATH_BY_SEQUENCE = {
-  2: 'signal-early-trace',
-  3: 'signal-early-trace',
-  4: 'signal-core',
-  5: 'signal-core',
+const STORY_FOCUS_CONNECTION_BY_SEQUENCE = {
+  2: 'input-core',
+  3: 'input-core',
+  4: 'input-core',
+  5: 'input-core',
   6: 'core-memory',
   7: 'core-memory',
-  8: 'core-memory',
-  9: 'core-memory',
+  8: 'core-perception',
+  9: 'core-perception',
   10: 'core-perception',
   11: 'core-perception',
   12: 'core-perception',
   13: 'core-memory',
-  14: 'signal-reality',
+  14: 'perception-reality',
   15: 'core-memory',
-  16: 'signal-reality',
-  17: 'signal-reality',
-  18: 'core-temporal',
-  19: 'memory-perception',
-  20: 'core-protocol',
-  21: 'core-protocol',
-  22: 'core-protocol',
-  23: 'signal-reality',
-  24: 'protocol-logic',
-  25: 'memory-perception',
-  26: 'core-temporal',
-  27: 'protocol-memory'
+  16: 'perception-reality',
+  17: 'perception-reality',
+  18: 'perception-reality',
+  19: 'memory-perception-sync',
+  20: 'perception-reality',
+  21: 'perception-reality',
+  22: 'perception-reality',
+  23: 'perception-reality',
+  24: 'memory-perception-sync',
+  25: 'memory-perception-sync',
+  26: 'memory-perception-sync',
+  27: 'memory-perception-sync'
 };
 
 function createStorySceneState(fragment, options = {}) {
@@ -792,7 +737,7 @@ function createStorySceneState(fragment, options = {}) {
     focusMetric: getProgressiveFocusMetric(sequence),
     metrics: buildProgressiveMetrics(sequence, progress),
     nodes: buildProgressiveNodes(sequence),
-    paths: buildProgressivePaths(sequence)
+    connections: buildProgressiveConnections(sequence)
   };
 }
 
@@ -807,15 +752,15 @@ function createLockedSceneState() {
     diagramNote: '스테이지를 클리어하면 첫 번째 기록과 복구 경로가 표시됩니다.',
     visualWeight: 'locked',
     phases: ['LOCKED', 'WAITING FOR CLEAR', 'NO ACTIVE ROUTE'],
-    focusMetric: 'recovery',
+    focusMetric: 'signal',
     changeLabel: 'NO ACTIVE TRACE',
     metrics: [
       createMetric('signal', '남은 신호', 0, 'critical', 'S')
     ],
     nodes: [
-      { id: 'signal', label: 'NO SIGNAL', detail: '잠김', state: 'inactive', x: 390, y: 250 }
+      { id: 'input', kind: 'input', label: 'NO TRACE', detail: '잠김', state: 'inactive', x: 390, y: 250 }
     ],
-    paths: []
+    connections: []
   };
 }
 
@@ -875,32 +820,32 @@ function getProgressivePhase(sequence) {
 }
 
 function getProgressiveOperation(sequence) {
-  if (sequence <= 3) return '아무것도 없는 곳에, 신호 하나가 혼자 깜박인다.';
-  if (sequence <= 8) return '신호 주변에, 아직 닿지 못한 연결들이 흔적으로 남아 있다.';
-  if (sequence <= 14) return '흩어져 있던 것들이, 하나의 중심으로 모이기 시작한다.';
-  if (sequence <= 18) return '내가 남겨 둔 길이, 어둠 속에서 다시 손에 잡힌다.';
-  if (sequence <= 22) return '기억과 감각이 굵어질수록, 무너지는 틈도 선명해진다.';
-  if (sequence <= 26) return '마지막 다리들이 이어지고, 돌아갈 곳의 온도가 가까워진다.';
-  return '모든 선이 맞물리는 순간, 나는 다시 나에게 닿는다.';
+  if (sequence <= 3) return '아무것도 없는 곳에, 외부 잔류 신호만 희미하게 떠돈다.';
+  if (sequence <= 8) return '흩어진 신호 조각들이 중심을 향해 모이며 첫 연결의 형태를 만든다.';
+  if (sequence <= 14) return '기억과 감각의 파편이 같은 경로를 찾기 시작한다.';
+  if (sequence <= 18) return '정렬된 조각들이 굵은 선이 되어, 잊힌 감각을 다시 밀어 올린다.';
+  if (sequence <= 22) return '현실과 2D 세계 사이의 경계에서 새로운 브리지가 형성된다.';
+  if (sequence <= 26) return '남은 빈틈이 좁아지며 기억과 감각이 같은 패턴으로 맞춰진다.';
+  return '모든 연결이 잠기며, 복구된 네트워크가 하나의 몸처럼 맞물린다.';
 }
 
 function getProgressiveDiagramNote(sequence) {
   if (sequence <= 8) return '';
-  if (sequence <= 14) return '끊어진 곳마다, 돌아가지 못한 시간이 남아 있다.';
-  if (sequence <= 18) return '내가 만든 절차가, 나를 다시 부른다.';
-  if (sequence <= 22) return '현실의 감각이 가까워질수록 이곳은 더 얇아진다.';
-  if (sequence <= 26) return '남은 공백은 이제 손이 닿을 만큼 좁다.';
-  return '처음의 작은 신호가, 돌아갈 문이 된다.';
+  if (sequence <= 14) return '점처럼 흩어진 신호가 한 줄로 정렬될수록, 기억과 감각의 방향이 선명해진다.';
+  if (sequence <= 18) return '굳어진 연결은 더 이상 흔적이 아니라 돌아가는 길 그 자체가 된다.';
+  if (sequence <= 22) return '현실 동기화 지점 앞에서는 조각들이 가장 느리게, 가장 조심스럽게 정렬된다.';
+  if (sequence <= 26) return '이제 남은 일은 떨어진 패턴들을 하나의 리듬으로 잠그는 것뿐이다.';
+  return '처음의 잔류 신호가 완전한 귀환 회로로 닫힌다.';
 }
 
 function getProgressiveRouteLabel(sequence) {
-  if (sequence <= 3) return '공백 속에 남은 첫 반응';
-  if (sequence <= 8) return '연결되지 못한 기억의 가장자리';
-  if (sequence <= 14) return '흩어진 감각이 한곳으로 모인다';
-  if (sequence <= 18) return '내가 남긴 길이 깨어난다';
-  if (sequence <= 22) return '두 세계 사이가 다시 가까워진다';
-  if (sequence <= 26) return '돌아갈 다리가 거의 맞물린다';
-  return '귀환의 문이 열린다';
+  if (sequence <= 3) return '공백 속에 떠도는 입력 잔광';
+  if (sequence <= 8) return '중심을 향해 정렬되는 첫 신호';
+  if (sequence <= 14) return '기억과 감각이 같은 길을 찾는다';
+  if (sequence <= 18) return '흩어진 조각이 굵은 연결로 굳는다';
+  if (sequence <= 22) return '현실 경계 앞에 브리지가 형성된다';
+  if (sequence <= 26) return '기억과 감각의 패턴이 맞물린다';
+  return '귀환 네트워크가 완성된다';
 }
 
 function getProgressiveVisualWeight(sequence) {
@@ -964,6 +909,7 @@ function buildProgressiveNodes(sequence) {
       const highlighted = node.id === focusNodeId || sequence === node.revealAt;
       return {
         id: node.id,
+        kind: node.kind || 'default',
         x: node.x,
         y: node.y,
         label: label.label,
@@ -975,24 +921,25 @@ function buildProgressiveNodes(sequence) {
     });
 }
 
-function buildProgressivePaths(sequence) {
-  const focusPathId = STORY_FOCUS_PATH_BY_SEQUENCE[sequence] || null;
-  return PROGRESSIVE_SYSTEM_PATHS
-    .filter(path => sequence >= path.revealAt && (!path.revealUntil || sequence <= path.revealUntil))
-    .map(path => {
-      const state = getProgressivePathState(path, sequence);
-      const highlighted = path.id === focusPathId || sequence === path.revealAt || sequence === path.activeAt;
+function buildProgressiveConnections(sequence) {
+  const focusConnectionId = STORY_FOCUS_CONNECTION_BY_SEQUENCE[sequence] || null;
+  return PROGRESSIVE_CONNECTIONS
+    .filter(connection => sequence >= connection.revealAt && (!connection.revealUntil || sequence <= connection.revealUntil))
+    .map(connection => {
+      const alignment = getConnectionAlignment(sequence, connection.revealAt, connection.lockAt);
+      const locked = alignment >= 1;
+      const highlighted =
+        connection.id === focusConnectionId
+        || sequence === connection.revealAt
+        || sequence === connection.lockAt;
+
       return {
-        from: path.from,
-        to: path.to,
-        points: path.points,
-        state,
-        warning: state === 'broken',
-        pulse: path.pulse !== false && state !== 'broken',
-        pulseDuration: highlighted ? '1.35s' : '1.9s',
-        label: getProgressivePathLabel(path, state, highlighted),
+        ...connection,
+        alignment,
+        locked,
         highlighted,
-        showConnectors: path.showConnectors
+        state: locked ? 'active' : 'restoring',
+        label: getConnectionLabel(connection, locked)
       };
     });
 }
@@ -1011,16 +958,13 @@ function getProgressiveNodeState(node, sequence) {
   return 'restoring';
 }
 
-function getProgressivePathState(path, sequence) {
-  if (path.brokenUntil && !path.brokenFrom && sequence <= path.brokenUntil) return 'broken';
-  if (path.brokenFrom && sequence >= path.brokenFrom && sequence <= (path.brokenUntil || path.brokenFrom)) return 'broken';
-  if (sequence >= path.activeAt) return 'active';
-  return 'restoring';
+function getConnectionAlignment(sequence, revealAt, lockAt) {
+  if (sequence >= lockAt) return 1;
+  return clampStoryNumber((sequence - revealAt) / Math.max(1, lockAt - revealAt), 0, 1);
 }
 
-function getProgressivePathLabel(path, state, highlighted) {
-  if (!highlighted && state !== 'broken') return '';
-  return path.labels?.[state] || '';
+function getConnectionLabel(connection, locked) {
+  return locked ? connection.labels?.locked || '' : connection.labels?.forming || '';
 }
 
 function createMetric(key, label, value, state, marker) {
@@ -1087,7 +1031,9 @@ function renderStorySystemVisualization(scene) {
   });
 
   const nodesById = new Map(scene.nodes.map(node => [node.id, node]));
-  scene.paths.forEach((path, index) => renderStoryPath(svg, path, index, nodesById));
+  scene.connections.forEach(connection => renderStoryConnectionBackbone(svg, connection, nodesById));
+  renderStoryParticleField(svg, scene, nodesById);
+  scene.connections.forEach((connection, index) => renderStoryConnection(svg, connection, index, nodesById));
   scene.nodes.forEach(node => renderStoryNode(svg, node));
   root.appendChild(svg);
 
@@ -1142,65 +1088,580 @@ function resetPlaybackDiagnostics() {
   if (playbackSceneTitleEl) playbackSceneTitleEl.textContent = 'Diagnostics';
 }
 
-function renderStoryPath(svg, path, index, nodesById) {
-  const points = getStoryPathPoints(path, nodesById);
+function renderStoryConnection(svg, connection, index, nodesById) {
+  const points = getStoryPathPoints(connection, nodesById);
   if (points.length < 2) return;
 
-  const id = `story-system-path-${index}`;
-  const d = buildSvgPathData(points);
-  const state = path.state || 'inactive';
-  const pathEl = createSvgElement('path', {
-    id,
+  if (connection.hasBarrier) {
+    renderRealityBarrier(svg, connection, points);
+  }
+
+  if (connection.label && connection.highlighted) {
+    renderStoryPathLabel(svg, points, connection.label, connection.locked ? 'active' : 'restoring');
+  }
+}
+
+function renderStoryConnectionBackbone(svg, connection, nodesById) {
+  const points = getStoryPathPoints(connection, nodesById);
+  if (points.length < 2) return;
+
+  svg.appendChild(createSvgElement('path', {
     class: [
-      'story-path',
-      `story-path--${state}`,
-      path.highlighted ? 'story-path--highlighted' : ''
+      'story-connection-backbone',
+      `story-connection-backbone--${connection.signalType}`,
+      connection.locked ? 'story-connection-backbone--locked' : '',
+      connection.highlighted ? 'story-connection-backbone--highlighted' : ''
     ].filter(Boolean).join(' '),
-    d,
-    pathLength: '100'
+    d: buildSvgPathData(points),
+    fill: 'none'
+  }));
+}
+
+function renderStoryParticleField(svg, scene, nodesById) {
+  const particles = buildStoryFieldParticles(scene, nodesById);
+  const links = buildStoryFieldLinks(particles, nodesById);
+  const group = createSvgElement('g', {
+    class: 'story-particle-field'
   });
-  svg.appendChild(pathEl);
 
-  if (path.showConnectors !== false) {
-    const start = points[0];
-    const end = points[points.length - 1];
-    svg.appendChild(createSvgElement('circle', {
-      class: `story-connector-dot story-connector-dot--${state}`,
-      cx: start.x,
-      cy: start.y,
-      r: 4
-    }));
-    svg.appendChild(createSvgElement('circle', {
-      class: `story-connector-dot story-connector-dot--${state}`,
-      cx: end.x,
-      cy: end.y,
-      r: 4
-    }));
-  }
+  links.forEach((link, index) => {
+    group.appendChild(createStoryFieldLinkElement(link, index));
+  });
+  particles.forEach((particle, index) => {
+    group.appendChild(createStoryFieldParticleElement(particle, index));
+  });
 
-  if (path.warning || state === 'broken') {
-    renderBrokenPathMark(svg, points);
-  }
+  svg.appendChild(group);
+}
 
-  if (path.label) {
-    renderStoryPathLabel(svg, points, path.label, state);
-  }
+function buildStoryFieldParticles(scene, nodesById) {
+  const particles = scene.connections.flatMap(connection => (
+    buildStoryConnectionParticles(connection, nodesById)
+  ));
 
-  if (path.pulse && state !== 'inactive' && state !== 'broken') {
-    const pulse = createSvgElement('circle', {
-      class: `story-pulse story-pulse--${state}`,
-      r: 5
+  applyStoryPathRepulsion(particles, nodesById);
+
+  return particles.map(particle => ({
+    ...particle,
+    position: applyStoryPathTension(particle.sourcePosition, particle.assignment, particle.seed)
+  }));
+}
+
+function buildStoryConnectionParticles(connection, nodesById) {
+  const points = getStoryPathPoints(connection, nodesById);
+  if (points.length < 2) return [];
+
+  const particleCount = Math.max(8, Math.round(connection.particleCount || estimateStoryParticleCount(points)));
+  const random = createStoryRandom(`story-connection-particles:${connection.id}`);
+  const revealRatio = clampStoryNumber((connection.alignment - 0.06) / 0.94, 0, 1);
+  const looseSpread = connection.locked ? 10 : 28 - smoothStoryStep(revealRatio) * 16;
+
+  return Array.from({ length: particleCount }, (_, index) => {
+    const baseRatio = (index + 1) / (particleCount + 1);
+    const ratioJitter = (random() - 0.5) * Math.min(0.1, 2.2 / particleCount);
+    const pathRatio = clampStoryNumber(baseRatio + ratioJitter, 0.025, 0.975);
+    const pathPoint = getPolylinePointAtRatio(points, pathRatio);
+    const frame = getPolylineFrameAtRatio(points, pathRatio);
+    const lateralOffset = (random() - 0.5) * looseSpread * 2;
+    const tangentOffset = (random() - 0.5) * looseSpread * 0.58;
+    const sourcePosition = {
+      x: pathPoint.x + frame.normalX * lateralOffset + frame.tangentX * tangentOffset,
+      y: pathPoint.y + frame.normalY * lateralOffset + frame.tangentY * tangentOffset
+    };
+    const seed = getGlobalParticleSeed(`${connection.id}:${index}`, sourcePosition);
+    const frontStrength = clampStoryNumber((revealRatio - pathRatio + 0.18) / 0.34, 0, 1);
+    const assignment = {
+      connection,
+      activation: revealRatio,
+      pathRatio,
+      pathPoint,
+      active: connection.locked || frontStrength > 0.28 || (frontStrength > 0 && revealRatio >= 0.34)
+    };
+
+    return {
+      id: `field-${connection.id}-${index}`,
+      seed,
+      sourcePosition,
+      assignment,
+      position: sourcePosition,
+      connectionId: connection.id,
+      signalType: connection.signalType || 'control',
+      highlighted: Boolean(connection.highlighted),
+      locked: Boolean(connection.locked),
+      active: Boolean(assignment.active),
+      activation: revealRatio,
+      frontStrength,
+      pathRatio
+    };
+  });
+}
+
+function estimateStoryParticleCount(points) {
+  const length = points.slice(1).reduce((sum, point, index) => {
+    const prev = points[index];
+    return sum + Math.hypot(point.x - prev.x, point.y - prev.y);
+  }, 0);
+  return Math.round(length / 8);
+}
+
+function getGlobalParticleSeed(index, point) {
+  const value = hashStoryString(`field:${index}:${point.x.toFixed(2)}:${point.y.toFixed(2)}`);
+  const angleDeg = value % 360;
+  const flowAngleA = deterministicUnitFloat(`flow:angle:a:${index}`) * Math.PI * 2;
+  const flowAngleB = flowAngleA + Math.PI * (0.55 + deterministicUnitFloat(`flow:turn:b:${index}`) * 0.9);
+  const flowAngleC = flowAngleB + Math.PI * (0.42 + deterministicUnitFloat(`flow:turn:c:${index}`) * 0.95);
+  const flowRadiusA = 3.2 + deterministicUnitFloat(`flow:radius:a:${index}`) * 5.4;
+  const flowRadiusB = 2.8 + deterministicUnitFloat(`flow:radius:b:${index}`) * 4.8;
+  const flowRadiusC = 2.2 + deterministicUnitFloat(`flow:radius:c:${index}`) * 4.2;
+  return {
+    angleDeg,
+    r: 1.85 + ((value >>> 8) % 4) * 0.36,
+    floatDxA: Math.cos(flowAngleA) * flowRadiusA,
+    floatDyA: Math.sin(flowAngleA) * flowRadiusA,
+    floatDxB: Math.cos(flowAngleB) * flowRadiusB,
+    floatDyB: Math.sin(flowAngleB) * flowRadiusB,
+    floatDxC: Math.cos(flowAngleC) * flowRadiusC,
+    floatDyC: Math.sin(flowAngleC) * flowRadiusC,
+    floatDur: 6.8 + deterministicUnitFloat(`float:dur:${index}`) * 5.6,
+    floatDelay: deterministicUnitFloat(`float:delay:${index}`) * 5.8,
+    flowScaleX: 0.88 + deterministicUnitFloat(`flow:scale:x:${index}`) * 0.34,
+    flowScaleY: 0.88 + deterministicUnitFloat(`flow:scale:y:${index}`) * 0.34
+  };
+}
+
+function applyStoryPathTension(point, assignment, seed) {
+  if (!assignment?.pathPoint) return point;
+
+  const tension = assignment.connection.locked
+    ? 0.86
+    : smoothStoryStep(clampStoryNumber(assignment.activation, 0, 1)) * 0.72;
+  const residualDrift = 1 - tension;
+  const lateralAngle = seed.angleDeg * Math.PI / 180;
+  const lateralRadius = residualDrift * (4 + seed.r * 1.6);
+  const target = {
+    x: assignment.pathPoint.x + Math.cos(lateralAngle) * lateralRadius,
+    y: assignment.pathPoint.y + Math.sin(lateralAngle) * lateralRadius
+  };
+
+  return {
+    x: point.x + (target.x - point.x) * tension,
+    y: point.y + (target.y - point.y) * tension
+  };
+}
+
+function applyStoryPathRepulsion(particles, nodesById) {
+  const particlesByConnection = new Map();
+
+  particles.forEach(particle => {
+    if (!particle.assignment?.connection || particle.assignment.pathRatio === null) return;
+    const connectionId = particle.assignment.connection.id;
+    if (!particlesByConnection.has(connectionId)) {
+      particlesByConnection.set(connectionId, []);
+    }
+    particlesByConnection.get(connectionId).push(particle);
+  });
+
+  particlesByConnection.forEach(connectionParticles => {
+    connectionParticles.sort((left, right) => left.assignment.pathRatio - right.assignment.pathRatio);
+    const connection = connectionParticles[0]?.assignment?.connection;
+    const points = getStoryPathPoints(connection, nodesById);
+    if (!connection || points.length < 2) return;
+
+    const repelStrength = connection.locked
+      ? 0.9
+      : smoothStoryStep(clampStoryNumber(connection.alignment, 0, 1)) * 0.74;
+
+    connectionParticles.forEach((particle, index) => {
+      const evenRatio = (index + 1) / (connectionParticles.length + 1);
+      const currentRatio = particle.assignment.pathRatio;
+      const pathRatio = currentRatio + (evenRatio - currentRatio) * repelStrength;
+      particle.assignment.pathRatio = pathRatio;
+      particle.assignment.pathPoint = getPolylinePointAtRatio(points, pathRatio);
+      particle.pathRatio = pathRatio;
+      particle.frontStrength = getStoryFrontStrength(particle.assignment);
     });
-    const motion = createSvgElement('animateMotion', {
-      dur: path.pulseDuration || '1.8s',
-      repeatCount: 'indefinite',
-      rotate: 'auto'
+  });
+}
+
+function getStoryFrontStrength(assignment) {
+  if (!assignment?.connection || assignment.pathRatio === null) return 0;
+  if (assignment.connection.locked) return 1;
+
+  const front = clampStoryNumber(assignment.activation, 0, 1);
+  const distanceBehindFront = front - assignment.pathRatio;
+  return clampStoryNumber((distanceBehindFront + 0.18) / 0.34, 0, 1);
+}
+
+function buildStoryFieldLinks(particles, nodesById) {
+  const links = [];
+  const particlesByConnection = new Map();
+
+  particles.forEach(particle => {
+    if (!particle.connectionId || particle.pathRatio === null) return;
+    if (!particlesByConnection.has(particle.connectionId)) {
+      particlesByConnection.set(particle.connectionId, []);
+    }
+    particlesByConnection.get(particle.connectionId).push(particle);
+  });
+
+  particlesByConnection.forEach(connectionParticles => {
+    connectionParticles.sort((left, right) => left.pathRatio - right.pathRatio);
+    const connection = connectionParticles[0]?.assignment?.connection;
+    const maxStep = connection?.highlighted ? 4 : 2;
+
+    connectionParticles.forEach((particle, index, ordered) => {
+      for (let step = 1; step <= maxStep; step += 1) {
+        const next = ordered[index + step];
+        if (!next) continue;
+        const ratioGap = next.pathRatio - particle.pathRatio;
+        const maxGap = connection?.highlighted ? 0.18 : 0.12;
+        if (ratioGap > maxGap) continue;
+        links.push({
+          from: particle,
+          to: next,
+          signalType: particle.signalType,
+          highlighted: particle.highlighted || next.highlighted,
+          locked: particle.locked && next.locked,
+          active: particle.active && next.active,
+          frontStrength: Math.max(particle.frontStrength || 0, next.frontStrength || 0),
+          secondary: step > 1
+        });
+      }
     });
-    const mpath = createSvgElement('mpath', { href: `#${id}` });
-    motion.appendChild(mpath);
-    pulse.appendChild(motion);
-    svg.appendChild(pulse);
+
+    const first = connectionParticles[0];
+    const last = connectionParticles[connectionParticles.length - 1];
+    const fromNode = nodesById.get(connection?.from);
+    const toNode = nodesById.get(connection?.to);
+    if (first && fromNode) {
+      links.push(createStoryEndpointLink(fromNode, first, connection, 'from'));
+    }
+    if (last && toNode) {
+      links.push(createStoryEndpointLink(last, toNode, connection, 'to'));
+    }
+  });
+
+  return links;
+}
+
+function createStoryEndpointLink(from, to, connection, side) {
+  const fromParticle = from.seed ? from : null;
+  const toParticle = to.seed ? to : null;
+  const frontStrength = Math.max(fromParticle?.frontStrength || 0, toParticle?.frontStrength || 0);
+  return {
+    from,
+    to,
+    endpointSide: side,
+    signalType: connection?.signalType || fromParticle?.signalType || toParticle?.signalType || 'control',
+    highlighted: Boolean(connection?.highlighted),
+    locked: Boolean(connection?.locked),
+    active: Boolean(connection?.locked || fromParticle?.active || toParticle?.active),
+    frontStrength
+  };
+}
+
+function createStoryFieldLinkElement(link, index) {
+  const fromPosition = getStoryLinkPosition(link.from);
+  const toPosition = getStoryLinkPosition(link.to);
+  const dx = toPosition.x - fromPosition.x;
+  const dy = toPosition.y - fromPosition.y;
+  const distance = Math.hypot(dx, dy) || 1;
+  const fromRadius = link.from.seed?.r || 0;
+  const toRadius = link.to.seed?.r || 0;
+  const inset = Math.min(distance * 0.28, fromRadius + toRadius + 1.6);
+  const fromInset = link.endpointSide === 'from' ? 0 : inset;
+  const toInset = link.endpointSide === 'to' ? 0 : inset;
+  const element = createSvgElement('line', {
+    class: [
+      'story-connection-link',
+      `story-connection-link--${link.signalType}`,
+      link.active ? 'story-connection-link--active' : 'story-connection-link--inactive',
+      getStoryFrontClass('story-connection-link', link.frontStrength),
+      link.secondary ? 'story-connection-link--secondary' : '',
+      link.locked ? 'story-connection-link--locked' : '',
+      link.highlighted ? 'story-connection-link--highlighted' : ''
+    ].filter(Boolean).join(' '),
+    x1: (fromPosition.x + (dx / distance) * fromInset).toFixed(2),
+    y1: (fromPosition.y + (dy / distance) * fromInset).toFixed(2),
+    x2: (toPosition.x - (dx / distance) * toInset).toFixed(2),
+    y2: (toPosition.y - (dy / distance) * toInset).toFixed(2)
+  });
+  addLinkFlow(element, link, {
+    fromBase: {
+      x: fromPosition.x + (dx / distance) * fromInset,
+      y: fromPosition.y + (dy / distance) * fromInset
+    },
+    toBase: {
+      x: toPosition.x - (dx / distance) * toInset,
+      y: toPosition.y - (dy / distance) * toInset
+    }
+  });
+  if (link.active) {
+    const frontBoost = link.frontStrength || 0;
+    element.style.strokeWidth = link.locked
+      ? (3 + frontBoost * 0.7).toFixed(2)
+      : (1.85 + frontBoost * 1.05).toFixed(2);
+    addLinkBreathing(element, {
+      id: link.from.connectionId || link.to.connectionId || link.signalType,
+      locked: link.locked
+    }, index);
+  } else {
+    element.style.strokeWidth = link.secondary ? '0.68' : '0.9';
   }
+  return element;
+}
+
+function getStoryLinkPosition(item) {
+  return item.position || { x: item.x || 0, y: item.y || 0 };
+}
+
+function getStoryFrontClass(baseClass, strength = 0) {
+  if (strength >= 0.72) return `${baseClass}--front-strong`;
+  if (strength >= 0.34) return `${baseClass}--front-mid`;
+  if (strength > 0) return `${baseClass}--front-soft`;
+  return '';
+}
+
+function createStoryFieldParticleElement(particle, index) {
+  const group = createSvgElement('g', {
+    class: 'story-connection-particle-wrap',
+    transform: `translate(${particle.position.x.toFixed(2)} ${particle.position.y.toFixed(2)})`,
+    'data-particle-index': index
+  });
+  const floater = createSvgElement('g', {
+    class: 'story-connection-particle-floater'
+  });
+
+  addParticleFloating(floater, particle.seed);
+  const shape = createParticleShape(particle, particle.seed);
+  shape.classList.add(particle.active ? 'story-connection-particle--active' : 'story-connection-particle--inactive');
+  const frontClass = getStoryFrontClass('story-connection-particle', particle.frontStrength);
+  if (frontClass) shape.classList.add(frontClass);
+  if (particle.active) {
+    addParticleBreathing(shape, { id: particle.connectionId, locked: particle.locked }, particle.seed, true);
+  }
+
+  floater.appendChild(shape);
+  group.appendChild(floater);
+  return group;
+}
+
+function addParticleBreathing(element, connection, seed, active) {
+  if (!active) return;
+  const pulseSeed = hashStoryString(`${connection.id}:particle:pulse:${seed.t}:${seed.r}`);
+  element.appendChild(createSvgElement('animate', {
+    attributeName: 'opacity',
+    values: connection.locked ? '0.64;0.92;0.7;0.64' : '0.48;0.86;0.58;0.48',
+    dur: `${2.6 + ((pulseSeed >>> 10) % 7) * 0.24}s`,
+    begin: `-${((pulseSeed >>> 16) % 9) * 0.33}s`,
+    repeatCount: 'indefinite'
+  }));
+}
+
+function addLinkBreathing(element, connection, linkIndex) {
+  const pulseSeed = hashStoryString(`${connection.id}:link:pulse:${linkIndex}`);
+  element.appendChild(createSvgElement('animate', {
+    attributeName: 'opacity',
+    values: connection.locked ? '0.68;0.9;0.76;0.68' : '0.42;0.8;0.54;0.42',
+    dur: `${2.4 + ((pulseSeed >>> 8) % 6) * 0.22}s`,
+    begin: `-${((pulseSeed >>> 13) % 7) * 0.37}s`,
+    repeatCount: 'indefinite'
+  }));
+}
+
+function addLinkFlow(element, link, geometry) {
+  const { fromBase, toBase } = geometry;
+
+  addLinkEndpointFlow(element, link.from.seed, fromBase, 'x1', 'y1');
+  addLinkEndpointFlow(element, link.to.seed, toBase, 'x2', 'y2');
+}
+
+function addLinkEndpointFlow(element, seed, base, xAttribute, yAttribute) {
+  if (!seed) return;
+  const offsets = getParticleFlowOffsets(seed);
+  element.appendChild(createSvgElement('animate', {
+    attributeName: xAttribute,
+    values: offsets.map(offset => (base.x + offset.x).toFixed(2)).join('; '),
+    dur: `${seed.floatDur.toFixed(2)}s`,
+    begin: `-${seed.floatDelay.toFixed(2)}s`,
+    repeatCount: 'indefinite'
+  }));
+  element.appendChild(createSvgElement('animate', {
+    attributeName: yAttribute,
+    values: offsets.map(offset => (base.y + offset.y).toFixed(2)).join('; '),
+    dur: `${seed.floatDur.toFixed(2)}s`,
+    begin: `-${seed.floatDelay.toFixed(2)}s`,
+    repeatCount: 'indefinite'
+  }));
+}
+
+function addParticleFloating(group, seed) {
+  const offsets = getParticleFlowOffsets(seed);
+  group.appendChild(createSvgElement('animateTransform', {
+    attributeName: 'transform',
+    additive: 'sum',
+    type: 'translate',
+    values: offsets.map(offset => `${offset.x.toFixed(2)} ${offset.y.toFixed(2)}`).join('; '),
+    dur: `${seed.floatDur.toFixed(2)}s`,
+    begin: `-${seed.floatDelay.toFixed(2)}s`,
+    repeatCount: 'indefinite'
+  }));
+
+  group.appendChild(createSvgElement('animateTransform', {
+    attributeName: 'transform',
+    additive: 'sum',
+    type: 'scale',
+    values: [
+      '1 1',
+      `${seed.flowScaleX.toFixed(3)} ${(2 - seed.flowScaleY).toFixed(3)}`,
+      `${(2 - seed.flowScaleX).toFixed(3)} ${seed.flowScaleY.toFixed(3)}`,
+      '1 1'
+    ].join('; '),
+    dur: `${(seed.floatDur * 0.72).toFixed(2)}s`,
+    begin: `-${(seed.floatDelay * 0.63).toFixed(2)}s`,
+    repeatCount: 'indefinite'
+  }));
+}
+
+function getParticleFlowOffsets(seed) {
+  return [
+    { x: 0, y: 0 },
+    { x: seed.floatDxA, y: seed.floatDyA },
+    {
+      x: seed.floatDxA * 0.45 + seed.floatDxB * 0.85,
+      y: seed.floatDyA * 0.45 + seed.floatDyB * 0.85
+    },
+    { x: seed.floatDxB, y: seed.floatDyB },
+    { x: seed.floatDxC, y: seed.floatDyC },
+    {
+      x: seed.floatDxC * 0.6 - seed.floatDxA * 0.25,
+      y: seed.floatDyC * 0.6 - seed.floatDyA * 0.25
+    },
+    { x: 0, y: 0 }
+  ];
+}
+
+function createParticleShape(connection, seed) {
+  const className = [
+    'story-connection-particle',
+    `story-connection-particle--${connection.signalType || 'control'}`,
+    connection.locked ? 'story-connection-particle--locked' : '',
+    connection.highlighted ? 'story-connection-particle--highlighted' : ''
+  ].filter(Boolean).join(' ');
+
+  if (connection.signalType === 'sensory') {
+    return createSvgElement('ellipse', {
+      class: className,
+      cx: 0,
+      cy: 0,
+      rx: (seed.r * 1.35).toFixed(2),
+      ry: (seed.r * 0.8).toFixed(2),
+      transform: `rotate(${seed.angleDeg})`
+    });
+  }
+
+  if (connection.signalType === 'reality') {
+    return createSvgElement('rect', {
+      class: className,
+      x: (-seed.r).toFixed(2),
+      y: (-seed.r).toFixed(2),
+      width: (seed.r * 2).toFixed(2),
+      height: (seed.r * 2).toFixed(2),
+      rx: 1.2,
+      transform: 'rotate(45)'
+    });
+  }
+
+  if (connection.signalType === 'sync') {
+    return createSvgElement('path', {
+      class: className,
+      d: [
+        `M 0 ${(-seed.r).toFixed(2)}`,
+        `L ${(seed.r).toFixed(2)} 0`,
+        `L 0 ${(seed.r).toFixed(2)}`,
+        `L ${(-seed.r).toFixed(2)} 0`,
+        'Z'
+      ].join(' ')
+    });
+  }
+
+  return createSvgElement('circle', {
+    class: className,
+    cx: 0,
+    cy: 0,
+    r: seed.r.toFixed(2)
+  });
+}
+
+function renderRealityBarrier(svg, connection, points) {
+  const barrierAt = connection.barrierAt ?? 0.72;
+  const frame = getPolylineFrameAtRatio(points, barrierAt);
+  const rotation = (frame.angle * 180) / Math.PI;
+  const group = createSvgElement('g', {
+    class: [
+      'story-reality-barrier',
+      connection.locked ? 'story-reality-barrier--open' : '',
+      connection.highlighted ? 'story-reality-barrier--highlighted' : ''
+    ].filter(Boolean).join(' '),
+    transform: `translate(${frame.point.x} ${frame.point.y}) rotate(${rotation})`
+  });
+
+  group.appendChild(createSvgElement('rect', {
+    class: 'story-reality-barrier__frame',
+    x: -17,
+    y: -13,
+    width: 34,
+    height: 26,
+    rx: 4
+  }));
+
+  [-9, -1, 7].forEach(x => {
+    group.appendChild(createSvgElement('line', {
+      class: 'story-reality-barrier__gate',
+      x1: x,
+      y1: -8,
+      x2: x,
+      y2: 8
+    }));
+  });
+
+  group.appendChild(createSvgElement('line', {
+    class: 'story-reality-barrier__beam',
+    x1: -24,
+    y1: 0,
+    x2: 24,
+    y2: 0
+  }));
+
+  svg.appendChild(group);
+}
+
+function hashStoryString(text) {
+  let hash = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    hash = (hash * 31 + text.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+function deterministicUnitFloat(text) {
+  return (hashStoryString(text) % 1000000) / 1000000;
+}
+
+function smoothStoryStep(value) {
+  const normalized = clampStoryNumber(value, 0, 1);
+  return normalized * normalized * (3 - 2 * normalized);
+}
+
+function createStoryRandom(seedText) {
+  let state = hashStoryString(seedText) || 1;
+  return () => {
+    state = (state + 0x6D2B79F5) >>> 0;
+    let value = state;
+    value = Math.imul(value ^ (value >>> 15), value | 1);
+    value ^= value + Math.imul(value ^ (value >>> 7), value | 61);
+    return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
+  };
 }
 
 function renderStoryNode(svg, node) {
@@ -1208,31 +1669,26 @@ function renderStoryNode(svg, node) {
     class: [
       'story-node',
       `story-node--${node.state || 'inactive'}`,
+      `story-node--kind-${node.kind || 'default'}`,
       node.selected ? 'story-node--selected' : '',
       node.highlighted ? 'story-node--highlighted' : ''
     ].filter(Boolean).join(' '),
     transform: `translate(${node.x} ${node.y})`
   });
 
-  if (node.state === 'restoring') {
-    group.appendChild(createSvgElement('circle', {
-      class: 'story-node__restore-ring',
-      r: 31
-    }));
-  }
+  renderNodeBase(group, node);
 
-  group.appendChild(createSvgElement('circle', {
-    class: 'story-node__outer',
-    r: 25
-  }));
-  group.appendChild(createSvgElement('circle', {
-    class: 'story-node__inner',
-    r: 15
-  }));
-  group.appendChild(createSvgElement('circle', {
-    class: 'story-node__core',
-    r: 5
-  }));
+  if (node.kind === 'core') {
+    renderCoreInterior(group);
+  } else if (node.kind === 'memory') {
+    renderMemoryInterior(group);
+  } else if (node.kind === 'perception') {
+    renderPerceptionInterior(group);
+  } else if (node.kind === 'reality') {
+    renderRealityInterior(group);
+  } else {
+    renderInputInterior(group);
+  }
 
   if (node.state === 'corrupted') {
     group.appendChild(createSvgElement('line', {
@@ -1255,10 +1711,167 @@ function renderStoryNode(svg, node) {
     renderSelectedNodeBrackets(group);
   }
 
+  renderNodeLabels(group, node);
+  svg.appendChild(group);
+}
+
+function renderNodeBase(group, node) {
+  if (node.state === 'restoring') {
+    group.appendChild(createSvgElement('circle', {
+      class: 'story-node__restore-ring',
+      r: 33
+    }));
+  }
+
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__outer',
+    r: 27
+  }));
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__inner',
+    r: 17
+  }));
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__core',
+    r: 5
+  }));
+
+  if (node.kind === 'reality') {
+    group.appendChild(createSvgElement('circle', {
+      class: 'story-node__halo',
+      r: 23
+    }));
+  }
+}
+
+function renderCoreInterior(group) {
+  group.appendChild(createSvgElement('rect', {
+    class: 'story-node__chip',
+    x: -9,
+    y: -9,
+    width: 18,
+    height: 18,
+    rx: 3
+  }));
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__pulse-core',
+    r: 4
+  }));
+  [
+    { x1: -15, y1: -6, x2: -9, y2: -6 },
+    { x1: -15, y1: 0, x2: -9, y2: 0 },
+    { x1: -15, y1: 6, x2: -9, y2: 6 },
+    { x1: 9, y1: -6, x2: 15, y2: -6 },
+    { x1: 9, y1: 0, x2: 15, y2: 0 },
+    { x1: 9, y1: 6, x2: 15, y2: 6 }
+  ].forEach(segment => {
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__circuit-line',
+      ...segment
+    }));
+  });
+}
+
+function renderMemoryInterior(group) {
+  const dots = [
+    { x: -10, y: -4 },
+    { x: -2, y: -11 },
+    { x: 9, y: -3 },
+    { x: -6, y: 9 },
+    { x: 8, y: 10 }
+  ];
+  [
+    [0, 1],
+    [1, 2],
+    [0, 3],
+    [3, 4],
+    [2, 4]
+  ].forEach(([startIndex, endIndex]) => {
+    const start = dots[startIndex];
+    const end = dots[endIndex];
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__memory-line',
+      x1: start.x,
+      y1: start.y,
+      x2: end.x,
+      y2: end.y
+    }));
+  });
+  dots.forEach(dot => {
+    group.appendChild(createSvgElement('circle', {
+      class: 'story-node__memory-dot',
+      cx: dot.x,
+      cy: dot.y,
+      r: 2.3
+    }));
+  });
+}
+
+function renderPerceptionInterior(group) {
+  group.appendChild(createSvgElement('path', {
+    class: 'story-node__wave',
+    d: 'M -13 6 L -9 -1 L -4 3 L 2 -7 L 7 -1 L 13 -8'
+  }));
+  group.appendChild(createSvgElement('line', {
+    class: 'story-node__wave-base',
+    x1: -14,
+    y1: 9,
+    x2: 14,
+    y2: 9
+  }));
+}
+
+function renderRealityInterior(group) {
+  group.appendChild(createSvgElement('circle', {
+    class: 'story-node__sync-ring',
+    r: 10
+  }));
+  group.appendChild(createSvgElement('rect', {
+    class: 'story-node__sync-gate',
+    x: -12,
+    y: -6,
+    width: 24,
+    height: 12,
+    rx: 3
+  }));
+  [-7, 0, 7].forEach(x => {
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__sync-bar',
+      x1: x,
+      y1: -8,
+      x2: x,
+      y2: 8
+    }));
+  });
+}
+
+function renderInputInterior(group) {
+  [
+    { x: -8, y1: 12, y2: -4 },
+    { x: 0, y1: 12, y2: -9 },
+    { x: 8, y1: 12, y2: -1 }
+  ].forEach(stream => {
+    group.appendChild(createSvgElement('line', {
+      class: 'story-node__stream',
+      x1: stream.x,
+      y1: stream.y1,
+      x2: stream.x,
+      y2: stream.y2
+    }));
+    group.appendChild(createSvgElement('circle', {
+      class: 'story-node__stream-dot',
+      cx: stream.x,
+      cy: stream.y2,
+      r: 2.1
+    }));
+  });
+}
+
+function renderNodeLabels(group, node) {
   const label = createSvgElement('text', {
     class: 'story-node__label',
     x: 0,
-    y: 43,
+    y: 47,
     'text-anchor': 'middle'
   });
   label.textContent = node.label;
@@ -1268,14 +1881,12 @@ function renderStoryNode(svg, node) {
     const detail = createSvgElement('text', {
       class: 'story-node__detail',
       x: 0,
-      y: 59,
+      y: 64,
       'text-anchor': 'middle'
     });
     detail.textContent = node.detail;
     group.appendChild(detail);
   }
-
-  svg.appendChild(group);
 }
 
 function renderStoryPathLabel(svg, points, label, state) {
@@ -1314,34 +1925,6 @@ function renderSelectedNodeBrackets(group) {
       d
     }));
   });
-}
-
-function renderBrokenPathMark(svg, points) {
-  const point = getPolylinePointAtRatio(points, 0.55);
-  const group = createSvgElement('g', {
-    class: 'story-broken-mark',
-    transform: `translate(${point.x} ${point.y})`
-  });
-  group.appendChild(createSvgElement('rect', {
-    x: -13,
-    y: -13,
-    width: 26,
-    height: 26,
-    rx: 2
-  }));
-  group.appendChild(createSvgElement('line', {
-    x1: -7,
-    y1: -7,
-    x2: 7,
-    y2: 7
-  }));
-  group.appendChild(createSvgElement('line', {
-    x1: 7,
-    y1: -7,
-    x2: -7,
-    y2: 7
-  }));
-  svg.appendChild(group);
 }
 
 function getStoryPathPoints(path, nodesById) {
@@ -1389,6 +1972,23 @@ function getPolylinePointAtRatio(points, ratio) {
     distance -= segment.length;
   }
   return points[0] || { x: 0, y: 0 };
+}
+
+function getPolylineFrameAtRatio(points, ratio) {
+  const point = getPolylinePointAtRatio(points, ratio);
+  const before = getPolylinePointAtRatio(points, clampStoryNumber(ratio - 0.015, 0, 1));
+  const after = getPolylinePointAtRatio(points, clampStoryNumber(ratio + 0.015, 0, 1));
+  const dx = after.x - before.x;
+  const dy = after.y - before.y;
+  const length = Math.hypot(dx, dy) || 1;
+  return {
+    point,
+    angle: Math.atan2(dy, dx),
+    tangentX: dx / length,
+    tangentY: dy / length,
+    normalX: -dy / length,
+    normalY: dx / length
+  };
 }
 
 function createSvgElement(tagName, attrs = {}) {

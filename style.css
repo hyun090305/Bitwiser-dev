@@ -1170,6 +1170,8 @@ body.story-playback-open {
   --story-line-dim: rgba(120, 160, 180, 0.25);
   --story-active: #3ee7ff;
   --story-restore: #ffb84d;
+  --story-sync: #b597ff;
+  --story-control: #bae4ff;
   --story-error: #ff5c5c;
   --story-text: #d8e8f0;
   --story-text-dim: #87a2b3;
@@ -1540,82 +1542,349 @@ body.story-playback-open {
   min-height: 0;
 }
 
-.story-path {
+.story-particle-field {
+  isolation: isolate;
+}
+
+.story-connection-field {
+  pointer-events: none;
+}
+
+.story-connection-field--highlighted {
+  filter: drop-shadow(0 0 7px rgba(255, 184, 77, 0.16));
+}
+
+.story-connection-backbone {
   fill: none;
-  stroke: var(--story-line-dim);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2.4;
+  stroke-dasharray: 7 12;
+  opacity: 0.16;
+}
+
+.story-connection-backbone--control {
+  stroke: rgba(186, 228, 255, 0.42);
+}
+
+.story-connection-backbone--memory {
+  stroke: rgba(255, 184, 77, 0.42);
+}
+
+.story-connection-backbone--sensory {
+  stroke: rgba(62, 231, 255, 0.42);
+}
+
+.story-connection-backbone--reality {
+  stroke: rgba(181, 151, 255, 0.45);
+}
+
+.story-connection-backbone--sync {
+  stroke: rgba(242, 248, 255, 0.5);
+}
+
+.story-connection-backbone--highlighted {
+  opacity: 0.28;
   stroke-width: 3;
-  stroke-linecap: square;
-  stroke-linejoin: miter;
+  filter: drop-shadow(0 0 7px rgba(110, 240, 255, 0.22));
 }
 
-.story-path--active {
-  stroke: var(--story-active);
-  stroke-width: 3.5;
+.story-connection-backbone--locked {
+  opacity: 0.36;
+  stroke-dasharray: 10 9;
+  filter: drop-shadow(0 0 9px rgba(110, 240, 255, 0.26));
 }
 
-.story-path--restoring {
-  stroke: var(--story-restore);
-  stroke-dasharray: 9 10;
-  animation: storyRestoringDash 1200ms linear infinite;
+.story-connection-link {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: opacity 220ms ease-out, stroke-width 220ms ease-out;
 }
 
-.story-path--broken {
-  stroke: var(--story-error);
-  stroke-dasharray: 18 15;
-  opacity: 0.82;
+.story-connection-link--control {
+  stroke: rgba(186, 228, 255, 0.62);
 }
 
-.story-path--highlighted {
-  stroke-width: 4;
-  filter: drop-shadow(0 0 5px rgba(255, 184, 77, 0.42));
+.story-connection-link--memory {
+  stroke: rgba(255, 184, 77, 0.72);
 }
 
-.story-path--broken.story-path--highlighted {
-  filter: drop-shadow(0 0 5px rgba(255, 92, 92, 0.38));
+.story-connection-link--sensory {
+  stroke: rgba(62, 231, 255, 0.72);
 }
 
-.story-connector-dot {
-  fill: rgba(120, 160, 180, 0.34);
+.story-connection-link--reality {
+  stroke: rgba(181, 151, 255, 0.76);
 }
 
-.story-connector-dot--active {
-  fill: var(--story-active);
+.story-connection-link--sync {
+  stroke: rgba(242, 248, 255, 0.88);
 }
 
-.story-connector-dot--restoring {
+.story-connection-link--locked {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(110, 240, 255, 0.54));
+}
+
+.story-connection-link--highlighted {
+  opacity: 0.95;
+  filter: drop-shadow(0 0 8px rgba(110, 240, 255, 0.44));
+}
+
+.story-connection-link--inactive {
+  opacity: 0.14;
+}
+
+.story-connection-link--active {
+  opacity: 0.78;
+}
+
+.story-connection-link--secondary {
+  opacity: 0.38;
+}
+
+.story-connection-link--front-soft {
+  opacity: 0.42;
+}
+
+.story-connection-link--front-mid {
+  opacity: 0.72;
+  filter: drop-shadow(0 0 6px rgba(110, 240, 255, 0.28));
+}
+
+.story-connection-link--front-strong {
+  opacity: 1;
+  filter: drop-shadow(0 0 10px rgba(110, 240, 255, 0.5));
+}
+
+.story-connection-link--highlighted.story-connection-link--front-strong {
+  opacity: 1;
+  filter: drop-shadow(0 0 12px rgba(110, 240, 255, 0.58));
+}
+
+.story-connection-link--locked {
+  opacity: 1;
+  filter: drop-shadow(0 0 14px rgba(110, 240, 255, 0.62));
+}
+
+.story-connection-particle-wrap {
+  pointer-events: none;
+}
+
+.story-connection-particle-floater {
+  pointer-events: none;
+}
+
+.story-connection-particle {
+  opacity: 0.72;
+  transition: opacity 260ms ease-out, filter 260ms ease-out;
+  filter: drop-shadow(0 0 4px rgba(216, 232, 240, 0.16));
+}
+
+.story-connection-particle--control {
+  fill: var(--story-control);
+}
+
+.story-connection-particle--ambient {
+  fill: rgba(108, 132, 152, 0.42);
+  opacity: 0.18;
+}
+
+.story-connection-particle--memory {
   fill: var(--story-restore);
 }
 
-.story-connector-dot--broken {
-  fill: var(--story-error);
-}
-
-.story-pulse {
+.story-connection-particle--sensory {
   fill: var(--story-active);
-  filter: drop-shadow(0 0 7px rgba(62, 231, 255, 0.7));
 }
 
-.story-pulse--restoring {
-  fill: var(--story-restore);
-  filter: drop-shadow(0 0 7px rgba(255, 184, 77, 0.62));
+.story-connection-particle--reality {
+  fill: var(--story-sync);
+}
+
+.story-connection-particle--sync {
+  fill: rgba(242, 248, 255, 0.96);
+  stroke: var(--story-sync);
+  stroke-width: 1;
+}
+
+.story-connection-particle--locked {
+  opacity: 0.86;
+}
+
+.story-connection-particle--highlighted {
+  opacity: 1;
+  filter: drop-shadow(0 0 7px rgba(110, 240, 255, 0.44));
+}
+
+.story-connection-particle--inactive {
+  opacity: 0.34;
+  filter: drop-shadow(0 0 2px rgba(170, 190, 210, 0.1));
+}
+
+.story-connection-particle--active {
+  opacity: 0.88;
+}
+
+.story-connection-particle--front-soft {
+  opacity: 0.44;
+}
+
+.story-connection-particle--front-mid {
+  opacity: 0.72;
+  filter: drop-shadow(0 0 5px rgba(110, 240, 255, 0.26));
+}
+
+.story-connection-particle--front-strong {
+  opacity: 1;
+  filter: drop-shadow(0 0 8px rgba(110, 240, 255, 0.48));
+}
+
+.story-connection-particle--ambient.story-connection-particle--inactive,
+.story-connection-particle--ambient-vivid {
+  opacity: 0.16;
+  filter: drop-shadow(0 0 2px rgba(120, 145, 165, 0.08));
+}
+
+.story-reality-barrier {
+  opacity: 0.78;
+}
+
+.story-reality-barrier__frame {
+  fill: rgba(17, 12, 32, 0.86);
+  stroke: rgba(181, 151, 255, 0.72);
+  stroke-width: 1.4;
+}
+
+.story-reality-barrier__gate {
+  stroke: rgba(181, 151, 255, 0.82);
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+.story-reality-barrier__beam {
+  stroke: rgba(242, 248, 255, 0.72);
+  stroke-width: 1.6;
+  stroke-dasharray: 4 5;
+}
+
+.story-reality-barrier--highlighted .story-reality-barrier__frame {
+  filter: drop-shadow(0 0 6px rgba(181, 151, 255, 0.38));
+}
+
+.story-reality-barrier--open .story-reality-barrier__frame {
+  fill: rgba(22, 14, 42, 0.56);
+  stroke: rgba(242, 248, 255, 0.86);
+}
+
+.story-reality-barrier--open .story-reality-barrier__gate {
+  stroke: rgba(242, 248, 255, 0.72);
+}
+
+.story-reality-barrier--open .story-reality-barrier__beam {
+  stroke: rgba(242, 248, 255, 0.94);
+  stroke-dasharray: none;
 }
 
 .story-node__outer,
 .story-node__inner,
 .story-node__core,
-.story-node__restore-ring {
+.story-node__restore-ring,
+.story-node__halo {
   fill: rgba(7, 16, 24, 0.94);
   stroke: rgba(120, 160, 180, 0.42);
   stroke-width: 2;
 }
 
 .story-node__inner {
+  fill: rgba(8, 19, 28, 0.96);
   stroke-width: 1.5;
 }
 
 .story-node__core {
-  fill: rgba(120, 160, 180, 0.55);
+  fill: rgba(120, 160, 180, 0.52);
   stroke-width: 0;
+}
+
+.story-node__restore-ring {
+  fill: transparent;
+  opacity: 0.65;
+  animation: storyNodeRestore 1600ms linear infinite;
+}
+
+.story-node__halo {
+  fill: none;
+  stroke: rgba(181, 151, 255, 0.36);
+  stroke-dasharray: 5 5;
+}
+
+.story-node__chip,
+.story-node__circuit-line,
+.story-node__memory-line,
+.story-node__wave,
+.story-node__wave-base,
+.story-node__sync-ring,
+.story-node__sync-gate,
+.story-node__sync-bar,
+.story-node__stream {
+  fill: none;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.story-node__pulse-core,
+.story-node__memory-dot,
+.story-node__stream-dot {
+  stroke-width: 0;
+}
+
+.story-node--kind-core .story-node__chip,
+.story-node--kind-core .story-node__circuit-line {
+  stroke: rgba(186, 228, 255, 0.76);
+}
+
+.story-node--kind-core .story-node__chip {
+  fill: rgba(12, 27, 39, 0.92);
+}
+
+.story-node--kind-core .story-node__pulse-core {
+  fill: var(--story-active);
+  filter: drop-shadow(0 0 7px rgba(62, 231, 255, 0.42));
+}
+
+.story-node--kind-memory .story-node__memory-line {
+  stroke: rgba(255, 184, 77, 0.54);
+}
+
+.story-node--kind-memory .story-node__memory-dot {
+  fill: var(--story-restore);
+}
+
+.story-node--kind-perception .story-node__wave,
+.story-node--kind-perception .story-node__wave-base {
+  stroke: rgba(62, 231, 255, 0.7);
+}
+
+.story-node--kind-reality .story-node__sync-ring,
+.story-node--kind-reality .story-node__sync-bar,
+.story-node--kind-reality .story-node__halo {
+  stroke: rgba(181, 151, 255, 0.76);
+}
+
+.story-node--kind-reality .story-node__sync-gate {
+  fill: rgba(22, 14, 42, 0.72);
+  stroke: rgba(242, 248, 255, 0.6);
+}
+
+.story-node--kind-input .story-node__stream {
+  stroke: rgba(186, 228, 255, 0.76);
+  stroke-dasharray: 4 5;
+}
+
+.story-node--kind-input .story-node__stream-dot {
+  fill: var(--story-control);
 }
 
 .story-node__label {
@@ -1653,12 +1922,6 @@ body.story-playback-open {
   stroke-dasharray: 5 6;
 }
 
-.story-node__restore-ring {
-  fill: transparent;
-  opacity: 0.65;
-  animation: storyNodeRestore 1600ms linear infinite;
-}
-
 .story-node--restoring .story-node__core {
   fill: var(--story-restore);
 }
@@ -1694,17 +1957,6 @@ body.story-playback-open {
   stroke: var(--story-restore);
 }
 
-.story-broken-mark rect {
-  fill: rgba(7, 16, 24, 0.94);
-  stroke: var(--story-error);
-  stroke-width: 1.5;
-}
-
-.story-broken-mark line {
-  stroke: var(--story-error);
-  stroke-width: 2;
-}
-
 .story-path-label rect {
   fill: rgba(7, 16, 24, 0.94);
   stroke: rgba(120, 160, 180, 0.28);
@@ -1719,11 +1971,11 @@ body.story-playback-open {
 }
 
 .story-path-label--active rect {
-  stroke: rgba(62, 231, 255, 0.42);
+  stroke: rgba(242, 248, 255, 0.42);
 }
 
 .story-path-label--active text {
-  fill: var(--story-active);
+  fill: rgba(242, 248, 255, 0.94);
 }
 
 .story-path-label--restoring rect {
@@ -1733,14 +1985,6 @@ body.story-playback-open {
 
 .story-path-label--restoring text {
   fill: var(--story-restore);
-}
-
-.story-path-label--broken rect {
-  stroke: rgba(255, 92, 92, 0.56);
-}
-
-.story-path-label--broken text {
-  fill: var(--story-error);
 }
 
 .story-playback__text {
@@ -2559,9 +2803,12 @@ html, body {
 #gameScreen {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
   margin: 0;
   overflow-x: auto;
+  overflow-y: hidden;
   width: 100%;
   position: relative;
   padding-bottom: 0;
@@ -2588,11 +2835,12 @@ html, body {
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
+  min-height: 0;
   padding: 2rem 1.5rem;
   box-sizing: border-box;
   position: relative;
   z-index: 1;
+  overflow: hidden;
 }
 
   #gameLayout {
@@ -2762,7 +3010,9 @@ html, body {
 
 .console-frame {
   width: min(1480px, 96vw);
-  min-height: min(88vh, 940px);
+  min-height: 0;
+  height: min(calc(100vh - 4rem), 88vh, 940px);
+  height: min(calc(100dvh - 4rem), 88dvh, 940px);
   display: grid;
   grid-template-columns: 1fr minmax(260px, 22%);
   gap: 0;

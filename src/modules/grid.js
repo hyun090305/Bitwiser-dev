@@ -223,32 +223,29 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     const gridAvailableWidth = Math.max(0, availableWidth - resolvedPanelWidth);
     const gridAvailableHeight = Math.max(0, availableHeight);
 
-    let scale = 1;
+    let fitScale = Number.POSITIVE_INFINITY;
     if (resolvedGridWidth > 0) {
       if (gridAvailableWidth > 0) {
-        scale = Math.min(scale, gridAvailableWidth / resolvedGridWidth);
+        fitScale = Math.min(fitScale, gridAvailableWidth / resolvedGridWidth);
       } else {
-        scale = Math.min(scale, MIN_CAMERA_SCALE);
+        fitScale = Math.min(fitScale, MIN_CAMERA_SCALE);
       }
     }
     if (resolvedGridHeight > 0) {
       if (gridAvailableHeight > 0) {
-        scale = Math.min(scale, gridAvailableHeight / resolvedGridHeight);
+        fitScale = Math.min(fitScale, gridAvailableHeight / resolvedGridHeight);
       } else {
-        scale = Math.min(scale, MIN_CAMERA_SCALE);
+        fitScale = Math.min(fitScale, MIN_CAMERA_SCALE);
       }
     }
 
-    if (!Number.isFinite(scale) || scale <= 0) {
-      scale = MIN_CAMERA_SCALE;
+    if (!Number.isFinite(fitScale) || fitScale <= 0) {
+      fitScale = MIN_CAMERA_SCALE;
     }
 
-    scale *= SCALE_BOOST;
-    scale = Math.min(scale, MAX_CAMERA_SCALE);
-
-    if (scale < MIN_CAMERA_SCALE) {
-      scale = MIN_CAMERA_SCALE;
-    }
+    const scale = fitScale >= 1
+      ? Math.min(fitScale, SCALE_BOOST, MAX_CAMERA_SCALE)
+      : Math.max(fitScale, MIN_CAMERA_SCALE);
 
     const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
     const targetHeight = resolvedGridHeight * scale;
