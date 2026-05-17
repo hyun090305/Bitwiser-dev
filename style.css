@@ -239,6 +239,101 @@ body.safe-mode .stage-map-surface {
   letter-spacing: 0.02em;
 }
 
+.stage-map-blueprint-tools {
+  position: absolute;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  max-width: min(92vw, 980px);
+  padding: 0.55rem 0.7rem;
+  border-radius: 14px;
+  border: 1px solid rgba(103, 232, 249, 0.34);
+  background: rgba(5, 15, 26, 0.88);
+  color: #dffbff;
+  box-shadow: 0 18px 36px rgba(2, 8, 16, 0.42);
+  backdrop-filter: blur(10px);
+}
+
+.stage-map-blueprint-tools[hidden] {
+  display: none;
+}
+
+.blueprint-tools__title {
+  white-space: nowrap;
+  font-weight: 800;
+  color: #a5f3fc;
+  padding: 0 0.25rem;
+}
+
+.stage-map-blueprint-tools label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+  font-size: 0.82rem;
+  color: rgba(224, 250, 255, 0.78);
+}
+
+.stage-map-blueprint-tools input,
+.stage-map-blueprint-tools select,
+.blueprint-tools__toggle {
+  min-height: 32px;
+  border-radius: 8px;
+  border: 1px solid rgba(103, 232, 249, 0.28);
+  background: rgba(8, 24, 38, 0.92);
+  color: #ecfeff;
+  outline: none;
+}
+
+.stage-map-blueprint-tools input:focus,
+.stage-map-blueprint-tools select:focus,
+.blueprint-tools__toggle:focus {
+  border-color: rgba(165, 243, 252, 0.72);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.16);
+}
+
+.blueprint-tools__search input {
+  width: clamp(180px, 24vw, 300px);
+  padding: 0 0.65rem;
+}
+
+.stage-map-blueprint-tools select {
+  padding: 0 0.45rem;
+}
+
+.stage-map-blueprint-tools input[type="number"] {
+  width: 64px;
+  padding: 0 0.45rem;
+}
+
+.blueprint-tools__toggle {
+  padding: 0 0.65rem;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.blueprint-tools__toggle[aria-pressed="true"] {
+  border-color: rgba(165, 243, 252, 0.76);
+  background: rgba(14, 116, 144, 0.72);
+  color: #ecfeff;
+  box-shadow: inset 0 0 12px rgba(103, 232, 249, 0.12);
+}
+
+@media (max-width: 760px) {
+  .stage-map-blueprint-tools {
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: 0.75rem;
+    transform: none;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
 .stage-map-panels {
   position: absolute;
   inset: 0;
@@ -3755,7 +3850,8 @@ body.system-menu-open {
 }
 
 .level-intro-screen__panel {
-  width: min(680px, 100%);
+  width: min(960px, 100%);
+  max-height: calc(100vh - 2.5rem);
   text-align: left;
   color: #ecfeff;
   border-radius: 18px;
@@ -3765,6 +3861,8 @@ body.system-menu-open {
     rgba(2, 6, 23, 0.6);
   box-shadow: 0 26px 56px rgba(2, 6, 23, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.08);
   padding: clamp(1.2rem, 2.5vw, 2rem);
+  display: flex;
+  flex-direction: column;
   transform: scale(0.98);
   opacity: 0;
   transition: transform 0.36s ease, opacity 0.36s ease;
@@ -3799,6 +3897,8 @@ body.system-menu-open {
 
 .level-intro-screen__logic {
   margin-top: 1rem;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .level-intro-screen__logic-label {
@@ -3811,9 +3911,10 @@ body.system-menu-open {
 
 .level-intro-screen__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
   gap: 0.6rem;
-  justify-items: start;
+  align-items: start;
+  justify-items: stretch;
 }
 
 .level-intro-case {
@@ -3833,7 +3934,9 @@ body.system-menu-open {
   transform: translateY(6px);
   animation: level-intro-case-in 240ms ease forwards;
   animation-delay: var(--case-delay, 0ms);
-  width: max-content;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .level-intro-case__side {
@@ -3841,8 +3944,10 @@ body.system-menu-open {
   flex-wrap: nowrap;
   align-content: center;
   gap: 0.35rem;
-  flex: 0 0 auto;
-  overflow: visible;
+  flex: 1 1 0;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
   scrollbar-width: auto;
 }
 
@@ -3905,10 +4010,33 @@ body.system-menu-open {
   align-items: center;
   justify-content: center;
   padding: 0;
+  flex: 0 0 auto;
+}
+
+.level-intro-case__input,
+.level-intro-case__output {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  color: #cffafe;
+  white-space: nowrap;
+  scrollbar-width: thin;
+}
+
+.level-intro-case__input {
+  flex: 1 1 auto;
+}
+
+.level-intro-case__output {
+  flex: 0 0 auto;
+  color: #f0fdfa;
+  font-weight: 700;
 }
 
 .level-intro-screen__action {
   margin-top: 1.15rem;
+  flex: 0 0 auto;
   width: 100%;
   min-height: 52px;
   border-radius: 12px;
@@ -3991,16 +4119,44 @@ body.system-menu-open {
   /* tutorial modal styles removed */
 
 #truthTableContainer {
-  max-height: unset;
-  overflow: visible;
-  margin: 10px auto;
+  width: 100%;
+  max-height: min(42vh, 430px);
+  overflow: auto;
+  margin: 10px 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
+  padding-right: 0.35rem;
+  overscroll-behavior: contain;
+  scrollbar-color: rgba(56, 189, 248, 0.65) rgba(15, 23, 42, 0.38);
+}
+
+#truthTableContainer::-webkit-scrollbar,
+.level-intro-case__side::-webkit-scrollbar,
+.level-intro-case__input::-webkit-scrollbar,
+.level-intro-case__output::-webkit-scrollbar {
+  width: 8px;
+  height: 7px;
+}
+
+#truthTableContainer::-webkit-scrollbar-track,
+.level-intro-case__side::-webkit-scrollbar-track,
+.level-intro-case__input::-webkit-scrollbar-track,
+.level-intro-case__output::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.38);
+  border-radius: 999px;
+}
+
+#truthTableContainer::-webkit-scrollbar-thumb,
+.level-intro-case__side::-webkit-scrollbar-thumb,
+.level-intro-case__input::-webkit-scrollbar-thumb,
+.level-intro-case__output::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.58);
+  border-radius: 999px;
 }
 
 #truthTable {
-  width: max-content;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -4074,11 +4230,6 @@ body.system-menu-open {
     z-index: 10;
   }
 
-  #user-problems-screen {
-    background: transparent;
-    padding: 2rem;
-  }
-
 .sr-only {
   position: absolute;
   width: 1px;
@@ -4103,215 +4254,6 @@ body.system-menu-open {
     width: min(100%, 1200px);
     margin: 0 auto;
     box-sizing: border-box;
-  }
-
-  .user-problems-toolbar {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-    padding: 1.2rem 1.5rem;
-    border-radius: 16px;
-    border: 1px solid rgba(148, 163, 184, 0.3);
-    background: linear-gradient(165deg, rgba(248, 250, 252, 0.95), rgba(241, 245, 249, 0.7));
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65), 0 14px 35px rgba(148, 163, 184, 0.18);
-    backdrop-filter: blur(6px);
-  }
-
-  .user-problems-toolbar-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-  }
-
-  .user-problems-search {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.6rem 1rem;
-    border-radius: 999px;
-    border: 1px solid rgba(99, 102, 241, 0.25);
-    background: rgba(255, 255, 255, 0.95);
-    box-shadow: 0 8px 18px rgba(59, 130, 246, 0.12);
-    flex: 1 1 240px;
-  }
-
-  .user-problems-search span {
-    font-size: 1.2rem;
-    color: #475569;
-  }
-
-  .user-problems-search input {
-    border: none;
-    background: transparent;
-    outline: none;
-    font-size: 1rem;
-    width: 100%;
-    min-width: 160px;
-    max-width: 280px;
-    color: #1f2937;
-  }
-
-  .user-problems-search input::placeholder {
-    color: #94a3b8;
-  }
-
-  .user-problems-sort {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .user-problems-sort label {
-    font-weight: 600;
-    color: #475569;
-  }
-
-  .user-problems-sort select {
-    padding: 0.45rem 0.85rem;
-    border-radius: 999px;
-    border: 1px solid rgba(148, 163, 184, 0.55);
-    background: rgba(255, 255, 255, 0.95);
-    font-size: 0.95rem;
-    color: #1f2937;
-    cursor: pointer;
-  }
-
-  .user-problems-search-help {
-    margin: 0;
-    font-size: 0.85rem;
-    color: #64748b;
-  }
-
-  .user-problems-filter-row {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
-
-  .user-problem-difficulty-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.35rem;
-  }
-
-  .user-problem-filter-toggle {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.5rem 1.05rem;
-    border-radius: 999px;
-    border: 1px solid rgba(79, 70, 229, 0.35);
-    background: linear-gradient(140deg, rgba(99, 102, 241, 0.14), rgba(79, 70, 229, 0.08));
-    color: #4338ca;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-  }
-
-  .user-problem-filter-toggle:hover,
-  .user-problem-filter-toggle:focus-visible {
-    border-color: rgba(79, 70, 229, 0.65);
-    box-shadow: 0 12px 24px rgba(99, 102, 241, 0.25);
-    transform: translateY(-1px);
-  }
-
-  .user-problem-filter-toggle.active {
-    background: linear-gradient(135deg, #4f46e5, #4338ca);
-    color: #f8fafc;
-    border-color: rgba(49, 46, 129, 0.8);
-    box-shadow: 0 16px 30px rgba(79, 70, 229, 0.35);
-    transform: translateY(-1px);
-  }
-
-  .user-problem-filter-toggle span {
-    font-size: 0.9rem;
-  }
-
-  .user-problems-advanced {
-    position: relative;
-  }
-
-  .user-problems-advanced > summary {
-    list-style: none;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    padding: 0.45rem 0.95rem;
-    border-radius: 999px;
-    border: 1px solid rgba(100, 116, 139, 0.4);
-    background: rgba(148, 163, 184, 0.15);
-    color: #334155;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .user-problems-advanced > summary::marker,
-  .user-problems-advanced > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  .user-problems-advanced[open] > summary {
-    background: linear-gradient(135deg, #0284c7, #0ea5e9);
-    color: #f8fafc;
-    border-color: rgba(7, 89, 133, 0.7);
-    box-shadow: 0 6px 18px rgba(14, 165, 233, 0.35);
-  }
-
-  .user-problems-advanced-grid {
-    margin-top: 0.75rem;
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    border: 1px solid rgba(203, 213, 225, 0.8);
-    background: rgba(248, 250, 252, 0.95);
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 0.85rem 1rem;
-    align-items: center;
-  }
-
-  .user-problems-advanced-grid label {
-    font-weight: 600;
-    color: #475569;
-  }
-
-  .user-problems-advanced-grid select,
-  .user-problems-advanced-grid input {
-    padding: 0.45rem 0.6rem;
-    border-radius: 0.6rem;
-    border: 1px solid rgba(148, 163, 184, 0.6);
-    background: #ffffff;
-    font-size: 0.9rem;
-    box-shadow: inset 0 1px 2px rgba(148, 163, 184, 0.15);
-  }
-
-  .user-problem-reset {
-    justify-self: flex-start;
-    padding: 0.5rem 0.95rem;
-    border-radius: 0.75rem;
-    border: none;
-    background: linear-gradient(135deg, #f97316, #ea580c);
-    color: #fff;
-    font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-  }
-
-  .user-problem-reset:hover,
-  .user-problem-reset:focus-visible {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(234, 88, 12, 0.3);
-  }
-
-  .user-problem-result-summary {
-    font-size: 0.9rem;
-    color: #0f172a;
-    font-weight: 600;
-    background: rgba(226, 232, 240, 0.55);
-    padding: 0.65rem 0.9rem;
-    border-radius: 0.75rem;
   }
 
   .problem-screen-panel {
@@ -4840,106 +4782,6 @@ body.system-menu-open {
   cursor: not-allowed;
 }
 
-  #user-problems-screen {
-    overflow: hidden;
-  }
-
-  .user-problems-panel {
-    align-items: stretch;
-    max-height: calc(100vh - 4rem);
-    overflow: hidden;
-    height: calc(100vh - 4rem);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    box-shadow: 0 24px 50px rgba(15, 23, 42, 0.2);
-    background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.9));
-    position: relative;
-  }
-
-  .user-problems-panel::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(14, 165, 233, 0.08));
-    opacity: 0.8;
-    mix-blend-mode: lighten;
-  }
-
-  .user-problems-panel > * {
-    position: relative;
-    z-index: 1;
-  }
-
-  #userProblemsTitle {
-    margin-bottom: -0.75rem;
-    font-size: clamp(1.75rem, 2vw + 1rem, 2.2rem);
-    color: #0f172a;
-    letter-spacing: -0.01em;
-  }
-
-  .user-problems-subtitle {
-    margin: 0 0 0.75rem;
-    font-size: 0.95rem;
-    color: #475569;
-  }
-
-  .user-problems-content {
-    display: flex;
-    gap: 1.5rem;
-    width: 100%;
-    align-items: flex-start;
-    flex: 1 1 auto;
-    min-height: 0;
-    overflow: hidden;
-    height: 100%;
-  }
-
-  .user-problems-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    max-width: 360px;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-  }
-
-  .user-problems-list-container {
-    flex: 1 1 0;
-    min-height: 0;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: stretch;
-    overflow: hidden;
-    max-height: 100%;
-    height: 100%;
-    padding: 0.25rem;
-    position: relative;
-  }
-
-  .user-problems-list-container::before,
-  .user-problems-list-container::after {
-    content: "";
-    position: absolute;
-    left: 0.5rem;
-    right: 0.5rem;
-    height: 2.5rem;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  .user-problems-list-container::before {
-    top: 0.35rem;
-    background: linear-gradient(180deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0));
-  }
-
-  .user-problems-list-container::after {
-    bottom: 0.35rem;
-    background: linear-gradient(0deg, rgba(248, 250, 252, 0.95), rgba(248, 250, 252, 0));
-  }
-
   /* 사용자 문제 목록 */
   .problem-list {
     list-style: none;
@@ -5181,30 +5023,6 @@ body.system-menu-open {
     font-weight: 500;
   }
 
-  .user-problems-actions {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 1rem;
-    flex-wrap: wrap;
-    padding: 0.75rem 1.5rem;
-    border-radius: 14px;
-    border: 1px solid rgba(203, 213, 225, 0.6);
-    background: rgba(255, 255, 255, 0.85);
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
-  }
-
-  .user-problems-actions .btn-back {
-    align-self: center;
-    margin-top: 0;
-  }
-
-  @media (max-width: 1024px) {
-    .user-problems-actions {
-      justify-content: center;
-    }
-  }
-
   /* Primary button */
   .btn-primary {
   padding: 0.75rem 1.5rem;
@@ -5419,16 +5237,6 @@ body.system-menu-open {
 
 .likeBtn:hover {
   background: #ddd;
-}
-
-#openProblemCreatorBtn {
-  margin-top: auto;
-  background: #007bff;
-  color: #fff;
-}
-
-#openProblemCreatorBtn:hover {
-  background: #0069d9;
 }
 
 #userProblemTable tbody tr:hover {

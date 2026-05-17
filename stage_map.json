@@ -33,9 +33,10 @@
     },
     {
       "id": "chapter_4",
-      "label": "Community",
+      "label": "Auxiliary Systems",
       "order": 4,
-      "anchor": { "x": 102, "y": 0 }
+      "anchor": { "x": 102, "y": 0 },
+      "rankNodeId": "auxiliary_core"
     }
   ],
   "globals": {
@@ -133,22 +134,31 @@
       "size": { "w": 3, "h": 3 }
     },
     {
+      "id": "auxiliary_core",
+      "label": "Auxiliary Core",
+      "nodeType": "rank",
+      "category": "meta",
+      "chapterId": "chapter_4",
+      "position": { "x": 104, "y": 2 },
+      "size": { "w": 25, "h": 3 }
+    },
+    {
       "id": "lab",
-      "label": "Lab",
+      "label": "Test Bench",
       "nodeType": "mode",
       "category": "meta",
       "chapterId": "chapter_4",
-      "position": { "x": 102, "y": 8 },
-      "size": { "w": 5, "h": 5 }
+      "position": { "x": 105, "y": 8 },
+      "size": { "w": 8, "h": 3 }
     },
     {
       "id": "user_created_stages",
-      "label": "User Created Stages",
+      "label": "External Blueprints",
       "nodeType": "mode",
       "category": "meta",
       "chapterId": "chapter_4",
-      "position": { "x": 102, "y": 15 },
-      "size": { "w": 5, "h": 5 }
+      "position": { "x": 119, "y": 13 },
+      "size": { "w": 9, "h": 3 }
     },
     {
       "id": "crossroad",

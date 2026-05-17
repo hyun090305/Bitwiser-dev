@@ -735,14 +735,8 @@ function enterProblemScreen(from) {
   if (!creationFlowConfig) return;
   const { ids } = creationFlowConfig;
   previousScreen = from;
-  if (from === 'main') {
-    hideElement(ids.firstScreenId);
-  } else if (from === 'userProblems') {
-    hideElement(ids.userProblemsScreenId);
-  } else {
-    hideElement(ids.firstScreenId);
-  }
-  const displayMode = from === 'main' ? 'block' : 'flex';
+  hideElement(ids.firstScreenId);
+  const displayMode = 'block';
   showElement(ids.problemScreenId, displayMode);
   initializeProblemEditorUI();
 }
@@ -752,13 +746,7 @@ function leaveProblemScreen() {
   const { ids, onDestroyProblemContext, onRefreshUserData } = creationFlowConfig;
   onDestroyProblemContext?.();
   hideElement(ids.problemScreenId);
-  if (previousScreen === 'userProblems') {
-    showElement(ids.userProblemsScreenId, 'block');
-  } else if (previousScreen === 'main') {
-    showElement(ids.firstScreenId);
-  } else {
-    showElement(ids.firstScreenId);
-  }
+  showElement(ids.firstScreenId);
   onRefreshUserData?.();
   previousScreen = null;
 }
@@ -802,11 +790,6 @@ export function initializeProblemCreationFlow({
   const backButton = getElement(ids.backButtonId);
   if (backButton) {
     backButton.addEventListener('click', leaveProblemScreen);
-  }
-
-  const openProblemCreatorBtn = getElement(ids.openProblemCreatorBtnId);
-  if (openProblemCreatorBtn) {
-    openProblemCreatorBtn.addEventListener('click', () => enterProblemScreen('userProblems'));
   }
 
   const problemSaveModal = getElement(ids.problemSaveModalId);
@@ -1476,13 +1459,17 @@ export function getUserProblems() {
         
         const rankingEntries = data.ranking ? Object.values(data.ranking) : [];
         const solvedByMe = rankingEntries.some(entry => entry.nickname === nickname);
+        const parsedTimestamp = data.timestamp ? Date.parse(data.timestamp) : Number.NaN;
 
         problems.push({
             key: child.key,
             title: data.title || child.key,
             creator: data.creator || 'Anonymous',
             difficulty: data.difficulty || 0,
-            solvedByMe: solvedByMe
+            solvedByMe: solvedByMe,
+            solvedCount: rankingEntries.length,
+            timestamp: data.timestamp || '',
+            timestampValue: Number.isNaN(parsedTimestamp) ? 0 : parsedTimestamp
         });
     });
     return problems;

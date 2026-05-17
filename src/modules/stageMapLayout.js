@@ -15,6 +15,7 @@ export const STAGE_NODE_LEVEL_MAP = {
   crossroad: 19,
   bit_wiser: null,
   story: null,
+  auxiliary_core: null,
   lab: null,
   user_created_stages: null,
   three_bit_shifter: 21,
@@ -53,8 +54,8 @@ export const STAGE_TYPE_META = {
     accent: '#E5E7EB'
   },
   mode: {
-    color: '#22c55e',
-    accent: '#16a34a'
+    color: '#38bdf8',
+    accent: '#67e8f9'
   }
 };
 

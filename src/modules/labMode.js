@@ -11,6 +11,10 @@ import {
   hideLabScreen as concealLabScreen
 } from './navigation.js';
 
+const translate = typeof window !== 'undefined' && typeof window.t === 'function'
+  ? window.t
+  : key => key;
+
 function getAvailableIONames(circuit, count = 5) {
   const collectNames = (type, prefix) => {
     const used = new Set();
@@ -280,7 +284,7 @@ function showLabModeUI(options = {}) {
     if (!originalGameTitleText) {
       originalGameTitleText = titleEl.textContent || '';
     }
-    titleEl.textContent = '🔬 Lab Mode';
+    titleEl.textContent = translate('labModeTitle') || 'Test Bench';
     titleEl.classList.remove('lab-ui-fade-in');
     void titleEl.offsetWidth;
     titleEl.classList.add('lab-ui-fade-in');

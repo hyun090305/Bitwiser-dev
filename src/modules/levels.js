@@ -23,7 +23,6 @@ let stageDataPromise = Promise.resolve();
 let currentLevel = null;
 
 const dependencies = {
-  renderUserProblemList: null,
   showOverallRanking: null,
   setIsScoring: null,
   onLevelIntroComplete: null,
@@ -212,14 +211,6 @@ export async function returnToLevels({
     if (typeof onClearCustomProblem === 'function') {
       onClearCustomProblem();
     }
-    const userProblemsScreen = document.getElementById('user-problems-screen');
-    if (userProblemsScreen) {
-      userProblemsScreen.style.display = 'block';
-    }
-    if (typeof dependencies.renderUserProblemList === 'function') {
-      dependencies.renderUserProblemList();
-    }
-    return;
   }
 
   if (typeof showStageMapScreen === 'function') {

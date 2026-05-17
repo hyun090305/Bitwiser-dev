@@ -2,8 +2,7 @@
   lockOrientationLandscape,
   hideStageMapScreen,
   showGameScreen,
-  showStageMapScreen,
-  openUserProblemsFromShortcut
+  showStageMapScreen
 } from './navigation.js';
 import { openLabModeFromShortcut } from './labMode.js';
 import { getUserProblems, previewUserProblem } from './problemEditor.js';
@@ -33,9 +32,31 @@ const STAGE_FOCUS_VERTICAL_ANCHOR = 0.42;
 // Keep scale unchanged when focusing a stage (avoid automatic zoom-out)
 const STAGE_FOCUS_SCALE_FACTOR = 1.0;
 const CHAPTER_FOCUS_VERTICAL_ANCHOR = 0.43;
+const BLUEPRINT_ARCHIVE_ROOT_ID = 'user_created_stages';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
 const easeOutCubic = value => 1 - Math.pow(1 - clamp(value, 0, 1), 3);
+
+function hashString(value) {
+  const text = String(value || '');
+  let hash = 2166136261;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+function createSeededRandom(seed) {
+  let state = seed >>> 0;
+  return () => {
+    state += 0x6D2B79F5;
+    let t = state;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 const NODE_STYLE = {
   stage: {
@@ -54,9 +75,9 @@ const NODE_STYLE = {
     text: '#2E2E2E'
   },
   mode: {
-    fill: '#9fc8aeff',
-    stroke: '#a3d5b6ff',
-    text: '#0f172a'
+    fill: '#0f2a3a',
+    stroke: '#67e8f9',
+    text: '#e0faff'
   },
   locked: {
     fill: 'rgba(148, 163, 184, 0.28)',
@@ -155,6 +176,23 @@ const RANK_TITLE_BADGES = {
     pattern: { lines: 3, alpha: 0.09 },
     accentLine: { color: 'rgba(247, 219, 159, 0.62)', y: 0.2 },
     textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.3 }
+  },
+  auxiliary_core: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#0b1824' },
+        { offset: 0.48, color: '#123043' },
+        { offset: 1, color: '#102635' }
+      ]
+    },
+    border: { width: 1.1, color: 'rgba(103, 232, 249, 0.82)' },
+    pattern: { lines: 3, alpha: 0.08 },
+    accentLine: { color: 'rgba(165, 243, 252, 0.54)', y: 0.2 },
+    textColor: '#dffbff',
+    chapterLabelColor: 'rgba(165, 243, 252, 0.78)',
+    textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.2 }
   }
 };
 
@@ -502,7 +540,8 @@ function buildChapterState({ spec, nodes, nodeLookup }) {
 
   const chapterBounds = new Map();
   chapters.forEach(chapter => {
-    const chapterNodes = nodesByChapter.get(chapter.id) || [];
+    const chapterNodes = (nodesByChapter.get(chapter.id) || [])
+      .filter(node => !node.isUserProblem);
     if (chapterNodes.length) {
       chapterBounds.set(chapter.id, calculateBounds(chapterNodes));
     }
@@ -648,7 +687,8 @@ function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 
       const scale = camera.getScale();
       const pulseLength = Math.max(44 * scale, totalLength * 0.14);
       const cycleLength = totalLength + pulseLength;
-      const pulseHead = ((t || 0) * 0.15) % cycleLength;
+      const pulseSpeed = 0.15 * scale;
+      const pulseHead = ((t || 0) * pulseSpeed) % cycleLength;
       if (pulseHead > 0 && pulseHead < cycleLength) {
         const pulseStart = pulseHead - pulseLength;
         const visibleStart = clamp(pulseStart, 0, totalLength);
@@ -1081,6 +1121,9 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   if (node.id === 'lab' || node.id === 'user_created_stages') {
     fontSize = 22 * scale;
   }
+  if (node.isUserProblem) {
+    fontSize = 16 * scale;
+  }
 
   ctx.font = `700 ${fontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.textBaseline = 'middle';
@@ -1098,6 +1141,9 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     ctx.textAlign = 'center';
     textX = topLeft.x + width / 2;
     textY = topLeft.y + height / 2;
+  }
+  if (node.isUserProblem) {
+    textY = topLeft.y + paddingY + 7 * scale;
   }
 
   const maxTextWidth = Math.max(8, width - paddingX * 2);
@@ -1124,17 +1170,18 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
 
   const titleLines = wrapText(node.title);
   const lineHeight = fontSize * 1.1;
+  const displayTitleLines = node.isUserProblem ? titleLines.slice(0, 1) : titleLines;
 
   if (isCenteredNode) {
-    textY -= (titleLines.length - 1) * lineHeight / 2;
+    textY -= (displayTitleLines.length - 1) * lineHeight / 2;
   }
 
-  titleLines.forEach((line, i) => {
+  displayTitleLines.forEach((line, i) => {
     ctx.fillText(line, textX, textY + i * lineHeight);
   });
 
   if (!isCenteredNode) {
-    textY += (titleLines.length - 1) * lineHeight;
+    textY += (displayTitleLines.length - 1) * lineHeight;
   }
 
   ctx.font = `500 ${12 * scale}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
@@ -1152,6 +1199,91 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   } else {
     ctx.fillStyle = status.locked ? 'rgba(241, 245, 249, 0.75)' : 'rgba(226, 232, 240, 0.95)';
     ctx.fillText(chapterText, textX, textY);
+  }
+
+  if (node.isUserProblem) {
+    const meta = node.archiveMeta || {};
+    const difficultyValue = Math.max(0, Math.min(5, Number(meta.difficulty || 0)));
+    const starText = difficultyValue > 0 ? '★'.repeat(difficultyValue) : '-';
+    const solvedCount = Number(meta.solvedCount || 0);
+    const date = meta.timestampValue ? new Date(meta.timestampValue) : null;
+    const dateText = date
+      ? `${String(date.getMonth() + 1).padStart(2, '0')}.${String(date.getDate()).padStart(2, '0')}`
+      : '--.--';
+    const metaFontSize = Math.max(13 * scale, 10);
+    const metaMaxWidth = width - paddingX * 2 - 6 * scale;
+    const fitText = (text) => {
+      if (ctx.measureText(text).width <= metaMaxWidth) return text;
+      let fitted = text;
+      while (fitted.length > 1 && ctx.measureText(`${fitted}…`).width > metaMaxWidth) {
+        fitted = fitted.slice(0, -1);
+      }
+      return `${fitted}…`;
+    };
+    ctx.save();
+    ctx.font = `700 ${metaFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.textBaseline = 'middle';
+    ctx.textAlign = 'left';
+    const panelX = topLeft.x + paddingX - 4 * scale;
+    const panelY = topLeft.y + height - paddingY - 48 * scale;
+    const panelW = width - paddingX * 2 + 8 * scale;
+    const panelH = 45 * scale;
+    buildRoundedRectPath(ctx, panelX, panelY, panelW, panelH, 7 * scale);
+    const panelGradient = ctx.createLinearGradient(panelX, panelY, panelX + panelW, panelY + panelH);
+    panelGradient.addColorStop(0, 'rgba(8, 47, 73, 0.66)');
+    panelGradient.addColorStop(1, 'rgba(15, 76, 99, 0.46)');
+    ctx.fillStyle = panelGradient;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(165, 243, 252, 0.28)';
+    ctx.lineWidth = Math.max(0.8, 0.9 * scale);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(panelX + 8 * scale, panelY + 23 * scale);
+    ctx.lineTo(panelX + panelW - 8 * scale, panelY + 23 * scale);
+    ctx.strokeStyle = 'rgba(165, 243, 252, 0.18)';
+    ctx.lineWidth = Math.max(0.7, 0.7 * scale);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(panelX + panelW / 2, panelY + 27 * scale);
+    ctx.lineTo(panelX + panelW / 2, panelY + panelH - 7 * scale);
+    ctx.strokeStyle = 'rgba(165, 243, 252, 0.16)';
+    ctx.stroke();
+
+    const labelFontSize = Math.max(8.5 * scale, 7);
+    const valueFontSize = Math.max(12 * scale, 9.5);
+    const starFontSize = Math.max(16 * scale, 12);
+    const leftX = topLeft.x + paddingX;
+    const rightEdge = panelX + panelW - 10 * scale;
+    const centerDividerX = panelX + panelW / 2;
+    const labelColor = 'rgba(186, 230, 253, 0.72)';
+    ctx.font = `700 ${labelFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = labelColor;
+    ctx.fillText('난이도', leftX, panelY + 11 * scale);
+    ctx.font = `800 ${starFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = '#fde68a';
+    ctx.textAlign = 'right';
+    ctx.fillText(starText, rightEdge, panelY + 11.5 * scale);
+
+    const columnY = panelY + 34 * scale;
+    ctx.textAlign = 'left';
+    ctx.font = `700 ${labelFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = labelColor;
+    ctx.fillText('해결', leftX, columnY);
+    ctx.font = `800 ${metaFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = '#ecfeff';
+    ctx.fillText(String(solvedCount), leftX + 31 * scale, columnY);
+
+    const rightX = centerDividerX + 9 * scale;
+    ctx.font = `700 ${labelFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = labelColor;
+    ctx.fillText('날짜', rightX, columnY);
+    ctx.font = `800 ${metaFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', sans-serif`;
+    ctx.fillStyle = 'rgba(207, 250, 254, 0.92)';
+    ctx.textAlign = 'right';
+    ctx.fillText(dateText, rightEdge, columnY);
+    ctx.restore();
   }
 
   if (node.comingSoon) {
@@ -1221,129 +1353,125 @@ function isNodeInteractive(node, status) {
     || node.nodeType === 'rank';
 }
 
-function injectUserProblems(spec, userProblems) {
-  if (!userProblems || userProblems.length === 0) return;
+function injectUserProblems(spec, userProblems = []) {
+  if (!Array.isArray(userProblems) || userProblems.length === 0) return;
+  const root = spec.nodes.find(node => node.id === BLUEPRINT_ARCHIVE_ROOT_ID);
+  if (!root?.position || !root?.size) return;
 
-  const userStagesNode = spec.nodes.find(n => n.id === 'user_created_stages');
-  if (!userStagesNode) return;
+  const nodeSize = 3;
+  const problemNodeSize = { w: 3, h: 3 };
+  const collides = (position, placed) => placed.some(node => (
+    position.x < node.position.x + node.size.w + 2
+    && position.x + problemNodeSize.w + 2 > node.position.x
+    && position.y < node.position.y + node.size.h + 2
+    && position.y + problemNodeSize.h + 2 > node.position.y
+  ));
+  const adjacentPosition = (parent, direction) => {
+    const parentSize = parent.size || { w: nodeSize, h: nodeSize };
+    if (direction.x > 0) {
+      return {
+        x: parent.position.x + parentSize.w + 2,
+        y: Math.round(parent.position.y + (parentSize.h - problemNodeSize.h) / 2)
+      };
+    }
+    if (direction.x < 0) {
+      return {
+        x: parent.position.x - problemNodeSize.w - 2,
+        y: Math.round(parent.position.y + (parentSize.h - problemNodeSize.h) / 2)
+      };
+    }
+    return {
+      x: Math.round(parent.position.x + (parentSize.w - problemNodeSize.w) / 2),
+      y: parent.position.y + parentSize.h + 2
+    };
+  };
+  const directionsForParent = parent => parent.id === root.id
+    ? [{ x: 0, y: 1 }]
+    : [{ x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }];
 
-  const placedNodes = [{
-    id: userStagesNode.id,
-    x: userStagesNode.position.x,
-    y: userStagesNode.position.y,
-    w: userStagesNode.size.w,
-    h: userStagesNode.size.h
+  const sortedProblems = [...userProblems].sort((a, b) => {
+    const titleCompare = String(a?.title || '').localeCompare(String(b?.title || ''));
+    if (titleCompare !== 0) return titleCompare;
+    return String(a?.key || '').localeCompare(String(b?.key || ''));
+  });
+
+  spec.edges = spec.edges || [];
+  const placed = [{
+    id: root.id,
+    position: { ...root.position },
+    size: { ...root.size }
   }];
 
-  const GAP = 2;
-  const NODE_SIZE = 3;
+  sortedProblems.forEach((problem, index) => {
+    if (!problem?.key) return;
+    const random = createSeededRandom(hashString(`${problem.key}:${problem.title}:${index}`));
+    let parent = placed[Math.floor(random() * placed.length)] || placed[0];
+    let pos = null;
 
-  // Helper to check collision
-  function isColliding(x, y, w, h) {
-    return placedNodes.some(node => {
-      return x < node.x + node.w + 1 &&
-             x + w + 1 > node.x &&
-             y < node.y + node.h + 1 &&
-             y + h + 1 > node.y;
-    });
-  }
-
-  userProblems.forEach((prob) => {
-    const nodeId = `user_problem_${prob.key}`;
-    let placed = false;
-    let attempts = 0;
-    
-    // Try to attach to a random existing node
-    while (!placed && attempts < 50) {
-      const parent = placedNodes[Math.floor(Math.random() * placedNodes.length)];
-      
-      let directions = [];
-
-      if (parent.id === 'user_created_stages') {
-        // Only allow Right for the root node
-        directions = [
-          { x: parent.x + parent.w + GAP, y: parent.y + (parent.h - NODE_SIZE) / 2 }
-        ];
-      } else {
-        directions = [
-          // Right
-          { x: parent.x + parent.w + GAP, y: parent.y + (parent.h - NODE_SIZE) / 2 },
-          // Left
-          { x: parent.x - NODE_SIZE - GAP, y: parent.y + (parent.h - NODE_SIZE) / 2 },
-          // Up
-          { x: parent.x + (parent.w - NODE_SIZE) / 2, y: parent.y - NODE_SIZE - GAP },
-          // Down
-          { x: parent.x + (parent.w - NODE_SIZE) / 2, y: parent.y + parent.h + GAP }
-        ];
-        // Shuffle directions
-        directions.sort(() => Math.random() - 0.5);
+    for (let attempt = 0; attempt < 80 && !pos; attempt += 1) {
+      if (attempt > 0 && attempt % 12 === 0) {
+        parent = placed[Math.floor(random() * placed.length)] || placed[0];
       }
-
-      for (const pos of directions) {
-        // Prevent going left of the start node to avoid main map collision
-        // Ensure nodes are strictly to the right of the User Created Stages node
-        if (pos.x < userStagesNode.position.x + userStagesNode.size.w) continue;
-
-        if (!isColliding(pos.x, pos.y, NODE_SIZE, NODE_SIZE)) {
-          const node = {
-            id: nodeId,
-            label: prob.title,
-            nodeType: 'stage',
-            category: 'user',
-            chapterId: userStagesNode.chapterId || GLOBAL_CHAPTER_ID,
-            position: { x: pos.x, y: pos.y },
-            size: { w: NODE_SIZE, h: NODE_SIZE },
-            isUserProblem: true,
-            problemKey: prob.key,
-            solvedByMe: prob.solvedByMe
-          };
-          
-          spec.nodes.push(node);
-          placedNodes.push({ ...node, x: pos.x, y: pos.y, w: NODE_SIZE, h: NODE_SIZE });
-          
-          spec.edges = spec.edges || [];
-          spec.edges.push({
-              from: parent.id,
-              to: nodeId,
-              style: 'orthogonal'
-          });
-          
-          placed = true;
+      const directions = directionsForParent(parent)
+        .sort(() => random() - 0.5);
+      for (const direction of directions) {
+        const candidate = adjacentPosition(parent, direction);
+        if (!collides(candidate, placed)) {
+          pos = candidate;
           break;
         }
       }
-      attempts++;
     }
 
-    // Fallback: Just place far right if we couldn't find a spot
-    if (!placed) {
-      const lastNode = placedNodes[placedNodes.length - 1];
-      const testX = lastNode.x + lastNode.w + GAP;
-      const testY = lastNode.y + (lastNode.h - NODE_SIZE) / 2;
-      
-      const node = {
-        id: nodeId,
-        label: prob.title,
-        nodeType: 'stage',
-        category: 'user',
-        chapterId: userStagesNode.chapterId || GLOBAL_CHAPTER_ID,
-        position: { x: testX, y: testY },
-        size: { w: NODE_SIZE, h: NODE_SIZE },
-        isUserProblem: true,
-        problemKey: prob.key,
-        solvedByMe: prob.solvedByMe
-      };
-      
-      spec.nodes.push(node);
-      placedNodes.push({ ...node, x: testX, y: testY, w: NODE_SIZE, h: NODE_SIZE });
-      
-      spec.edges = spec.edges || [];
-      spec.edges.push({
-          from: lastNode.id,
-          to: nodeId,
-          style: 'orthogonal'
-      });
+    if (!pos) {
+      for (const fallbackParent of placed) {
+        for (const direction of directionsForParent(fallbackParent)) {
+          const candidate = adjacentPosition(fallbackParent, direction);
+          if (!collides(candidate, placed)) {
+            parent = fallbackParent;
+            pos = candidate;
+            break;
+          }
+        }
+        if (pos) break;
+      }
     }
+
+    if (!pos) {
+      parent = placed[placed.length - 1] || placed[0];
+      pos = adjacentPosition(parent, { x: 0, y: 1 });
+    }
+
+    const nodeId = `user_problem_${problem.key}`;
+    const childNode = {
+      id: nodeId,
+      label: problem.title || problem.key,
+      nodeType: 'stage',
+      category: 'user',
+      chapterId: root.chapterId || GLOBAL_CHAPTER_ID,
+      position: pos,
+      size: { ...problemNodeSize },
+      isUserProblem: true,
+      problemKey: problem.key,
+      solvedByMe: Boolean(problem.solvedByMe),
+      archiveVisible: true,
+      archiveMeta: {
+        key: problem.key,
+        title: problem.title || problem.key,
+        creator: problem.creator || '',
+        difficulty: Number.parseInt(problem.difficulty, 10) || 0,
+        solvedCount: Number.parseInt(problem.solvedCount, 10) || 0,
+        timestampValue: Number.parseInt(problem.timestampValue, 10) || 0
+      }
+    };
+    spec.nodes.push(childNode);
+    placed.push(childNode);
+    spec.edges.push({
+      from: parent.id,
+      to: nodeId,
+      style: 'orthogonal',
+      edgeType: 'blueprint'
+    });
   });
 }
 
@@ -1362,6 +1490,15 @@ export function initializeStageMap({
   const chapterPrevBtn = document.getElementById('stageMapChapterPrev');
   const chapterNextBtn = document.getElementById('stageMapChapterNext');
   const chapterLabelEl = document.getElementById('stageMapChapterLabel');
+  const chapterNavEl = document.querySelector('.stage-map-chapter-nav');
+  const blueprintToolsEl = document.getElementById('blueprintArchiveTools');
+  const blueprintSearchInput = document.getElementById('blueprintArchiveSearch');
+  const blueprintSortSelect = document.getElementById('blueprintArchiveSort');
+  const blueprintSortDirectionSelect = document.getElementById('blueprintArchiveSortDirection');
+  const blueprintDifficultySelect = document.getElementById('blueprintArchiveDifficulty');
+  const blueprintSolvedMinInput = document.getElementById('blueprintArchiveSolvedMin');
+  const blueprintShowSolvedBtn = document.getElementById('blueprintArchiveShowSolved');
+  const blueprintShowUnsolvedBtn = document.getElementById('blueprintArchiveShowUnsolved');
   const infoToggleBtn = document.getElementById('stageMapInfoToggleBtn');
   const surface = document.getElementById('stageMapSurface');
   const stageMapInfoEl = surface?.querySelector('.stage-map-info') || null;
@@ -1425,6 +1562,17 @@ export function initializeStageMap({
     pendingFocus: null,
     pendingMemoryRestored: null,
     cameraAnimation: null,
+    archiveMode: {
+      active: false,
+      previousChapterId: null,
+      query: '',
+      sort: 'name',
+      sortDirection: 'asc',
+      difficulty: 'all',
+      solvedMin: 0,
+      showSolved: true,
+      showUnsolved: true
+    },
     transition: {
       active: false,
       startTime: 0,
@@ -1553,7 +1701,11 @@ export function initializeStageMap({
 
   function getChapterStageBounds(chapterId) {
     if (!chapterId) return null;
-    const stageNodes = state.nodes.filter(node => node.chapterId === chapterId && node.nodeType === 'stage');
+    const stageNodes = state.nodes.filter(node => (
+      node.chapterId === chapterId
+      && !node.isUserProblem
+      && (node.nodeType === 'stage' || node.nodeType === 'mode' || node.nodeType === 'feature')
+    ));
     if (!stageNodes.length) return null;
     return calculateBounds(stageNodes);
   }
@@ -1613,6 +1765,7 @@ export function initializeStageMap({
   }
 
   function drawChapterCircuitFrames(ctx, camera) {
+    if (state.archiveMode.active) return;
     (state.chapters || []).forEach(chapter => drawChapterCircuitFrame(ctx, camera, chapter));
   }
 
@@ -1713,16 +1866,14 @@ export function initializeStageMap({
 
     state.edges.forEach(edge => {
       const fromStatus = state.nodeStatus.get(edge.from);
-      // Only render wires when the source node is cleared
-      // User Created Stages and User Problems always have active wires
-      const isUserEdge = edge.to === 'user_created_stages' || 
-                         state.nodeLookup.get(edge.from)?.isUserProblem ||
-                         edge.from === 'user_created_stages';
+      // Only render wires when the source node is cleared.
+      const isUserEdge = state.archiveMode.active && edge.edgeType === 'blueprint';
                          
       const active = Boolean(fromStatus?.progressCleared || isUserEdge);
       let highlight = resolveEdgeHighlight(edge.id, timestamp);
 
       let edgeAlpha = resolveEdgeOpacity(edge);
+      if (edgeAlpha <= 0) return;
       if (state.transition.active) {
         const elapsed = timestamp - state.transition.startTime;
         const isTargetSource = state.transition.targetNode && edge.from === state.transition.targetNode.id;
@@ -1749,6 +1900,7 @@ export function initializeStageMap({
       let highlight = resolveNodeHighlight(node.id, timestamp);
 
       let nodeAlpha = resolveNodeOpacity(node);
+      if (nodeAlpha <= 0) return;
       if (state.transition.active) {
         const elapsed = timestamp - state.transition.startTime;
         const isTarget = state.transition.targetNode && node.id === state.transition.targetNode.id;
@@ -1831,7 +1983,7 @@ export function initializeStageMap({
       progressCleared = false;
     }
 
-    // Force unlock for User Created Stages and User Problems
+    // Force unlock for the blueprint archive gateway and legacy user problem nodes.
     if (node.id === 'user_created_stages' || node.isUserProblem) {
       unlocked = true;
       locked = false;
@@ -1883,17 +2035,12 @@ export function initializeStageMap({
     state.mapBounds = graph.bounds;
     state.focusHighlight = null;
     state.edgeHighlights = new Map();
-    state.edgesBySource = new Map();
-    state.edges.forEach(edge => {
-      if (!state.edgesBySource.has(edge.from)) {
-        state.edgesBySource.set(edge.from, []);
-      }
-      state.edgesBySource.get(edge.from).push(edge);
-    });
+    rebuildEdgesBySource();
     clearHoverNode();
     clearPressedNode();
     refreshChapterNav();
     refreshNodeStates();
+    applyBlueprintArchiveFilters();
     if (state.pendingFocus) {
       const pending = state.pendingFocus;
       state.pendingFocus = null;
@@ -2124,7 +2271,21 @@ export function initializeStageMap({
     return node.chapterId === state.currentChapterId;
   }
 
+  function isBlueprintArchiveNode(node) {
+    return Boolean(node && (node.id === BLUEPRINT_ARCHIVE_ROOT_ID || node.isUserProblem));
+  }
+
+  function isNodeVisibleInCurrentMode(node) {
+    if (!state.archiveMode.active) {
+      return !node?.isUserProblem;
+    }
+    return node?.id === BLUEPRINT_ARCHIVE_ROOT_ID
+      || (node?.isUserProblem && node.archiveVisible);
+  }
+
   function resolveNodeOpacity(node) {
+    if (!isNodeVisibleInCurrentMode(node)) return 0;
+    if (state.archiveMode.active) return 1;
     if (!state.currentChapterId) return 1;
     if (isCurrentChapterNode(node)) return 1;
     if (isGlobalNode(node)) return CHAPTER_GLOBAL_NODE_OPACITY;
@@ -2132,9 +2293,13 @@ export function initializeStageMap({
   }
 
   function resolveEdgeOpacity(edge) {
-    if (!state.currentChapterId) return 1;
     const fromNode = state.nodeLookup.get(edge.from);
     const toNode = state.nodeLookup.get(edge.to);
+    if (state.archiveMode.active) {
+      return isNodeVisibleInCurrentMode(fromNode) && isNodeVisibleInCurrentMode(toNode) ? 1 : 0;
+    }
+    if (fromNode?.isUserProblem || toNode?.isUserProblem) return 0;
+    if (!state.currentChapterId) return 1;
     const fromGlobal = isGlobalNode(fromNode);
     const toGlobal = isGlobalNode(toNode);
     if (fromGlobal || toGlobal) return CHAPTER_GLOBAL_EDGE_OPACITY;
@@ -2144,23 +2309,207 @@ export function initializeStageMap({
     return CHAPTER_FADE_EDGE_OPACITY;
   }
 
+  function updateNodeGridGeometry(node, position) {
+    if (!node || !position) return;
+    node.position = { x: position.x, y: position.y };
+    const rectOrigin = gridToWorldPoint(node.position);
+    const rectSize = gridSizeToWorldSize(node.size || { w: 3, h: 3 });
+    node.rect = { x: rectOrigin.x, y: rectOrigin.y, w: rectSize.width, h: rectSize.height };
+    node.center = rectCenter(node.rect);
+  }
+
+  function rebuildEdgesBySource() {
+    state.edgesBySource = new Map();
+    state.edges.forEach(edge => {
+      if (!state.edgesBySource.has(edge.from)) {
+        state.edgesBySource.set(edge.from, []);
+      }
+      state.edgesBySource.get(edge.from).push(edge);
+    });
+  }
+
+  function getArchiveAdjacentPosition(parent, direction) {
+    const nodeSize = 3;
+    const problemNodeSize = { w: 3, h: 3 };
+    const parentSize = parent.size || { w: nodeSize, h: nodeSize };
+    if (direction.x > 0) {
+      return {
+        x: parent.position.x + parentSize.w + 2,
+        y: Math.round(parent.position.y + (parentSize.h - problemNodeSize.h) / 2)
+      };
+    }
+    if (direction.x < 0) {
+      return {
+        x: parent.position.x - problemNodeSize.w - 2,
+        y: Math.round(parent.position.y + (parentSize.h - problemNodeSize.h) / 2)
+      };
+    }
+    return {
+      x: Math.round(parent.position.x + (parentSize.w - problemNodeSize.w) / 2),
+      y: parent.position.y + parentSize.h + 2
+    };
+  }
+
+  function getArchiveDirectionsForParent(parent) {
+    return parent?.id === BLUEPRINT_ARCHIVE_ROOT_ID
+      ? [{ x: 0, y: 1 }]
+      : [{ x: -1, y: 0 }, { x: 1, y: 0 }, { x: 0, y: 1 }];
+  }
+
+  function isArchivePositionBlocked(position, placed) {
+    const problemNodeSize = { w: 3, h: 3 };
+    return placed.some(node => (
+      position.x < node.position.x + node.size.w + 2
+      && position.x + problemNodeSize.w + 2 > node.position.x
+      && position.y < node.position.y + node.size.h + 2
+      && position.y + problemNodeSize.h + 2 > node.position.y
+    ));
+  }
+
+  function sortArchiveNodes(nodes) {
+    const sort = state.archiveMode.sort || 'name';
+    const direction = state.archiveMode.sortDirection === 'desc' ? -1 : 1;
+    const byName = (a, b) => String(a.archiveMeta?.title || a.title || '')
+      .localeCompare(String(b.archiveMeta?.title || b.title || ''));
+    const sorted = [...nodes].sort((a, b) => {
+      if (sort === 'date') {
+        const diff = (a.archiveMeta?.timestampValue || 0) - (b.archiveMeta?.timestampValue || 0);
+        return diff || byName(a, b);
+      }
+      if (sort === 'difficulty') {
+        const diff = (a.archiveMeta?.difficulty || 0) - (b.archiveMeta?.difficulty || 0);
+        return diff || byName(a, b);
+      }
+      if (sort === 'solved') {
+        const diff = (a.archiveMeta?.solvedCount || 0) - (b.archiveMeta?.solvedCount || 0);
+        return diff || byName(a, b);
+      }
+      return byName(a, b);
+    });
+    return direction === -1 ? sorted.reverse() : sorted;
+  }
+
+  function matchesArchiveFilter(node) {
+    if (!node?.isUserProblem) return false;
+    const meta = node.archiveMeta || {};
+    const query = String(state.archiveMode.query || '').trim().toLowerCase();
+    const creator = String(meta.creator || '').toLowerCase();
+    const title = String(meta.title || node.title || '').toLowerCase();
+    const key = String(meta.key || node.problemKey || '').toLowerCase();
+    const date = meta.timestampValue
+      ? new Date(meta.timestampValue).toLocaleDateString().toLowerCase()
+      : '';
+    if (query) {
+      const fromMatch = query.match(/^from:(.+)$/);
+      if (fromMatch) {
+        if (!creator.includes(fromMatch[1].trim())) return false;
+      } else if (![title, creator, key, date].some(value => value.includes(query))) {
+        return false;
+      }
+    }
+    const difficulty = state.archiveMode.difficulty || 'all';
+    if (difficulty !== 'all' && Number(meta.difficulty || 0) !== Number(difficulty)) return false;
+    const solvedMin = Number(state.archiveMode.solvedMin || 0);
+    if (Number(meta.solvedCount || 0) < solvedMin) return false;
+    if (!state.archiveMode.showSolved && node.solvedByMe) return false;
+    if (!state.archiveMode.showUnsolved && !node.solvedByMe) return false;
+    return true;
+  }
+
+  function applyBlueprintArchiveFilters() {
+    const root = state.nodeLookup.get(BLUEPRINT_ARCHIVE_ROOT_ID);
+    if (!root) return;
+    const allProblemNodes = state.nodes.filter(node => node.isUserProblem);
+    allProblemNodes.forEach(node => {
+      node.archiveVisible = false;
+    });
+    const visibleNodes = sortArchiveNodes(allProblemNodes.filter(matchesArchiveFilter));
+    const placed = [root];
+    const blueprintEdges = [];
+
+    visibleNodes.forEach((node, index) => {
+      const seed = hashString(`${node.problemKey}:${node.archiveMeta?.title}:${index}:${state.archiveMode.sort}`);
+      const random = createSeededRandom(seed);
+      let parent = placed[Math.floor(random() * placed.length)] || root;
+      let position = null;
+
+      for (let attempt = 0; attempt < 80 && !position; attempt += 1) {
+        if (attempt > 0 && attempt % 12 === 0) {
+          parent = placed[Math.floor(random() * placed.length)] || root;
+        }
+        const directions = getArchiveDirectionsForParent(parent).sort(() => random() - 0.5);
+        for (const direction of directions) {
+          const candidate = getArchiveAdjacentPosition(parent, direction);
+          if (!isArchivePositionBlocked(candidate, placed)) {
+            position = candidate;
+            break;
+          }
+        }
+      }
+
+      if (!position) {
+        for (const fallbackParent of placed) {
+          for (const direction of getArchiveDirectionsForParent(fallbackParent)) {
+            const candidate = getArchiveAdjacentPosition(fallbackParent, direction);
+            if (!isArchivePositionBlocked(candidate, placed)) {
+              parent = fallbackParent;
+              position = candidate;
+              break;
+            }
+          }
+          if (position) break;
+        }
+      }
+
+      if (!position) {
+        parent = placed[placed.length - 1] || root;
+        position = getArchiveAdjacentPosition(parent, { x: 0, y: 1 });
+      }
+
+      updateNodeGridGeometry(node, position);
+      node.archiveVisible = true;
+      placed.push(node);
+      blueprintEdges.push({
+        id: `${parent.id}->${node.id}-archive`,
+        from: parent.id,
+        to: node.id,
+        edgeType: 'blueprint',
+        style: 'orthogonal',
+        points: [parent.center, node.center]
+      });
+    });
+
+    state.edges = state.edges.filter(edge => edge.edgeType !== 'blueprint').concat(blueprintEdges);
+    rebuildEdgesBySource();
+    state.edgeHighlights.clear();
+    requestRender();
+  }
+
   function refreshChapterNav() {
     const chapters = state.chapters || [];
     const active = chapters.find(ch => ch.id === state.currentChapterId) || chapters[0] || null;
     const activeIndex = active ? chapters.findIndex(ch => ch.id === active.id) : -1;
     if (chapterLabelEl) {
       const prefix = translate('stageMapChapterLabelPrefix') || 'Chapter';
-      chapterLabelEl.textContent = active ? `${prefix} ${active.order}: ${active.label}` : '';
+      chapterLabelEl.textContent = state.archiveMode.active
+        ? (translate('blueprintArchiveTitle') || 'External Blueprint Archive')
+        : active ? `${prefix} ${active.order}: ${active.label}` : '';
     }
     if (chapterPrevBtn) {
       chapterPrevBtn.textContent = translate('stageMapChapterPrev') || 'Prev';
-      chapterPrevBtn.disabled = !active || activeIndex <= 0;
+      chapterPrevBtn.disabled = state.archiveMode.active || !active || activeIndex <= 0;
       chapterPrevBtn.setAttribute('aria-label', translate('stageMapChapterPrevAria') || 'Previous chapter');
     }
     if (chapterNextBtn) {
       chapterNextBtn.textContent = translate('stageMapChapterNext') || 'Next';
-      chapterNextBtn.disabled = !active || activeIndex < 0 || activeIndex >= chapters.length - 1;
+      chapterNextBtn.disabled = state.archiveMode.active || !active || activeIndex < 0 || activeIndex >= chapters.length - 1;
       chapterNextBtn.setAttribute('aria-label', translate('stageMapChapterNextAria') || 'Next chapter');
+    }
+    if (chapterNavEl) {
+      chapterNavEl.hidden = Boolean(state.archiveMode.active);
+    }
+    if (blueprintToolsEl) {
+      blueprintToolsEl.hidden = !state.archiveMode.active;
     }
   }
 
@@ -2254,7 +2603,62 @@ export function initializeStageMap({
     });
   }
 
+  function focusBlueprintArchive({ animate = true } = {}) {
+    executeNextFrame(() => {
+      ensureCanvasInitialized();
+      const rootNode = state.nodeLookup.get(BLUEPRINT_ARCHIVE_ROOT_ID);
+      if (!rootNode) return;
+      const { scale, viewportWidth, viewportHeight } = camera.getState();
+      const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
+      const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
+      const nextScale = Math.max(0.55, Math.min(1.0, scale < 0.55 ? 0.85 : scale));
+      if (Number.isFinite(nextScale) && Math.abs(nextScale - scale) > 1e-4) {
+        camera.setScale(nextScale, safeViewportWidth / 2, safeViewportHeight / 2);
+      }
+      const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
+      const heightWorld = safeViewportHeight / Math.max(nextScale, 1e-6);
+      const focusCenter = {
+        x: rootNode.center.x,
+        y: rootNode.center.y
+      };
+      panToOrigin(
+        {
+          x: focusCenter.x - widthWorld / 2,
+          y: focusCenter.y - heightWorld / 2
+        },
+        { animate, duration: 520 }
+      );
+      requestRender();
+    });
+  }
+
+  function enterBlueprintArchive(node) {
+    state.archiveMode.previousChapterId = state.currentChapterId;
+    state.archiveMode.active = true;
+    setCurrentChapter(node?.chapterId || 'chapter_4');
+    clearHoverNode();
+    clearPressedNode();
+    triggerHighlightForNode(node);
+    focusBlueprintArchive({ animate: true });
+    refreshChapterNav();
+    requestRender();
+  }
+
+  function exitBlueprintArchive() {
+    const targetChapterId = state.archiveMode.previousChapterId || 'chapter_4';
+    state.archiveMode.active = false;
+    state.archiveMode.previousChapterId = null;
+    state.focusHighlight = null;
+    state.edgeHighlights.clear();
+    clearHoverNode();
+    clearPressedNode();
+    focusChapter(targetChapterId, { animate: true });
+    refreshChapterNav();
+    requestRender();
+  }
+
   function shiftChapter(delta, options = {}) {
+    if (state.archiveMode.active) return;
     if (!state.chapters.length) return;
     const chapters = state.chapters;
     const currentIndex = Math.max(0, chapters.findIndex(ch => ch.id === state.currentChapterId));
@@ -2281,7 +2685,9 @@ export function initializeStageMap({
 
   function resetView() {
     camera.reset();
-    if (state.currentChapterId) {
+    if (state.archiveMode.active) {
+      focusBlueprintArchive({ animate: false });
+    } else if (state.currentChapterId) {
       focusChapter(state.currentChapterId, { animate: false });
     } else {
       centerMap();
@@ -2327,6 +2733,7 @@ export function initializeStageMap({
   function findHoverableNode(worldPoint) {
     if (!worldPoint) return null;
     return state.nodes.find(node => {
+      if (!isNodeVisibleInCurrentMode(node)) return false;
       if (!isPointInsideNode(node, worldPoint)) return false;
       const status = state.nodeStatus.get(node.id);
       return isNodeInteractive(node, status);
@@ -2383,9 +2790,13 @@ export function initializeStageMap({
       markModeNodeCleared(node.id);
       return;
     }
-    if (node.id === 'user_created_stages') {
-      openUserProblemsFromShortcut?.();
+    if (node.id === BLUEPRINT_ARCHIVE_ROOT_ID) {
       markModeNodeCleared(node.id);
+      if (state.archiveMode.active) {
+        exitBlueprintArchive();
+      } else {
+        enterBlueprintArchive(node);
+      }
     }
   }
 
@@ -2652,13 +3063,20 @@ export function initializeStageMap({
     const dy = event.clientY - state.pointerStart.y;
     if (!state.pointerStart.moved && Math.hypot(dx, dy) > 4) {
       state.pointerStart.moved = true;
+      state.dragging = state.archiveMode.active;
       clearHoverNode();
       clearPressedNode();
       updateCanvasCursor();
     }
     state.pointerStart.x = event.clientX;
     state.pointerStart.y = event.clientY;
-    if (state.pointerStart.moved) return;
+    if (state.pointerStart.moved) {
+      if (state.archiveMode.active) {
+        camera.pan(dx, dy);
+        requestRender();
+      }
+      return;
+    }
     const hovered = updateHoverFromPoint(event.clientX, event.clientY);
     if (hovered) {
       setPressedNode(hovered);
@@ -2708,15 +3126,21 @@ export function initializeStageMap({
     }
 
     const world = camera.screenToWorld(event.clientX, event.clientY);
-    const clickedNode = state.nodes.find(node => isPointInsideNode(node, world));
+    const clickedNode = state.nodes.find(node => (
+      isNodeVisibleInCurrentMode(node) && isPointInsideNode(node, world)
+    ));
     handleNodeActivation(clickedNode);
     clearPressedNode();
     updateHoverFromPoint(event.clientX, event.clientY);
   }
 
   function handleWheel(event) {
-    // Keep wheel from triggering page scroll, but disable map zoom.
     event.preventDefault();
+    if (!state.archiveMode.active) {
+      return;
+    }
+    const delta = event.deltaY < 0 ? 0.12 : -0.12;
+    handleZoom(delta, event.clientX, event.clientY);
   }
 
   function handlePointerHover(event) {
@@ -2832,6 +3256,32 @@ export function initializeStageMap({
   }
   if (chapterPrevBtn) chapterPrevBtn.addEventListener('click', () => prevChapter({ animate: true }));
   if (chapterNextBtn) chapterNextBtn.addEventListener('click', () => nextChapter({ animate: true }));
+  const handleArchiveFilterChange = () => {
+    state.archiveMode.query = blueprintSearchInput?.value || '';
+    state.archiveMode.sort = blueprintSortSelect?.value || 'name';
+    state.archiveMode.sortDirection = blueprintSortDirectionSelect?.value || 'asc';
+    state.archiveMode.difficulty = blueprintDifficultySelect?.value || 'all';
+    state.archiveMode.solvedMin = Math.max(0, Number.parseInt(blueprintSolvedMinInput?.value || '0', 10) || 0);
+    state.archiveMode.showSolved = blueprintShowSolvedBtn?.getAttribute('aria-pressed') !== 'false';
+    state.archiveMode.showUnsolved = blueprintShowUnsolvedBtn?.getAttribute('aria-pressed') !== 'false';
+    applyBlueprintArchiveFilters();
+    if (state.archiveMode.active) {
+      focusBlueprintArchive({ animate: true });
+    }
+  };
+  blueprintSearchInput?.addEventListener('input', handleArchiveFilterChange);
+  blueprintSortSelect?.addEventListener('change', handleArchiveFilterChange);
+  blueprintSortDirectionSelect?.addEventListener('change', handleArchiveFilterChange);
+  blueprintDifficultySelect?.addEventListener('change', handleArchiveFilterChange);
+  blueprintSolvedMinInput?.addEventListener('input', handleArchiveFilterChange);
+  const toggleArchiveButton = button => {
+    if (!button) return;
+    const next = button.getAttribute('aria-pressed') === 'false';
+    button.setAttribute('aria-pressed', next ? 'true' : 'false');
+    handleArchiveFilterChange();
+  };
+  blueprintShowSolvedBtn?.addEventListener('click', () => toggleArchiveButton(blueprintShowSolvedBtn));
+  blueprintShowUnsolvedBtn?.addEventListener('click', () => toggleArchiveButton(blueprintShowUnsolvedBtn));
 
   document.addEventListener('keydown', event => {
     if (event.defaultPrevented) return;

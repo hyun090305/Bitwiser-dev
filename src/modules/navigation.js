@@ -4,7 +4,6 @@ import { adjustGridZoom } from './grid.js';
 let stageMapScreenEl = null;
 let gameScreenEl = null;
 let labScreenEl = null;
-let openUserProblemsShortcutHandler = null;
 
 function ensureScreens() {
   if (!stageMapScreenEl) {
@@ -21,45 +20,6 @@ function ensureScreens() {
 function toggleScreen(element, shouldShow, displayValue = 'block') {
   if (!element) return;
   element.style.display = shouldShow ? displayValue : 'none';
-}
-
-function animateEnter(screen) {
-  if (!screen) return;
-  screen.classList.remove('stage-screen-exit');
-  screen.classList.add('stage-screen-enter');
-  screen.addEventListener(
-    'animationend',
-    event => {
-      if (event.target === screen) {
-        screen.classList.remove('stage-screen-enter');
-      }
-    },
-    { once: true }
-  );
-}
-
-function animateExit(screen, onDone) {
-  if (!screen) {
-    onDone?.();
-    return;
-  }
-  const computed = window.getComputedStyle(screen);
-  if (computed.display === 'none') {
-    onDone?.();
-    return;
-  }
-  screen.classList.remove('stage-screen-enter');
-  screen.classList.add('stage-screen-exit');
-  screen.addEventListener(
-    'animationend',
-    event => {
-      if (event.target !== screen) return;
-      screen.classList.remove('stage-screen-exit');
-      screen.style.display = 'none';
-      onDone?.();
-    },
-    { once: true }
-  );
 }
 
 export function lockOrientationLandscape() {
@@ -132,58 +92,16 @@ export function hideLabScreen() {
   document.body.classList.remove('lab-mode-active');
 }
 
-export function openUserProblemsFromShortcut() {
-  if (typeof openUserProblemsShortcutHandler === 'function') {
-    openUserProblemsShortcutHandler();
-  } else {
-    console.warn('User problems navigation is not ready yet');
-  }
-}
-
 export function setupNavigation({
-  refreshUserData,
-  renderUserProblemList
+  refreshUserData
 } = {}) {
   ensureScreens();
-
-  const userProblemsBtn = document.getElementById('userProblemsBtn');
-  const userProblemsScreen = document.getElementById('user-problems-screen');
-  const backFromUserProblemsBtn = document.getElementById('backToStageMapFromUserProblems');
 
   function refreshUserInfo() {
     if (typeof refreshUserData === 'function') {
       refreshUserData();
     }
   }
-
-  function openUserProblemsScreen() {
-    hideStageMapScreen();
-    toggleScreen(userProblemsScreen, true, 'block');
-    animateEnter(userProblemsScreen);
-    if (typeof renderUserProblemList === 'function') {
-      renderUserProblemList();
-    }
-    refreshUserInfo();
-  }
-
-  function closeUserProblemsScreen() {
-    animateExit(userProblemsScreen, () => {
-      showStageMapScreen();
-      refreshUserInfo();
-    });
-  }
-
-  userProblemsBtn?.addEventListener('click', () => {
-    lockOrientationLandscape();
-    openUserProblemsScreen();
-  });
-
-  openUserProblemsShortcutHandler = () => {
-    lockOrientationLandscape();
-    openUserProblemsScreen();
-  };
-
-  backFromUserProblemsBtn?.addEventListener('click', closeUserProblemsScreen);
 
   showStageMapScreen();
   refreshUserInfo();

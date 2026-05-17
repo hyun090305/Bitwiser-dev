@@ -195,6 +195,50 @@
         <div id="stageMapChapterLabel" class="stage-map-chapter-label" aria-live="polite"></div>
         <button id="stageMapChapterNext" type="button" aria-label="Next chapter"></button>
       </div>
+      <div id="blueprintArchiveTools" class="stage-map-blueprint-tools" aria-label="External blueprint archive controls" hidden>
+        <div class="blueprint-tools__title" id="blueprintArchiveToolsTitle">External Blueprint Archive</div>
+        <label class="blueprint-tools__search">
+          <span id="blueprintArchiveSearchLabel">Scan</span>
+          <input id="blueprintArchiveSearch" type="search" autocomplete="off" spellcheck="false" placeholder="Blueprint or creator" />
+        </label>
+        <label>
+          <span id="blueprintArchiveSortLabel">Sort</span>
+          <select id="blueprintArchiveSort">
+            <option id="blueprintArchiveSortNameOption" value="name">Name</option>
+            <option id="blueprintArchiveSortDateOption" value="date">Date</option>
+            <option id="blueprintArchiveSortDifficultyOption" value="difficulty">Difficulty</option>
+            <option id="blueprintArchiveSortSolvedOption" value="solved">Solved</option>
+          </select>
+        </label>
+        <label>
+          <span id="blueprintArchiveSortDirectionLabel">Order</span>
+          <select id="blueprintArchiveSortDirection">
+            <option id="blueprintArchiveSortAscOption" value="asc">Asc</option>
+            <option id="blueprintArchiveSortDescOption" value="desc">Desc</option>
+          </select>
+        </label>
+        <label>
+          <span id="blueprintArchiveDifficultyLabel">Difficulty</span>
+          <select id="blueprintArchiveDifficulty">
+            <option id="blueprintArchiveDifficultyAllOption" value="all">All</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+          </select>
+        </label>
+        <label>
+          <span id="blueprintArchiveSolvedLabel">Solved</span>
+          <input id="blueprintArchiveSolvedMin" type="number" min="0" step="1" value="0" />
+        </label>
+        <button id="blueprintArchiveShowSolved" class="blueprint-tools__toggle" type="button" aria-pressed="true">
+          <span id="blueprintArchiveShowSolvedLabel">Solved</span>
+        </button>
+        <button id="blueprintArchiveShowUnsolved" class="blueprint-tools__toggle" type="button" aria-pressed="true">
+          <span id="blueprintArchiveShowUnsolvedLabel">Unsolved</span>
+        </button>
+      </div>
       <div id="stagePanelBackdrop" class="stage-panel-backdrop" hidden></div>
       <div class="stage-map-panels">
         <aside id="rankingPanel" class="stage-panel" aria-hidden="true">
@@ -626,96 +670,6 @@
       </div>
     </div>
 
-    <div id="user-problems-screen" class="screen" style="display:none;">
-      <div class="panel-overlay user-problems-panel">
-        <div class="user-problems-content">
-          <div class="user-problems-sidebar">
-            <h1 id="userProblemsTitle">📝 사용자 문제</h1>
-            <p id="userProblemsSubtitle" class="user-problems-subtitle"></p>
-            <div class="user-problems-toolbar" role="region" aria-labelledby="userProblemsTitle">
-              <div class="user-problems-toolbar-row">
-                <label id="userProblemSearchLabel" class="sr-only" for="userProblemSearch">검색</label>
-                <div class="user-problems-search">
-                  <span aria-hidden="true">🔍</span>
-                  <input id="userProblemSearch" type="search" placeholder="제목 또는 from:제작자" autocomplete="off" spellcheck="false" />
-                </div>
-                <div class="user-problems-sort">
-                  <label id="userProblemSortLabel" for="userProblemSort">정렬</label>
-                  <select id="userProblemSort" aria-labelledby="userProblemSortLabel">
-                    <option id="userProblemSortLatestOption" value="latest">최신순</option>
-                    <option id="userProblemSortPopularOption" value="popular">인기순</option>
-                    <option id="userProblemSortSolvedOption" value="solved">해결순</option>
-                    <option id="userProblemSortDifficultyOption" value="difficulty">난이도순</option>
-                    <option id="userProblemSortNameOption" value="name">이름순</option>
-                  </select>
-                </div>
-              </div>
-              <div class="user-problems-filter-row" role="group" aria-label="사용자 문제 필터">
-                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyMine" aria-pressed="false">
-                  🧑‍💻 <span id="userProblemFilterMine">나의 문제</span>
-                </button>
-                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyUnsolved" aria-pressed="false">
-                  🧩 <span id="userProblemFilterUnsolved">미해결</span>
-                </button>
-                <button type="button" class="user-problem-filter-toggle" data-user-problem-toggle="onlyPopular" aria-pressed="false">
-                  ♥ <span id="userProblemFilterPopular">인기</span>
-                </button>
-                <div class="user-problem-difficulty-group" role="group" aria-label="난이도">
-                  <button
-                    type="button"
-                    class="user-problem-filter-toggle user-problem-difficulty-toggle"
-                    data-user-problem-difficulty="1"
-                    aria-pressed="true"
-                  >
-                    ⭐ 1
-                  </button>
-                  <button
-                    type="button"
-                    class="user-problem-filter-toggle user-problem-difficulty-toggle"
-                    data-user-problem-difficulty="2"
-                    aria-pressed="true"
-                  >
-                    ⭐⭐ 2
-                  </button>
-                  <button
-                    type="button"
-                    class="user-problem-filter-toggle user-problem-difficulty-toggle"
-                    data-user-problem-difficulty="3"
-                    aria-pressed="true"
-                  >
-                    ⭐⭐⭐ 3
-                  </button>
-                  <button
-                    type="button"
-                    class="user-problem-filter-toggle user-problem-difficulty-toggle"
-                    data-user-problem-difficulty="4"
-                    aria-pressed="true"
-                  >
-                    ⭐⭐⭐⭐ 4
-                  </button>
-                  <button
-                    type="button"
-                    class="user-problem-filter-toggle user-problem-difficulty-toggle"
-                    data-user-problem-difficulty="5"
-                    aria-pressed="true"
-                  >
-                    ⭐⭐⭐⭐⭐ 5
-                  </button>
-                </div>
-              </div>
-              <div id="userProblemResultSummary" class="user-problem-result-summary"></div>
-            </div>
-            <div class="user-problems-actions">
-              <button id="openProblemCreatorBtn" class="btn-primary">문제 만들기</button>
-              <button id="backToStageMapFromUserProblems" class="btn-back user-problems-back">← 스테이지 맵으로</button>
-            </div>
-          </div>
-          <div class="user-problems-list-container">
-            <ul id="userProblemList" class="problem-list"></ul>
-          </div>
-        </div>
-      </div>
-    </div>
     <div id="rankingModal" class="modal" style="display:none;">
       <div class="modal-content">
         <h2 id="rankingTitle">🏆 랭킹</h2>
@@ -800,7 +754,7 @@
                   </section>
 
                   <div class="system-menu-footer">
-                    <button id="backToLevelsBtn" class="system-menu-danger">← 레벨 선택으로</button>
+                    <button id="backToLevelsBtn" class="system-menu-danger">← 스테이지 맵으로</button>
                   </div>
                 </div>
                 <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>

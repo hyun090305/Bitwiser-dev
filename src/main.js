@@ -61,7 +61,6 @@ import { initializeBgm, setBgmEnabled, setSfxEnabled } from './modules/bgm.js';
 import {
   initializeProblemCreationFlow,
   saveProblem,
-  renderUserProblemList,
   showProblemIntro,
   invalidateProblemOutputs,
   createCustomProblemPalette,
@@ -1270,8 +1269,7 @@ document.addEventListener("DOMContentLoaded", () => {
       triggerMemoryRestoredAnimation: stageMapController.triggerMemoryRestoredAnimation
     });
     setupNavigation({
-      refreshUserData,
-      renderUserProblemList
+      refreshUserData
     });
     setLoadingMilestone(100);
     hideLoadingScreen();
@@ -1306,9 +1304,6 @@ function getCurrentController() {
   }
   return getPlayController();
 }
-const userProblemsScreen = document.getElementById('user-problems-screen');
-
-configureLevelModule({ renderUserProblemList });
 
 initializeHintUI();
 initializeLabMode();
@@ -1338,7 +1333,6 @@ async function startCustomProblem(key, problem) {
   // 이전/다음 스테이지 메뉴 버튼 관련 로직 제거됨
   document.getElementById('gameTitle').textContent = problem.title
     || translate('userProblemFallbackTitle');
-  if (userProblemsScreen) userProblemsScreen.style.display = 'none';
   hideStageMapScreen();
   showGameScreen();
   const rp = document.getElementById('rightPanel');
@@ -1354,8 +1348,6 @@ initializeProblemCreationFlow({
     backButtonId: 'backToMainFromProblem',
     problemScreenId: 'problem-screen',
     firstScreenId: 'stageMapScreen',
-    userProblemsScreenId: 'user-problems-screen',
-    openProblemCreatorBtnId: 'openProblemCreatorBtn',
     saveProblemBtnId: 'saveProblemBtn',
     confirmSaveProblemBtnId: 'confirmSaveProblemBtn',
     cancelSaveProblemBtnId: 'cancelSaveProblemBtn',
@@ -1368,8 +1360,7 @@ initializeProblemCreationFlow({
     problemDifficultyContainerId: 'problemDifficultyStars',
     problemDifficultyValueInputId: 'problemDifficultyValue',
     problemDifficultyValueLabelId: 'problemDifficultyValueLabel',
-    fixIOCheckId: 'fixIOCheck',
-    backToStageMapFromUserProblemsBtnId: 'backToStageMapFromUserProblems'
+    fixIOCheckId: 'fixIOCheck'
   },
   buildPaletteGroups,
   onDestroyProblemContext: destroyProblemContext,
