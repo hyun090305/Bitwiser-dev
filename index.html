@@ -722,41 +722,6 @@
               style="display: flex; flex-direction: column; align-items: center; gap: 1rem;">
               <div class="console-meta">
                 <button id="systemMenuBtn" class="system-menu-btn" type="button" aria-expanded="false" aria-controls="systemMenuDrawer" aria-haspopup="dialog">≡</button>
-                <div id="systemMenuBackdrop" class="system-menu-backdrop" hidden></div>
-                <div id="systemMenuDrawer" class="system-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="systemMenuTitle" hidden>
-                  <div class="system-menu-header">
-                    <h2 id="systemMenuTitle">SYSTEM MENU</h2>
-                    <p class="system-menu-shortcut">ESC 닫기</p>
-                  </div>
-
-                  <section aria-labelledby="systemMenuProgressHeading">
-                    <h3 id="systemMenuProgressHeading">Progress</h3>
-                    <div class="system-menu-grid">
-                      <button id="viewRankingBtn">🏆 랭킹</button>
-                      <button id="viewSavedBtn">💾 저장된 회로</button>
-                    </div>
-                  </section>
-
-                  <section aria-labelledby="systemMenuToolsHeading">
-                    <h3 id="systemMenuToolsHeading">Tools</h3>
-                    <div class="system-menu-grid">
-                      <button id="saveCircuitBtn">💾 회로 저장</button>
-                      <button id="exportGifBtn">📷 회로 내보내기</button>
-                    </div>
-                  </section>
-
-                  <section aria-labelledby="systemMenuHelpHeading">
-                    <h3 id="systemMenuHelpHeading">Help</h3>
-                    <div class="system-menu-grid">
-                      <button id="showIntroBtn">ℹ️ 스테이지 안내</button>
-                      <button id="hintBtn">💡 힌트</button>
-                    </div>
-                  </section>
-
-                  <div class="system-menu-footer">
-                    <button id="backToLevelsBtn" class="system-menu-danger">← 스테이지 맵으로</button>
-                  </div>
-                </div>
                 <h1 id="gameTitle" title="ℹ️ 스테이지 안내">🧠 Bitwiser</h1>
               </div>
               <button id="gradeButton" class="main-button">회로 실행</button>
@@ -869,6 +834,47 @@
       </div>
     </div>
     <!-- tutorial modal removed -->
+    <div id="systemMenuBackdrop" class="system-menu-backdrop" hidden></div>
+    <div id="systemMenuDrawer" class="system-menu-drawer" role="dialog" aria-modal="true" aria-labelledby="systemMenuTitle" hidden>
+      <div class="system-menu-header">
+        <h2 id="systemMenuTitle">SYSTEM MENU</h2>
+        <p class="system-menu-shortcut">ESC 닫기</p>
+      </div>
+
+      <section aria-labelledby="systemMenuProgressHeading">
+        <h3 id="systemMenuProgressHeading">Progress</h3>
+        <div class="system-menu-grid">
+          <button id="viewRankingBtn">🏆 랭킹</button>
+          <button id="viewSavedBtn">💾 저장된 회로</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="systemMenuToolsHeading">
+        <h3 id="systemMenuToolsHeading">Tools</h3>
+        <div class="system-menu-grid">
+          <button id="saveCircuitBtn">💾 회로 저장</button>
+          <button id="exportGifBtn">📷 회로 내보내기</button>
+        </div>
+      </section>
+
+      <section aria-labelledby="systemMenuHelpHeading">
+        <h3 id="systemMenuHelpHeading">Help</h3>
+        <div class="system-menu-grid">
+          <button id="showIntroBtn">ℹ️ 스테이지 안내</button>
+          <button id="hintBtn">💡 힌트</button>
+        </div>
+      </section>
+
+      <div class="system-menu-footer">
+        <button id="backToLevelsBtn" class="system-menu-danger">← 스테이지 맵으로</button>
+      </div>
+    </div>
+    <script>
+      document.body.append(
+        document.getElementById('systemMenuBackdrop'),
+        document.getElementById('systemMenuDrawer')
+      );
+    </script>
     <!-- 저장된 회로 목록 모달 -->
     <div id="savedModal" class="modal" style="display:none;">
       <div class="modal-content">

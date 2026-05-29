@@ -347,7 +347,7 @@ function parseLogicRows(level, dataTable = []) {
   });
 }
 
-function renderLogicCards(tableEl, rows) {
+export function renderLogicCards(tableEl, rows) {
   tableEl.innerHTML = '';
 
   const createSignalGroup = (signals, sideClassName) => {

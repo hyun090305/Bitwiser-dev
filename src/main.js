@@ -1125,6 +1125,8 @@ function setupSystemMenuDrawer() {
   const drawerItems = drawer ? Array.from(drawer.querySelectorAll('button')) : [];
   if (!button || !drawer || !backdrop) return;
 
+  document.body.append(backdrop, drawer);
+
   const updateLabel = () => {
     const expanded = button.getAttribute('aria-expanded') === 'true';
     const key = expanded ? 'systemMenuClose' : 'systemMenuOpen';

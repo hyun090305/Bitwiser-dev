@@ -13,6 +13,7 @@ import {
 } from './grid.js';
 import { evaluateCircuit } from '../canvas/engine.js';
 import { getUsername } from './storage.js';
+import { renderLogicCards } from './levels.js';
 
 let creationFlowConfig = null;
 let startCustomProblemHandler = null;
@@ -1380,30 +1381,7 @@ export function showProblemIntro(problem, callback) {
     logicDataLabel.textContent = translate('introLogicData', 'LOGIC DATA');
   }
 
-  const keys = Object.keys(problem.table?.[0] || {});
-  const outputKey = keys[keys.length - 1];
-  const inputKeys = keys.slice(0, -1);
-  table.innerHTML = '';
-  (problem.table || []).forEach((row, index) => {
-    const card = document.createElement('article');
-    card.className = 'level-intro-case';
-    card.style.setProperty('--case-delay', `${index * 90}ms`);
-
-    const lhs = document.createElement('span');
-    lhs.className = 'level-intro-case__input';
-    lhs.textContent = inputKeys.map(key => row[key]).join('') || '--';
-
-    const arrow = document.createElement('span');
-    arrow.className = 'level-intro-case__arrow';
-    arrow.textContent = '->';
-
-    const rhs = document.createElement('span');
-    rhs.className = 'level-intro-case__output';
-    rhs.textContent = `${row[outputKey] ?? '-'}`;
-
-    card.append(lhs, arrow, rhs);
-    table.appendChild(card);
-  });
+  renderLogicCards(table, parseCustomProblemLogicRows(problem));
 
   modal.style.display = 'flex';
   modal.classList.remove('level-intro-screen--active');
@@ -1423,6 +1401,35 @@ export function showProblemIntro(problem, callback) {
     modal.classList.remove('level-intro-screen--active');
     if (callback) callback();
   };
+}
+
+function parseCustomProblemLogicRows(problem) {
+  const dataTable = Array.isArray(problem?.table) ? problem.table : [];
+  if (!dataTable.length) return [];
+
+  const keys = Object.keys(dataTable[0] || {});
+  const inputKeys = keys
+    .filter(key => /^IN\d+$/i.test(key))
+    .sort((a, b) => compareIONames(a, b, 'IN'));
+  const outputKeys = keys
+    .filter(key => /^OUT\d+$/i.test(key))
+    .sort((a, b) => compareIONames(a, b, 'OUT'));
+
+  const fallbackOutputKey = keys[keys.length - 1];
+  const resolvedInputKeys = inputKeys.length ? inputKeys : keys.slice(0, -1);
+  const resolvedOutputKeys = outputKeys.length ? outputKeys : [fallbackOutputKey].filter(Boolean);
+
+  return dataTable.map((row, index) => ({
+    id: `custom-case-${index}`,
+    inputSignals: resolvedInputKeys.map(key => ({
+      label: key,
+      value: `${row[key] ?? ''}`.trim()
+    })),
+    outputSignals: resolvedOutputKeys.map(key => ({
+      label: key,
+      value: `${row[key] ?? ''}`.trim()
+    }))
+  }));
 }
 
 export function createCustomProblemPalette(problem) {
