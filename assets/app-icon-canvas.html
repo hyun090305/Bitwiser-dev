@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bitwiser App Icon</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #020617;
+      color: #e2e8f0;
+    }
+
+    body {
+      min-height: 100vh;
+      margin: 0;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at 50% 38%, rgba(14, 165, 233, 0.14), transparent 34%),
+        #020617;
+    }
+
+    main {
+      display: grid;
+      gap: 18px;
+      justify-items: center;
+    }
+
+    canvas {
+      width: min(76vmin, 640px);
+      aspect-ratio: 1;
+      border-radius: 22%;
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+    }
+
+    button {
+      border: 1px solid rgba(125, 211, 252, 0.34);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: #e0f2fe;
+      background: rgba(8, 47, 73, 0.78);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <canvas id="icon" width="1024" height="1024" aria-label="Bitwiser app icon preview"></canvas>
+    <button id="download" type="button">Download PNG</button>
+  </main>
+  <script>
+    const canvas = document.querySelector('#icon');
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    const theme = {
+      grid: {
+        background: '#0f172a',
+        gridFillA: 'rgba(30, 41, 59, 0.92)',
+        gridFillB: 'rgba(15, 23, 42, 0.92)',
+        gridStroke: 'rgba(148, 163, 184, 0.2)',
+        borderColor: 'rgba(94, 234, 212, 0.6)',
+        borderWidth: 2,
+        cellRadius: 10
+      },
+      block: {
+        fill: ['#29586e', '#2b6680'],
+        shadow: { color: 'rgba(56, 189, 248, 0.35)', blur: 22, offsetY: 12 },
+        strokeColor: 'rgba(94, 234, 212, 0.6)',
+        strokeWidth: 1.6
+      },
+      wire: {
+        color: '#67e8f9',
+        width: 2.8,
+        nodeFill: 'rgba(14, 116, 144, 0.55)',
+        nodeShadow: 'rgba(56, 189, 248, 0.3)'
+      }
+    };
+
+    function roundedRect(context, x, y, w, h, r) {
+      const radius = Math.min(r, w / 2, h / 2);
+      context.beginPath();
+      context.moveTo(x + radius, y);
+      context.arcTo(x + w, y, x + w, y + h, radius);
+      context.arcTo(x + w, y + h, x, y + h, radius);
+      context.arcTo(x, y + h, x, y, radius);
+      context.arcTo(x, y, x + w, y, radius);
+      context.closePath();
+    }
+
+    function createFill(fill, x, y, w, h) {
+      if (!Array.isArray(fill)) return fill;
+      const gradient = ctx.createLinearGradient(x, y, x, y + h);
+      fill.forEach((color, index) => {
+        gradient.addColorStop(index / Math.max(1, fill.length - 1), color);
+      });
+      return gradient;
+    }
+
+    function fillRoundedRect(x, y, w, h, r, fill, shadow) {
+      ctx.save();
+      if (shadow) {
+        ctx.shadowColor = shadow.color;
+        ctx.shadowBlur = shadow.blur;
+        ctx.shadowOffsetX = shadow.offsetX || 0;
+        ctx.shadowOffsetY = shadow.offsetY || 0;
+      }
+      roundedRect(ctx, x, y, w, h, r);
+      ctx.fillStyle = createFill(fill, x, y, w, h);
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function strokeRoundedRect(x, y, w, h, r, stroke, lineWidth) {
+      ctx.save();
+      roundedRect(ctx, x, y, w, h, r);
+      ctx.strokeStyle = stroke;
+      ctx.lineWidth = lineWidth;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawWire(points, width) {
+      ctx.save();
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.strokeStyle = theme.wire.color;
+      ctx.shadowColor = 'rgba(103, 232, 249, 0.48)';
+      ctx.shadowBlur = width * 2.3;
+      ctx.beginPath();
+      ctx.moveTo(points[0].cx ?? points[0].x, points[0].cy ?? points[0].y);
+      points.slice(1).forEach(point => ctx.lineTo(point.cx ?? point.x, point.cy ?? point.y));
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawActiveBlock(x, y, cell, radius) {
+      fillRoundedRect(x, y, cell, cell, radius, 'rgba(255, 246, 225, 0.96)', {
+        color: 'rgba(255, 220, 180, 0.28)',
+        blur: 26,
+        offsetY: 6
+      });
+      const glow = ctx.createRadialGradient(
+        x + cell * 0.42,
+        y + cell * 0.38,
+        cell * 0.06,
+        x + cell * 0.42,
+        y + cell * 0.38,
+        cell * 0.9
+      );
+      glow.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
+      glow.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
+      glow.addColorStop(1, 'rgba(255, 200, 100, 0)');
+      ctx.save();
+      ctx.globalCompositeOperation = 'lighter';
+      fillRoundedRect(x, y, cell, cell, radius, glow);
+      ctx.restore();
+      strokeRoundedRect(x, y, cell, cell, radius, theme.block.strokeColor, 4);
+    }
+
+    function drawNeonBlock(x, y, cell, radius, alpha = 1) {
+      fillRoundedRect(x, y, cell, cell, radius, theme.block.fill, {
+        color: `rgba(56, 189, 248, ${0.35 * alpha})`,
+        blur: 22,
+        offsetY: 12
+      });
+      strokeRoundedRect(x, y, cell, cell, radius, theme.block.strokeColor, 4);
+    }
+
+    function drawGateLabel(x, y, cell) {
+      ctx.save();
+      ctx.font = `bold ${Math.round(cell * 0.36)}px "Noto Sans KR", sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#e0f2fe';
+      ctx.fillText('AND', x + cell / 2, y + cell / 2 + cell * 0.015);
+      ctx.restore();
+    }
+
+    function drawIcon() {
+      ctx.clearRect(0, 0, size, size);
+
+      const cell = 900;
+      const x = (size - cell) / 2;
+      const y = (size - cell) / 2;
+      drawNeonBlock(x, y, cell, 96, 1);
+      drawGateLabel(x, y, cell);
+    }
+
+    drawIcon();
+
+    document.querySelector('#download').addEventListener('click', () => {
+      const a = document.createElement('a');
+      a.download = 'bitwiser-icon-1024.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+    });
+  </script>
+</body>
+</html>

@@ -215,6 +215,10 @@ body.safe-mode .stage-map-surface {
   backdrop-filter: blur(8px);
 }
 
+body.lab-mode-active .stage-map-chapter-nav {
+  display: none;
+}
+
 .stage-map-chapter-nav button {
   border-radius: 999px;
   border: 1px solid rgba(148, 163, 184, 0.5);
@@ -3201,6 +3205,10 @@ html, body {
   padding: 0.55rem 0.7rem;
   cursor: pointer;
   box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(125, 211, 252, 0.16);
+}
+
+body.lab-mode-active .system-menu-btn {
+  display: none;
 }
 
 .system-menu-backdrop {

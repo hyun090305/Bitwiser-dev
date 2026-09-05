@@ -987,7 +987,7 @@
       })();
     </script>
     <script>
-      if ("serviceWorker" in navigator) {
+      if ("serviceWorker" in navigator && window.location.protocol !== "app:") {
         window.addEventListener("load", () => {
           navigator.serviceWorker.register("service-worker.js");
         });

@@ -2,8 +2,47 @@
   "name": "bitwiser-dev",
   "version": "1.0.0",
   "description": "Bitwiser game project",
+  "main": "electron/main.js",
   "scripts": {
+    "start": "electron .",
+    "dist": "cross-env ELECTRON_CACHE=.electron-cache ELECTRON_BUILDER_CACHE=.electron-builder-cache electron-builder",
     "test": "echo \"No tests specified\" && exit 0"
   },
-  "license": "MIT"
+  "build": {
+    "appId": "com.bitwiser.game",
+    "productName": "Bitwiser",
+    "files": [
+      "index.html",
+      "style.css",
+      "lang.js",
+      "background.js",
+      "manifest.json",
+      "service-worker.js",
+      "oauth-callback.html",
+      "gif.js",
+      "gif.worker.js",
+      "levels.json",
+      "levels_en.json",
+      "stage_map.json",
+      "storyFragments.json",
+      "*.json",
+      "src/**/*",
+      "assets/**/*",
+      "electron/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "icon": "assets/icon.ico",
+    "win": {
+      "icon": "assets/icon.ico",
+      "target": "nsis"
+    }
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "cross-env": "^10.1.0",
+    "electron": "^42.3.0",
+    "electron-builder": "^26.8.1"
+  }
 }

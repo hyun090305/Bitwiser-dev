@@ -1578,7 +1578,8 @@ export function initializeStageMap({
       startTime: 0,
       targetNode: null,
       uiTriggered: false,
-      startCamera: null
+      startCamera: null,
+      returnCamera: null
     }
   };
 
@@ -1637,6 +1638,7 @@ export function initializeStageMap({
     state.transition.targetNode = node;
     state.transition.uiTriggered = false;
     state.transition.startCamera = { ...camera.getState() };
+    state.transition.returnCamera = { ...camera.getState() };
     requestRender();
   }
 
@@ -2695,6 +2697,69 @@ export function initializeStageMap({
     refreshZoomIndicator();
   }
 
+  function syncViewportPreservingCenter() {
+    const before = camera.getState();
+    const beforeWidth = before.viewportWidth || canvas.clientWidth || window.innerWidth || 1;
+    const beforeHeight = before.viewportHeight || canvas.clientHeight || window.innerHeight || 1;
+    const centerBefore = camera.screenToWorld(beforeWidth / 2, beforeHeight / 2);
+
+    try {
+      ensureCanvasInitialized();
+    } catch (e) {
+      console.warn('ensureCanvasInitialized failed while syncing stage map viewport', e);
+    }
+
+    const rect = canvas.getBoundingClientRect();
+    const width = rect.width || surface?.getBoundingClientRect?.().width || window.innerWidth || 1;
+    const height = rect.height || surface?.getBoundingClientRect?.().height || window.innerHeight || 1;
+    camera.setViewport(width, height);
+
+    const after = camera.getState();
+    const centerAfter = camera.screenToWorld(
+      (after.viewportWidth || width) / 2,
+      (after.viewportHeight || height) / 2
+    );
+    const dx = (centerAfter.x - centerBefore.x) * after.scale;
+    const dy = (centerAfter.y - centerBefore.y) * after.scale;
+    if (Math.abs(dx) > 0.01 || Math.abs(dy) > 0.01) {
+      camera.pan(dx, dy);
+    }
+    requestRender();
+  }
+
+  function scheduleViewportSync() {
+    executeNextFrame(() => {
+      syncViewportPreservingCenter();
+      executeNextFrame(syncViewportPreservingCenter);
+    });
+  }
+
+  function refitCurrentView({ animate = false } = {}) {
+    if (!state.nodes.length) return;
+    if (state.archiveMode.active) {
+      focusBlueprintArchive({ animate });
+    } else if (state.currentChapterId) {
+      focusChapter(state.currentChapterId, { animate });
+    } else {
+      centerMap();
+    }
+    refreshZoomIndicator();
+  }
+
+  function scheduleViewportRefit({ animate = false } = {}) {
+    executeNextFrame(() => {
+      try {
+        ensureCanvasInitialized();
+      } catch (e) {
+        console.warn('ensureCanvasInitialized failed while refitting stage map viewport', e);
+      }
+      const rect = canvas.getBoundingClientRect();
+      camera.setViewport(rect.width || window.innerWidth || 1, rect.height || window.innerHeight || 1);
+      refitCurrentView({ animate });
+      executeNextFrame(() => refitCurrentView({ animate: false }));
+    });
+  }
+
   function updateCanvasCursor() {
     if (!canvas) return;
     if (state.dragging || state.pinchState) {
@@ -3224,22 +3289,10 @@ export function initializeStageMap({
   }
 
   function onResize() {
-    try {
-      // Ensure canvas internal buffer and DPR are up-to-date before
-      // updating the camera viewport. This prevents cases where the
-      // canvas CSS size or devicePixelRatio changed but the internal
-      // pixel buffer (and dataset) haven't been reinitialized yet,
-      // which can cause the canvas to not fill the available area.
-      ensureCanvasInitialized();
-    } catch (e) {
-      // Swallow errors from initialization to avoid breaking resize flow.
-      // We'll still attempt to update viewport and render below.
-      // eslint-disable-next-line no-console
-      console.warn('ensureCanvasInitialized failed on resize', e);
+    if (screenEl?.getAttribute('aria-hidden') === 'true' || screenEl?.style.display === 'none') {
+      return;
     }
-    const rect = canvas.getBoundingClientRect();
-    camera.setViewport(rect.width, rect.height);
-    requestRender();
+    scheduleViewportRefit({ animate: false });
   }
 
   camera.setOnChange(() => requestRender());
@@ -3445,6 +3498,7 @@ export function initializeStageMap({
   }
 
   document.addEventListener('stageMap:shown', () => {
+    scheduleViewportSync();
     if (state.pendingMemoryRestored) {
       setTimeout(() => {
         runMemoryRestoredAnimation(state.pendingMemoryRestored);
@@ -3455,13 +3509,15 @@ export function initializeStageMap({
 
   document.addEventListener('stageMap:returnFromLab', (e) => {
     const { camera: camState } = e.detail || {};
-    if (camState) {
-      if (Number.isFinite(camState.scale)) {
-        camera.setScale(camState.scale);
+    const stageCameraState = state.transition.returnCamera || camState;
+    state.transition.returnCamera = null;
+    if (stageCameraState) {
+      if (Number.isFinite(stageCameraState.scale)) {
+        camera.setScale(stageCameraState.scale);
       }
       
-      const targetOriginX = Number.isFinite(camState.originX) ? camState.originX : 0;
-      const targetOriginY = Number.isFinite(camState.originY) ? camState.originY : 0;
+      const targetOriginX = Number.isFinite(stageCameraState.originX) ? stageCameraState.originX : 0;
+      const targetOriginY = Number.isFinite(stageCameraState.originY) ? stageCameraState.originY : 0;
       
       const current = camera.getState();
       // Calculate delta to pan to target
@@ -3477,6 +3533,7 @@ export function initializeStageMap({
     
     state.transition.returningFromLab = true;
     state.transition.startTime = performance.now();
+    scheduleViewportSync();
     requestRender();
   });
 

@@ -1135,7 +1135,10 @@ function setupSystemMenuDrawer() {
     button.setAttribute('title', label);
   };
 
+  const isLabModeActive = () => document.body.classList.contains('lab-mode-active');
+
   const open = () => {
+    if (isLabModeActive()) return;
     backdrop.hidden = false;
     drawer.hidden = false;
     document.body.classList.add('system-menu-open');
@@ -1151,7 +1154,23 @@ function setupSystemMenuDrawer() {
     updateLabel();
   };
 
+  const syncLabModeAvailability = () => {
+    const disabled = isLabModeActive();
+    button.hidden = disabled;
+    button.disabled = disabled;
+    button.setAttribute('aria-hidden', disabled ? 'true' : 'false');
+    if (disabled && !drawer.hidden) {
+      close();
+    } else if (!disabled) {
+      updateLabel();
+    }
+  };
+
   const toggle = () => {
+    if (isLabModeActive()) {
+      close();
+      return;
+    }
     if (drawer.hidden) {
       open();
     } else {
@@ -1177,11 +1196,22 @@ function setupSystemMenuDrawer() {
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && !drawer.hidden) {
       close();
-      button.focus();
+      if (!button.hidden) {
+        button.focus();
+      }
     }
   });
 
+  if (typeof MutationObserver !== 'undefined') {
+    const observer = new MutationObserver(syncLabModeAvailability);
+    observer.observe(document.body, {
+      attributes: true,
+      attributeFilter: ['class']
+    });
+  }
+
   close();
+  syncLabModeAvailability();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
