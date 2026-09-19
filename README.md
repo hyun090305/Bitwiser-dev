@@ -15,6 +15,7 @@ Play bitwise. Become bit wiser.
 - [사용법](#사용법)
 - [프로젝트 구조](#프로젝트-구조)
 - [개발 세부사항](#개발-세부사항)
+- [개발 워크플로](#개발-워크플로)
 
 ## 기능
 - **블록 끌어다 놓기**: 입력, 출력, AND/OR/NOT 게이트, 와이어 툴을 그리드에 배치
@@ -48,8 +49,8 @@ npm run preview:demo
 
 ### 설치
 ```bash
-git clone https://github.com/your-username/bitgame.git
-cd bitgame
+git clone https://github.com/hyun090305/Bitwiser-dev.git
+cd Bitwiser-dev
 ```
 
 ### 로컬 실행
@@ -78,28 +79,25 @@ serve . -l 5000
 5. 블록 이동 또는 휴지통에 드래그하여 삭제 (와이어 자동 해제)
 
 ## 프로젝트 구조
-```text
-bitgame/
-├─ index.html    # 메인 HTML (팔레트, 그리드)
-├─ style.css     # 스타일 (그리드, 블록, 와이어, 애니메이션)
-├─ script.js     # 핵심 로직 (드래그/드롭, 와이어, 시뮬레이션)
-└─ README.md     # 프로젝트 설명 문서
-```
+
+정식 웹은 `index.html`과 `src/main.js`, Electron은 `electron/main.js`, 체험판은 `src/demo/`에서 시작합니다. UI·게임 흐름은 `src/modules/`, 회로 모델·평가·렌더링·조작은 `src/canvas/`에 있습니다. 현재 파일별 역할과 데이터 흐름은 [코드 지도](docs/architecture.md)를 참고하세요.
 
 ## 개발 세부사항
-- **그리드 초기화**: 6×6 셀 생성, dragover/drop 리스너 등록
-- **드래그/드롭**: `data-type`, `data-name`, `data-value` 속성으로 블록 관리
-- **와이어 알고리즘**:
-  - 와이어 모드 진입 시 블록 드래그 비활성화
-  - mousedown, mousemove, mouseup 이벤트로 인접 셀 추적, L자 보간
-  - 기존 와이어 검사 및 연결 유효성 확인
-  - 와이어 방향 잠금 및 `wires` 배열에 저장
-- **시뮬레이터**:
-  - 노드(adj map) 구성, 입력 값 초기화 → BFS 탐색 신호 전파
-  - AND/OR/NOT 연산 수행 → 출력 블록 업데이트
-- **자동 해제**: `disconnectWiresCascade`로 이동/삭제 블록 관련 와이어 제거
+
+D 메모리의 동시 tick, 회로 저장 호환, 완전검증 채점과 반례 재생, 비용·별 규칙은 [코드 지도에 연결된 기존 명세](docs/architecture.md)에 정리되어 있습니다. 작업할 때 현재 코드와 테스트를 함께 확인하세요.
+
+## 개발 워크플로
+
+[ChatGPT ↔ GitHub ↔ Codex 작업 절차](docs/development-workflow.md)에 따라 현재 코드를 읽고 Issue에 명세를 정리한 뒤, Codex가 구현·검증하여 PR을 만듭니다. 검토 시 Issue의 완료 조건(AC)과 실제 diff·검증 근거를 대조합니다.
+
+- [Codex 작업 지침](AGENTS.md)
+- [Implementation spec 템플릿](.github/ISSUE_TEMPLATE/implementation_spec.md)
+- [PR 템플릿](.github/pull_request_template.md)
 
 ## 향후 개발 예정 사항
+
+아래는 초기 로드맵입니다. 이미 구현된 기능이 포함되어 있으므로 새 작업의 범위는 현재 코드와 Issue에서 확인하세요.
+
 - **순차 논리 지원**: 플립플롭(Flip-Flop), 래치(Latch) 등의 순차 회로 요소 추가  
 - **중간 게이트 출력 표시**: 각 AND/OR/NOT 블록의 출력값을 시뮬레이션 중 실시간으로 하이라이트  
 - **에러 검출 기능**: 단선, 루프, 중복 연결 등 회로 이상 상태 경고  
@@ -111,5 +109,4 @@ bitgame/
 - **애니메이션 향상**: 와이어 흐름 속도 제어, 다양한 애니메이션 효과  
 - **테마 및 접근성**: 다크 모드, 컬러블라인드 호환 테마  
 - **모듈화**: 서브회로(Subcircuit) 개념 도입, 계층적 설계 지원  
-- **협업 기능**: 온라인 실시간 공동 편집 및 주석(Annotation) 기능  
-
+- **협업 기능**: 온라인 실시간 공동 편집 및 주석(Annotation) 기능
