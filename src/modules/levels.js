@@ -338,7 +338,7 @@ function updateStageAccess() {
   if (dependencies.progressProvider) return;
   const owner = getUsername() || '익명';
   const previous = stageAccessOwner === owner ? stageAccess : getStageAccessRecord();
-  stageAccess = preserveStageAccess(clearedLevelsFromDb, previous || {}, { legacy: !previous });
+  stageAccess = preserveStageAccess(clearedLevelsFromDb, previous || {}, { legacy: !previous || (previous.catalogVersion || 1) < 3 });
   stageAccessOwner = owner;
   setStageAccessRecord(stageAccess);
 }

@@ -1,8 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {CHAPTERS,STAGES,canPlayStage,playableStages,nextAvailableStage} from '../src/modules/stageCatalog.js';
-import {DEMO_IDS,DEMO_END_STAGE,isUnlocked,nextDemoStage} from '../src/demo/catalog.js';
+import {CHAPTERS,STAGES,canPlayStage,playableStages} from '../src/modules/stageCatalog.js';
+import { STAGE_MAP_EDGES } from '../src/modules/stageMapTopology.js';
+import {DEMO_IDS,DEMO_END_STAGE,isUnlocked} from '../src/demo/catalog.js';
 import {makeRecord,validateProgress,emptyProgress} from '../src/demo/records.js';
 import {gradeCircuitSync} from '../src/modules/circuitGrading.js';
 import {createExecutionState,tickCircuit} from '../src/canvas/evaluation.js';
@@ -31,7 +32,7 @@ test('stable IDs, five chapters plus extras, complete catalog and no candidate p
   for(const s of STAGES) {
     assert.equal(map.nodes.find(n=>n.id===s.nodeId).chapterId,s.chapterId);
     const incoming=map.edges.filter(e=>e.to===s.nodeId).map(e=>STAGES.find(n=>n.nodeId===e.from)?.id).sort((a,b)=>a-b);
-    assert.deepEqual(incoming,[...s.prerequisites].sort((a,b)=>a-b));
+    assert.deepEqual(incoming,STAGE_MAP_EDGES.filter(e=>e.to===s.nodeId).map(e=>STAGES.find(n=>n.nodeId===e.from).id).sort((a,b)=>a-b));
     assert.equal(s.status==='playable',Boolean(levels.levelAnswers[s.id]));
     if(s.status==='candidate')assert.equal(canPlayStage(s.id,Array.from({length:47},(_,i)=>i)),false);
   }
@@ -41,22 +42,14 @@ test('stable IDs, five chapters plus extras, complete catalog and no candidate p
     const points=[center(edge.from),...(edge.waypoints || []),center(edge.to)];
     points.slice(1).forEach((p,i)=>assert.ok(p.x===points[i].x||p.y===points[i].y,`Diagonal map connector ${edge.from} -> ${edge.to}`));
   }
-  function visit(s,path=[]) {assert.ok(!path.includes(s.id),'prerequisite cycle');s.prerequisites.forEach(id=>visit(STAGES.find(n=>n.id===id),[...path,s.id]));}
+  function visit(s,path=[]) {assert.ok(!path.includes(s.nodeId),'map cycle');STAGE_MAP_EDGES.filter(e=>e.to===s.nodeId).forEach(e=>visit(STAGES.find(n=>n.nodeId===e.from),[...path,s.nodeId]));}
   playableStages().forEach(s=>visit(s));
 });
 
-test('AND joins, parallel later chapters, optional branches and legacy replay',()=>{
-  assert.equal(canPlayStage(29,[27]),false);assert.equal(canPlayStage(29,[28]),false);assert.equal(canPlayStage(29,[27,28]),true);
-  assert.equal(canPlayStage(10,[30,9]),false);assert.equal(canPlayStage(10,[30,9,8]),true);
-  assert.equal(canPlayStage(12,[11]),false);assert.equal(canPlayStage(12,[30,11]),false);
-  assert.equal(canPlayStage(12,[30,36]),true);
-  for(const id of [9,35])assert.equal(canPlayStage(id,[30]),true);
-  for(const id of [8,13,21,20])assert.equal(canPlayStage(id,[30]),false);
-  assert.equal(canPlayStage(9,[]),false);assert.equal(canPlayStage(9,[9]),true);
+test('demo chapter access excludes later chapters and keeps the ending stage',()=>{
+  for(const id of [0,1,2,3,4,5,6])assert.equal(isUnlocked(id,[]),true);
+  for(const id of DEMO_IDS.filter(id=>id>6))assert.equal(isUnlocked(id,[6]),true);
   assert.equal(isUnlocked(24,[24,30]),false);
-  assert.equal(nextDemoStage(25,[0,1,2,3,6,25]),7);
-  assert.equal(nextDemoStage(27,[25,7,27]),26);
-  assert.equal(nextAvailableStage(28,[25,7,26,27,28]),29);
   assert.equal(DEMO_END_STAGE,30);assert.equal(DEMO_IDS.length,17);
 });
 

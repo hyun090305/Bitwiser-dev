@@ -31,7 +31,7 @@ try{
     }
     return checks;
   });
-  assert.deepEqual(guards,[false,true,true,false,false,false,true,false]);
+  assert.deepEqual(guards,[false,true,true,true,true,true,true,true]);
   console.log(JSON.stringify({...result,errors}));
 }catch(error){console.error(error,errors);process.exitCode=1;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

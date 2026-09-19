@@ -48,7 +48,11 @@ try {
   await page.screenshot({ path: 'test-results/result-trace/stage-reference.png' });
   await page.locator('#startLevelBtn').click();
   const fixture = JSON.parse(await fs.readFile('tests/fixtures/stages/35-3.json', 'utf8')).circuit;
-  for (const [id, wire] of Object.entries(fixture.wires)) if (wire.endBlockId === 'CLEAN') delete fixture.wires[id];
+  // Keep valid connectivity so the exhaustive grader produces a counterexample.
+  // Disconnecting an output now correctly produces an invalid-arity result.
+  const gate = Object.values(fixture.blocks).find(block => block.type === 'AND');
+  assert.ok(gate, 'Stage 35 must have an AND gate to fault');
+  gate.type = 'OR';
   await page.evaluate(async c => {
     const grid = await import('/src/modules/grid.js'); grid.getPlayController().restoreCircuit(c);
     window.originalCircuit = JSON.stringify(grid.getPlayCircuit());
@@ -93,7 +97,9 @@ try {
   });
   await page.locator('#startLevelBtn').click();
   const combinational = JSON.parse(await fs.readFile('tests/fixtures/demo/1-3.json', 'utf8')).circuit;
-  for (const [id, w] of Object.entries(combinational.wires)) if (combinational.blocks[w.endBlockId].type === 'OUTPUT') delete combinational.wires[id];
+  const inverter = Object.values(combinational.blocks).find(block => block.type === 'NOT');
+  assert.ok(inverter, 'Stage 1 must have a NOT gate to fault');
+  inverter.type = 'JUNCTION';
   await page.evaluate(async c => (await import('/src/modules/grid.js')).getPlayController().restoreCircuit(c), combinational);
   await page.locator('#gradeButton').click(); await page.locator('#gradingResultOverlay[open]').waitFor();
   assert.equal(await page.locator('.trace-event--set').count(), 1);

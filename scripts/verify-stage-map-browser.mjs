@@ -177,12 +177,12 @@ try {
   assert.ok(cardPixels>=160&&cardPixels<=180,`Actual card size: ${cardPixels}px`);
   const bannerPixels=await page.evaluate(()=>window.mapTest.state.chapters[0].title.rect.h*window.mapTest.camera.getScale());
   assert.ok(bannerPixels>=110&&bannerPixels<=130,`Actual banner height: ${bannerPixels}px`);
-  assert.equal(data.nodes.filter(n=>n.status.unlocked).length,1);
+  assert.equal(data.nodes.filter(n=>n.status.unlocked).length,7);
   await setProgress([0,1,2,3]);await chapter(1);
   assert.deepEqual(await page.evaluate(()=>Object.keys(window.mapTextSamples).filter(text=>/[✓★☆]|^(완료|Complete)$/.test(text))),[]);
   await page.screenshot({path:path.join(out,'chapter-1-reward-stars.png')});
   await setProgress([0,1,2,3,6,25,7,27]);await chapter(2);
-  assert.equal((await geometry()).nodes.find(n=>n.id==='staging_register').status.locked,true);
+  assert.equal((await geometry()).nodes.find(n=>n.id==='staging_register').status.locked,false);
   await page.screenshot({path:path.join(out,'chapter-2-partial.png')});
   const typography=await page.evaluate(()=>({title:window.mapTextSamples['자동문'],optional:window.mapTextSamples['선택'],status:window.mapTextSamples['잠김']}));
   assert.ok(typography.title.fontSize>=20&&typography.title.fontSize<=22);
@@ -286,18 +286,39 @@ try {
   const legacy=await page.evaluate(async()=> (await import('./src/modules/stageCatalog.js')).preserveStageAccess([30,11],{}, {legacy:true}));
   await setProgress([30,11],legacy);await chapter(4);
   assert.equal((await geometry()).nodes.find(n=>n.id==='mux_4to1').status.unlocked,true);
-  assert.equal((await geometry()).nodes.find(n=>n.id==='round_robin').status.unlocked,false);
+  assert.equal((await geometry()).nodes.find(n=>n.id==='round_robin').status.unlocked,true);
   await page.screenshot({path:path.join(out,'chapter-4-legacy-access.png')});
-  // Direct entry uses the same release/chapter/parent guard as the cards.
+  // Direct entry uses the same release/chapter guard as the cards.
   const guards=await page.evaluate(async()=>{
     const levels=await import('./src/modules/levels.js');const results=[];
-    for(const [id,cleared] of [[29,[27]],[29,[27,28]],[31,[29]],[31,[30]],[34,[30,32]],[34,[30,33]],[32,[30,35]],[12,[12]]]) {
+    for(const [id,cleared] of [[29,[]],[29,[6]],[31,[29]],[31,[30]],[34,[]],[34,[30]],[32,[30]],[12,[12]]]) {
       window.testCleared=cleared;window.testAccess={};
       try{await levels.startLevel(id);results.push(true);}catch{results.push(false);}
     }
     return results;
   });
-  assert.deepEqual(guards,[false,true,false,true,false,true,false,true]);
+  assert.deepEqual(guards,[false,true,true,true,false,true,true,true]);
+  // AC-1–7: click every playable card with only its chapter gate satisfied.
+  const minimalProgress=[[],[6],[30],[30],[30,14,32]];
+  for (let n=1;n<=5;n++) {
+    await setProgress(minimalProgress[n-1]);
+    await page.evaluate(async()=>{await (await import('./src/modules/levels.js')).returnToLevels();});
+    await chapter(n);
+    for (const stage of STAGES.filter(s=>s.chapterId===`chapter_${n}`)) {
+      const node=(await geometry()).nodes.find(node=>node.id===stage.nodeId);
+      assert.equal(node.status.unlocked,stage.status==='playable');
+      await page.mouse.click(node.screen.x,node.screen.y);
+      if (stage.status==='candidate') {
+        assert.equal(await page.locator('#levelIntroModal').isVisible(),false);
+        continue;
+      }
+      await page.locator('#levelIntroModal').waitFor({state:'visible'});
+      assert.equal(await page.evaluate(async()=> (await import('./src/modules/levels.js')).getCurrentLevel()),stage.id);
+      await page.evaluate(async()=>{await (await import('./src/modules/levels.js')).returnToLevels();});
+      await chapter(n);
+    }
+  }
+  assert.deepEqual(await page.evaluate(()=>Object.keys(window.mapTextSamples).filter(text=>/recommended|추천/i.test(text))),[]);
   const migration=await page.evaluate(async()=>{
     const levels=await import('./src/modules/levels.js');
     levels.configureLevelModule({progressProvider:null,accessProvider:null});
@@ -306,19 +327,28 @@ try {
     localStorage.setItem('unrelated-circuit-draft','keep-this-record');
     localStorage.setItem('username','v6-legacy-qa');
     await levels.loadClearedLevelsFromDb();
-    const legacy=levels.isLevelUnlocked(12),before=JSON.stringify(levels.getStageAccess());
+    const legacy=levels.getStageAccess().unlockedChapters.includes('chapter_5'),before=JSON.stringify(levels.getStageAccess());
     await levels.loadClearedLevelsFromDb();
     const idempotent=before===JSON.stringify(levels.getStageAccess());
+    const versions=[];
+    for (const version of [1,2,3]) {
+      const owner=`chapter-access-v${version}`;
+      localStorage.setItem('username',owner);records=[];
+      localStorage.setItem(`stageMapAccess_v3_${owner}`,JSON.stringify({catalogVersion:version,unlockedStages:[44],unlockedChapters:['chapter_3']}));
+      await levels.loadClearedLevelsFromDb();
+      const saved=JSON.parse(localStorage.getItem(`stageMapAccess_v3_${owner}`));
+      versions.push(saved.catalogVersion===4 && [9,8,10,38,39,46].every(id=>levels.isLevelUnlocked(id)) && levels.getClearedLevels().length===0);
+    }
     localStorage.setItem('username','v6-new-qa');records=[];await levels.loadClearedLevelsFromDb();
     records=[30,11];await levels.loadClearedLevelsFromDb();
-    const fresh=levels.isLevelUnlocked(12);
+    const fresh=levels.getStageAccess().unlockedChapters.includes('chapter_5');
     localStorage.setItem('username','v6-quota-qa');
     const setter=Storage.prototype.setItem;Storage.prototype.setItem=function(){throw new Error('quota test');};
     records=[];await levels.loadClearedLevelsFromDb();records=[30,11];await levels.loadClearedLevelsFromDb();
-    const quotaFresh=levels.isLevelUnlocked(12);Storage.prototype.setItem=setter;
-    return {legacy,idempotent,fresh,quotaFresh,cleared:levels.getClearedLevels(),draft:localStorage.getItem('unrelated-circuit-draft')};
+    const quotaFresh=levels.getStageAccess().unlockedChapters.includes('chapter_5');Storage.prototype.setItem=setter;
+    return {legacy,idempotent,versions,fresh,quotaFresh,cleared:levels.getClearedLevels(),draft:localStorage.getItem('unrelated-circuit-draft')};
   });
-  assert.deepEqual(migration,{legacy:true,idempotent:true,fresh:false,quotaFresh:false,cleared:[30,11],draft:'keep-this-record'});
+  assert.deepEqual(migration,{legacy:true,idempotent:true,versions:[true,true,true],fresh:false,quotaFresh:false,cleared:[30,11],draft:'keep-this-record'});
   // Open the actual Lab in the same page: map gesture restrictions must stay local.
   await page.evaluate(async()=>{
     const lab=await import('./src/modules/labMode.js');

@@ -153,6 +153,7 @@ export function setLastAccessedLevel(level) {
 }
 
 export function getStageAccessRecord() {
+  // Keep the historical key so catalog migrations read existing local access.
   try {
     const raw = safeGetItem(`stageMapAccess_v3_${getUsername() || '익명'}`);
     if (!raw) return null;

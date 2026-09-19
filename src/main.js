@@ -250,7 +250,7 @@ const clearedModalOptions = {
   modalSelector: '#clearedModal',
   stageTitleSelector: '#clearedStageName',
   rankingSelector: '#clearedRanking',
-  continueButtonSelector: '#clearedNextBtn',
+  continueButtonSelector: '#clearedMapBtn',
   closeButtonSelector: '.closeBtn',
   translate,
   loadClearedLevelsFromDb,

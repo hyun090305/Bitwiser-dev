@@ -1,5 +1,6 @@
 import fs from 'node:fs/promises';
 import { CHAPTERS, STAGES } from '../src/modules/stageCatalog.js';
+import { STAGE_MAP_EDGES } from '../src/modules/stageMapTopology.js';
 import { stageSlotPosition, STAGE_PANEL, STAGE_CARD, EXTRAS_CARD, EXTRAS_CARD_GAP } from '../src/modules/stageMapLayout.js';
 const spec = JSON.parse(await fs.readFile('stage_map.json', 'utf8'));
 const levels = JSON.parse(await fs.readFile('levels_en.json', 'utf8'));
@@ -26,15 +27,16 @@ for (const [index, id] of ['lab', 'user_created_stages'].entries()) {
 chapters.unshift({ id: 'extras', label: 'Auxiliary Systems', order: 0, numbered: false, anchor: extrasAnchor,
   panel: { position: extrasAnchor, size: STAGE_PANEL },
   title: { position: { x: extrasAnchor.x, y: 1 }, size: { w: 25, h: 2.75 }, styleId: 'auxiliary_core' } });
-const edges = STAGES.flatMap(stage => stage.prerequisites.map(id => {
-  const parent = STAGES.find(s => s.id === id);
+const edges = STAGE_MAP_EDGES.map(({ from, to }) => {
+  const parent = STAGES.find(s => s.nodeId === from);
+  const stage = STAGES.find(s => s.nodeId === to);
   const dx = stage.gridPosition.column - parent.gridPosition.column;
   const dy = stage.gridPosition.row - parent.gridPosition.row;
   if (parent.chapterId !== stage.chapterId || Math.abs(dx) + Math.abs(dy) !== 1 || dx < 0) {
     throw new Error(`Invalid stage-map edge: ${parent.nodeId} -> ${stage.nodeId}`);
   }
   return { from: parent.nodeId, to: stage.nodeId, style: 'straight', edgeType: 'progression' };
-}));
+});
 const nodeTypes = { ...spec.nodeTypes }; delete nodeTypes.rank;
 await fs.writeFile('stage_map.json', JSON.stringify({ ...spec, nodeTypes, chapters, nodes, edges }, null, 2) + '\n');
 console.log(`${STAGES.length} stages, ${edges.length} adjacent straight arrows; stable IDs and release status preserved.`);

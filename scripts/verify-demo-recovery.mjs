@@ -65,8 +65,8 @@ try {
   const tutorial=JSON.parse(await fs.readFile('tests/fixtures/demo/0-tutorial.json','utf8')).circuit;
   await q.evaluate(async c=>(await import('./src/modules/grid.js')).getPlayController().restoreCircuit(c),tutorial);
   await q.locator('#gradeButton').click();await q.locator('#demoDialog[open]').waitFor();
-  await q.getByRole('button',{name:'Next stage',exact:true}).click();
-  await q.locator('#startLevelBtn').click();
+  await q.getByRole('button',{name:'Back to map',exact:true}).click();
+  await enterStage(q,1);
   assert.equal(await q.evaluate(async()=> (await import('./src/modules/levels.js')).getCurrentLevel()),1);
   await blocked.ctx.close();
 

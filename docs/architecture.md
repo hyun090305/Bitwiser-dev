@@ -13,6 +13,8 @@
 
 브라우저 코드는 ES modules이며 [src/package.json](../src/package.json)이 Node에서 해당 모듈 형식을 지정합니다. Electron 시작 파일은 CommonJS입니다. 실행·검증 명령은 루트 [package.json](../package.json)에 있습니다.
 
+현재 진행 규칙과 카탈로그 v4 저장 호환은 [챕터 단위 접근](chapter-access.md)을 참고하세요. 맵 화살표 데이터는 접근 조건과 분리되어 있습니다.
+
 ## 기능별 코드와 기존 명세
 
 | 작업 영역 | 먼저 읽을 코드 | 관련 문서·테스트 |

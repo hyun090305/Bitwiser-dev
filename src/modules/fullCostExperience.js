@@ -6,7 +6,6 @@ import { createCostStore } from './costRecords.js';
 import { createCostLeaderboard } from './costLeaderboard.js';
 import { initializeCostBoard, renderPerformance, renderCostRanking, costText, costLanguage } from './costUI.js';
 import { configureOfficialCostRanking } from './rank.js';
-import { nextAvailableStage } from './stageCatalog.js';
 import { stylePassedResult } from './gradingResultView.js';
 
 export function initializeFullCostExperience({ db, getStage = levels.getCurrentLevel }) {
@@ -65,9 +64,7 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
         b.onclick = async () => { b.disabled = true; try { await action(); } finally { b.disabled = false; } }; actions.append(b);
       };
       add(ko ? '다시 설계하기' : 'Back to design', close);
-      const next = nextAvailableStage(id, levels.getClearedLevels(), levels.getStageAccess());
-      if (next != null) add(ko ? '다음 스테이지' : 'Next stage', async () => { close(); await levels.startLevel(next); }, 'clearedNextBtn');
-      add(ko ? '맵으로 돌아가기' : 'Back to map', async () => { close(); await levels.returnToLevels(); }, next == null ? 'clearedNextBtn' : 'clearedMapBtn');
+      add(ko ? '맵으로 돌아가기' : 'Back to map', async () => { close(); await levels.returnToLevels(); }, 'clearedMapBtn');
       modal.querySelector('.closeBtn').onclick = close;
       modal.style.display = 'flex';
     }
