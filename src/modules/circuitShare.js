@@ -1,8 +1,10 @@
-import { CIRCUIT_VERSION, SUPPORTED_CIRCUIT_VERSIONS, snapshotCircuit, getCircuitStats } from '../canvas/circuitData.js';
+import { CIRCUIT_VERSION, snapshotCircuit, getCircuitStats } from '../canvas/circuitData.js';
 import { resetExecution } from '../canvas/evaluation.js';
 import { getActiveCircuit, getActiveController, markCircuitModified } from './grid.js';
 import { getCurrentLevel, getLevelTitle, getLoadedStageData } from './levels.js';
 import { validateStageCircuit } from './stageCircuit.js';
+import { validateSavedCircuitRecord, matchesSaveContext } from './savedCircuitRecord.js';
+import { circuitStorage, isCircuitStorageAvailable, storageErrorMessage } from './circuitStorage.js';
 
 const CURRENT_CIRCUIT_VERSION = CIRCUIT_VERSION;
 
@@ -54,33 +56,6 @@ let statusShareConfig = {
 let currentGifBlob = null;
 let currentGifUrl = null;
 
-let driveAuthPromise = null;
-
-async function ensureDriveAccess() {
-  if (!driveAuthPromise) {
-    const pending = import('./auth.js').then(m => m.ensureDriveAuth());
-    driveAuthPromise = pending.catch(err => {
-      if (driveAuthPromise === pending) {
-        driveAuthPromise = null;
-      }
-      throw err;
-    });
-  }
-  const currentPromise = driveAuthPromise;
-  try {
-    await currentPromise;
-  } finally {
-    if (driveAuthPromise === currentPromise) {
-      driveAuthPromise = null;
-    }
-  }
-}
-
-async function withDriveAuth(action) {
-  await ensureDriveAccess();
-  return action();
-}
-
 function getTranslation(key) {
   if (typeof translate !== 'function') return null;
   const result = translate(key);
@@ -129,6 +104,16 @@ export function initializeCircuitShare({
     hideCircuitSaving: typeof toastHooks.hideCircuitSaving === 'function' ? toastHooks.hideCircuitSaving : null,
     showCircuitSaved: typeof toastHooks.showCircuitSaved === 'function' ? toastHooks.showCircuitSaved : null
   };
+}
+
+export function configureCircuitStorageUI() {
+  const available = isCircuitStorageAvailable();
+  for (const id of ['saveCircuitBtn', 'viewSavedBtn', 'autoSaveCheckbox']) {
+    const el = document.getElementById(id);
+    if (el) { el.disabled = !available; if (!available) el.title = translate('nativeSaveUnavailable'); }
+  }
+  const note = document.getElementById('nativeSaveNotice');
+  if (note) note.hidden = available;
 }
 
 function translateShare(key, fallback) {
@@ -384,125 +369,54 @@ export function handleGIFExport() {
   });
 }
 
-function getSavePrefix() {
-  const level = getCurrentLevel();
-  if (level != null) {
-    return `bit_saved_stage_${String(level).padStart(2, '0')}_`;
-  }
-  const customKey = getCustomProblemKey();
-  if (customKey) {
-    return `bit_saved_prob_${customKey}_`;
-  }
-  return 'bit_saved_';
-}
-
-async function uploadFileToAppData(name, blob, mimeType) {
-  return withDriveAuth(async () => {
-    const token = gapi.client.getToken().access_token;
-    const metadata = {
-      name,
-      parents: ['appDataFolder'],
-      mimeType
-    };
-    const form = new FormData();
-    form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-    form.append('file', blob);
-    await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
-      method: 'POST',
-      headers: new Headers({ 'Authorization': 'Bearer ' + token }),
-      body: form
-    });
-  });
-}
-
-async function downloadFileFromAppData(name) {
-  return withDriveAuth(async () => {
-    const list = await gapi.client.drive.files.list({
-      spaces: 'appDataFolder',
-      fields: 'files(id, name)',
-      q: `name='${name}'`
-    });
-    const file = list.result.files[0];
-    if (!file) return null;
-    const token = gapi.client.getToken().access_token;
-    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${file.id}?alt=media`, {
-      headers: new Headers({ 'Authorization': 'Bearer ' + token })
-    });
-    return await res.blob();
-  });
-}
-
-async function deleteFileFromAppData(name) {
-  return withDriveAuth(async () => {
-    const list = await gapi.client.drive.files.list({
-      spaces: 'appDataFolder',
-      fields: 'files(id, name)',
-      q: `name='${name}'`
-    });
-    const file = list.result.files[0];
-    if (file) await gapi.client.drive.files.delete({ fileId: file.id });
-  });
-}
-
-async function saveGifToDB(key, blob) {
-  return uploadFileToAppData(`${key}.gif`, blob, 'image/gif');
+function getSaveContext() {
+  const stageId = getCurrentLevel();
+  return { stageId, problemKey: stageId == null ? getCustomProblemKey() : null };
 }
 
 export async function loadGifFromDB(key) {
-  return downloadFileFromAppData(`${key}.gif`);
+  const bytes = await circuitStorage.readPreview(key);
+  return bytes ? new Blob([bytes], { type: 'image/gif' }) : null;
 }
 
-async function deleteGifFromDB(key) {
-  return deleteFileFromAppData(`${key}.gif`);
-}
-
-async function listCircuitJsonFiles() {
-  return withDriveAuth(async () => {
-    const res = await gapi.client.drive.files.list({
-      spaces: 'appDataFolder',
-      fields: 'files(id, name, createdTime)',
-      q: "name contains '.json'"
-    });
-    return res.result.files || [];
-  });
-}
-
-function applyCircuitData(data, key) {
-  if (!SUPPORTED_CIRCUIT_VERSIONS.includes(data.version) || !data.circuit) {
+function applyCircuitData(raw, key) {
+  let data;
+  try {
+    data = validateSavedCircuitRecord(raw);
+    if (!matchesSaveContext(data, getSaveContext())) throw new Error('Different problem');
+  } catch {
     alertFn(translate('incompatibleCircuit'));
-    return;
+    return false;
   }
   const circuit = getActiveCircuit();
-  if (!circuit) return;
+  if (!circuit) return false;
   const level = getCurrentLevel(), levels = getLoadedStageData();
-  if(levels?.levelRevisions?.[level]) {
-    try {validateStageCircuit(data.circuit,Number(level),levels);} catch {
-      alertFn(globalThis.window?.currentLang==='en'
-        ? 'This saved circuit uses an earlier stage layout or ports. The original saved file is preserved; export or open it in Lab to inspect it.'
-        : '이 저장 회로는 이전 문제의 격자 또는 입출력을 사용합니다. 원본 저장 파일은 보존되어 있으며 Lab에서 확인할 수 있습니다.');
-      return;
+  if (levels?.levelRevisions?.[level]) {
+    try {
+      if (data.stageRevision != null && data.stageRevision !== levels.levelRevisions[level]) throw new Error('Old revision');
+      validateStageCircuit(data.circuit, Number(level), levels);
+    } catch {
+      alertFn(translate('localSaveStageMismatch'));
+      return false;
     }
   }
   const controller = getActiveController();
   if (controller?.restoreCircuit) controller.restoreCircuit(data.circuit);
   else {
-    Object.assign(circuit, snapshotCircuit(data.circuit));
+    Object.assign(circuit, data.circuit);
     resetExecution(circuit);
     markCircuitModified(circuit);
   }
   controller?.syncPaletteWithCircuit?.();
   controller?.clearSelection?.();
   if (key) notifyLastSavedKeyChange(key);
+  return true;
 }
 
 export async function saveCircuit(progressCallback) {
   const circuit = getActiveCircuit();
   if (!circuit) throw new Error('No circuit to save');
-
-  await ensureDriveAccess();
-
   const { usedBlocks, usedWires } = getCircuitStats(circuit);
-
   const customProblem = getCustomProblem();
   const data = {
     version: CURRENT_CIRCUIT_VERSION,
@@ -515,115 +429,119 @@ export async function saveCircuit(progressCallback) {
     usedBlocks,
     usedWires
   };
-
-  const timestampMs = Date.now();
-  const key = `${getSavePrefix()}${timestampMs}`;
+  progressCallback?.(0);
+  const { id } = await circuitStorage.save(data);
+  notifyLastSavedKeyChange(id);
+  progressCallback?.(33);
   try {
-    progressCallback && progressCallback(0);
-    const jsonBlob = new Blob([JSON.stringify(data)], { type: 'application/json' });
-    await uploadFileToAppData(`${key}.json`, jsonBlob, 'application/json');
-    progressCallback && progressCallback(33);
-
     const blob = await captureGIF();
-    progressCallback && progressCallback(66);
-    await saveGifToDB(key, blob);
-    progressCallback && progressCallback(100);
-
-    console.log(`Circuit saved: ${key}`, data);
-    notifyLastSavedKeyChange(key);
-    return key;
-  } catch (e) {
-    console.error('Circuit save failed:', e);
-    alertFn(translateText('saveCircuitError', '회로 저장 중 오류가 발생했습니다.'));
-    throw e;
+    progressCallback?.(66);
+    await circuitStorage.writePreview(id, new Uint8Array(await blob.arrayBuffer()));
+  } catch (error) {
+    console.warn('Circuit saved without preview', error);
+    alertFn(translate('localSavePreviewFailed'));
   }
+  progressCallback?.(100);
+  return id;
 }
 
 export async function loadCircuit(key) {
   try {
-    await ensureDriveAccess();
-  } catch (e) {
-    alertFn(translate('loginRequired'));
-    return;
+    // Read again at click time: the list is not a restoration cache.
+    return applyCircuitData(await circuitStorage.load(key), key);
+  } catch (error) {
+    if (error.code === 'NOT_FOUND' && lastSavedKey === key) notifyLastSavedKeyChange(null);
+    alertFn(storageErrorMessage(error, translate));
+    return false;
   }
-  const blob = await downloadFileFromAppData(`${key}.json`);
-  if (!blob) {
-    alertFn(translate('loadFailedNoData'));
-    return;
-  }
-  const text = await blob.text();
-  const data = JSON.parse(text);
-  applyCircuitData(data, key);
+}
+
+let listRevision = 0;
+let listGifUrls = [];
+function clearListPreviews() {
+  listGifUrls.forEach(url => URL.revokeObjectURL(url));
+  listGifUrls = [];
+}
+function listMessage(message) {
+  const p = document.createElement('p');
+  p.textContent = message;
+  elements.savedList.appendChild(p);
 }
 
 export async function renderSavedList() {
   if (!elements.savedList) return;
-  elements.savedList.innerHTML = `<p>${translate('loadingText')}</p>`;
+  const revision = ++listRevision;
+  const context = getSaveContext();
+  clearListPreviews();
+  elements.savedList.replaceChildren();
+  listMessage(translate('loadingText'));
   try {
-    await ensureDriveAccess();
-  } catch (e) {
-    elements.savedList.innerHTML = `<p>${translate('loginRequired')}</p>`;
-    return;
+    const { items, issues } = await circuitStorage.list(context);
+    if (revision !== listRevision) return;
+    elements.savedList.replaceChildren();
+    if (issues.length) {
+      listMessage(translate('localSaveSkipped').replace('{count}', issues.length));
+      for (const code of new Set(issues.map(issue => issue.code))) listMessage(storageErrorMessage({ code }, translate));
+    }
+    if (!items.length) listMessage(translate('noCircuits'));
+    for (const data of items) {
+      const key = data.id;
+      const item = document.createElement('div');
+      item.className = 'saved-item';
+      const label = data.stageId != null
+        ? getLevelTitle?.(data.stageId) ?? translate('stageUntitled')
+        : data.problemTitle || data.problemKey || translate('problemUntitled');
+      const loadBtn = document.createElement('button');
+      loadBtn.type = 'button';
+      loadBtn.className = 'saved-load';
+      const preview = document.createElement('div');
+      preview.className = 'saved-preview';
+      preview.textContent = translate('localSaveNoPreview');
+      const img = document.createElement('img');
+      img.alt = label;
+      loadBtn.appendChild(preview);
+      const cap = document.createElement('div');
+      cap.className = 'saved-caption';
+      cap.textContent = `${label} — ${new Date(data.timestamp).toLocaleString()}`;
+      loadBtn.appendChild(cap);
+      loadBtn.addEventListener('click', async () => {
+        loadBtn.disabled = true;
+        if (await loadCircuit(key)) closeSavedModal();
+        else await renderSavedList();
+        loadBtn.disabled = false;
+      });
+      item.appendChild(loadBtn);
+      const delBtn = document.createElement('button');
+      delBtn.textContent = translate('deleteBtn');
+      delBtn.className = 'deleteBtn';
+      delBtn.addEventListener('click', async () => {
+        if (!confirmFn(translate('confirmDelete'))) return;
+        delBtn.disabled = true;
+        try {
+          const result = await circuitStorage.delete(key);
+          if (lastSavedKey === key) notifyLastSavedKeyChange(null);
+          if (!result.removed) alertFn(translate('localSaveMissing'));
+          if (result.previewWarning) alertFn(translate('localSavePreviewCleanupFailed'));
+          await renderSavedList();
+        } catch (error) { alertFn(storageErrorMessage(error, translate)); }
+        finally { delBtn.disabled = false; }
+      });
+      item.appendChild(delBtn);
+      elements.savedList.appendChild(item);
+      // Missing/failed previews must never prevent list rendering or loading.
+      loadGifFromDB(key).then(blob => {
+        if (!blob || revision !== listRevision) return;
+        const url = URL.createObjectURL(blob);
+        listGifUrls.push(url);
+        img.onload = () => { if (revision === listRevision) preview.replaceChildren(img); };
+        img.src = url;
+      }).catch(() => {});
+    }
+  } catch (error) {
+    if (revision !== listRevision) return;
+    elements.savedList.replaceChildren();
+    listMessage(storageErrorMessage(error, translate));
   }
-  const prefix = getSavePrefix();
-  const files = (await listCircuitJsonFiles())
-    .filter(f => f.name.startsWith(prefix))
-    .sort((a, b) => new Date(b.createdTime) - new Date(a.createdTime));
-  if (!files.length) {
-    elements.savedList.innerHTML = `<p>${translate('noCircuits')}</p>`;
-    return;
-  }
-  const items = await Promise.all(files.map(async file => {
-    const key = file.name.replace('.json', '');
-    const [blob, gifBlob] = await Promise.all([
-      downloadFileFromAppData(file.name),
-      loadGifFromDB(key)
-    ]);
-    const text = await blob.text();
-    const data = JSON.parse(text);
-    const item = document.createElement('div');
-    item.className = 'saved-item';
-    const stageTitle = data.stageId != null
-      ? getLevelTitle?.(data.stageId) ?? translateText('stageUntitled', 'Untitled stage')
-      : null;
-    const problemLabel = data.problemTitle || data.problemKey || translateText('problemUntitled', 'Untitled problem');
-    const label = stageTitle
-      ? stageTitle
-      : `Problem ${problemLabel}`;
-
-    const img = document.createElement('img');
-    if (gifBlob) img.src = URL.createObjectURL(gifBlob);
-    img.alt = label;
-    item.appendChild(img);
-
-    const cap = document.createElement('div');
-    cap.className = 'saved-caption';
-    cap.textContent = `${label} — ${new Date(data.timestamp).toLocaleString()}`;
-    item.appendChild(cap);
-
-    item.addEventListener('click', () => {
-      applyCircuitData(data, key);
-      if (elements.savedModal) {
-        elements.savedModal.style.display = 'none';
-      }
-    });
-
-    const delBtn = document.createElement('button');
-    delBtn.textContent = translate('deleteBtn');
-    delBtn.className = 'deleteBtn';
-    delBtn.addEventListener('click', async e => {
-      e.stopPropagation();
-      if (!confirmFn(translate('confirmDelete'))) return;
-      await deleteFileFromAppData(`${key}.json`);
-      await deleteGifFromDB(key);
-      renderSavedList();
-    });
-    item.appendChild(delBtn);
-
-    return item;
-  }));
-  elements.savedList.innerHTML = '';
-  items.forEach(item => elements.savedList.appendChild(item));
 }
 
 export function openSavedModal() {
@@ -634,18 +552,14 @@ export function openSavedModal() {
 }
 
 export function closeSavedModal() {
+  listRevision++;
+  clearListPreviews();
   if (elements.savedModal) {
     elements.savedModal.style.display = 'none';
   }
 }
 
 export async function handleSaveCircuitClick() {
-  try {
-    await ensureDriveAccess();
-  } catch (e) {
-    alertFn(e.message);
-    return;
-  }
   let saveSuccess = false;
   try {
     if (toastUI.showCircuitSaving) {
@@ -655,8 +569,7 @@ export async function handleSaveCircuitClick() {
     await saveCircuit(updateSaveProgress);
     saveSuccess = true;
   } catch (e) {
-    const message = getTranslation('saveFailed');
-    alertFn(message ? message.replace('{error}', e) : `저장에 실패했습니다: ${e}`);
+    alertFn(storageErrorMessage(e, translate));
   } finally {
     if (toastUI.hideCircuitSaving) {
       toastUI.hideCircuitSaving();
@@ -672,18 +585,17 @@ export async function handleSaveCircuitClick() {
   }
 }
 
-export function showCircuitSavedToast({ message, canShare = true, onContinue, loginRequired = false } = {}) {
+export function showCircuitSavedToast({ message, canShare = true, onContinue } = {}) {
   const resolvedMessage = typeof message === 'string' && message.trim().length
     ? message
-    : translate(loginRequired ? 'loginToSaveCircuit' : 'circuitSaved');
+    : translate('circuitSaved');
 
   if (toastUI.showCircuitSaved) {
     toastUI.showCircuitSaved({
       message: resolvedMessage,
       canShare,
       onShare: canShare ? statusShareHandlers.savedShare : null,
-      onContinue,
-      loginRequired
+      onContinue
     });
     return;
   }

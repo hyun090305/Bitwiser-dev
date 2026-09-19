@@ -13,7 +13,7 @@
 
 브라우저 코드는 ES modules이며 [src/package.json](../src/package.json)이 Node에서 해당 모듈 형식을 지정합니다. Electron 시작 파일은 CommonJS입니다. 실행·검증 명령은 루트 [package.json](../package.json)에 있습니다.
 
-현재 진행 규칙과 카탈로그 v4 저장 호환은 [챕터 단위 접근](chapter-access.md)을 참고하세요. 맵 화살표 데이터는 접근 조건과 분리되어 있습니다.
+현재 진행 규칙과 카탈로그 v4 저장 호환은 [챕터 단위 접근](chapter-access.md)을 참고하세요. 맵 화살표 데이터는 접근 조건과 분리되어 있습니다. Electron 회로 파일 저장 위치·백업·IPC 경계는 [로컬 회로 저장](local-circuit-saves.md)을 참고하세요.
 
 ## 기능별 코드와 기존 명세
 
@@ -24,7 +24,7 @@
 | 채점·결과·반례 재생 | [circuitGrading.js](../src/modules/circuitGrading.js), [compiledCircuit.js](../src/canvas/compiledCircuit.js), [referenceFSM.js](../src/modules/referenceFSM.js), [dividerGrading.js](../src/modules/dividerGrading.js), [grading.js](../src/modules/grading.js), [gradingResultView.js](../src/modules/gradingResultView.js), [counterexampleTrace.js](../src/modules/counterexampleTrace.js), [tracePlayback.js](../src/canvas/tracePlayback.js) | [EXHAUSTIVE_GRADING.md](EXHAUSTIVE_GRADING.md), [grading-event-trace.md](grading-event-trace.md), [grading-trace.test.mjs](../tests/grading-trace.test.mjs) |
 | 스테이지·해금·지도 | [levels.js](../src/modules/levels.js), [stageCatalog.js](../src/modules/stageCatalog.js), [stageMap.js](../src/modules/stageMap.js), [stageMapLayout.js](../src/modules/stageMapLayout.js), [levels.json](../levels.json), [levels_en.json](../levels_en.json), [stage_map.json](../stage_map.json) | [MEMORY20_INTEGRATION.md](MEMORY20_INTEGRATION.md), [stage-map-v6-implementation.md](stage-map-v6-implementation.md), [memory20.test.mjs](../tests/memory20.test.mjs) |
 | 비용·별·기록·랭킹 | [circuitCost.js](../src/modules/circuitCost.js), [costRecords.js](../src/modules/costRecords.js), [costUI.js](../src/modules/costUI.js), [costLeaderboard.js](../src/modules/costLeaderboard.js), [fullCostExperience.js](../src/modules/fullCostExperience.js), [rank.js](../src/modules/rank.js) | [cost-stars-leaderboard.md](cost-stars-leaderboard.md), [cost.test.mjs](../tests/cost.test.mjs) |
-| 저장·공유·계정 | [circuitData.js](../src/canvas/circuitData.js), [circuitShare.js](../src/modules/circuitShare.js), [circuitCommunity.js](../src/modules/circuitCommunity.js), [auth.js](../src/modules/auth.js), [storage.js](../src/modules/storage.js) | [D_MEMORY_TICK.md](D_MEMORY_TICK.md), [demo.test.mjs](../tests/demo.test.mjs) |
+| 저장·공유·계정 | [circuitData.js](../src/canvas/circuitData.js), [circuitShare.js](../src/modules/circuitShare.js), [circuitCommunity.js](../src/modules/circuitCommunity.js), [authUI.js](../src/modules/authUI.js), [circuit-store.cjs](../electron/circuit-store.cjs), [storage.js](../src/modules/storage.js) | [D_MEMORY_TICK.md](D_MEMORY_TICK.md), [demo.test.mjs](../tests/demo.test.mjs) |
 | 체험판 범위·복구 | [catalog.js](../src/demo/catalog.js), [store.js](../src/demo/store.js), [records.js](../src/demo/records.js) | [WEB_DEMO.md](WEB_DEMO.md), [demo.test.mjs](../tests/demo.test.mjs) |
 | UI·번역·확장 기능 | [gameUI.js](../src/modules/gameUI.js), [navigation.js](../src/modules/navigation.js), [themes.js](../src/themes.js), [lang.js](../lang.js), [style.css](../style.css), [problemEditor.js](../src/modules/problemEditor.js), [labMode.js](../src/modules/labMode.js) | 변경한 실행 경로의 브라우저 검사 |
 

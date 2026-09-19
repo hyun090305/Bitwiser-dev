@@ -1,9 +1,15 @@
-const { app, BrowserWindow, net, protocol, shell } = require('electron');
+const { app, BrowserWindow, net, protocol, shell, ipcMain } = require('electron');
 const path = require('path');
 const { pathToFileURL } = require('url');
+const { createCircuitStore } = require('./circuit-store.cjs');
+const { registerCircuitIPC } = require('./circuit-ipc.cjs');
 
 const APP_HOST = 'bitwiser';
 const ROOT_DIR = path.resolve(__dirname, '..');
+const trustedContents = new Set();
+const windows = new Set();
+const ownsProfile = app.requestSingleInstanceLock();
+if (!ownsProfile) app.quit();
 
 protocol.registerSchemesAsPrivileged([
   {
@@ -44,6 +50,7 @@ function createWindow() {
     icon: path.join(ROOT_DIR, 'assets', 'icon.ico'),
     backgroundColor: '#ffffff',
     webPreferences: {
+      preload: path.join(__dirname, 'preload.cjs'),
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: true
@@ -51,6 +58,11 @@ function createWindow() {
   });
 
   win.removeMenu();
+  windows.add(win);
+  win.once('closed', () => windows.delete(win));
+  const contents = win.webContents;
+  trustedContents.add(contents);
+  contents.once('destroyed', () => trustedContents.delete(contents));
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url);
@@ -61,6 +73,8 @@ function createWindow() {
 }
 
 app.whenReady().then(() => {
+  if (!ownsProfile) return;
+  registerCircuitIPC(ipcMain, createCircuitStore(app.getPath('userData')), trustedContents);
   protocol.handle('app', async (request) => {
     const filePath = resolveAppPath(request.url);
 

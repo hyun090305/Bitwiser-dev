@@ -37,13 +37,7 @@ app.on('browser-window-created', (_, win) => {
         })()`);
         fs.writeFileSync(path.join(root, 'test-results', 'electron-smoke.json'), JSON.stringify({ ...result, errors }, null, 2));
         console.log(JSON.stringify({ ...result, errors }));
-        // These two Google proxy errors also reproduce on the unchanged HEAD
-        // under app://. Keep them visible in the report; reject other errors.
-        const unexpected = errors.filter(e => !(
-          e.message === 'Uncaught ReferenceError: googleapis is not defined' && e.source?.startsWith('https://content.googleapis.com/static/proxy.html') ||
-          e.message === 'Uncaught Error: l' && e.source?.startsWith('https://apis.google.com/js/googleapis.proxy.js')
-        ));
-        app.exit(result.stages === 47 && result.startReady && result.hasGame && result.hasLegacyAccount && result.hasLegacyLabNode && !unexpected.length ? 0 : 1);
+        app.exit(result.stages === 47 && result.startReady && result.hasGame && result.hasLegacyAccount && result.hasLegacyLabNode && !errors.length ? 0 : 1);
       } catch (error) { console.error(error); app.exit(1); }
     }, 7000);
   });

@@ -1,9 +1,16 @@
-const CACHE_NAME = 'bitgame-cache-v19-memory20-compact';
+const CACHE_NAME = 'bitgame-cache-v20-local-saves';
 const urlsToCache = [
   '/',
   '/index.html',
   '/style.css',
-  '/src/main.js',
+  '/src/main.js?v=local-saves-1',
+  '/lang.js?v=local-saves-1',
+  '/gif.js',
+  '/gif.worker.js',
+  '/src/modules/circuitShare.js',
+  '/src/modules/circuitStorage.js',
+  '/src/modules/savedCircuitRecord.js',
+  '/src/modules/authUI.js',
   '/background.js',
   '/levels.json',
   '/levels_en.json',
@@ -20,7 +27,7 @@ const urlsToCache = [
   '/src/modules/fullCostExperience.js',
   '/src/modules/referenceFSM.js',
   '/src/modules/circuitGrading.js',
-  '/src/modules/grading.js',
+  '/src/modules/grading.js?v=local-saves-1',
   '/src/modules/gradingResultView.js',
   '/src/modules/counterexampleTrace.js',
   '/src/canvas/tracePlayback.js',

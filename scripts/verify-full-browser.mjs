@@ -22,6 +22,17 @@ try{
   assert.equal(await page.locator('#storyHudBtn, #storyPlaybackOverlay, #storyModalOverlay').count(),0);
   const result=await page.evaluate(async()=>({stages:Object.keys((await import('./src/modules/levels.js')).getLevelTitles()).length,hasLegacyAccount:!!document.getElementById('googleLoginBtn'),hasLegacyLabNode:(await(await fetch('stage_map.json')).json()).nodes.some(n=>n.id==='lab')}));
   assert.equal(result.stages,47);assert.ok(result.hasLegacyAccount);assert.ok(result.hasLegacyLabNode);assert.deepEqual(errors,[]);
+  const storageBoundary=await page.evaluate(async()=>{
+    const storage=await import('./src/modules/circuitStorage.js');
+    let error;try{await storage.circuitStorage.list({stageId:1,problemKey:null});}catch(e){error=e.code;}
+    return {available:storage.isCircuitStorageAvailable(),error,
+      disabled:['saveCircuitBtn','viewSavedBtn','autoSaveCheckbox'].every(id=>document.getElementById(id).disabled),
+      reason:document.getElementById('nativeSaveNotice').textContent,
+      scripts:[...document.scripts].map(script=>script.src)};
+  });
+  assert.equal(storageBoundary.available,false);assert.equal(storageBoundary.error,'NATIVE_UNAVAILABLE');assert.ok(storageBoundary.disabled);
+  assert.match(storageBoundary.reason,/desktop|데스크톱/);
+  assert.equal(storageBoundary.scripts.some(src=>/apis\.google\.com|accounts\.google\.com|cdn.*gif\.js/.test(src)),false);
   const guards=await page.evaluate(async()=>{
     const levels=await import('./src/modules/levels.js');
     const checks=[];
@@ -32,6 +43,6 @@ try{
     return checks;
   });
   assert.deepEqual(guards,[false,true,true,true,true,true,true,true]);
-  console.log(JSON.stringify({...result,errors}));
+  console.log(JSON.stringify({...result,nativeStorageDisabled:storageBoundary.disabled,errors}));
 }catch(error){console.error(error,errors);process.exitCode=1;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

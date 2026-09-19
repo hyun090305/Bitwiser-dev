@@ -3,7 +3,7 @@ import { initializeLoadingDots, setLoadingMilestone, registerLoadingTask, hideLo
 import { setupKeyToggles, setupSettings, setupSystemMenuDrawer, syncGameAreaBackground, isTextInputFocused } from './modules/gameUI.js';
 // Entry point module coordinating Bitwiser features.
 // Placeholder imports ensure upcoming modules can hook into the bootstrap flow.
-import { initializeAuth } from './modules/auth.js';
+import { isCircuitStorageAvailable } from './modules/circuitStorage.js';
 import { initializeAuthUI } from './modules/authUI.js';
 import {
   getUsername,
@@ -37,9 +37,10 @@ import * as levelsModule from './modules/levels.js';
 import * as uiModule from './modules/ui.js';
 import { openHintModal, initializeHintUI } from './modules/hints.js';
 import { createGuidedTutorial } from './modules/guidedTutorial.js';
-import { createGradingController } from './modules/grading.js';
+import { createGradingController } from './modules/grading.js?v=local-saves-1';
 import {
   initializeCircuitShare,
+  configureCircuitStorageUI,
   initializeStatusShare,
   updateSaveProgress,
   handleGifModalClose,
@@ -121,7 +122,6 @@ const {
   buildPaletteGroups
 } = levelsModule;
 
-initializeAuth();
 
 onCircuitModified(context => {
   if (context === 'problem' || context === 'unknown') {
@@ -185,10 +185,10 @@ function hideCircuitSavingToast() {
   toastManager.remove(TOAST_IDS.saving, { silent: true });
 }
 
-function renderCircuitSavedToast({ message, canShare, onShare, onContinue, loginRequired }) {
+function renderCircuitSavedToast({ message, canShare, onShare, onContinue }) {
   const resolvedMessage = typeof message === 'string' && message.trim().length
     ? message
-    : translate(loginRequired ? 'loginToSaveCircuit' : 'circuitSaved');
+    : translate('circuitSaved');
 
   if (activeSavedToastId) {
     toastManager.remove(activeSavedToastId, { silent: true });
@@ -412,7 +412,7 @@ document.addEventListener('keydown', e => {
 });
 
 // 회로 저장 완료 모달
-function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
+function showCircuitSavedModal({ message, canShare } = {}) {
   let hasContinued = false;
   const continueFlow = () => {
     if (hasContinued) return;
@@ -428,7 +428,6 @@ function showCircuitSavedModal({ message, canShare, loginRequired } = {}) {
   showCircuitSavedToast({
     message,
     canShare,
-    loginRequired,
     onContinue: continueFlow
   });
 }
@@ -451,11 +450,7 @@ const gradingController = createGradingController({
   getActiveCustomProblem,
   getActiveCustomProblemKey,
   getHintProgress,
-  getAutoSaveSetting,
-  getCurrentUser: () =>
-    typeof firebase !== 'undefined' && typeof firebase.auth === 'function'
-      ? firebase.auth().currentUser
-      : null,
+  getAutoSaveSetting: () => isCircuitStorageAvailable() && getAutoSaveSetting(),
   saveCircuit,
   updateSaveProgress,
   showCircuitSavedModal,
@@ -597,6 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setupKeyToggles();
   setupSystemMenuDrawer();
   setupSettings();
+  configureCircuitStorageUI();
   syncGameAreaBackground(getThemeById(getActiveThemeId()));
   onThemeChange(syncGameAreaBackground);
   setLoadingMilestone(72);

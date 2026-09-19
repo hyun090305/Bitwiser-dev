@@ -741,6 +741,7 @@
       <section aria-labelledby="systemMenuToolsHeading">
         <h3 id="systemMenuToolsHeading">Tools</h3>
         <div class="system-menu-grid">
+          <p id="nativeSaveNotice" hidden>회로 파일 저장은 데스크톱 앱에서 사용할 수 있습니다.</p>
           <button id="saveCircuitBtn">💾 회로 저장</button>
           <button id="exportGifBtn">📷 회로 내보내기</button>
         </div>
@@ -768,6 +769,7 @@
     <div id="savedModal" class="modal" style="display:none;">
       <div class="modal-content">
         <h2 id="savedListTitle">💾 저장된 회로 목록</h2>
+        <p id="localSaveHelp"></p>
         <div id="savedList" class="saved-list"
           style="display:flex; flex-wrap:wrap; gap:10px; max-height:300px; overflow-y:auto;">
           <!-- 여기에 JS로 항목들이 채워집니다 -->
@@ -836,12 +838,10 @@
     const db = typeof firebase !== 'undefined' && firebase.database ? firebase.database() : null;
     const firestore = typeof firebase !== 'undefined' && firebase.firestore ? firebase.firestore() : null;
   </script>
-    <script src="https://apis.google.com/js/api.js" async defer></script>
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="lang.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.js"></script>
+    <script src="lang.js?v=local-saves-1"></script>
+    <script src="gif.js"></script>
     <script src="background.js"></script>
-    <script type="module" src="src/main.js"></script>
+    <script type="module" src="src/main.js?v=local-saves-1"></script>
 
     <section id="levelIntroModal" style="display:none" class="level-intro-screen" aria-labelledby="introTitle">
       <div class="level-intro-screen__panel">
