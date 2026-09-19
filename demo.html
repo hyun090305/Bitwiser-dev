@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#4338ca">
+  <title>Bitwiser · Web Demo</title>
+  <link rel="icon" href="assets/icon-192.png">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="demo.css">
+  <script src="lang.js" defer></script>
+  <script src="gif.js" defer></script>
+  <script type="module" src="src/demo/main.js"></script>
+</head>
+<body class="web-demo">
+  <!-- shared:loadingScreen -->
+  <p id="demoSaveStatus" class="demo-save-status" role="status" aria-live="polite"></p>
+  <!-- shared:stageMapScreen -->
+  <div id="gameScreen" style="display:none">
+    <div class="tutorial-stage"><div class="tutorial-layout"><div class="tutorial-main">
+      <div id="tutorialCalloutLayer" aria-hidden="true"></div>
+      <!-- shared:gameArea -->
+    </div></div></div>
+  </div>
+  <!-- shared:levelIntroModal -->
+  <!-- shared:settingsModal -->
+  <!-- shared:hintModal -->
+  <!-- shared:hintMessageModal -->
+  <!-- shared:systemMenuBackdrop -->
+  <!-- shared:systemMenuDrawer -->
+  <dialog id="demoDialog" class="demo-dialog" aria-labelledby="demoDialogTitle">
+    <h2 id="demoDialogTitle"></h2>
+    <div id="demoDialogBody"></div>
+    <div id="demoDialogActions" class="demo-actions"></div>
+  </dialog>
+  <dialog id="fullVersionDialog" class="full-version-modal" aria-labelledby="fullVersionTitle" aria-describedby="fullVersionContext"></dialog>
+  <div id="toastContainer" class="toast-container" aria-live="polite"></div>
+</body>
+</html>

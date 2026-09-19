@@ -1,0 +1,71 @@
+{
+  "id": "C4-10",
+  "nodes": [
+    {
+      "id": "KICK",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "SILENT0",
+      "type": "D",
+      "inputs": [
+        "g1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SILENT1",
+      "type": "D",
+      "inputs": [
+        "g2"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SILENT2",
+      "type": "D",
+      "inputs": [
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "KICK"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "SILENT0",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "SILENT1",
+        "g1"
+      ]
+    },
+    {
+      "id": "OUT_TIMEOUT",
+      "type": "OUTPUT",
+      "inputs": [
+        "SILENT2"
+      ],
+      "name": "TIMEOUT"
+    }
+  ],
+  "solution": {
+    "architecture": "silent-prefix",
+    "note": "세 D에 무응답 1·2·3 tick 이상을 나타내는 상태를 저장합니다. KICK는 유지합니다."
+  },
+  "source_variant": "C4-10"
+}

@@ -1,0 +1,2491 @@
+[
+  {
+    "slot": "C4-01",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "LOAD": 0
+        },
+        "outputs": {
+          "VALUE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 1,
+          "LOAD": 1
+        },
+        "outputs": {
+          "VALUE": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "LOAD": 0
+        },
+        "outputs": {
+          "VALUE": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "LOAD": 1
+        },
+        "outputs": {
+          "VALUE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-02",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "SIGNAL": 0
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "SIGNAL": 0
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "SIGNAL": 0
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-03",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "FAULT": 0,
+          "ACK": 0
+        },
+        "outputs": {
+          "ALARM": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "FAULT": 1,
+          "ACK": 0
+        },
+        "outputs": {
+          "ALARM": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "FAULT": 0,
+          "ACK": 0
+        },
+        "outputs": {
+          "ALARM": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "FAULT": 1,
+          "ACK": 1
+        },
+        "outputs": {
+          "ALARM": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "FAULT": 0,
+          "ACK": 1
+        },
+        "outputs": {
+          "ALARM": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "FAULT": 0,
+          "ACK": 0
+        },
+        "outputs": {
+          "ALARM": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-04",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "RAW": 1
+        },
+        "outputs": {
+          "CLEAN": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "RAW": 0
+        },
+        "outputs": {
+          "CLEAN": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "RAW": 1
+        },
+        "outputs": {
+          "CLEAN": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "RAW": 1
+        },
+        "outputs": {
+          "CLEAN": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "RAW": 1
+        },
+        "outputs": {
+          "CLEAN": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "RAW": 0
+        },
+        "outputs": {
+          "CLEAN": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "RAW": 1
+        },
+        "outputs": {
+          "CLEAN": 1
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "RAW": 0
+        },
+        "outputs": {
+          "CLEAN": 1
+        }
+      },
+      {
+        "tick": 9,
+        "inputs": {
+          "RAW": 0
+        },
+        "outputs": {
+          "CLEAN": 1
+        }
+      },
+      {
+        "tick": 10,
+        "inputs": {
+          "RAW": 0
+        },
+        "outputs": {
+          "CLEAN": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-05",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "OPEN": 1
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "OPEN": 1
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "OPEN": 1
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 9,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 10,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 1
+        }
+      },
+      {
+        "tick": 11,
+        "inputs": {
+          "OPEN": 0
+        },
+        "outputs": {
+          "DOOR": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-06",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "INC": 1,
+          "DEC": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 1,
+          "BIT1": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "INC": 1,
+          "DEC": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 0,
+          "BIT1": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "INC": 1,
+          "DEC": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 0,
+          "BIT1": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 1,
+          "BIT1": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 0,
+          "BIT1": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "BIT0": 1,
+          "BIT1": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "INC": 1,
+          "DEC": 0,
+          "RESET": 1
+        },
+        "outputs": {
+          "BIT0": 0,
+          "BIT1": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-07",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 1
+        },
+        "outputs": {
+          "PWM": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DUTY0": 1,
+          "DUTY1": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DUTY0": 0,
+          "DUTY1": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "PWM": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-08",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "REQ_A": 1,
+          "REQ_B": 1
+        },
+        "outputs": {
+          "A_OK": 1,
+          "B_OK": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "REQ_A": 1,
+          "REQ_B": 1
+        },
+        "outputs": {
+          "A_OK": 0,
+          "B_OK": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "REQ_A": 0,
+          "REQ_B": 0
+        },
+        "outputs": {
+          "A_OK": 0,
+          "B_OK": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "REQ_A": 1,
+          "REQ_B": 1
+        },
+        "outputs": {
+          "A_OK": 1,
+          "B_OK": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "REQ_A": 1,
+          "REQ_B": 0
+        },
+        "outputs": {
+          "A_OK": 1,
+          "B_OK": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "REQ_A": 1,
+          "REQ_B": 1
+        },
+        "outputs": {
+          "A_OK": 0,
+          "B_OK": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "REQ_A": 0,
+          "REQ_B": 1
+        },
+        "outputs": {
+          "A_OK": 0,
+          "B_OK": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-09",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 0
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-10",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "KICK": 1
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 1
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "KICK": 1
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      },
+      {
+        "tick": 9,
+        "inputs": {
+          "KICK": 0
+        },
+        "outputs": {
+          "TIMEOUT": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-01",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "ADD": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "ADD": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "ADD": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "ADD": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "ADD": 1,
+          "RESET": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-02",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "ADDR": 0,
+          "WRITE": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "ADDR": 1,
+          "WRITE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "ADDR": 0,
+          "WRITE": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "ADDR": 1,
+          "WRITE": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "ADDR": 1,
+          "WRITE": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-03",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "SAVE": 1,
+          "UNDO": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "UNDO_AVAILABLE": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "SAVE": 1,
+          "UNDO": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1,
+          "UNDO_AVAILABLE": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "SAVE": 0,
+          "UNDO": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "UNDO_AVAILABLE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "SAVE": 0,
+          "UNDO": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "UNDO_AVAILABLE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 1,
+          "D1": 1,
+          "SAVE": 1,
+          "UNDO": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "UNDO_AVAILABLE": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "SAVE": 0,
+          "UNDO": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "UNDO_AVAILABLE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-04",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "WRITE": 1,
+          "COMMIT": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "WRITE": 0,
+          "COMMIT": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "WRITE": 1,
+          "COMMIT": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "WRITE": 0,
+          "COMMIT": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "WRITE": 0,
+          "COMMIT": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-05",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "Q2": 0,
+          "Q3": 1,
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "Q2": 0,
+          "Q3": 1,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "Q2": 0,
+          "Q3": 1,
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-06",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 1,
+          "D2": 0,
+          "D3": 1,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 0,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 1,
+          "D3": 0,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 0,
+          "BUSY": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 1,
+          "D3": 0,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 0,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 1
+        },
+        "outputs": {
+          "SERIAL": 0,
+          "VALID": 0,
+          "BUSY": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-07",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 0,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-08",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 0,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-09",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "SEND": 1,
+          "TAKE": 0
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "ACCEPTED": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 1,
+          "TAKE": 0
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "ACCEPTED": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 1,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "ACCEPTED": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 0,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 0,
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "ACCEPTED": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 1,
+          "SEND": 1,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "ACCEPTED": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 0,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 0,
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "ACCEPTED": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-10",
+    "source": "independent reference",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 0,
+          "R1": 0,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 1,
+          "R1": 0,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 0,
+          "R1": 1,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 0,
+          "R1": 0,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 1,
+          "R1": 0,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0,
+          "Q2": 0,
+          "R0": 0,
+          "R1": 1,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1,
+          "Q2": 0,
+          "R0": 0,
+          "R1": 0,
+          "COMPLETE": 0
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "B0": 1,
+          "B1": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1,
+          "Q2": 0,
+          "R0": 1,
+          "R1": 0,
+          "COMPLETE": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-02",
+    "label": "first tick rising edge; held high is not a second edge",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "SIGNAL": 0
+        },
+        "outputs": {
+          "RISE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "SIGNAL": 1
+        },
+        "outputs": {
+          "RISE": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-09",
+    "label": "AABBA opens at the fifth submit",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-09",
+    "label": "waiting does not submit B",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 0
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 0
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "SIGNAL": 0,
+          "SUBMIT": 0
+        },
+        "outputs": {
+          "UNLOCKED": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "SIGNAL": 1,
+          "SUBMIT": 1
+        },
+        "outputs": {
+          "UNLOCKED": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-04",
+    "label": "simultaneous WRITE/COMMIT publishes old staging",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 0,
+          "WRITE": 1,
+          "COMMIT": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 1,
+          "WRITE": 1,
+          "COMMIT": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "WRITE": 0,
+          "COMMIT": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-05",
+    "label": "four receive requests, not four ticks; DONE clears while idle",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 0
+        },
+        "outputs": {
+          "Q0": 0,
+          "Q1": 0,
+          "Q2": 0,
+          "Q3": 0,
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 1,
+          "RECEIVE": 1
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "Q2": 0,
+          "Q3": 1,
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "RECEIVE": 0
+        },
+        "outputs": {
+          "Q0": 1,
+          "Q1": 1,
+          "Q2": 0,
+          "Q3": 1,
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-06",
+    "label": "START at last valid bit is ignored",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "D0": 1,
+          "D1": 1,
+          "D2": 0,
+          "D3": 1,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 0,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 1,
+          "START": 1,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 1,
+          "BUSY": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "D0": 0,
+          "D1": 0,
+          "D2": 0,
+          "D3": 0,
+          "START": 0,
+          "RESET": 0
+        },
+        "outputs": {
+          "SERIAL": 1,
+          "VALID": 0,
+          "BUSY": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-07",
+    "label": "empty/full simultaneous requests and failed POP hold",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-08",
+    "label": "same requests with FIFO order",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 1,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 0
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 1,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "EMPTY": 0,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "DATA": 0,
+          "PUSH": 0,
+          "POP": 1
+        },
+        "outputs": {
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "EMPTY": 1,
+          "FULL": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-09",
+    "label": "empty has no bypass; full can replace",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "DATA": 1,
+          "SEND": 1,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "ACCEPTED": 1
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 1,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 1,
+          "DATA_OUT": 1,
+          "VALID": 1,
+          "ACCEPTED": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 0,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 0,
+          "DATA_OUT": 0,
+          "VALID": 1,
+          "ACCEPTED": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "DATA": 0,
+          "SEND": 0,
+          "TAKE": 1
+        },
+        "outputs": {
+          "FULL": 0,
+          "DATA_OUT": 0,
+          "VALID": 0,
+          "ACCEPTED": 0
+        }
+      }
+    ]
+  }
+]

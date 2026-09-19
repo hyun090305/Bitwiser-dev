@@ -66,6 +66,7 @@ export function getActiveController() {
 }
 
 export function destroyPlayContext() {
+  if (typeof document !== 'undefined') document.dispatchEvent(new Event('bitwiser:leavePlay'));
   if (playThemeUnsub) {
     try {
       playThemeUnsub();
@@ -164,12 +165,14 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
   const consoleFrame = gridContainer.closest('.console-frame');
   if (consoleFrame) {
-    const frameRect = consoleFrame.getBoundingClientRect();
+    const frameRect = (gridContainer.closest('.console-frame__core') || consoleFrame).getBoundingClientRect();
     if (Number.isFinite(frameRect.width) && frameRect.width > 0) {
-      availableWidth = Math.max(1, frameRect.width - margin * 2);
+      availableWidth = Math.max(1, Math.min(availableWidth, frameRect.width - margin * 2));
     }
     if (Number.isFinite(frameRect.height) && frameRect.height > 0) {
-      availableHeight = Math.max(1, frameRect.height - margin * 2);
+      const playbackBar = consoleFrame.querySelector('.memory-playback-bar:not([hidden])');
+      const playbackHeight = playbackBar?.getBoundingClientRect().height || 0;
+      availableHeight = Math.max(1, Math.min(availableHeight, frameRect.height - margin * 2 - playbackHeight - (playbackHeight ? 9 : 0)));
     }
   }
 
@@ -245,7 +248,7 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
 
     const scale = fitScale >= 1
       ? Math.min(fitScale, SCALE_BOOST, MAX_CAMERA_SCALE)
-      : Math.max(fitScale, MIN_CAMERA_SCALE);
+      : fitScale;
 
     const targetWidth = resolvedPanelWidth + resolvedGridWidth * scale;
     const targetHeight = resolvedGridHeight * scale;

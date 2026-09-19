@@ -1,0 +1,533 @@
+{
+  "purpose": "Verified attainable budget, not a minimum claim",
+  "circuit": {
+    "rows": 10,
+    "cols": 10,
+    "blocks": {
+      "IN1": {
+        "id": "IN1",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "value": false
+      },
+      "IN2": {
+        "id": "IN2",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 2,
+          "c": 7
+        },
+        "value": false
+      },
+      "n1": {
+        "id": "n1",
+        "type": "NOT",
+        "name": "n1",
+        "pos": {
+          "r": 5,
+          "c": 2
+        },
+        "value": false
+      },
+      "n2": {
+        "id": "n2",
+        "type": "NOT",
+        "name": "n2",
+        "pos": {
+          "r": 1,
+          "c": 5
+        },
+        "value": false
+      },
+      "a": {
+        "id": "a",
+        "type": "AND",
+        "name": "a",
+        "pos": {
+          "r": 4,
+          "c": 6
+        },
+        "value": false
+      },
+      "b": {
+        "id": "b",
+        "type": "AND",
+        "name": "b",
+        "pos": {
+          "r": 7,
+          "c": 2
+        },
+        "value": false
+      },
+      "c": {
+        "id": "c",
+        "type": "AND",
+        "name": "c",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false
+      },
+      "d": {
+        "id": "d",
+        "type": "AND",
+        "name": "d",
+        "pos": {
+          "r": 3,
+          "c": 9
+        },
+        "value": false
+      },
+      "OUT1": {
+        "id": "OUT1",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 2,
+          "c": 6
+        },
+        "value": false
+      },
+      "OUT2": {
+        "id": "OUT2",
+        "type": "OUTPUT",
+        "name": "OUT2",
+        "pos": {
+          "r": 9,
+          "c": 2
+        },
+        "value": false
+      },
+      "OUT3": {
+        "id": "OUT3",
+        "type": "OUTPUT",
+        "name": "OUT3",
+        "pos": {
+          "r": 3,
+          "c": 3
+        },
+        "value": false
+      },
+      "OUT4": {
+        "id": "OUT4",
+        "type": "OUTPUT",
+        "name": "OUT4",
+        "pos": {
+          "r": 4,
+          "c": 8
+        },
+        "value": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "IN1",
+        "endBlockId": "n1",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 2
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "IN2",
+        "endBlockId": "n2",
+        "path": [
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 1,
+            "c": 7
+          },
+          {
+            "r": 1,
+            "c": 6
+          },
+          {
+            "r": 1,
+            "c": 5
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "n1",
+        "endBlockId": "a",
+        "path": [
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 4
+          },
+          {
+            "r": 5,
+            "c": 5
+          },
+          {
+            "r": 5,
+            "c": 6
+          },
+          {
+            "r": 4,
+            "c": 6
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "n2",
+        "endBlockId": "a",
+        "path": [
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 6
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "n1",
+        "endBlockId": "b",
+        "path": [
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 6,
+            "c": 2
+          },
+          {
+            "r": 7,
+            "c": 2
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "IN2",
+        "endBlockId": "b",
+        "path": [
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 3,
+            "c": 7
+          },
+          {
+            "r": 4,
+            "c": 7
+          },
+          {
+            "r": 5,
+            "c": 7
+          },
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 6
+          },
+          {
+            "r": 7,
+            "c": 5
+          },
+          {
+            "r": 7,
+            "c": 4
+          },
+          {
+            "r": 7,
+            "c": 3
+          },
+          {
+            "r": 7,
+            "c": 2
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "IN1",
+        "endBlockId": "c",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "n2",
+        "endBlockId": "c",
+        "path": [
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ]
+      },
+      "w8": {
+        "id": "w8",
+        "startBlockId": "IN1",
+        "endBlockId": "d",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 1,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 1
+          },
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 0,
+            "c": 3
+          },
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 0,
+            "c": 5
+          },
+          {
+            "r": 0,
+            "c": 6
+          },
+          {
+            "r": 0,
+            "c": 7
+          },
+          {
+            "r": 0,
+            "c": 8
+          },
+          {
+            "r": 0,
+            "c": 9
+          },
+          {
+            "r": 1,
+            "c": 9
+          },
+          {
+            "r": 2,
+            "c": 9
+          },
+          {
+            "r": 3,
+            "c": 9
+          }
+        ]
+      },
+      "w9": {
+        "id": "w9",
+        "startBlockId": "IN2",
+        "endBlockId": "d",
+        "path": [
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 2,
+            "c": 8
+          },
+          {
+            "r": 3,
+            "c": 8
+          },
+          {
+            "r": 3,
+            "c": 9
+          }
+        ]
+      },
+      "w10": {
+        "id": "w10",
+        "startBlockId": "a",
+        "endBlockId": "OUT1",
+        "path": [
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 6
+          }
+        ]
+      },
+      "w11": {
+        "id": "w11",
+        "startBlockId": "b",
+        "endBlockId": "OUT2",
+        "path": [
+          {
+            "r": 7,
+            "c": 2
+          },
+          {
+            "r": 8,
+            "c": 2
+          },
+          {
+            "r": 9,
+            "c": 2
+          }
+        ]
+      },
+      "w12": {
+        "id": "w12",
+        "startBlockId": "c",
+        "endBlockId": "OUT3",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ]
+      },
+      "w13": {
+        "id": "w13",
+        "startBlockId": "d",
+        "endBlockId": "OUT4",
+        "path": [
+          {
+            "r": 3,
+            "c": 9
+          },
+          {
+            "r": 4,
+            "c": 9
+          },
+          {
+            "r": 4,
+            "c": 8
+          }
+        ]
+      }
+    }
+  }
+}

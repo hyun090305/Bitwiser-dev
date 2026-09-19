@@ -1,0 +1,134 @@
+{
+  "id": "C5-09",
+  "nodes": [
+    {
+      "id": "DATA",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "SEND",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "TAKE",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "PAYLOAD",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "OCCUPIED",
+      "type": "DE",
+      "inputs": [
+        "SEND",
+        "g2"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "DELIVERED",
+      "type": "DE",
+      "inputs": [
+        "PAYLOAD",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "DELIVERY_VALID",
+      "type": "D",
+      "inputs": [
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SEND_ACCEPTED",
+      "type": "D",
+      "inputs": [
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "OCCUPIED"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "OR",
+      "inputs": [
+        "TAKE",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "SEND",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "OCCUPIED",
+        "TAKE"
+      ]
+    },
+    {
+      "id": "OUT_FULL",
+      "type": "OUTPUT",
+      "inputs": [
+        "OCCUPIED"
+      ],
+      "name": "FULL"
+    },
+    {
+      "id": "OUT_DATA_OUT",
+      "type": "OUTPUT",
+      "inputs": [
+        "DELIVERED"
+      ],
+      "name": "DATA_OUT"
+    },
+    {
+      "id": "OUT_VALID",
+      "type": "OUTPUT",
+      "inputs": [
+        "DELIVERY_VALID"
+      ],
+      "name": "VALID"
+    },
+    {
+      "id": "OUT_ACCEPTED",
+      "type": "OUTPUT",
+      "inputs": [
+        "SEND_ACCEPTED"
+      ],
+      "name": "ACCEPTED"
+    }
+  ],
+  "solution": {
+    "architecture": "baseline",
+    "note": "페이로드·점유·전달값·수신 성공·송신 성공을 저장합니다. DATA_OUT만 남긴 11블록판 대신 모든 상태 출력을 유지한 16블록판을 채택합니다."
+  },
+  "source_variant": "C5-09-noreset"
+}

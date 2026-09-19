@@ -9,10 +9,11 @@ export function coord(r, c) {
   return { r, c };
 }
 
-export function newBlock({ id, type, name, pos, value = false, fixed = false }) {
-  return { id, type, name, pos, value, fixed };
+export function newBlock({ id, type, name, pos, value = false, fixed = false, inputMode }) {
+  return { id, type, name, pos, value: type === 'D' ? false : value, fixed,
+    ...(type === 'INPUT' && inputMode ? { inputMode } : {}) };
 }
 
-export function newWire({ id, path, startBlockId, endBlockId }) {
-  return { id, path, startBlockId, endBlockId, flow: [] };
+export function newWire({ id, path, startBlockId, endBlockId, inputRole }) {
+  return { id, path, startBlockId, endBlockId, flow: [], ...(inputRole ? { inputRole } : {}) };
 }

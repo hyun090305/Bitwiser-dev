@@ -1,0 +1,2599 @@
+{
+  "all_pass": true,
+  "stage_count": 20,
+  "planar_count": 20,
+  "stream_transitions": 5674,
+  "divider_cases": 24,
+  "divider_ticks": 108,
+  "judge_boundary_tests": [
+    {
+      "test": "correct_at_1",
+      "passed": true
+    },
+    {
+      "test": "correct_at_2",
+      "passed": true
+    },
+    {
+      "test": "correct_at_3",
+      "passed": true
+    },
+    {
+      "test": "correct_at_4",
+      "passed": true
+    },
+    {
+      "test": "correct_at_5",
+      "passed": true
+    },
+    {
+      "test": "correct_at_6",
+      "passed": true
+    },
+    {
+      "test": "correct_at_7",
+      "passed": true
+    },
+    {
+      "test": "correct_at_8",
+      "passed": true
+    },
+    {
+      "test": "correct_at_9",
+      "passed": true
+    },
+    {
+      "test": "correct_at_10",
+      "passed": true
+    },
+    {
+      "test": "correct_at_11",
+      "passed": true
+    },
+    {
+      "test": "wrong_first_complete_cannot_be_repaired_later",
+      "passed": true
+    },
+    {
+      "test": "correct_numbers_without_complete_fail",
+      "passed": true
+    },
+    {
+      "test": "zero_divisor_is_not_in_domain",
+      "passed": true
+    }
+  ],
+  "stages": [
+    {
+      "slot": "C4-01",
+      "circuit_sha256": "d430a602e571905bb6258bb65b224264868f976c499c54f519a683d82a20614b",
+      "planar_drawing": {
+        "vertices": 4,
+        "edges": 3,
+        "disjoint_edge_pairs_checked": 0,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 2,
+      "input_combinations": 4,
+      "transitions": 8
+    },
+    {
+      "slot": "C4-02",
+      "circuit_sha256": "3f813ef8c579259c24133f7000708f95d5c3b5a8644d6e4b6f70206d4f1b75ee",
+      "planar_drawing": {
+        "vertices": 6,
+        "edges": 6,
+        "disjoint_edge_pairs_checked": 8,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 3,
+      "input_combinations": 2,
+      "transitions": 6
+    },
+    {
+      "slot": "C4-03",
+      "circuit_sha256": "96c91e79e8823c42a141c3096768ba0a0700c68a649a6d3f4c115308277839c9",
+      "planar_drawing": {
+        "vertices": 5,
+        "edges": 5,
+        "disjoint_edge_pairs_checked": 3,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 2,
+      "input_combinations": 4,
+      "transitions": 8
+    },
+    {
+      "slot": "C4-04",
+      "circuit_sha256": "453cdca5d12aa88ca02faa0f8e68f3162adba4335a0893d2ad05cf35a0501146",
+      "planar_drawing": {
+        "vertices": 11,
+        "edges": 16,
+        "disjoint_edge_pairs_checked": 87,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 8,
+      "input_combinations": 2,
+      "transitions": 16
+    },
+    {
+      "slot": "C4-05",
+      "circuit_sha256": "403d0774a4ca2765893a3322c2cf3d366f02c780e9fff93404feb6402140c2ec",
+      "planar_drawing": {
+        "vertices": 7,
+        "edges": 8,
+        "disjoint_edge_pairs_checked": 15,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 8,
+      "input_combinations": 2,
+      "transitions": 16
+    },
+    {
+      "slot": "C4-06",
+      "circuit_sha256": "c0b301393f6ff3d033d6ceb0703156d0de6668cedfd5ef361c0996d00d78be70",
+      "planar_drawing": {
+        "vertices": 32,
+        "edges": 44,
+        "disjoint_edge_pairs_checked": 856,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 4,
+      "input_combinations": 8,
+      "transitions": 32
+    },
+    {
+      "slot": "C4-07",
+      "circuit_sha256": "bc7cf4f0c3702d55ade7b5dfa74d78591fcfb180d7e034edfbed54823d54e381",
+      "planar_drawing": {
+        "vertices": 16,
+        "edges": 20,
+        "disjoint_edge_pairs_checked": 154,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 4,
+      "input_combinations": 8,
+      "transitions": 32
+    },
+    {
+      "slot": "C4-08",
+      "circuit_sha256": "cbc15316f0c08d1584311ca4c16085f6302c5024b948aee3adc2cfc537c27932",
+      "planar_drawing": {
+        "vertices": 13,
+        "edges": 17,
+        "disjoint_edge_pairs_checked": 101,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 4,
+      "input_combinations": 4,
+      "transitions": 16
+    },
+    {
+      "slot": "C4-09",
+      "circuit_sha256": "06793c8a9dfbe608187268acc574f2e8a3849ec318ffc7c980b67d938c3eef94",
+      "planar_drawing": {
+        "vertices": 13,
+        "edges": 19,
+        "disjoint_edge_pairs_checked": 129,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 23,
+      "input_combinations": 4,
+      "transitions": 92
+    },
+    {
+      "slot": "C4-10",
+      "circuit_sha256": "082e820e3c69cd204a1a4971bb9b59a18f91897071c907ab7ee609038a74005d",
+      "planar_drawing": {
+        "vertices": 8,
+        "edges": 9,
+        "disjoint_edge_pairs_checked": 21,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 4,
+      "input_combinations": 2,
+      "transitions": 8
+    },
+    {
+      "slot": "C5-01",
+      "circuit_sha256": "0a7f1b6d2562be86647ac2e2ea2d7001ad15ab6ae37fc93c54ff7dc611a04a91",
+      "planar_drawing": {
+        "vertices": 22,
+        "edges": 30,
+        "disjoint_edge_pairs_checked": 374,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 4,
+      "input_combinations": 16,
+      "transitions": 64
+    },
+    {
+      "slot": "C5-02",
+      "circuit_sha256": "d077d7c7ac5233ea843000052d301a26c265ff0f02aabcec15861d6d89e14964",
+      "planar_drawing": {
+        "vertices": 19,
+        "edges": 27,
+        "disjoint_edge_pairs_checked": 294,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 16,
+      "input_combinations": 16,
+      "transitions": 256
+    },
+    {
+      "slot": "C5-03",
+      "circuit_sha256": "710d9e6813a5ba3d42975f28a76d0f9e2b3b78023467eb4c909952158e99d9e2",
+      "planar_drawing": {
+        "vertices": 20,
+        "edges": 28,
+        "disjoint_edge_pairs_checked": 305,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 20,
+      "input_combinations": 16,
+      "transitions": 320
+    },
+    {
+      "slot": "C5-04",
+      "circuit_sha256": "654c9df28868792c58b2250e37be8cf00e6345235a1d06a7c4e5b8f4cd61c519",
+      "planar_drawing": {
+        "vertices": 23,
+        "edges": 30,
+        "disjoint_edge_pairs_checked": 365,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 16,
+      "input_combinations": 32,
+      "transitions": 512
+    },
+    {
+      "slot": "C5-05",
+      "circuit_sha256": "e453f8fab07e1bf9d349feff80f364f4714e52cdbd6bd5d5da1a47cb60048901",
+      "planar_drawing": {
+        "vertices": 21,
+        "edges": 30,
+        "disjoint_edge_pairs_checked": 353,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 256,
+      "input_combinations": 4,
+      "transitions": 1024
+    },
+    {
+      "slot": "C5-06",
+      "circuit_sha256": "5e37bb6a957365da44bae03d2e77585eb658e9f953b696ec3b85ecef7dcc5f45",
+      "planar_drawing": {
+        "vertices": 39,
+        "edges": 54,
+        "disjoint_edge_pairs_checked": 1299,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 39,
+      "input_combinations": 64,
+      "transitions": 2496
+    },
+    {
+      "slot": "C5-07",
+      "circuit_sha256": "a2a7143578f8838f695299084fb0c7ea970c0e74118b45a1ee488b9fdc2caa28",
+      "planar_drawing": {
+        "vertices": 29,
+        "edges": 42,
+        "disjoint_edge_pairs_checked": 757,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 40,
+      "input_combinations": 8,
+      "transitions": 320
+    },
+    {
+      "slot": "C5-08",
+      "circuit_sha256": "97738c3ca88944910af3f11ebd89042e199cb82405cb67614a9993c275cef84f",
+      "planar_drawing": {
+        "vertices": 28,
+        "edges": 40,
+        "disjoint_edge_pairs_checked": 681,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 40,
+      "input_combinations": 8,
+      "transitions": 320
+    },
+    {
+      "slot": "C5-09",
+      "circuit_sha256": "5676a6e1d4c53faa3211fa2aa724d216d612b758f1deb48ac4fd92ae11a2bc16",
+      "planar_drawing": {
+        "vertices": 16,
+        "edges": 19,
+        "disjoint_edge_pairs_checked": 132,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_reachable_product_states",
+      "status": "PASS_EXHAUSTIVE",
+      "states": 16,
+      "input_combinations": 8,
+      "transitions": 128
+    },
+    {
+      "slot": "C5-10",
+      "circuit_sha256": "72c0268753fa1086730ed70cb9a46a6ffb16c6550b3e919a104cfa1809deff3e",
+      "planar_drawing": {
+        "vertices": 45,
+        "edges": 58,
+        "disjoint_edge_pairs_checked": 1531,
+        "intersections": 0,
+        "nonincident_vertices_on_edges": 0
+      },
+      "kind": "all_24_fixed_inputs_special_judge",
+      "status": "PASS_EXHAUSTIVE",
+      "cases": 24,
+      "ticks_checked": 108,
+      "max_first_complete_tick": 8,
+      "judge_deadline": 10,
+      "results": [
+        {
+          "A": 0,
+          "B": 1,
+          "pass": true,
+          "tick": 1,
+          "reason": "correct",
+          "Q": 0,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 0,
+          "B": 2,
+          "pass": true,
+          "tick": 1,
+          "reason": "correct",
+          "Q": 0,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 0,
+          "B": 3,
+          "pass": true,
+          "tick": 1,
+          "reason": "correct",
+          "Q": 0,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 1,
+          "B": 1,
+          "pass": true,
+          "tick": 2,
+          "reason": "correct",
+          "Q": 1,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 1,
+          "B": 2,
+          "pass": true,
+          "tick": 2,
+          "reason": "correct",
+          "Q": 0,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 1,
+          "B": 3,
+          "pass": true,
+          "tick": 2,
+          "reason": "correct",
+          "Q": 0,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 2,
+          "B": 1,
+          "pass": true,
+          "tick": 3,
+          "reason": "correct",
+          "Q": 2,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 2,
+          "B": 2,
+          "pass": true,
+          "tick": 3,
+          "reason": "correct",
+          "Q": 1,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 2,
+          "B": 3,
+          "pass": true,
+          "tick": 3,
+          "reason": "correct",
+          "Q": 0,
+          "R": 2,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 3,
+          "B": 1,
+          "pass": true,
+          "tick": 4,
+          "reason": "correct",
+          "Q": 3,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 3,
+          "B": 2,
+          "pass": true,
+          "tick": 4,
+          "reason": "correct",
+          "Q": 1,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 3,
+          "B": 3,
+          "pass": true,
+          "tick": 4,
+          "reason": "correct",
+          "Q": 1,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 0,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 4,
+          "B": 1,
+          "pass": true,
+          "tick": 5,
+          "reason": "correct",
+          "Q": 4,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 4,
+          "B": 2,
+          "pass": true,
+          "tick": 5,
+          "reason": "correct",
+          "Q": 2,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 4,
+          "B": 3,
+          "pass": true,
+          "tick": 5,
+          "reason": "correct",
+          "Q": 1,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 5,
+          "B": 1,
+          "pass": true,
+          "tick": 6,
+          "reason": "correct",
+          "Q": 5,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 5,
+          "B": 2,
+          "pass": true,
+          "tick": 6,
+          "reason": "correct",
+          "Q": 2,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 5,
+          "B": 3,
+          "pass": true,
+          "tick": 6,
+          "reason": "correct",
+          "Q": 1,
+          "R": 2,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 0,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 6,
+          "B": 1,
+          "pass": true,
+          "tick": 7,
+          "reason": "correct",
+          "Q": 6,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 6,
+          "B": 2,
+          "pass": true,
+          "tick": 7,
+          "reason": "correct",
+          "Q": 3,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 6,
+          "B": 3,
+          "pass": true,
+          "tick": 7,
+          "reason": "correct",
+          "Q": 2,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 0,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 7,
+          "B": 1,
+          "pass": true,
+          "tick": 8,
+          "reason": "correct",
+          "Q": 7,
+          "R": 0,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 8,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 0
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 1,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 7,
+          "B": 2,
+          "pass": true,
+          "tick": 8,
+          "reason": "correct",
+          "Q": 3,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 8,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 0,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        },
+        {
+          "A": 7,
+          "B": 3,
+          "pass": true,
+          "tick": 8,
+          "reason": "correct",
+          "Q": 2,
+          "R": 1,
+          "trace": [
+            {
+              "tick": 1,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 2,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 3,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 4,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 5,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 6,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 1,
+                "Q1": 0,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 1,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 7,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 0,
+                "R1": 0,
+                "COMPLETE": 0
+              }
+            },
+            {
+              "tick": 8,
+              "inputs": {
+                "A0": 1,
+                "A1": 1,
+                "A2": 1,
+                "B0": 1,
+                "B1": 1
+              },
+              "outputs": {
+                "Q0": 0,
+                "Q1": 1,
+                "Q2": 0,
+                "R0": 1,
+                "R1": 0,
+                "COMPLETE": 1
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

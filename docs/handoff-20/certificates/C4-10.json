@@ -1,0 +1,81 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 8,
+  "directed_edge_count": 9,
+  "simple_undirected_edge_count": 9,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "KICK": [
+      "g1"
+    ],
+    "SILENT0": [
+      "g1",
+      "g2"
+    ],
+    "SILENT1": [
+      "g2",
+      "g3"
+    ],
+    "SILENT2": [
+      "g3",
+      "OUT_TIMEOUT"
+    ],
+    "g1": [
+      "KICK",
+      "SILENT0",
+      "g2",
+      "g3"
+    ],
+    "g2": [
+      "SILENT0",
+      "SILENT1",
+      "g1"
+    ],
+    "g3": [
+      "SILENT1",
+      "g1",
+      "SILENT2"
+    ],
+    "OUT_TIMEOUT": [
+      "SILENT2"
+    ]
+  },
+  "positions": {
+    "KICK": [
+      0,
+      0
+    ],
+    "SILENT0": [
+      1,
+      1
+    ],
+    "g2": [
+      2,
+      2
+    ],
+    "SILENT1": [
+      3,
+      3
+    ],
+    "g3": [
+      6,
+      6
+    ],
+    "SILENT2": [
+      6,
+      5
+    ],
+    "g1": [
+      12,
+      0
+    ],
+    "OUT_TIMEOUT": [
+      7,
+      4
+    ]
+  }
+}

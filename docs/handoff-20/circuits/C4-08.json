@@ -1,0 +1,109 @@
+{
+  "id": "C4-08",
+  "nodes": [
+    {
+      "id": "REQ_A",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "REQ_B",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "LAST_A",
+      "type": "DE",
+      "inputs": [
+        "g3",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "ANY_REQUEST",
+      "type": "D",
+      "inputs": [
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "AND",
+      "inputs": [
+        "LAST_A",
+        "REQ_B"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "REQ_A",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "OR",
+      "inputs": [
+        "REQ_A",
+        "REQ_B"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "ANY_REQUEST",
+        "LAST_A"
+      ]
+    },
+    {
+      "id": "OUT_A_OK",
+      "type": "OUTPUT",
+      "inputs": [
+        "g5"
+      ],
+      "name": "A_OK"
+    },
+    {
+      "id": "g6",
+      "type": "NOT",
+      "inputs": [
+        "LAST_A"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "AND",
+      "inputs": [
+        "ANY_REQUEST",
+        "g6"
+      ]
+    },
+    {
+      "id": "OUT_B_OK",
+      "type": "OUTPUT",
+      "inputs": [
+        "g7"
+      ],
+      "name": "B_OK"
+    }
+  ],
+  "solution": {
+    "architecture": "two-state-enabled-arbiter",
+    "note": "D+EN에 마지막 승인자를, D에 이번 tick의 요청 유무를 기억해 승인 출력을 복원합니다. 요청이 없으면 마지막 승인자는 유지합니다."
+  },
+  "source_variant": "C4-08"
+}

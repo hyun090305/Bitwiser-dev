@@ -1,0 +1,250 @@
+{
+  "id": "C4-06",
+  "nodes": [
+    {
+      "id": "INC",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "DEC",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "RESET",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "COUNT0",
+      "type": "DE",
+      "inputs": [
+        "g3",
+        "g12"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "COUNT1",
+      "type": "DE",
+      "inputs": [
+        "g14",
+        "g25"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "COUNT0"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "g1",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "DEC",
+        "INC"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "NOT",
+      "inputs": [
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "AND",
+      "inputs": [
+        "DEC",
+        "g5"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "NOT",
+      "inputs": [
+        "g6"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "INC",
+        "g5"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "NOT",
+      "inputs": [
+        "g8"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "g7",
+        "g9"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "NOT",
+      "inputs": [
+        "g10"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "g11"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "NOT",
+      "inputs": [
+        "COUNT1"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "AND",
+      "inputs": [
+        "g13",
+        "g2"
+      ]
+    },
+    {
+      "id": "g15",
+      "type": "AND",
+      "inputs": [
+        "COUNT0",
+        "INC"
+      ]
+    },
+    {
+      "id": "g16",
+      "type": "NOT",
+      "inputs": [
+        "g15"
+      ]
+    },
+    {
+      "id": "g17",
+      "type": "AND",
+      "inputs": [
+        "COUNT0",
+        "g16"
+      ]
+    },
+    {
+      "id": "g18",
+      "type": "NOT",
+      "inputs": [
+        "g17"
+      ]
+    },
+    {
+      "id": "g19",
+      "type": "AND",
+      "inputs": [
+        "INC",
+        "g16"
+      ]
+    },
+    {
+      "id": "g20",
+      "type": "NOT",
+      "inputs": [
+        "g19"
+      ]
+    },
+    {
+      "id": "g21",
+      "type": "AND",
+      "inputs": [
+        "g18",
+        "g20"
+      ]
+    },
+    {
+      "id": "g22",
+      "type": "NOT",
+      "inputs": [
+        "g21"
+      ]
+    },
+    {
+      "id": "g23",
+      "type": "NOT",
+      "inputs": [
+        "g22"
+      ]
+    },
+    {
+      "id": "g24",
+      "type": "AND",
+      "inputs": [
+        "g11",
+        "g23"
+      ]
+    },
+    {
+      "id": "g25",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "g24"
+      ]
+    },
+    {
+      "id": "OUT_BIT0",
+      "type": "OUTPUT",
+      "inputs": [
+        "COUNT0"
+      ],
+      "name": "BIT0"
+    },
+    {
+      "id": "OUT_BIT1",
+      "type": "OUTPUT",
+      "inputs": [
+        "COUNT1"
+      ],
+      "name": "BIT1"
+    }
+  ],
+  "solution": {
+    "architecture": "enabled-d-factored-carry",
+    "note": "두 D+EN으로 비트별 반전 조건을 구현합니다. 같은 명세의 22블록 비평면 후보 대신 게이트 공유를 줄인 32블록 평면 회로를 채택합니다. RESET도 유지합니다."
+  },
+  "source_variant": "C4-06"
+}

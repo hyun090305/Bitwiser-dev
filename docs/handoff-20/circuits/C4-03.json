@@ -1,0 +1,47 @@
+{
+  "id": "C4-03",
+  "nodes": [
+    {
+      "id": "FAULT",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "ACK",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "LATCH",
+      "type": "DE",
+      "inputs": [
+        "FAULT",
+        "g1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "OR",
+      "inputs": [
+        "ACK",
+        "FAULT"
+      ]
+    },
+    {
+      "id": "OUT_ALARM",
+      "type": "OUTPUT",
+      "inputs": [
+        "LATCH"
+      ],
+      "name": "ALARM"
+    }
+  ],
+  "solution": {
+    "architecture": "fault-or-ack-enable",
+    "note": "EN=FAULT OR ACK, DATA=FAULT인 D+EN을 사용합니다. FAULT와 ACK가 동시에 1이면 고장을 기록합니다."
+  },
+  "source_variant": "C4-03"
+}

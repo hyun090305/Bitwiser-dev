@@ -1,8 +1,10 @@
+import { validateStarThresholds } from './circuitCost.js';
 import { setupGrid, setGridDimensions, destroyPlayContext, getPlayController } from './grid.js';
-import { getUsername, setLastAccessedLevel } from './storage.js';
-import { fetchOverallStats } from './rank.js';
+import { getUsername, setLastAccessedLevel, getStageAccessRecord, setStageAccessRecord } from './storage.js';
+
 import { showStageMapScreen, hideGameScreen } from './navigation.js';
 import { playStageIntroSound, setBgmMode } from './bgm.js';
+import { canPlayStage, chapterForStage, preserveStageAccess } from './stageCatalog.js';
 
 const translate =
   typeof window !== 'undefined' && typeof window.t === 'function'
@@ -10,6 +12,10 @@ const translate =
     : key => key;
 
 const DEFAULT_GRID_SIZE = 6;
+
+let loadedStageData = null;
+export const getLoadedStageData = () => loadedStageData;
+export const getLevelStarThresholds = id => loadedStageData?.levelStarThresholds?.[id];
 
 let levelTitles = {};
 let levelGridSizes = {};
@@ -19,6 +25,8 @@ let levelDescriptions = {};
 let levelHints = {};
 let levelFixedIO = {};
 let clearedLevelsFromDb = [];
+let stageAccess = {};
+let stageAccessOwner = null;
 let stageDataPromise = Promise.resolve();
 let currentLevel = null;
 
@@ -26,7 +34,12 @@ const dependencies = {
   showOverallRanking: null,
   setIsScoring: null,
   onLevelIntroComplete: null,
-  triggerMemoryRestoredAnimation: null
+  progressProvider: null,
+  canStartLevel: null,
+  accessProvider: null,
+  copyPasteEnabled: null,
+  onGridReady: null,
+  beforeLeave: null
 };
 
 export function configureLevelModule(options = {}) {
@@ -89,7 +102,7 @@ export function getCurrentLevel() {
 }
 
 export function clearCurrentLevel() {
-  currentLevel = null;
+  if (dependencies.progressProvider) currentLevel = null;
 }
 
 export function getClearedLevels() {
@@ -101,6 +114,11 @@ export function loadStageData(currentLang) {
   stageDataPromise = fetch(file)
     .then(res => res.json())
     .then(data => {
+      loadedStageData = data;
+      for (const id of Object.keys(data.levelTitles).filter(id => id !== '0')) {
+        const validation = validateStarThresholds(data.levelStarThresholds?.[id]);
+        if (validation.status === 'invalid') console.error(`Stage ${id}: ${validation.message}`);
+      }
       levelTitles = data.levelTitles;
       levelGridSizes = data.levelGridSizes;
       levelBlockSets = data.levelBlockSets;
@@ -116,13 +134,15 @@ export function loadStageData(currentLang) {
 export async function startLevel(level, { onIntroComplete } = {}) {
   await stageDataPromise;
   await loadClearedLevelsFromDb();
+  if (!isLevelUnlocked(Number(level))) throw new Error('Stage unavailable');
+  await dependencies.beforeLeave?.();
   const [rows, cols] = levelGridSizes[level] || [DEFAULT_GRID_SIZE, DEFAULT_GRID_SIZE];
   setGridDimensions(rows, cols);
   const fixedIOConfig = levelFixedIO[level];
   const hasFixedIO = Boolean(fixedIOConfig?.fixIO);
 
   currentLevel = parseInt(level, 10);
-  setLastAccessedLevel(currentLevel);
+  if (!dependencies.progressProvider) setLastAccessedLevel(currentLevel);
   const title = document.getElementById('gameTitle');
   if (title) {
     const localizedUntitled = translate('stageUntitled');
@@ -146,7 +166,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     cols,
     createPaletteForLevel(level),
     {
-      enableCopyPaste: level >= 7,
+      enableCopyPaste: dependencies.copyPasteEnabled ? dependencies.copyPasteEnabled(Number(level)) : level >= 7,
       forceHideInOut: hasFixedIO
     }
   );
@@ -155,6 +175,8 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     getPlayController()?.placeFixedIO?.(fixedIOConfig);
   }
 
+  await dependencies.onGridReady?.(Number(level), getPlayController());
+  document.dispatchEvent(new Event('bitwiser:stageReady'));
   showLevelIntro(level, () => {
     if (typeof onIntroComplete === 'function') {
       onIntroComplete();
@@ -166,6 +188,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
 }
 
 export function returnToEditScreen() {
+  document.dispatchEvent(new Event('bitwiser:editCircuit'));
   if (typeof dependencies.setIsScoring === 'function') {
     dependencies.setIsScoring(false);
   } else {
@@ -185,18 +208,16 @@ export function returnToEditScreen() {
 export function markLevelCleared(level) {
   if (!clearedLevelsFromDb.includes(level)) {
     clearedLevelsFromDb.push(level);
+    updateStageAccess();
     refreshClearedUI();
-    if (typeof dependencies.triggerMemoryRestoredAnimation === 'function') {
-      dependencies.triggerMemoryRestoredAnimation(level, clearedLevelsFromDb.length);
-    }
     return {
       wasNew: true,
-      clearedCount: clearedLevelsFromDb.length
+      clearedCount: clearedLevelsFromDb.filter(id => id !== 0).length
     };
   }
   return {
     wasNew: false,
-    clearedCount: clearedLevelsFromDb.length
+    clearedCount: clearedLevelsFromDb.filter(id => id !== 0).length
   };
 }
 
@@ -204,7 +225,9 @@ export async function returnToLevels({
   isCustomProblemActive = false,
   onClearCustomProblem
 } = {}) {
+  await dependencies.beforeLeave?.();
   destroyPlayContext();
+  currentLevel = null;
   hideGameScreen();
 
   if (isCustomProblemActive) {
@@ -238,14 +261,20 @@ export async function returnToLevels({
 
 
 export function refreshUserData() {
+  if (dependencies.progressProvider) return loadClearedLevelsFromDb();
   const nickname = getUsername() || '';
   loadClearedLevelsFromDb();
   if (nickname) {
-    fetchOverallStats(nickname).then(res => {
+    import('./rank.js').then(m => m.fetchOverallStats(nickname)).then(res => {
       const overallRankEl = document.getElementById('overallRank');
       const clearedCountEl = document.getElementById('clearedCount');
       if (overallRankEl) overallRankEl.textContent = `#${res.rank}`;
       if (clearedCountEl) clearedCountEl.textContent = res.cleared;
+    }).catch(error => {
+      console.warn('Overall rank unavailable', error);
+      const rank = document.getElementById('overallRank'), count = document.getElementById('clearedCount');
+      if (rank) rank.textContent = '—';
+      if (count) count.textContent = clearedLevelsFromDb.filter(id => id !== 0).length;
     });
   }
   if (document.getElementById('overallRankingList') && typeof dependencies.showOverallRanking === 'function') {
@@ -254,16 +283,31 @@ export function refreshUserData() {
 }
 
 export function loadClearedLevelsFromDb() {
-  const nickname = getUsername() || '익명';
-  return fetchClearedLevels(nickname).then(levels => {
-    clearedLevelsFromDb = levels;
+  if (dependencies.progressProvider) {
+    clearedLevelsFromDb = dependencies.progressProvider();
     refreshClearedUI();
-    return levels;
+    return Promise.resolve(clearedLevelsFromDb.slice());
+  }
+  const nickname = getUsername() || '익명';
+  return Promise.allSettled([fetchClearedLevels(nickname), dependencies.remoteProgressProvider?.()]).then(([legacy, costs]) => {
+    if (legacy.status === 'rejected') console.warn('Online progress unavailable; retaining known progress', legacy.reason);
+    if (costs.status === 'rejected') console.warn('Online cost records unavailable; retaining local results', costs.reason);
+    const online = legacy.status === 'fulfilled' ? legacy.value : clearedLevelsFromDb;
+    clearedLevelsFromDb = [...new Set([...online, ...(dependencies.localProgressProvider?.() || [])])];
+    updateStageAccess();
+    refreshClearedUI();
+    return clearedLevelsFromDb.slice();
+  }).catch(error => {
+    console.warn('Online progress unavailable; retaining known progress', error);
+    clearedLevelsFromDb = [...new Set([...clearedLevelsFromDb, ...(dependencies.localProgressProvider?.() || [])])];
+    updateStageAccess(); refreshClearedUI(); return clearedLevelsFromDb.slice();
   });
 }
 
 export function fetchClearedLevels(nickname) {
-  return db.ref('rankings').once('value').then(snap => {
+  let timer;
+  const online = typeof db !== 'undefined' && db?.ref ? db.ref('rankings').once('value') : Promise.reject(new Error('No database'));
+  return Promise.race([online, new Promise((_, reject) => { timer = setTimeout(() => reject(new Error('Progress connection timed out')), 4000); })]).finally(() => clearTimeout(timer)).then(snap => {
     const cleared = [];
     snap.forEach(levelSnap => {
       const levelId = parseInt(levelSnap.key, 10);
@@ -281,7 +325,22 @@ export function fetchClearedLevels(nickname) {
 }
 
 export function isLevelUnlocked(level) {
-  return Boolean(levelTitles[level]);
+  if (!levelTitles[level] || !levelAnswers[level]) return false;
+  return dependencies.canStartLevel ? Boolean(dependencies.canStartLevel(Number(level)))
+    : canPlayStage(Number(level), clearedLevelsFromDb, getStageAccess());
+}
+
+export function getStageAccess() {
+  return dependencies.accessProvider?.() || (dependencies.progressProvider ? {} : stageAccess);
+}
+
+function updateStageAccess() {
+  if (dependencies.progressProvider) return;
+  const owner = getUsername() || '익명';
+  const previous = stageAccessOwner === owner ? stageAccess : getStageAccessRecord();
+  stageAccess = preserveStageAccess(clearedLevelsFromDb, previous || {}, { legacy: !previous });
+  stageAccessOwner = owner;
+  setStageAccessRecord(stageAccess);
 }
 
 function getStageCode(level) {
@@ -341,6 +400,8 @@ function parseLogicRows(level, dataTable = []) {
 
     return {
       id: `case-${index}`,
+      tick: row.tick,
+      observation: row.observation,
       inputSignals,
       outputSignals
     };
@@ -406,6 +467,11 @@ export function renderLogicCards(tableEl, rows) {
 
     const rhs = createSignalGroup(row.outputSignals || [], 'level-intro-case__side--output');
 
+    if (row.tick != null) {
+      const tick = document.createElement('span'); tick.className = 'level-intro-tick';
+      const before = row.observation === 'before';
+      tick.textContent = `tick ${row.tick}${before ? (window.currentLang === 'en' ? ' · before' : ' · 직전') : ''}`; card.append(tick);
+    }
     card.append(lhs, arrow, rhs);
     tableEl.appendChild(card);
   });
@@ -424,7 +490,8 @@ function prepareIntroScreen(level, data) {
   const nodeTitle = `LOGIC NODE: ${(data.title || '').toString().trim()}`;
   title.textContent = nodeTitle;
   desc.textContent = buildMissionBrief(data.title, data.desc);
-  stageCode.textContent = getStageCode(level);
+  const chapter = chapterForStage(Number(level));
+  stageCode.textContent = `${chapter ? chapter.title.toUpperCase() + ' · ' : ''}${getStageCode(level)}`;
   if (logicDataLabel) {
     logicDataLabel.textContent = (translate('introLogicData') || 'LOGIC DATA').toString();
   }
@@ -478,7 +545,7 @@ export function buildPaletteGroups(blocks) {
   const inout = [];
   const gate = [];
   blocks.forEach(b => {
-    const item = { type: b.type, label: b.name || (b.type === 'JUNCTION' ? 'JUNC' : b.type) };
+    const item = { type: b.type, label: b.name || (b.type === 'JUNCTION' ? 'JUNC' : b.type), inputMode: b.inputMode };
     if (b.type === 'INPUT' || b.type === 'OUTPUT') inout.push(item);
     else gate.push(item);
   });

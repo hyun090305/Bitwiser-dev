@@ -1,3 +1,4 @@
+import { prepareCircuit, evaluateCombinational } from '../canvas/evaluation.js';
 import {
   setupGrid,
   clearGrid,
@@ -11,7 +12,7 @@ import {
   getProblemController,
   onCircuitModified
 } from './grid.js';
-import { evaluateCircuit } from '../canvas/engine.js';
+
 import { getUsername } from './storage.js';
 import { renderLogicCards } from './levels.js';
 
@@ -169,21 +170,16 @@ function hasSequentialIONames(names = [], prefix) {
 }
 
 function hasCircuitConnectionErrors(circuit) {
-  if (!circuit) return true;
-  const blocks = Object.values(circuit.blocks || {});
-  const wires = Object.values(circuit.wires || {});
-  return blocks.some(block => {
-    if (block.type !== 'OUTPUT' && block.type !== 'JUNCTION') {
-      return false;
-    }
-    const incoming = wires.filter(wire => wire.endBlockId === block.id);
-    return incoming.length > 1;
-  });
+  return !circuit || prepareCircuit(circuit).diagnostics.length > 0;
 }
 
 function getProblemSaveState() {
   const circuit = getProblemCircuit();
   const { inputs, outputs } = getCurrentIOState();
+
+  if (Object.values(circuit?.blocks || {}).some(b => b.type === 'D' || b.inputMode === 'button')) {
+    return { canSave: false, message: '순차 회로는 조합 진리표로 저장할 수 없습니다. 테스트 벤치의 순차 예제를 이용하세요.' };
+  }
 
   if (!inputs.length || !outputs.length) {
     return {
@@ -517,48 +513,24 @@ function getProblemTruthTable(
     blocks.find(block => block.type === 'OUTPUT' && block.name === name)
   );
 
-  const originalInputValues = inputBlocks.map(block => block?.value);
-  const originalOutputValues = outputBlocks.map(block => block?.value);
-
   const cappedInputCount = Math.min(inputNames.length, TRUTH_TABLE_MAX_INPUTS);
-  const rowCount = inputNames.length > 0 ? 1 << cappedInputCount : 1;
+  const rowCount = 1 << cappedInputCount;
   const rows = [];
-
   for (let r = 0; r < rowCount; r += 1) {
     const row = {};
+    const inputs = new Map();
     inputNames.forEach((name, idx) => {
       const bit = (r >> (inputNames.length - 1 - idx)) & 1;
       row[name] = bit;
-      const block = inputBlocks[idx];
-      if (block) {
-        block.value = bit === 1;
-      }
+      if (inputBlocks[idx]) inputs.set(inputBlocks[idx].id, Boolean(bit));
     });
-
-    evaluateCircuit(circuit);
-
+    const result = evaluateCombinational(circuit, { inputs });
     outputNames.forEach((name, idx) => {
       const block = outputBlocks[idx];
-      if (block) {
-        row[name] = block.value ? 1 : 0;
-      } else {
-        row[name] = '';
-      }
+      row[name] = result.ok && block ? Number(result.values.get(block.id)) : '?';
     });
-
     rows.push(row);
   }
-
-  inputBlocks.forEach((block, idx) => {
-    if (block) {
-      block.value = originalInputValues[idx];
-    }
-  });
-  outputBlocks.forEach((block, idx) => {
-    if (block) {
-      block.value = originalOutputValues[idx];
-    }
-  });
 
   return rows;
 }
@@ -1482,4 +1454,3 @@ export function getUserProblems() {
     return problems;
   });
 }
-

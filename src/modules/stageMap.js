@@ -4,15 +4,19 @@
   showGameScreen,
   showStageMapScreen
 } from './navigation.js';
-import { openLabModeFromShortcut } from './labMode.js';
-import { getUserProblems, previewUserProblem } from './problemEditor.js';
+
 import { createCamera } from '../canvas/camera.js';
 import { drawGrid, setupCanvas } from '../canvas/renderer.js';
 import { CELL } from '../canvas/model.js';
+import { drawStarRow } from './achievementStars.js';
 import { getActiveTheme } from '../themes.js';
+import { canPlayStage, chapterAccess } from './stageCatalog.js';
+import { isExtrasCard, extrasCardText, drawExtrasCard, EXTRAS_SIGNAL_DURATION } from './stageMapExtras.js';
 import {
   STAGE_NODE_LEVEL_MAP,
   STAGE_TYPE_META,
+  stageWorldRect,
+  straightStageEdge,
   gridSizeToWorldSize,
   gridToWorldPoint
 } from './stageMapLayout.js';
@@ -31,7 +35,6 @@ const CHAPTER_GLOBAL_EDGE_OPACITY = 0.5;
 const STAGE_FOCUS_VERTICAL_ANCHOR = 0.42;
 // Keep scale unchanged when focusing a stage (avoid automatic zoom-out)
 const STAGE_FOCUS_SCALE_FACTOR = 1.0;
-const CHAPTER_FOCUS_VERTICAL_ANCHOR = 0.43;
 const BLUEPRINT_ARCHIVE_ROOT_ID = 'user_created_stages';
 
 const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
@@ -80,12 +83,12 @@ const NODE_STYLE = {
     text: '#e0faff'
   },
   locked: {
-    fill: 'rgba(148, 163, 184, 0.28)',
+    fill: '#273448',
     stroke: 'rgba(148, 163, 184, 0.5)',
     text: '#e2e8f0'
   },
   comingSoon: {
-    fill: 'rgba(59, 130, 246, 0.18)',
+    fill: '#1e304a',
     stroke: 'rgba(59, 130, 246, 0.4)',
     text: '#bfdbfe'
   }
@@ -176,6 +179,40 @@ const RANK_TITLE_BADGES = {
     pattern: { lines: 3, alpha: 0.09 },
     accentLine: { color: 'rgba(247, 219, 159, 0.62)', y: 0.2 },
     textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.3 }
+  },
+  control_core: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#18152b' },
+        { offset: 0.48, color: '#302744' },
+        { offset: 1, color: '#292138' }
+      ]
+    },
+    border: { width: 1.1, color: 'rgba(196, 154, 225, 0.86)' },
+    pattern: { lines: 3, alpha: 0.085 },
+    accentLine: { color: 'rgba(216, 180, 254, 0.58)', y: 0.2 },
+    textColor: '#f0e4fa',
+    chapterLabelColor: 'rgba(216, 180, 254, 0.8)',
+    textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.2 }
+  },
+  system_core: {
+    gradient: {
+      type: 'linear',
+      angle: 90,
+      stops: [
+        { offset: 0, color: '#10231f' },
+        { offset: 0.48, color: '#254038' },
+        { offset: 1, color: '#1c332d' }
+      ]
+    },
+    border: { width: 1.1, color: 'rgba(110, 205, 164, 0.86)' },
+    pattern: { lines: 3, alpha: 0.085 },
+    accentLine: { color: 'rgba(167, 243, 208, 0.56)', y: 0.2 },
+    textColor: '#e1f7ed',
+    chapterLabelColor: 'rgba(167, 243, 208, 0.8)',
+    textShadow: { color: 'rgba(0, 0, 0, 0.3)', offsetY: 1, blur: 2.2 }
   },
   auxiliary_core: {
     gradient: {
@@ -496,13 +533,35 @@ function normalizeChapters(spec = {}, nodes = []) {
   const explicit = Array.isArray(spec.chapters) ? spec.chapters : [];
   if (explicit.length) {
     return explicit
-      .map(ch => ({
-        id: ch.id,
-        label: ch.label || ch.id,
-        order: Number.isFinite(ch.order) ? ch.order : 0,
-        anchor: ch.anchor || null,
-        rankNodeId: ch.rankNodeId || null
-      }))
+      .map(ch => {
+        const titlePosition = ch.title?.position || ch.anchor || { x: 0, y: 0 };
+        const titleSize = ch.title?.size || { w: 27, h: 3 };
+        const titleOrigin = gridToWorldPoint(titlePosition);
+        const titleWorldSize = gridSizeToWorldSize(titleSize);
+        const titleRect = {
+          x: titleOrigin.x,
+          y: titleOrigin.y,
+          w: titleWorldSize.width,
+          h: titleWorldSize.height
+        };
+        return {
+          numbered: ch.numbered !== false,
+          subtitle: ch.subtitle,
+          prerequisites: ch.prerequisites || [],
+          panel: ch.panel ? { rect: stageWorldRect(ch.panel.position, ch.panel.size) } : null,
+          id: ch.id,
+          label: ch.label || ch.id,
+          order: Number.isFinite(ch.order) ? ch.order : 0,
+          anchor: ch.anchor || null,
+          title: {
+            position: titlePosition,
+            size: titleSize,
+            styleId: ch.title?.styleId || null,
+            rect: titleRect,
+            center: rectCenter(titleRect)
+          }
+        };
+      })
       .filter(ch => ch.id)
       .sort((a, b) => a.order - b.order);
   }
@@ -511,9 +570,9 @@ function normalizeChapters(spec = {}, nodes = []) {
   const hasControl = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_2');
   const hasArithmetic = nodes.some(node => inferChapterIdFromNode(node) === 'chapter_3');
   const fallback = [];
-  if (hasBasic) fallback.push({ id: 'chapter_1', label: 'Logic Core', order: 1, anchor: { x: 0, y: 0 }, rankNodeId: 'bit_solver' });
-  if (hasControl) fallback.push({ id: 'chapter_2', label: 'Control Flow', order: 2, anchor: { x: 36, y: 0 }, rankNodeId: 'bit_wiser' });
-  if (hasArithmetic) fallback.push({ id: 'chapter_3', label: 'Arithmetic Unit', order: 3, anchor: { x: 72, y: 0 }, rankNodeId: 'bit_master' });
+  if (hasBasic) fallback.push({ id: 'chapter_1', label: 'Logic Core', order: 1, anchor: { x: 0, y: 0 } });
+  if (hasControl) fallback.push({ id: 'chapter_2', label: 'Memory Link', order: 2, anchor: { x: 36, y: 0 } });
+  if (hasArithmetic) fallback.push({ id: 'chapter_3', label: 'Arithmetic Unit', order: 3, anchor: { x: 72, y: 0 } });
   return fallback;
 }
 
@@ -542,8 +601,9 @@ function buildChapterState({ spec, nodes, nodeLookup }) {
   chapters.forEach(chapter => {
     const chapterNodes = (nodesByChapter.get(chapter.id) || [])
       .filter(node => !node.isUserProblem);
-    if (chapterNodes.length) {
-      chapterBounds.set(chapter.id, calculateBounds(chapterNodes));
+    const chapterItems = chapter.panel ? [chapter.panel, chapter.title] : chapter.title?.rect ? [...chapterNodes, chapter.title] : chapterNodes;
+    if (chapterItems.length) {
+      chapterBounds.set(chapter.id, calculateBounds(chapterItems));
     }
   });
 
@@ -564,10 +624,12 @@ function buildNode(node, nodeTypes, getLevelTitle) {
   };
   const rectOrigin = gridToWorldPoint(node.position);
   const rectSize = gridSizeToWorldSize(size);
-  const rect = { x: rectOrigin.x, y: rectOrigin.y, w: rectSize.width, h: rectSize.height };
-  const level = STAGE_NODE_LEVEL_MAP[node.id] ?? null;
-  const title = level != null ? (getLevelTitle?.(level) ?? node.label) : node.label;
-  const comingSoon = node.nodeType === 'stage' && level == null && !node.isUserProblem;
+  const rect = node.gridPosition || isExtrasCard(node) ? stageWorldRect(node.position, size)
+    : { x: rectOrigin.x, y: rectOrigin.y, w: rectSize.width, h: rectSize.height };
+  const level = node.previewFeature ? null : STAGE_NODE_LEVEL_MAP[node.id] ?? null;
+  const title = node.nodeType === 'rank' ? String(node.label).toUpperCase()
+    : level != null ? (getLevelTitle?.(level) ?? node.label) : node.label;
+  const comingSoon = node.nodeType === 'stage' && level == null && !node.isUserProblem && !node.previewFeature;
   return {
     ...node,
     chapterId: node.chapterId || GLOBAL_CHAPTER_ID,
@@ -596,7 +658,7 @@ function buildGraph(spec, { getLevelTitle } = {}) {
     const waypoints = Array.isArray(edge.waypoints)
       ? edge.waypoints.map(pt => gridPointToWorldCenter(pt))
       : [];
-    const points = [from.center, ...waypoints, to.center];
+    const points = edge.style === 'straight' ? straightStageEdge(from, to) : [from.center, ...waypoints, to.center];
     const deps = dependencies.get(edge.to);
     if (deps) deps.push(edge.from);
     const edgeId = edge.id ?? `${edge.from}->${edge.to}-${index}`;
@@ -608,7 +670,8 @@ function buildGraph(spec, { getLevelTitle } = {}) {
     };
   }).filter(Boolean);
 
-  const bounds = calculateBounds(nodes);
+  const titleItems = chapterState.chapters.map(chapter => chapter.title).filter(title => title?.rect);
+  const bounds = calculateBounds([...nodes, ...titleItems]);
   return {
     nodes,
     edges,
@@ -634,163 +697,37 @@ function updatePanelState(panel, isOpen, backdrop) {
 
 function drawEdge(ctx, camera, edge, active, t = 0, highlight = null, opacity = 1) {
   if (!edge?.points?.length) return;
-  const highlightActive = Boolean(highlight && highlight.alpha > 0);
-  if (!active && !highlightActive) return;
-
-  const screenPoints = edge.points.map(pt => camera.worldToScreen(pt.x, pt.y));
-
-  if (active) {
-    ctx.save();
+  const points = edge.points.map(pt => camera.worldToScreen(pt.x, pt.y));
+  const scale = camera.getScale();
+  const end = points.at(-1), previous = points.at(-2);
+  const angle = Math.atan2(end.y - previous.y, end.x - previous.x);
+  const arrow = 12 * scale;
+  ctx.save();
+  ctx.globalAlpha = opacity * (active ? 1 : 0.8);
+  ctx.strokeStyle = active ? '#86dccd' : '#7795ac';
+  ctx.fillStyle = ctx.strokeStyle;
+  ctx.lineWidth = 3 * scale;
+  ctx.lineCap = 'butt';
+  ctx.lineJoin = 'round';
+  ctx.beginPath();
+  points.forEach((pt, i) => i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y));
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(end.x, end.y);
+  ctx.lineTo(end.x - arrow * Math.cos(angle - 0.45), end.y - arrow * Math.sin(angle - 0.45));
+  ctx.lineTo(end.x - arrow * Math.cos(angle + 0.45), end.y - arrow * Math.sin(angle + 0.45));
+  ctx.closePath();
+  ctx.fill();
+  // A short completion highlight is local to the affected connection.
+  if (active && highlight?.alpha > 0) {
+    ctx.globalAlpha = opacity * highlight.alpha;
+    ctx.strokeStyle = '#e2fff3';
+    ctx.lineWidth = 5 * scale;
     ctx.beginPath();
-    screenPoints.forEach((screen, idx) => {
-      if (idx === 0) ctx.moveTo(screen.x, screen.y);
-      else ctx.lineTo(screen.x, screen.y);
-    });
-
-    ctx.lineWidth = 4 * camera.getScale();
-    ctx.lineCap = 'round';
-    ctx.lineJoin = 'round';
-    ctx.strokeStyle = 'rgba(56, 96, 104, 0.6)';
-    ctx.shadowColor = 'rgba(28, 58, 64, 0.45)';
-    ctx.shadowBlur = 10;
-    ctx.globalAlpha = opacity;
+    points.forEach((pt, i) => i ? ctx.lineTo(pt.x, pt.y) : ctx.moveTo(pt.x, pt.y));
     ctx.stroke();
-
-    ctx.beginPath();
-    screenPoints.forEach((screen, idx) => {
-      if (idx === 0) ctx.moveTo(screen.x, screen.y);
-      else ctx.lineTo(screen.x, screen.y);
-    });
-
-    const p0 = screenPoints[0];
-    const p1 = screenPoints[screenPoints.length - 1];
-    const grad = ctx.createLinearGradient(p0.x, p0.y, p1.x, p1.y);
-    grad.addColorStop(0, '#27464D');
-    grad.addColorStop(0.5, '#2F5861');
-    grad.addColorStop(1, '#396D77');
-
-    ctx.lineWidth = 3 * camera.getScale();
-    ctx.strokeStyle = grad;
-    ctx.shadowColor = 'rgba(0,0,0,0)';
-    ctx.shadowBlur = 0;
-    ctx.globalAlpha = opacity;
-    ctx.stroke();
-
-    let totalLength = 0;
-    for (let i = 1; i < screenPoints.length; i += 1) {
-      const prev = screenPoints[i - 1];
-      const current = screenPoints[i];
-      totalLength += Math.hypot(current.x - prev.x, current.y - prev.y);
-    }
-
-    if (totalLength > 0) {
-      const scale = camera.getScale();
-      const pulseLength = Math.max(44 * scale, totalLength * 0.14);
-      const cycleLength = totalLength + pulseLength;
-      const pulseSpeed = 0.15 * scale;
-      const pulseHead = ((t || 0) * pulseSpeed) % cycleLength;
-      if (pulseHead > 0 && pulseHead < cycleLength) {
-        const pulseStart = pulseHead - pulseLength;
-        const visibleStart = clamp(pulseStart, 0, totalLength);
-        const visibleEnd = clamp(pulseHead, 0, totalLength);
-        const visibleLength = visibleEnd - visibleStart;
-        if (visibleLength > 0.5) {
-          const drawPulseSegment = (start, end, width, color, alpha) => {
-            const segmentLength = end - start;
-            if (segmentLength <= 0.25) return;
-            ctx.beginPath();
-            screenPoints.forEach((screen, idx) => {
-              if (idx === 0) ctx.moveTo(screen.x, screen.y);
-              else ctx.lineTo(screen.x, screen.y);
-            });
-            try {
-              ctx.setLineDash([segmentLength, totalLength]);
-              ctx.lineDashOffset = -start;
-            } catch (e) {}
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.lineWidth = width;
-            ctx.strokeStyle = color;
-            ctx.globalAlpha = alpha * opacity;
-            ctx.stroke();
-          };
-
-          ctx.globalCompositeOperation = 'source-over';
-          const pulseCenter = (visibleStart + visibleEnd) / 2;
-          const sigma = Math.max(visibleLength * 0.24, 6 * scale);
-          const segmentCount = Math.max(12, Math.min(30, Math.round(visibleLength / Math.max(4 * scale, 1))));
-          const segmentStep = visibleLength / segmentCount;
-
-          for (let i = 0; i < segmentCount; i += 1) {
-            const start = visibleStart + segmentStep * i;
-            const end = (i === segmentCount - 1) ? visibleEnd : start + segmentStep;
-            const mid = (start + end) / 2;
-            const normalized = (mid - pulseCenter) / sigma;
-            const density = Math.exp(-0.5 * normalized * normalized);
-            if (density < 0.03) continue;
-
-            drawPulseSegment(
-              start,
-              end,
-              Math.max(2.6 * scale, 1.8),
-              'rgba(207, 251, 244, 0.95)',
-              Math.min(1, 0.08 + density * 0.92)
-            );
-            drawPulseSegment(
-              start,
-              end,
-              Math.max(1.05 * scale, 0.9),
-              'rgba(240, 255, 252, 0.95)',
-              Math.min(1, Math.pow(density, 1.15) * 0.95)
-            );
-          }
-
-          try {
-            ctx.setLineDash([]);
-          } catch (e) {}
-        }
-      }
-    }
-
-    ctx.restore();
   }
-
-  if (highlightActive) {
-    const progress = clamp(highlight.progress ?? 0, 0, 1);
-    const alpha = clamp(highlight.alpha ?? 1, 0, 1);
-    let totalLength = 0;
-    for (let i = 1; i < screenPoints.length; i += 1) {
-      const prev = screenPoints[i - 1];
-      const current = screenPoints[i];
-      totalLength += Math.hypot(current.x - prev.x, current.y - prev.y);
-    }
-    if (totalLength > 0) {
-      const drawLength = Math.max(0.0001, totalLength * progress);
-      ctx.save();
-      ctx.beginPath();
-      screenPoints.forEach((screen, idx) => {
-        if (idx === 0) ctx.moveTo(screen.x, screen.y);
-        else ctx.lineTo(screen.x, screen.y);
-      });
-      try {
-        ctx.setLineDash([drawLength, totalLength]);
-        ctx.lineDashOffset = totalLength * 0.02;
-      } catch (e) {}
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.lineWidth = 4.4 * camera.getScale();
-      ctx.strokeStyle = 'rgba(207, 251, 244, 1)';
-      ctx.shadowColor = `rgba(207, 251, 244, ${0.55 * alpha})`;
-      ctx.shadowBlur = 26 * alpha;
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = alpha * opacity;
-      ctx.stroke();
-      try {
-        ctx.setLineDash([]);
-      } catch (e) {}
-      ctx.restore();
-    }
-  }
+  ctx.restore();
 }
 
 function drawRankTitleNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed = false, highlight = null) {
@@ -879,7 +816,7 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0, isHovered = false, 
   const textColor = spec.textColor || TITLE_BADGE_BASE.textColor;
   const chapterLabelColor = spec.chapterLabelColor || TITLE_BADGE_BASE.chapterLabelColor;
   const mainFontSize = rect.h * 0.31;
-  const chapterFontSize = Math.max(10, 11 * scale);
+  const chapterFontSize = 16 * scale;
 
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
@@ -919,11 +856,11 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0, isHovered = false, 
 
   const chapterNumberMatch = String(node.chapterId || '').match(/chapter_(\d+)/i);
   const chapterNumber = chapterNumberMatch ? chapterNumberMatch[1] : '';
-  const chapterLabel = chapterNumber ? `CHAPTER ${chapterNumber}` : 'CHAPTER';
+  const chapterLabel = chapterNumber ? `CHAPTER ${chapterNumber}` : 'EXTRAS';
   const chapterText = clampText(chapterLabel, rect.w * 0.82);
   const titleText = clampText(String(node.title || '').toUpperCase(), rect.w * 0.88);
-  const chapterY = rect.y + rect.h * 0.3;
-  const titleY = rect.y + rect.h * 0.64;
+  const chapterY = rect.y + rect.h * 0.2;
+  const titleY = rect.y + rect.h * 0.5;
 
   ctx.globalAlpha = 0.9;
   ctx.fillStyle = chapterLabelColor;
@@ -934,6 +871,10 @@ function drawRankTitleNode(ctx, camera, node, status, t = 0, isHovered = false, 
   ctx.fillStyle = textColor;
   ctx.font = `900 ${mainFontSize}px 'Noto Sans KR', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif`;
   ctx.fillText(titleText, rect.x + rect.w / 2, titleY);
+
+  ctx.font = `500 ${16 * scale}px 'Noto Sans KR', sans-serif`;
+  ctx.fillStyle = chapterLabelColor;
+  ctx.fillText(clampText(node.subtitle || '', rect.w * 0.94), rect.x + rect.w / 2, rect.y + rect.h * 0.8);
 
   ctx.shadowColor = 'transparent';
   ctx.shadowBlur = 0;
@@ -963,7 +904,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   const baseStyle = stageStyle
     ? null
     : status.locked
-      ? NODE_STYLE.locked
+      ? (node.comingSoon ? NODE_STYLE.comingSoon : NODE_STYLE.locked)
       : node.comingSoon
         ? NODE_STYLE.comingSoon
         : NODE_STYLE[node.nodeType] || NODE_STYLE.stage;
@@ -985,6 +926,10 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     ctx.translate(-centerScreen.x, -centerScreen.y);
   }
   const drawRounded = () => buildRoundedRectPath(ctx, topLeft.x, topLeft.y, width, height, radius);
+  // Theme fills may be translucent; keep the card face opaque over the grid.
+  drawRounded();
+  ctx.fillStyle = '#152234';
+  ctx.fill();
 
   if (stageStyle) {
     if (stageCleared) {
@@ -998,7 +943,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
       applyScaledShadow(ctx, haloShadow, scale);
       drawRounded();
       // base warm fill behind the glow (same as blocks)
-      ctx.fillStyle = 'rgba(255, 246, 225, 0.96)';
+      ctx.fillStyle = '#fff6e1';
       ctx.fill();
 
       // Clear direct shadow before radial glow.
@@ -1049,7 +994,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     drawRounded();
     const gradient = ctx.createLinearGradient(topLeft.x, topLeft.y, topLeft.x, topLeft.y + height);
     gradient.addColorStop(0, baseStyle.fill);
-    gradient.addColorStop(1, status.locked ? 'rgba(148, 163, 184, 0.35)' : baseStyle.stroke);
+    gradient.addColorStop(1, status.locked ? '#35435a' : baseStyle.stroke);
     ctx.fillStyle = gradient;
     ctx.shadowColor = status.progressCleared ? 'rgba(14, 165, 233, 0.5)' : 'rgba(15, 23, 42, 0.45)';
     ctx.shadowBlur = status.progressCleared ? 18 : 12;
@@ -1117,7 +1062,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     : baseStyle.text;
   ctx.fillStyle = titleColor;
   
-  let fontSize = 18 * scale;
+  let fontSize = (node.gridPosition ? 25 : 18) * scale;
   if (node.id === 'lab' || node.id === 'user_created_stages') {
     fontSize = 22 * scale;
   }
@@ -1129,12 +1074,12 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
-  const paddingX = 12 * scale;
+  const paddingX = (node.gridPosition ? 14 : 12) * scale;
   const paddingY = 10 * scale;
   let textX = topLeft.x + paddingX;
   let textY = topLeft.y + paddingY + (12 * scale);
 
-  const isCenteredNode = node.id === 'lab'
+  const isCenteredNode = Boolean(node.gridPosition) || node.id === 'lab'
     || node.id === 'user_created_stages';
 
   if (isCenteredNode) {
@@ -1144,6 +1089,16 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   }
   if (node.isUserProblem) {
     textY = topLeft.y + paddingY + 7 * scale;
+  }
+  if (node.gridPosition) {
+    ctx.font = `600 ${16 * scale}px 'Noto Sans KR', sans-serif`;
+    if (node.optional) {
+      ctx.textAlign = 'right';
+      ctx.fillText(window.currentLang === 'ko' ? '선택' : 'Optional', topLeft.x + width - paddingX, topLeft.y + 26 * scale);
+    }
+    ctx.textAlign = 'center';
+    textY = topLeft.y + height * 0.46;
+    ctx.font = `700 ${fontSize}px 'Noto Sans KR', sans-serif`;
   }
 
   const maxTextWidth = Math.max(8, width - paddingX * 2);
@@ -1168,9 +1123,17 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     return lines;
   }
 
-  const titleLines = wrapText(node.title);
-  const lineHeight = fontSize * 1.1;
-  const displayTitleLines = node.isUserProblem ? titleLines.slice(0, 1) : titleLines;
+  const cardTitle = node.id === 'automatic_door' && window.currentLang === 'ko' ? '자동문' : node.title;
+  let titleLines = wrapText(cardTitle);
+  if (node.gridPosition) {
+    while ((titleLines.length > 2 || titleLines.some(line => ctx.measureText(line).width > maxTextWidth)) && fontSize > 21 * scale) {
+      fontSize -= scale;
+      ctx.font = `700 ${fontSize}px 'Noto Sans KR', sans-serif`;
+      titleLines = wrapText(cardTitle);
+    }
+  }
+  const lineHeight = fontSize * 1.2;
+  const displayTitleLines = node.isUserProblem ? titleLines.slice(0, 1) : node.gridPosition ? titleLines.slice(0, 2) : titleLines;
 
   if (isCenteredNode) {
     textY -= (displayTitleLines.length - 1) * lineHeight / 2;
@@ -1286,28 +1249,26 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     ctx.restore();
   }
 
-  if (node.comingSoon) {
-    ctx.font = `600 ${12 * scale}px 'Noto Sans KR', 'Inter', sans-serif`;
-    ctx.textAlign = 'right';
-    if (stageStyle) {
-      const prevAlpha = ctx.globalAlpha;
-      ctx.fillStyle = stageCleared
-        ? stageStyle.activeTextColor || stageStyle.textColor
-        : stageStyle.textColor;
-      ctx.globalAlpha = 0.82;
-      ctx.fillText('Coming soon', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
-      ctx.globalAlpha = prevAlpha;
-    } else {
-      ctx.fillStyle = 'rgba(248, 250, 252, 0.85)';
-      ctx.fillText('Coming soon', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
+  if (node.gridPosition) {
+    ctx.font = `600 ${16 * scale}px 'Noto Sans KR', sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = titleColor;
+    const ko = window.currentLang === 'ko';
+    const stateLabel = node.previewFeature ? (ko ? '정식판' : 'Full version')
+      : node.comingSoon ? (ko ? '예정' : 'Coming soon')
+      : status.locked ? (ko ? '잠김' : 'Locked')
+      : status.progressCleared ? ''
+      : (ko ? '플레이 가능' : 'Ready');
+    ctx.fillText(stateLabel, topLeft.x + width / 2, topLeft.y + height - 42 * scale);
+    if (!stateLabel && status.progressCleared && node.level !== 0) {
+      drawStarRow(ctx, topLeft.x + width / 2, topLeft.y + height - 42 * scale, Math.max(1, status.stars || 1), { size: 32 * scale, gap: 4 * scale });
     }
-  } else if (status.locked) {
-    ctx.font = `600 ${12 * scale}px 'Noto Sans KR', 'Inter', sans-serif`;
-    ctx.textAlign = 'right';
-    ctx.fillStyle = 'rgba(248, 250, 252, 0.65)';
-    ctx.fillText('Locked', topLeft.x + width - paddingX, topLeft.y + height - paddingY);
+  } else if (node.previewFeature) {
+    ctx.font = `700 ${10 * scale}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#a5d8e8';
+    ctx.fillText('FULL VERSION', topLeft.x + width / 2, topLeft.y + height - 12 * scale);
   }
-
   if (highlight && (highlight.alpha ?? 0) > 0) {
     const alpha = clamp(highlight.alpha ?? 1, 0, 1);
     const glow = clamp(highlight.glow ?? alpha, 0, 1);
@@ -1342,6 +1303,7 @@ function isPointInsideNode(node, worldPoint) {
 }
 
 function isNodeInteractive(node, status) {
+  if (node?.previewFeature && status) return true;
   if (!node || !status || status.locked || node.comingSoon) {
     return false;
   }
@@ -1349,8 +1311,7 @@ function isNodeInteractive(node, status) {
     return node.level != null || node.isUserProblem;
   }
   return node.nodeType === 'mode'
-    || node.nodeType === 'feature'
-    || node.nodeType === 'rank';
+    || node.nodeType === 'feature';
 }
 
 function injectUserProblems(spec, userProblems = []) {
@@ -1480,12 +1441,15 @@ export function initializeStageMap({
   isLevelUnlocked,
   getClearedLevels,
   startLevel,
-  returnToEditScreen
+  returnToEditScreen,
+  mapSpec = null,
+  onlineFeatures = true,
+  getStageStars = null,
+  onFeatureLocked = null,
+  getStageAccess = () => ({})
 } = {}) {
   const screenEl = document.getElementById('stageMapScreen');
   const canvas = document.getElementById('stageMapCanvas');
-  const zoomInBtn = document.getElementById('stageMapZoomIn');
-  const zoomOutBtn = document.getElementById('stageMapZoomOut');
   const zoomResetBtn = document.getElementById('stageMapZoomReset');
   const chapterPrevBtn = document.getElementById('stageMapChapterPrev');
   const chapterNextBtn = document.getElementById('stageMapChapterNext');
@@ -1507,23 +1471,12 @@ export function initializeStageMap({
   const panelButtonByPanel = new Map();
   const panelBackdrop = document.getElementById('stagePanelBackdrop');
 
-  // Zoom controls are intentionally disabled on the stage map.
-  [zoomInBtn, zoomOutBtn, zoomResetBtn].forEach(btn => {
-    if (!btn) return;
-    btn.disabled = true;
-    btn.hidden = true;
-    btn.setAttribute('aria-hidden', 'true');
-    btn.setAttribute('tabindex', '-1');
-  });
-
   if (!screenEl || !canvas || !surface) {
     return null;
   }
 
-  canvas.style.cursor = 'grab';
-  // Prevent the browser from using touch gestures (scroll/zoom) on the
-  // canvas/surface so pointer events can be used reliably for panning on
-  // mobile devices.
+  canvas.style.cursor = 'default';
+  // The map accepts card taps, but native scroll/zoom gestures cannot move it.
   try {
     canvas.style.touchAction = canvas.style.touchAction || 'none';
     surface.style.touchAction = surface.style.touchAction || 'none';
@@ -1541,16 +1494,18 @@ export function initializeStageMap({
     nodeStatus: new Map(),
     openPanel: null,
     pointerStart: null,
-    activePointers: new Map(),
-    pinchState: null,
-    specialClears: loadSpecialNodeClears(),
+    activePointers: new Set(),
+    specialClears: onlineFeatures ? loadSpecialNodeClears() : new Set(),
     mapBounds: { minX: 0, minY: 0, maxX: 0, maxY: 0 },
     hoverNode: null,
+    focusedExtraId: null,
+    extraSignalStarts: new Map(),
     pressedNode: null,
     dragging: false,
     edgesBySource: new Map(),
     chapters: [],
     chapterLookup: new Map(),
+    chapterStatus: new Map(),
     nodesByChapter: new Map(),
     chapterBounds: new Map(),
     globalNodeIds: new Set(),
@@ -1560,7 +1515,6 @@ export function initializeStageMap({
     focusHighlight: null,
     edgeHighlights: new Map(),
     pendingFocus: null,
-    pendingMemoryRestored: null,
     cameraAnimation: null,
     archiveMode: {
       active: false,
@@ -1686,13 +1640,13 @@ export function initializeStageMap({
       // To align grids: OriginX_Lab = OriginX_Stage + 220/Scale
       const labOriginX = originX + 220 / scale;
 
-      openLabModeFromShortcut({
+      if (onlineFeatures) import('./labMode.js').then(({ openLabModeFromShortcut }) => openLabModeFromShortcut({
         camera: {
           scale: scale,
           originX: labOriginX,
           originY: originY
         }
-      });
+      }));
     }
 
     if (elapsed >= 800) {
@@ -1713,62 +1667,46 @@ export function initializeStageMap({
   }
 
   function drawChapterCircuitFrame(ctx, camera, chapter) {
-    if (!chapter?.id || !chapter.rankNodeId) return;
-    const rankNode = state.nodeLookup.get(chapter.rankNodeId);
-    if (!rankNode) return;
-    const stageBounds = getChapterStageBounds(chapter.id);
-    if (!stageBounds) return;
-
-    const alphaBase = (!state.currentChapterId || state.currentChapterId === chapter.id) ? 0.88 : 0.24;
-    const { scale } = camera.getState();
-    const padding = CELL * 0.7;
-    const frame = {
-      minX: stageBounds.minX - padding,
-      minY: stageBounds.minY - padding,
-      maxX: stageBounds.maxX + padding,
-      maxY: stageBounds.maxY + padding
-    };
-
-    const lineStartWorld = {
-      x: rankNode.rect.x + rankNode.rect.w / 2,
-      y: rankNode.rect.y + rankNode.rect.h
-    };
-    const lineEndWorld = {
-      x: (frame.minX + frame.maxX) / 2,
-      y: frame.minY
-    };
-
-    const lineStart = camera.worldToScreen(lineStartWorld.x, lineStartWorld.y);
-    const lineEnd = camera.worldToScreen(lineEndWorld.x, lineEndWorld.y);
-    const frameTopLeft = camera.worldToScreen(frame.minX, frame.minY);
-    const frameWidth = (frame.maxX - frame.minX) * scale;
-    const frameHeight = (frame.maxY - frame.minY) * scale;
-    const frameRadius = Math.min(4.5 * scale, Math.min(frameWidth, frameHeight) / 10);
-    const chapterFrameColor = RANK_TITLE_BADGES[chapter.rankNodeId]?.border?.color || 'rgba(220, 192, 132, 0.82)';
-
+    if (!chapter.panel?.rect || chapter.id === 'extras') return;
+    const rect = chapter.panel.rect;
+    const pos = camera.worldToScreen(rect.x, rect.y), scale = camera.getScale();
     ctx.save();
-    ctx.globalAlpha = alphaBase;
-    ctx.strokeStyle = chapterFrameColor;
-    ctx.lineWidth = Math.max(1.1 * scale, 0.9);
-
-    ctx.beginPath();
-    ctx.moveTo(lineStart.x, lineStart.y);
-    ctx.lineTo(lineEnd.x, lineEnd.y);
+    ctx.globalAlpha = state.currentChapterId === chapter.id ? 0.3 : 0.1;
+    ctx.strokeStyle = RANK_TITLE_BADGES[chapter.title.styleId]?.border?.color || '#7795ac';
+    ctx.lineWidth = scale;
+    buildRoundedRectPath(ctx, pos.x, pos.y, rect.w * scale, rect.h * scale, 8 * scale);
     ctx.stroke();
-
-    buildRoundedRectPath(ctx, frameTopLeft.x, frameTopLeft.y, frameWidth, frameHeight, frameRadius);
-    ctx.stroke();
-
-    ctx.beginPath();
-    ctx.arc(lineEnd.x, lineEnd.y, Math.max(1.5 * scale, 1.2), 0, Math.PI * 2);
-    ctx.fillStyle = chapterFrameColor;
-    ctx.fill();
     ctx.restore();
   }
 
   function drawChapterCircuitFrames(ctx, camera) {
     if (state.archiveMode.active) return;
     (state.chapters || []).forEach(chapter => drawChapterCircuitFrame(ctx, camera, chapter));
+  }
+
+  function drawChapterTitles(ctx, camera, timestamp) {
+    if (state.archiveMode.active) return;
+    (state.chapters || []).forEach(chapter => {
+      if (!chapter.title?.rect) return;
+      const status = state.chapterStatus.get(chapter.id) || { locked: true, progressCleared: false };
+      const presentation = {
+        id: chapter.title.styleId,
+        nodeType: 'rank',
+        chapterId: chapter.id,
+        title: chapter.label,
+        subtitle: chapter.subtitle?.[window.currentLang === 'ko' ? 'ko' : 'en'] || '',
+        rect: chapter.title.rect
+      };
+      const opacity = !state.currentChapterId || state.currentChapterId === chapter.id
+        ? 1 : CHAPTER_FADE_NODE_OPACITY;
+      ctx.globalAlpha = opacity * (status.locked ? 0.5 : 1);
+      drawNode(ctx, camera, presentation, {
+        ...status,
+        locked: false,
+        progressCleared: true
+      }, timestamp, false, false, null);
+      ctx.globalAlpha = 1;
+    });
   }
 
   // Continuous render loop so wire animation flows smoothly.
@@ -1868,7 +1806,7 @@ export function initializeStageMap({
 
     state.edges.forEach(edge => {
       const fromStatus = state.nodeStatus.get(edge.from);
-      // Only render wires when the source node is cleared.
+      // All routes render their base wire; only cleared sources carry pulses.
       const isUserEdge = state.archiveMode.active && edge.edgeType === 'blueprint';
                          
       const active = Boolean(fromStatus?.progressCleared || isUserEdge);
@@ -1894,10 +1832,12 @@ export function initializeStageMap({
     });
 
     drawChapterCircuitFrames(ctx, camera);
+    drawChapterTitles(ctx, camera, timestamp);
 
     state.nodes.forEach(node => {
       const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
-      const isHovered = Boolean(state.hoverNode && state.hoverNode.id === node.id);
+      const isHovered = Boolean(state.hoverNode?.id === node.id || state.focusedExtraId === node.id
+        || (!isExtrasCard(node) && state.selectedNodeId === node.id));
       const isPressed = Boolean(state.pressedNode && state.pressedNode.id === node.id);
       let highlight = resolveNodeHighlight(node.id, timestamp);
 
@@ -1917,9 +1857,17 @@ export function initializeStageMap({
       }
 
       ctx.globalAlpha = nodeAlpha;
-      drawNode(ctx, camera, node, status, timestamp, isHovered, isPressed, highlight);
+      if (isExtrasCard(node)) {
+        const signalStart = state.extraSignalStarts.get(node.id);
+        const signalProgress = signalStart == null ? null : (timestamp - signalStart) / EXTRAS_SIGNAL_DURATION;
+        if (signalProgress >= 1) state.extraSignalStarts.delete(node.id);
+        drawExtrasCard(ctx, camera, node, status, { active: isHovered, pressed: isPressed, signalProgress, language: window.currentLang });
+      } else {
+        drawNode(ctx, camera, node, status, timestamp, isHovered, isPressed, highlight);
+      }
       ctx.globalAlpha = 1;
     });
+    syncExtrasControls();
 
     _raf = window.requestAnimationFrame(renderFrame);
   }
@@ -1933,6 +1881,11 @@ export function initializeStageMap({
   function evaluateNodeStatus(node, memo, visiting, clearedLevels) {
     if (!node) return null;
     if (memo.has(node.id)) return memo.get(node.id);
+    if (node.previewFeature) {
+      const result = { unlocked: false, locked: true, displayCleared: false, progressCleared: false, stars: null };
+      memo.set(node.id, result);
+      return result;
+    }
     if (visiting.has(node.id)) return memo.get(node.id) || null;
     visiting.add(node.id);
     const deps = state.dependencies.get(node.id) ?? [];
@@ -1950,17 +1903,9 @@ export function initializeStageMap({
     let progressCleared = false;
 
     if (node.level != null) {
-      // Stage nodes unlock purely from stage_map edge requirements.
-      if (typeof isLevelUnlocked === 'function') {
-        // Preserve legacy side effects without letting the callback gate access.
-        try {
-          isLevelUnlocked(node.level);
-        } catch (err) {
-          console.warn('isLevelUnlocked callback threw', err);
-        }
-      }
       displayCleared = clearedLevels.has(node.level);
-      unlocked = prerequisitesMet || displayCleared;
+      unlocked = typeof isLevelUnlocked === 'function'
+        ? Boolean(isLevelUnlocked(node.level)) : canPlayStage(node.level, [...clearedLevels]);
       locked = !unlocked;
       progressCleared = displayCleared;
     } else if (node.nodeType === 'mode') {
@@ -1968,19 +1913,14 @@ export function initializeStageMap({
       locked = !unlocked;
       displayCleared = state.specialClears.has(node.id);
       progressCleared = displayCleared;
-    } else if (node.nodeType === 'rank') {
-      unlocked = prerequisitesMet;
-      locked = !unlocked;
-      displayCleared = unlocked;
-      progressCleared = unlocked;
     } else if (node.nodeType === 'feature') {
       unlocked = prerequisitesMet;
       locked = !unlocked;
       displayCleared = false;
       progressCleared = unlocked;
     } else if (node.comingSoon) {
-      unlocked = prerequisitesMet;
-      locked = !unlocked;
+      unlocked = false;
+      locked = true;
       displayCleared = false;
       progressCleared = false;
     }
@@ -1995,7 +1935,8 @@ export function initializeStageMap({
       }
     }
 
-    const result = { unlocked, locked, displayCleared, progressCleared };
+    const result = { unlocked, locked, displayCleared, progressCleared,
+      stars: getStageStars && node.level != null ? getStageStars(node.level) : null };
     memo.set(node.id, result);
     return result;
   }
@@ -2007,6 +1948,17 @@ export function initializeStageMap({
     state.nodes.forEach(node => {
       const status = evaluateNodeStatus(node, memo, visiting, cleared);
       state.nodeStatus.set(node.id, status || { locked: false, progressCleared: false });
+    });
+    state.chapterStatus.clear();
+    state.chapters.forEach(chapter => {
+      const entry = chapterAccess(chapter.id, [...cleared], getStageAccess());
+      const unlocked = chapter.numbered ? entry.unlocked : true;
+      state.chapterStatus.set(chapter.id, {
+        ...entry, unlocked,
+        locked: !unlocked,
+        displayCleared: unlocked,
+        progressCleared: unlocked
+      });
     });
     if (state.hoverNode) {
       const hoverStatus = state.nodeStatus.get(state.hoverNode.id);
@@ -2020,6 +1972,7 @@ export function initializeStageMap({
         clearPressedNode();
       }
     }
+    refreshChapterNav();
     requestRender();
   }
 
@@ -2033,7 +1986,7 @@ export function initializeStageMap({
     state.nodesByChapter = graph.nodesByChapter || new Map();
     state.chapterBounds = graph.chapterBounds || new Map();
     state.globalNodeIds = graph.globalNodeIds || new Set();
-    state.currentChapterId = state.chapters[0]?.id || null;
+    state.currentChapterId = state.chapterLookup.has('chapter_1') ? 'chapter_1' : state.chapters[0]?.id || null;
     state.mapBounds = graph.bounds;
     state.focusHighlight = null;
     state.edgeHighlights = new Map();
@@ -2492,20 +2445,22 @@ export function initializeStageMap({
     const active = chapters.find(ch => ch.id === state.currentChapterId) || chapters[0] || null;
     const activeIndex = active ? chapters.findIndex(ch => ch.id === active.id) : -1;
     if (chapterLabelEl) {
-      const prefix = translate('stageMapChapterLabelPrefix') || 'Chapter';
       chapterLabelEl.textContent = state.archiveMode.active
         ? (translate('blueprintArchiveTitle') || 'External Blueprint Archive')
-        : active ? `${prefix} ${active.order}: ${active.label}` : '';
+        : active ? active.label.toUpperCase() : '';
     }
+    if (chapterNavEl) chapterNavEl.dataset.chapterId = active?.id || '';
     if (chapterPrevBtn) {
-      chapterPrevBtn.textContent = translate('stageMapChapterPrev') || 'Prev';
+      const toExtras = active?.id === 'chapter_1' && chapters[activeIndex - 1]?.id === 'extras';
+      chapterPrevBtn.textContent = '←';
       chapterPrevBtn.disabled = state.archiveMode.active || !active || activeIndex <= 0;
-      chapterPrevBtn.setAttribute('aria-label', translate('stageMapChapterPrevAria') || 'Previous chapter');
+      chapterPrevBtn.setAttribute('aria-label', toExtras ? (window.currentLang === 'ko' ? '실험실·유저 문제' : 'Lab · User Puzzles') : translate('stageMapChapterPrevAria') || 'Previous chapter');
     }
     if (chapterNextBtn) {
-      chapterNextBtn.textContent = translate('stageMapChapterNext') || 'Next';
+      const toChapterOne = active?.id === 'extras' && chapters[activeIndex + 1]?.id === 'chapter_1';
+      chapterNextBtn.textContent = '→';
       chapterNextBtn.disabled = state.archiveMode.active || !active || activeIndex < 0 || activeIndex >= chapters.length - 1;
-      chapterNextBtn.setAttribute('aria-label', translate('stageMapChapterNextAria') || 'Next chapter');
+      chapterNextBtn.setAttribute('aria-label', toChapterOne ? 'Chapter 1' : translate('stageMapChapterNextAria') || 'Next chapter');
     }
     if (chapterNavEl) {
       chapterNavEl.hidden = Boolean(state.archiveMode.active);
@@ -2524,6 +2479,10 @@ export function initializeStageMap({
       return;
     }
     state.currentChapterId = next;
+    state.focusedExtraId = null;
+    state.extraSignalStarts.clear();
+    clearHoverNode();
+    clearPressedNode();
     refreshChapterNav();
     document.dispatchEvent(new CustomEvent('stageMap:chapterChanged', {
       detail: {
@@ -2535,8 +2494,9 @@ export function initializeStageMap({
 
   function getChapterAnchorWorld(chapter) {
     if (!chapter) return null;
-    const rankNode = chapter.rankNodeId ? state.nodeLookup.get(chapter.rankNodeId) : null;
-    if (rankNode) return { x: rankNode.center.x, y: rankNode.center.y };
+    if (chapter.title?.center) {
+      return { x: chapter.title.center.x, y: chapter.title.center.y };
+    }
     if (chapter.anchor) {
       const pt = gridPointToWorldCenter(chapter.anchor);
       return { x: pt.x, y: pt.y };
@@ -2558,28 +2518,25 @@ export function initializeStageMap({
     setCurrentChapter(chapter.id);
     executeNextFrame(() => {
       ensureCanvasInitialized();
-      const bounds = state.chapterBounds.get(chapter.id);
-      const focusBounds = bounds
-        ? {
-          minX: bounds.minX,
-          minY: bounds.minY - CELL * 0.9,
-          maxX: bounds.maxX,
-          maxY: bounds.maxY + CELL * 0.35
-        }
-        : null;
+      const focusBounds = state.chapterBounds.get(chapter.id);
       const anchor = getChapterAnchorWorld(chapter);
       if (!anchor && !focusBounds) return;
       const { scale, viewportWidth, viewportHeight } = camera.getState();
       const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
       const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
+      const topPadding = clamp(safeViewportHeight * 0.024, 12, 24);
+      const bottomPadding = Math.max(64, (chapterNavEl?.getBoundingClientRect().height || 46) + 40);
+      const availableHeight = Math.max(1, safeViewportHeight - topPadding - bottomPadding);
+      const availableWidth = Math.max(1, safeViewportWidth - Math.max(32, safeViewportWidth * 0.07));
       let nextScale = scale;
 
-      if (focusBounds) {
+      const viewportKey = `${safeViewportWidth}:${safeViewportHeight}`;
+      if (focusBounds && state.chapterFitViewport !== viewportKey) {
+        state.chapterFitViewport = viewportKey;
         const boundsWidth = Math.max(focusBounds.maxX - focusBounds.minX, CELL);
         const boundsHeight = Math.max(focusBounds.maxY - focusBounds.minY, CELL);
-        const fitPadding = 1.18;
-        const fitScaleX = safeViewportWidth / (boundsWidth * fitPadding);
-        const fitScaleY = safeViewportHeight / (boundsHeight * fitPadding);
+        const fitScaleX = availableWidth / boundsWidth;
+        const fitScaleY = availableHeight / boundsHeight;
         nextScale = Math.max(0.2, Math.min(2.2, Math.min(fitScaleX, fitScaleY)));
         if (Number.isFinite(nextScale) && Math.abs(nextScale - scale) > 1e-4) {
           camera.setScale(nextScale, safeViewportWidth / 2, safeViewportHeight / 2);
@@ -2593,11 +2550,10 @@ export function initializeStageMap({
         }
         : anchor;
       const widthWorld = safeViewportWidth / Math.max(nextScale, 1e-6);
-      const heightWorld = safeViewportHeight / Math.max(nextScale, 1e-6);
       panToOrigin(
         {
           x: focusCenter.x - widthWorld / 2,
-          y: focusCenter.y - heightWorld * CHAPTER_FOCUS_VERTICAL_ANCHOR
+          y: focusCenter.y - (topPadding + availableHeight / 2) / Math.max(nextScale, 1e-6)
         },
         { animate, duration: 520 }
       );
@@ -2637,7 +2593,7 @@ export function initializeStageMap({
   function enterBlueprintArchive(node) {
     state.archiveMode.previousChapterId = state.currentChapterId;
     state.archiveMode.active = true;
-    setCurrentChapter(node?.chapterId || 'chapter_4');
+    setCurrentChapter(node?.chapterId || 'extras');
     clearHoverNode();
     clearPressedNode();
     triggerHighlightForNode(node);
@@ -2647,7 +2603,7 @@ export function initializeStageMap({
   }
 
   function exitBlueprintArchive() {
-    const targetChapterId = state.archiveMode.previousChapterId || 'chapter_4';
+    const targetChapterId = state.archiveMode.previousChapterId || 'extras';
     state.archiveMode.active = false;
     state.archiveMode.previousChapterId = null;
     state.focusHighlight = null;
@@ -2677,26 +2633,6 @@ export function initializeStageMap({
   function nextChapter(options = {}) {
     shiftChapter(1, options);
   }
-  function handleZoom(delta, pivotX, pivotY) {
-    const current = camera.getScale();
-    const next = Math.max(0.2, Math.min(2.2, current + delta));
-    camera.setScale(next, pivotX, pivotY);
-    refreshZoomIndicator();
-    requestRender();
-  }
-
-  function resetView() {
-    camera.reset();
-    if (state.archiveMode.active) {
-      focusBlueprintArchive({ animate: false });
-    } else if (state.currentChapterId) {
-      focusChapter(state.currentChapterId, { animate: false });
-    } else {
-      centerMap();
-    }
-    refreshZoomIndicator();
-  }
-
   function syncViewportPreservingCenter() {
     const before = camera.getState();
     const beforeWidth = before.viewportWidth || canvas.clientWidth || window.innerWidth || 1;
@@ -2762,15 +2698,15 @@ export function initializeStageMap({
 
   function updateCanvasCursor() {
     if (!canvas) return;
-    if (state.dragging || state.pinchState) {
-      canvas.style.cursor = 'grabbing';
+    if (state.dragging || state.activePointers.size > 1) {
+      canvas.style.cursor = 'default';
       return;
     }
     if (state.hoverNode || state.pressedNode) {
       canvas.style.cursor = 'pointer';
       return;
     }
-    canvas.style.cursor = 'grab';
+    canvas.style.cursor = 'default';
   }
 
   function setHoverNode(nextNode) {
@@ -2781,6 +2717,7 @@ export function initializeStageMap({
       return;
     }
     state.hoverNode = nextNode || null;
+    if (isExtrasCard(nextNode)) state.extraSignalStarts.set(nextNode.id, performance.now());
     updateCanvasCursor();
     requestRender();
   }
@@ -2896,6 +2833,9 @@ export function initializeStageMap({
 
   function handleNodeActivation(node) {
     if (!node) return;
+    state.selectedNodeId = node.id;
+    requestRender();
+    if (node.previewFeature) { onFeatureLocked?.(node.previewFeature); return; }
     const status = state.nodeStatus.get(node.id);
     if (status?.locked) return;
     if (node.chapterId && node.chapterId !== GLOBAL_CHAPTER_ID) {
@@ -2903,7 +2843,7 @@ export function initializeStageMap({
     }
 
     if (node.isUserProblem) {
-      previewUserProblem(node.problemKey);
+      if (onlineFeatures) import('./problemEditor.js').then(m => m.previewUserProblem(node.problemKey));
       return;
     }
 
@@ -2955,140 +2895,23 @@ export function initializeStageMap({
     });
   }
 
-  function addActivePointer(event) {
-    state.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-  }
-
-  function updateActivePointer(event) {
-    if (state.activePointers.has(event.pointerId)) {
-      state.activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
-    }
-  }
-
-  function removeActivePointer(event) {
-    state.activePointers.delete(event.pointerId);
-  }
-
-  function beginPinchGesture() {
-    const entries = Array.from(state.activePointers.entries());
-    if (entries.length < 2) {
-      return;
-    }
-    const [first, second] = entries;
-    const a = first?.[1];
-    const b = second?.[1];
-    if (!a || !b) {
-      return;
-    }
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    const distance = Math.hypot(dx, dy);
-    const initialDistance = Number.isFinite(distance) && distance > 0 ? distance : 1;
-    const centerX = (a.x + b.x) / 2;
-    const centerY = (a.y + b.y) / 2;
-
-    state.pinchState = {
-      pointerIds: [first[0], second[0]],
-      initialDistance,
-      initialScale: camera.getScale(),
-      lastCenter: { x: centerX, y: centerY }
-    };
-    state.pointerStart = null;
-    state.dragging = false;
-    clearHoverNode();
-    clearPressedNode();
-    updateCanvasCursor();
-  }
-
-  function getPinchPointers() {
-    const pinch = state.pinchState;
-    if (!pinch) return null;
-    const first = state.activePointers.get(pinch.pointerIds[0]);
-    const second = state.activePointers.get(pinch.pointerIds[1]);
-    if (!first || !second) return null;
-    return [
-      { id: pinch.pointerIds[0], x: first.x, y: first.y },
-      { id: pinch.pointerIds[1], x: second.x, y: second.y }
-    ];
-  }
-
-  function updatePinchGesture() {
-    const pinch = state.pinchState;
-    if (!pinch) return;
-    const pointers = getPinchPointers();
-    if (!pointers) {
-      if (state.activePointers.size >= 2) {
-        beginPinchGesture();
-      }
-      return;
-    }
-    const [a, b] = pointers;
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    let distance = Math.hypot(dx, dy);
-    if (!Number.isFinite(distance) || distance <= 0) {
-      distance = pinch.initialDistance || 1;
-    }
-    const centerX = (a.x + b.x) / 2;
-    const centerY = (a.y + b.y) / 2;
-
-    const ratio = distance / Math.max(pinch.initialDistance || 1, 1);
-    const desiredScale = pinch.initialScale * ratio;
-    const clampedScale = Math.max(0.2, Math.min(2.2, desiredScale));
-    camera.setScale(clampedScale, centerX, centerY);
-    refreshZoomIndicator();
-
-    if (pinch.lastCenter) {
-      const deltaX = centerX - pinch.lastCenter.x;
-      const deltaY = centerY - pinch.lastCenter.y;
-      if (Math.abs(deltaX) > 0.1 || Math.abs(deltaY) > 0.1) {
-        camera.pan(deltaX, deltaY);
-      }
-    }
-
-    pinch.lastCenter = { x: centerX, y: centerY };
-    pinch.initialScale = camera.getScale();
-    pinch.initialDistance = distance;
-    requestRender();
-  }
-
-  function endPinchGesture() {
-    state.pinchState = null;
-    refreshZoomIndicator();
-    updateCanvasCursor();
-  }
-
-  function syncPointerStartFromRemainingPointer() {
-    if (state.activePointers.size !== 1) {
-      state.pointerStart = null;
-      return;
-    }
-    const [, position] = state.activePointers.entries().next().value;
-    if (!position) {
-      state.pointerStart = null;
-      return;
-    }
-    state.pointerStart = {
-      x: position.x,
-      y: position.y,
-      world: camera.screenToWorld(position.x, position.y),
-      moved: false
-    };
-    state.dragging = false;
-  }
-
   function handlePointerDown(event) {
+    if (event.button !== 0) return;
     canvas.setPointerCapture(event.pointerId);
-    addActivePointer(event);
+    state.activePointers.add(event.pointerId);
     state.pointerType = event.pointerType || state.pointerType;
     state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
 
     if (state.activePointers.size >= 2) {
-      beginPinchGesture();
+      // Ignore the entire multi-touch sequence, including the last finger's release.
+      state.pointerStart = null;
+      clearHoverNode();
+      clearPressedNode();
       return;
     }
 
     state.pointerStart = {
+      pointerId: event.pointerId,
       x: event.clientX,
       y: event.clientY,
       world: camera.screenToWorld(event.clientX, event.clientY),
@@ -3109,39 +2932,21 @@ export function initializeStageMap({
       return;
     }
 
-    updateActivePointer(event);
     state.pointerType = event.pointerType || state.pointerType;
     state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
-
-    if (state.activePointers.size >= 2 || state.pinchState) {
-      if (!state.pinchState && state.activePointers.size >= 2) {
-        beginPinchGesture();
-      }
-      if (state.pinchState) {
-        updatePinchGesture();
-      }
-      return;
-    }
 
     if (!state.pointerStart) return;
     const dx = event.clientX - state.pointerStart.x;
     const dy = event.clientY - state.pointerStart.y;
     if (!state.pointerStart.moved && Math.hypot(dx, dy) > 4) {
       state.pointerStart.moved = true;
-      state.dragging = state.archiveMode.active;
+      state.dragging = true;
       clearHoverNode();
       clearPressedNode();
       updateCanvasCursor();
     }
-    state.pointerStart.x = event.clientX;
-    state.pointerStart.y = event.clientY;
-    if (state.pointerStart.moved) {
-      if (state.archiveMode.active) {
-        camera.pan(dx, dy);
-        requestRender();
-      }
-      return;
-    }
+    // Movement only cancels the tap. Camera movement belongs to chapter navigation.
+    if (state.pointerStart.moved) return;
     const hovered = updateHoverFromPoint(event.clientX, event.clientY);
     if (hovered) {
       setPressedNode(hovered);
@@ -3151,40 +2956,21 @@ export function initializeStageMap({
   }
 
   function handlePointerUp(event) {
+    if (!state.activePointers.has(event.pointerId)) return;
     const start = state.pointerStart;
-    const wasDragging = Boolean(state.dragging || start?.moved);
-    const hadPinch = Boolean(state.pinchState);
-
-    if (state.activePointers.has(event.pointerId)) {
-      updateActivePointer(event);
+    const wasDragging = Boolean(state.dragging || start?.moved || (start &&
+      Math.hypot(event.clientX - start.x, event.clientY - start.y) > 4));
+    if (canvas.hasPointerCapture(event.pointerId)) {
+      canvas.releasePointerCapture(event.pointerId);
     }
-
-    canvas.releasePointerCapture?.(event.pointerId);
-    removeActivePointer(event);
-
-    if (hadPinch || state.pinchState) {
-      if (state.activePointers.size >= 2) {
-        beginPinchGesture();
-        return;
-      }
-      endPinchGesture();
-      if (state.activePointers.size === 1) {
-        syncPointerStartFromRemainingPointer();
-        updateCanvasCursor();
-        return;
-      }
-      state.pointerStart = null;
-      state.dragging = false;
-      updateCanvasCursor();
-      return;
-    }
+    state.activePointers.delete(event.pointerId);
 
     state.dragging = false;
     state.pointerStart = null;
     state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
     updateCanvasCursor();
 
-    if (!start || wasDragging) {
+    if (!start || start.pointerId !== event.pointerId || wasDragging) {
       clearPressedNode();
       updateHoverFromPoint(event.clientX, event.clientY);
       return;
@@ -3192,7 +2978,7 @@ export function initializeStageMap({
 
     const world = camera.screenToWorld(event.clientX, event.clientY);
     const clickedNode = state.nodes.find(node => (
-      isNodeVisibleInCurrentMode(node) && isPointInsideNode(node, world)
+      isNodeVisibleInCurrentMode(node) && isPointInsideNode(node, world) && isPointInsideNode(node, start.world)
     ));
     handleNodeActivation(clickedNode);
     clearPressedNode();
@@ -3200,19 +2986,15 @@ export function initializeStageMap({
   }
 
   function handleWheel(event) {
+    // Includes trackpad pinch events delivered as Ctrl+wheel.
     event.preventDefault();
-    if (!state.archiveMode.active) {
-      return;
-    }
-    const delta = event.deltaY < 0 ? 0.12 : -0.12;
-    handleZoom(delta, event.clientX, event.clientY);
   }
 
   function handlePointerHover(event) {
     state.pointerType = event.pointerType || state.pointerType;
     state.pointerWorld = camera.screenToWorld(event.clientX, event.clientY);
     requestRender();
-    if (state.pointerStart || state.pinchState) {
+    if (state.activePointers.size) {
       return;
     }
     if (state.pressedNode) {
@@ -3225,7 +3007,6 @@ export function initializeStageMap({
     if (state.activePointers.has(event.pointerId)) {
       return;
     }
-    if (state.pointerStart || state.pinchState) return;
     state.pointerWorld = null;
     requestRender();
     clearHoverNode();
@@ -3249,25 +3030,13 @@ export function initializeStageMap({
   }
 
   function handlePointerCancel(event) {
-    canvas.releasePointerCapture?.(event.pointerId);
-    if (state.activePointers.has(event.pointerId)) {
-      removeActivePointer(event);
+    if (!state.activePointers.has(event.pointerId)) return;
+    if (canvas.hasPointerCapture(event.pointerId)) {
+      canvas.releasePointerCapture(event.pointerId);
     }
-
-    if (state.pinchState) {
-      if (state.activePointers.size >= 2) {
-        beginPinchGesture();
-      } else {
-        endPinchGesture();
-      }
-    }
-
-    if (state.activePointers.size === 1 && !state.pinchState) {
-      syncPointerStartFromRemainingPointer();
-    } else {
-      state.pointerStart = null;
-      state.dragging = false;
-    }
+    state.activePointers.delete(event.pointerId);
+    state.pointerStart = null;
+    state.dragging = false;
 
     updateCanvasCursor();
     if (state.activePointers.size === 0) {
@@ -3285,7 +3054,56 @@ export function initializeStageMap({
     canvas.addEventListener('pointerup', handlePointerUp);
     canvas.addEventListener('pointerleave', handlePointerLeave);
     canvas.addEventListener('pointercancel', handlePointerCancel);
+    canvas.addEventListener('lostpointercapture', handlePointerCancel);
     canvas.addEventListener('wheel', handleWheel, { passive: false });
+    // Also block native zoom over map controls, without affecting other screens.
+    screenEl.addEventListener('wheel', event => {
+      if (event.ctrlKey || event.metaKey) event.preventDefault();
+    }, { passive: false });
+    for (const type of ['gesturestart', 'gesturechange', 'gestureend']) {
+      screenEl.addEventListener(type, event => event.preventDefault(), { passive: false });
+    }
+  }
+
+  // Transparent semantic buttons make the canvas cards reachable by Tab and Enter/Space.
+  // Pointer input stays with the canvas so dragging still cancels a card tap.
+  const extraControls = document.createElement('div');
+  extraControls.className = 'stage-map-extra-controls';
+  extraControls.hidden = true;
+  surface.append(extraControls);
+  const extraButtons = new Map(['lab', 'user_created_stages'].map(id => {
+    const button = document.createElement('button');
+    button.type = 'button';button.dataset.extraNode = id;
+    button.addEventListener('focus', () => {
+      state.focusedExtraId = id;
+      state.extraSignalStarts.set(id, performance.now());
+      requestRender();
+    });
+    button.addEventListener('blur', () => {
+      if (state.focusedExtraId === id) state.focusedExtraId = null;
+      requestRender();
+    });
+    button.addEventListener('click', () => {
+      const node = state.nodeLookup.get(id);
+      if (state.currentChapterId === 'extras' && !state.archiveMode.active && isNodeInteractive(node, state.nodeStatus.get(id))) handleNodeActivation(node);
+    });
+    extraControls.append(button);
+    return [id, button];
+  }));
+
+  function syncExtrasControls() {
+    extraControls.hidden = state.currentChapterId !== 'extras' || state.archiveMode.active;
+    if (extraControls.hidden) return;
+    extraButtons.forEach((button, id) => {
+      const node = state.nodeLookup.get(id);
+      button.hidden = !node;
+      if (!node) return;
+      const pos = camera.worldToScreen(node.rect.x, node.rect.y), scale = camera.getScale();
+      const { title, caption } = extrasCardText(node, window.currentLang);
+      button.setAttribute('aria-label', `${title} · ${caption}`);
+      button.disabled = !isNodeInteractive(node, state.nodeStatus.get(id));
+      Object.assign(button.style, { left: `${pos.x}px`, top: `${pos.y}px`, width: `${node.rect.w * scale}px`, height: `${node.rect.h * scale}px` });
+    });
   }
 
   function onResize() {
@@ -3337,10 +3155,10 @@ export function initializeStageMap({
   blueprintShowUnsolvedBtn?.addEventListener('click', () => toggleArchiveButton(blueprintShowUnsolvedBtn));
 
   document.addEventListener('keydown', event => {
-    if (event.defaultPrevented) return;
-    if (!screenEl || screenEl.getAttribute('aria-hidden') === 'true') return;
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (!screenEl || screenEl.getAttribute('aria-hidden') === 'true' || !screenEl.getClientRects().length || state.openPanel) return;
     const tag = (event.target?.tagName || '').toLowerCase();
-    if (tag === 'input' || tag === 'textarea' || event.target?.isContentEditable) return;
+    if (['input', 'textarea', 'select'].includes(tag) || event.target?.isContentEditable) return;
     if (event.key === 'ArrowLeft') {
       event.preventDefault();
       prevChapter({ animate: true });
@@ -3350,7 +3168,10 @@ export function initializeStageMap({
     }
   });
 
-  Promise.all([loadStageMapSpec(), getUserProblems()])
+  Promise.all([
+    mapSpec ? Promise.resolve(mapSpec) : loadStageMapSpec(),
+    onlineFeatures ? import('./problemEditor.js').then(m => m.getUserProblems()) : Promise.resolve([])
+  ])
     .then(([spec, userProblems]) => {
       const specClone = JSON.parse(JSON.stringify(spec));
       injectUserProblems(specClone, userProblems);
@@ -3370,141 +3191,8 @@ export function initializeStageMap({
 
   requestRender();
 
-  function triggerMemoryRestoredAnimation(levelId, storyNumber) {
-    state.pendingMemoryRestored = { levelId, storyNumber };
-  }
-
-  function runMemoryRestoredAnimation({ levelId, storyNumber }) {
-    const levelNode = state.nodes.find(n => n.level === levelId);
-    const storyNode = state.nodes.find(n => n.id === 'story');
-
-    if (!levelNode || !storyNode) return;
-
-    const { scale } = camera.getState();
-    const startWorldX = levelNode.rect.x + levelNode.rect.w / 2;
-    const startWorldY = levelNode.rect.y + levelNode.rect.h / 4;
-    const endWorldX = storyNode.rect.x + storyNode.rect.w / 2;
-    const endWorldY = storyNode.rect.y + storyNode.rect.h / 2;
-
-    // worldToScreen returns coordinates relative to the canvas/viewport.
-    // Since we are appending the element to 'surface' (which contains the canvas),
-    // these coordinates should be correct relative to the surface's top-left.
-    // However, if the surface has padding or if the camera offset includes the panel width,
-    // we need to be careful.
-    // The camera.worldToScreen adds 'panel' width to x.
-    // Let's check if 'surface' is the offset parent.
-    
-    // We need to calculate the initial positions based on the CURRENT camera state.
-    // But since the element is absolutely positioned in 'surface', and 'surface'
-    // is the container for the canvas, the coordinates from worldToScreen should match
-    // the visual position on the canvas.
-    
-    // The issue might be that the animation runs over time, but the camera might move?
-    // Or simply that the initial calculation is done once.
-    // If the user pans/zooms WHILE the animation is playing, the HTML element won't move with the canvas.
-    // To fix this perfectly, we would need to update the element's position on every frame
-    // based on the camera's current transform.
-    
-    // For now, let's assume the camera is static during the animation or the user accepts it detaching.
-    // If the user says "position changes slightly depending on initial screen view",
-    // it might be due to 'panel' offset in camera or some CSS transform on the surface?
-    
-    // Actually, let's look at how 'surface' is styled.
-    // .stage-map-surface { position: relative; ... }
-    // The canvas is inside it.
-    // camera.worldToScreen(x,y) returns { x: panel + (x - originX) * scale, y: ... }
-    // 'panel' is the width of the side panel if any. In stageMap, panelWidth is likely 0.
-    
-    // Let's create a helper to update position.
-    
-    const el = document.createElement('div');
-    el.className = 'memory-restored-anim';
-    el.textContent = `Memory #${storyNumber} restored`;
-    Object.assign(el.style, {
-      position: 'absolute',
-      transform: 'translate(-50%, -50%)',
-      color: '#fbbf24',
-      fontWeight: 'bold',
-      fontSize: '1.2rem',
-      textShadow: '0 2px 4px rgba(0,0,0,0.5)',
-      pointerEvents: 'none',
-      zIndex: '1000',
-      opacity: '0',
-      whiteSpace: 'nowrap',
-      transition: 'opacity 1s cubic-bezier(0.4, 0, 0.2, 1)' // Removed top/left transition
-    });
-
-    if (surface) {
-      surface.appendChild(el);
-    } else {
-      document.body.appendChild(el);
-    }
-
-    let startTime = null;
-    const duration = 2300; // Total duration
-    const moveDelay = 1500;
-    const moveDuration = 800;
-
-    function updateAnim(timestamp) {
-      if (!startTime) startTime = timestamp;
-      const elapsed = timestamp - startTime;
-      
-      // Re-calculate positions based on current camera state to stick to the map
-      const currentStartPos = camera.worldToScreen(startWorldX, startWorldY);
-      const currentEndPos = camera.worldToScreen(endWorldX, endWorldY);
-      
-      // Initial float up
-      let targetX = currentStartPos.x;
-      let targetY = currentStartPos.y;
-      
-      if (elapsed < moveDelay) {
-        // Floating up phase
-        const floatProgress = Math.min(elapsed / 1000, 1);
-        // Ease out for float up
-        const floatOffset = 40 * (1 - Math.pow(1 - floatProgress, 3)); 
-        targetY -= floatOffset;
-        
-        el.style.opacity = Math.min(elapsed / 200, 1); // Fade in quickly
-      } else {
-        // Moving to target phase
-        const moveProgress = Math.min((elapsed - moveDelay) / moveDuration, 1);
-        const ease = 1 - Math.pow(1 - moveProgress, 3); // Ease out cubic
-        
-        // Interpolate between floated start and end
-        const floatedStartY = currentStartPos.y - 40;
-        
-        targetX = currentStartPos.x + (currentEndPos.x - currentStartPos.x) * ease;
-        targetY = floatedStartY + (currentEndPos.y - floatedStartY) * ease;
-        
-        // Fade out and scale down at the end
-        if (moveProgress > 0.5) {
-             el.style.opacity = 1 - (moveProgress - 0.5) * 2;
-             const scale = 1 - (moveProgress - 0.5);
-             el.style.transform = `translate(-50%, -50%) scale(${scale})`;
-        }
-      }
-
-      el.style.left = `${targetX}px`;
-      el.style.top = `${targetY}px`;
-
-      if (elapsed < duration) {
-        requestAnimationFrame(updateAnim);
-      } else {
-        el.remove();
-      }
-    }
-
-    requestAnimationFrame(updateAnim);
-  }
-
   document.addEventListener('stageMap:shown', () => {
     scheduleViewportSync();
-    if (state.pendingMemoryRestored) {
-      setTimeout(() => {
-        runMemoryRestoredAnimation(state.pendingMemoryRestored);
-        state.pendingMemoryRestored = null;
-      }, 500);
-    }
   });
 
   document.addEventListener('stageMap:returnFromLab', (e) => {
@@ -3545,8 +3233,7 @@ export function initializeStageMap({
     focusChapter,
     prevChapter,
     nextChapter,
-    celebrateLevel,
-    triggerMemoryRestoredAnimation
+    celebrateLevel
   };
 }
 

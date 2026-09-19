@@ -1,0 +1,356 @@
+{
+  "id": "C5-10",
+  "nodes": [
+    {
+      "id": "A0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "A1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "A2",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "B0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "B1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "GO",
+      "type": "DE",
+      "inputs": [
+        "g1",
+        "g1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "GO"
+      ]
+    },
+    {
+      "id": "P0",
+      "type": "D",
+      "inputs": [
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "P1",
+      "type": "DE",
+      "inputs": [
+        "g7",
+        "g8"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "P2",
+      "type": "DE",
+      "inputs": [
+        "g12",
+        "g13"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "A0",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "OR",
+      "inputs": [
+        "P0",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "NOT",
+      "inputs": [
+        "g3"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "A1",
+        "g1"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "P1",
+        "g5"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "NOT",
+      "inputs": [
+        "g6"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "OR",
+      "inputs": [
+        "P0",
+        "g1"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "AND",
+      "inputs": [
+        "P0",
+        "P1"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "A2",
+        "g1"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "NOT",
+      "inputs": [
+        "g10"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "OR",
+      "inputs": [
+        "g1",
+        "g9"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "AND",
+      "inputs": [
+        "P2",
+        "g9"
+      ]
+    },
+    {
+      "id": "R0",
+      "type": "D",
+      "inputs": [
+        "g18"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "R1",
+      "type": "D",
+      "inputs": [
+        "g19"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g15",
+      "type": "OR",
+      "inputs": [
+        "R0",
+        "R1"
+      ]
+    },
+    {
+      "id": "g16",
+      "type": "NOT",
+      "inputs": [
+        "g15"
+      ]
+    },
+    {
+      "id": "g17",
+      "type": "AND",
+      "inputs": [
+        "GO",
+        "g16"
+      ]
+    },
+    {
+      "id": "g18",
+      "type": "AND",
+      "inputs": [
+        "B1",
+        "g17"
+      ]
+    },
+    {
+      "id": "g19",
+      "type": "AND",
+      "inputs": [
+        "B0",
+        "R0"
+      ]
+    },
+    {
+      "id": "g20",
+      "type": "OR",
+      "inputs": [
+        "g18",
+        "g19"
+      ]
+    },
+    {
+      "id": "g21",
+      "type": "NOT",
+      "inputs": [
+        "g20"
+      ]
+    },
+    {
+      "id": "g22",
+      "type": "AND",
+      "inputs": [
+        "GO",
+        "g21"
+      ]
+    },
+    {
+      "id": "Q0",
+      "type": "DE",
+      "inputs": [
+        "g23",
+        "g22"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "Q1",
+      "type": "DE",
+      "inputs": [
+        "g25",
+        "g24"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g23",
+      "type": "NOT",
+      "inputs": [
+        "Q0"
+      ]
+    },
+    {
+      "id": "g24",
+      "type": "AND",
+      "inputs": [
+        "Q0",
+        "g22"
+      ]
+    },
+    {
+      "id": "g25",
+      "type": "NOT",
+      "inputs": [
+        "Q1"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "Q0"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "Q1"
+      ],
+      "name": "Q1"
+    },
+    {
+      "id": "OUT_Q2",
+      "type": "OUTPUT",
+      "inputs": [
+        "DIRECT_Q2"
+      ],
+      "name": "Q2"
+    },
+    {
+      "id": "OUT_R0",
+      "type": "OUTPUT",
+      "inputs": [
+        "R0"
+      ],
+      "name": "R0"
+    },
+    {
+      "id": "OUT_R1",
+      "type": "OUTPUT",
+      "inputs": [
+        "R1"
+      ],
+      "name": "R1"
+    },
+    {
+      "id": "OUT_COMPLETE",
+      "type": "OUTPUT",
+      "inputs": [
+        "g14"
+      ],
+      "name": "COMPLETE"
+    },
+    {
+      "id": "DIRECT_NOT_B1",
+      "type": "NOT",
+      "inputs": [
+        "B1"
+      ]
+    },
+    {
+      "id": "DIRECT_Q2",
+      "type": "AND",
+      "inputs": [
+        "A2",
+        "DIRECT_NOT_B1"
+      ]
+    }
+  ],
+  "source_variant": "C5-10-divider-complete",
+  "solution": {
+    "architecture": "unit_count_divider",
+    "note": "최초 tick 준비 뒤 단위 수를 세며 몫과 나머지를 누적합니다. 45블록, D 3개와 D+EN 5개입니다. 이 해답은 A+1 tick에 처음 완료하지만 문제는 10 tick 이내의 모든 올바른 완료 시점을 허용합니다."
+  }
+}

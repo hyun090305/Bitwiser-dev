@@ -1,0 +1,201 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 21,
+  "directed_edge_count": 30,
+  "simple_undirected_edge_count": 30,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "DATA": [
+      "SHIFT0",
+      "WORD0"
+    ],
+    "RECEIVE": [
+      "SHIFT0",
+      "g3",
+      "PHASE0",
+      "PHASE1",
+      "SHIFT2",
+      "SHIFT1"
+    ],
+    "SHIFT0": [
+      "DATA",
+      "RECEIVE",
+      "SHIFT1",
+      "WORD1"
+    ],
+    "SHIFT1": [
+      "RECEIVE",
+      "SHIFT2",
+      "WORD2",
+      "SHIFT0"
+    ],
+    "SHIFT2": [
+      "SHIFT1",
+      "RECEIVE",
+      "WORD3"
+    ],
+    "PHASE0": [
+      "PHASE1",
+      "RECEIVE",
+      "g2",
+      "g1"
+    ],
+    "PHASE1": [
+      "g4",
+      "RECEIVE",
+      "PHASE0",
+      "g1"
+    ],
+    "WORD0": [
+      "g4",
+      "DATA",
+      "OUT_Q0"
+    ],
+    "WORD1": [
+      "g4",
+      "SHIFT0",
+      "OUT_Q1"
+    ],
+    "WORD2": [
+      "g4",
+      "SHIFT1",
+      "OUT_Q2"
+    ],
+    "WORD3": [
+      "SHIFT2",
+      "g4",
+      "OUT_Q3"
+    ],
+    "DONE_STATE": [
+      "g4",
+      "OUT_DONE"
+    ],
+    "g1": [
+      "PHASE0",
+      "PHASE1"
+    ],
+    "g2": [
+      "PHASE0",
+      "g3"
+    ],
+    "g3": [
+      "g2",
+      "RECEIVE",
+      "g4"
+    ],
+    "g4": [
+      "WORD3",
+      "PHASE1",
+      "g3",
+      "WORD0",
+      "WORD1",
+      "WORD2",
+      "DONE_STATE"
+    ],
+    "OUT_Q0": [
+      "WORD0"
+    ],
+    "OUT_Q1": [
+      "WORD1"
+    ],
+    "OUT_Q2": [
+      "WORD2"
+    ],
+    "OUT_Q3": [
+      "WORD3"
+    ],
+    "OUT_DONE": [
+      "DONE_STATE"
+    ]
+  },
+  "positions": {
+    "SHIFT1": [
+      0,
+      0
+    ],
+    "OUT_Q2": [
+      15,
+      15
+    ],
+    "WORD2": [
+      16,
+      14
+    ],
+    "SHIFT0": [
+      5,
+      2
+    ],
+    "OUT_DONE": [
+      17,
+      15
+    ],
+    "DONE_STATE": [
+      18,
+      16
+    ],
+    "g4": [
+      21,
+      13
+    ],
+    "OUT_Q1": [
+      15,
+      6
+    ],
+    "OUT_Q3": [
+      23,
+      15
+    ],
+    "WORD3": [
+      24,
+      14
+    ],
+    "RECEIVE": [
+      36,
+      1
+    ],
+    "SHIFT2": [
+      38,
+      0
+    ],
+    "WORD1": [
+      16,
+      5
+    ],
+    "DATA": [
+      17,
+      4
+    ],
+    "OUT_Q0": [
+      18,
+      5
+    ],
+    "WORD0": [
+      20,
+      3
+    ],
+    "g3": [
+      21,
+      4
+    ],
+    "PHASE0": [
+      23,
+      6
+    ],
+    "g2": [
+      23,
+      5
+    ],
+    "g1": [
+      25,
+      8
+    ],
+    "PHASE1": [
+      26,
+      7
+    ]
+  }
+}

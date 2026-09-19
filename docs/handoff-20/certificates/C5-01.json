@@ -1,0 +1,207 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 22,
+  "directed_edge_count": 30,
+  "simple_undirected_edge_count": 30,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "D0": [
+      "g4",
+      "g8"
+    ],
+    "D1": [
+      "g9",
+      "g11"
+    ],
+    "ADD": [
+      "g4",
+      "g13"
+    ],
+    "RESET": [
+      "g2",
+      "g5",
+      "g14"
+    ],
+    "ACC0": [
+      "g8",
+      "g5",
+      "g3",
+      "g1",
+      "OUT_Q0"
+    ],
+    "ACC1": [
+      "g14",
+      "g7",
+      "g6",
+      "OUT_Q1"
+    ],
+    "g1": [
+      "g3",
+      "ACC0"
+    ],
+    "g2": [
+      "g3",
+      "RESET",
+      "g7"
+    ],
+    "g3": [
+      "ACC0",
+      "g2",
+      "g1"
+    ],
+    "g4": [
+      "D0",
+      "ADD",
+      "g5"
+    ],
+    "g5": [
+      "RESET",
+      "ACC0",
+      "g4"
+    ],
+    "g6": [
+      "g7",
+      "ACC1"
+    ],
+    "g7": [
+      "ACC1",
+      "g2",
+      "g6"
+    ],
+    "g8": [
+      "g11",
+      "g9",
+      "D0",
+      "ACC0"
+    ],
+    "g9": [
+      "g10",
+      "g8",
+      "D1"
+    ],
+    "g10": [
+      "g12",
+      "g9"
+    ],
+    "g11": [
+      "D1",
+      "g8",
+      "g12"
+    ],
+    "g12": [
+      "g13",
+      "g10",
+      "g11"
+    ],
+    "g13": [
+      "ADD",
+      "g12",
+      "g14"
+    ],
+    "g14": [
+      "RESET",
+      "g13",
+      "ACC1"
+    ],
+    "OUT_Q0": [
+      "ACC0"
+    ],
+    "OUT_Q1": [
+      "ACC1"
+    ]
+  },
+  "positions": {
+    "ACC0": [
+      0,
+      0
+    ],
+    "OUT_Q0": [
+      6,
+      6
+    ],
+    "g8": [
+      7,
+      5
+    ],
+    "g11": [
+      12,
+      10
+    ],
+    "D1": [
+      11,
+      8
+    ],
+    "g12": [
+      13,
+      9
+    ],
+    "g10": [
+      14,
+      7
+    ],
+    "g13": [
+      14,
+      10
+    ],
+    "g14": [
+      17,
+      13
+    ],
+    "ADD": [
+      17,
+      12
+    ],
+    "ACC1": [
+      22,
+      18
+    ],
+    "RESET": [
+      29,
+      2
+    ],
+    "g7": [
+      36,
+      4
+    ],
+    "g2": [
+      37,
+      3
+    ],
+    "g3": [
+      39,
+      1
+    ],
+    "g1": [
+      40,
+      0
+    ],
+    "OUT_Q1": [
+      33,
+      6
+    ],
+    "g6": [
+      34,
+      5
+    ],
+    "D0": [
+      22,
+      4
+    ],
+    "g4": [
+      23,
+      5
+    ],
+    "g5": [
+      25,
+      3
+    ],
+    "g9": [
+      10,
+      6
+    ]
+  }
+}

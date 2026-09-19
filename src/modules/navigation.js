@@ -1,5 +1,6 @@
 import { setBgmMode } from './bgm.js';
-import { adjustGridZoom } from './grid.js';
+import { adjustGridZoom, getPlayCircuit } from './grid.js';
+import { pauseCircuit } from '../canvas/tickRunner.js';
 
 let stageMapScreenEl = null;
 let gameScreenEl = null;
@@ -74,6 +75,8 @@ export function showGameScreen() {
 }
 
 export function hideGameScreen() {
+  pauseCircuit(getPlayCircuit());
+  document.dispatchEvent(new Event('bitwiser:leavePlay'));
   ensureScreens();
   toggleScreen(gameScreenEl, false);
   document.body.classList.remove('game-active');

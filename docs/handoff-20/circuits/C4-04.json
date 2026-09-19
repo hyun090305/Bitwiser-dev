@@ -1,0 +1,96 @@
+{
+  "id": "C4-04",
+  "nodes": [
+    {
+      "id": "RAW",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "HISTORY1",
+      "type": "D",
+      "inputs": [
+        "RAW"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "HISTORY2",
+      "type": "D",
+      "inputs": [
+        "HISTORY1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "STABLE",
+      "type": "D",
+      "inputs": [
+        "g6"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "AND",
+      "inputs": [
+        "HISTORY1",
+        "HISTORY2"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "RAW",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "OR",
+      "inputs": [
+        "HISTORY1",
+        "HISTORY2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "OR",
+      "inputs": [
+        "RAW",
+        "g3"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "STABLE",
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "g2",
+        "g5"
+      ]
+    },
+    {
+      "id": "OUT_CLEAN",
+      "type": "OUTPUT",
+      "inputs": [
+        "STABLE"
+      ],
+      "name": "CLEAN"
+    }
+  ],
+  "solution": {
+    "architecture": "original-D-architecture",
+    "note": "최근 두 RAW와 CLEAN을 세 D에 보관하고 세 샘플의 일치 여부로 CLEAN을 갱신합니다."
+  },
+  "source_variant": "C4-04"
+}

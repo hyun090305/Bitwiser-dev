@@ -1,5 +1,8 @@
+let officialCostRanking = null;
+export function configureOfficialCostRanking(handler) { officialCostRanking = handler; }
 import { getUsername } from './storage.js';
 import { ensureUsernameRegistered } from './authUI.js';
+import { stylePassedResult } from './gradingResultView.js';
 
 const fallbackTranslate = key => key;
 
@@ -51,6 +54,7 @@ export function fetchProgressSummary(nickname) {
     let blocks = 0;
     let wires = 0;
     snap.forEach(levelSnap => {
+      if (Number(levelSnap.key) === 0) return;
       levelSnap.forEach(recSnap => {
         const v = recSnap.val();
         if (v.nickname === nickname) {
@@ -71,6 +75,7 @@ export function fetchOverallStats(nickname) {
   return db.ref('rankings').once('value').then(snap => {
     const data = {};
     snap.forEach(levelSnap => {
+      if (Number(levelSnap.key) === 0) return;
       levelSnap.forEach(recSnap => {
         const v = recSnap.val();
         const name = v.nickname || translateText(tr, 'anonymousUser', '익명');
@@ -111,9 +116,15 @@ export function showOverallRanking(options = {}) {
   const tr = resolveTranslator(translate);
   listEl.innerHTML = translateText(tr, 'rankingLoading', '로딩 중…');
 
+  if (typeof db === 'undefined' || !db?.ref) {
+    listEl.textContent = document.documentElement.lang === 'ko' ? '온라인 랭킹이 연결되지 않았습니다.' : 'Online leaderboard is not connected.';
+    return Promise.resolve();
+  }
+
   return db.ref('rankings').once('value').then(snap => {
     const data = {};
     snap.forEach(levelSnap => {
+      if (Number(levelSnap.key) === 0) return;
       levelSnap.forEach(recSnap => {
         const entry = recSnap.val();
         const name = entry.nickname || translateText(tr, 'anonymousUser', '익명');
@@ -261,6 +272,8 @@ export function saveProblemRanking(problemKey, blockCounts, usedWires, hintsUsed
 }
 
 export function showRanking(levelId, options = {}) {
+  if (Number(levelId) === 0) return;
+  if (officialCostRanking) return officialCostRanking(Number(levelId));
   const {
     listSelector = '#rankingList',
     modalSelector = '#rankingModal',
@@ -521,6 +534,8 @@ export async function showClearedModal(level, options = {}) {
   const modal = document.querySelector(modalSelector);
   if (!modal) return;
 
+  stylePassedResult(modal.querySelector('.modal-content') || modal, isCustomProblem ? null : level);
+
   const tr = resolveTranslator(translate);
   let resolvedStageTitle;
   if (isCustomProblem && customTitle) {
@@ -622,6 +637,8 @@ export async function showClearedModal(level, options = {}) {
       if (closeBtn) {
         closeBtn.onclick = () => {
           modal.style.display = 'none';
+          if (typeof returnToEditScreen === 'function') returnToEditScreen();
+          else document.dispatchEvent(new Event('bitwiser:editCircuit'));
         };
       }
 

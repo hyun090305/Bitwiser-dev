@@ -1,0 +1,127 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 13,
+  "directed_edge_count": 17,
+  "simple_undirected_edge_count": 17,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "REQ_A": [
+      "g3",
+      "g4"
+    ],
+    "REQ_B": [
+      "g4",
+      "g1"
+    ],
+    "LAST_A": [
+      "g3",
+      "g4",
+      "g6",
+      "g5",
+      "g1"
+    ],
+    "ANY_REQUEST": [
+      "g4",
+      "g5",
+      "g7"
+    ],
+    "g1": [
+      "REQ_B",
+      "g2",
+      "LAST_A"
+    ],
+    "g2": [
+      "g1",
+      "g3"
+    ],
+    "g3": [
+      "REQ_A",
+      "LAST_A",
+      "g2"
+    ],
+    "g4": [
+      "LAST_A",
+      "REQ_A",
+      "REQ_B",
+      "ANY_REQUEST"
+    ],
+    "g5": [
+      "ANY_REQUEST",
+      "LAST_A",
+      "OUT_A_OK"
+    ],
+    "OUT_A_OK": [
+      "g5"
+    ],
+    "g6": [
+      "g7",
+      "LAST_A"
+    ],
+    "g7": [
+      "ANY_REQUEST",
+      "g6",
+      "OUT_B_OK"
+    ],
+    "OUT_B_OK": [
+      "g7"
+    ]
+  },
+  "positions": {
+    "REQ_A": [
+      0,
+      0
+    ],
+    "g4": [
+      2,
+      2
+    ],
+    "REQ_B": [
+      11,
+      11
+    ],
+    "ANY_REQUEST": [
+      4,
+      3
+    ],
+    "g1": [
+      19,
+      3
+    ],
+    "g2": [
+      20,
+      2
+    ],
+    "g3": [
+      22,
+      0
+    ],
+    "g5": [
+      9,
+      8
+    ],
+    "g6": [
+      8,
+      6
+    ],
+    "LAST_A": [
+      16,
+      1
+    ],
+    "g7": [
+      7,
+      4
+    ],
+    "OUT_A_OK": [
+      9,
+      7
+    ],
+    "OUT_B_OK": [
+      8,
+      5
+    ]
+  }
+}

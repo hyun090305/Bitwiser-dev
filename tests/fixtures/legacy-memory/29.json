@@ -1,0 +1,201 @@
+{
+  "purpose": "Verified attainable budget, not a minimum claim",
+  "circuit": {
+    "rows": 6,
+    "cols": 13,
+    "blocks": {
+      "DATA": {
+        "id": "DATA",
+        "type": "INPUT",
+        "name": "DATA",
+        "pos": {
+          "r": 2,
+          "c": 0
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "switch"
+      },
+      "WRITE": {
+        "id": "WRITE",
+        "type": "INPUT",
+        "name": "WRITE",
+        "pos": {
+          "r": 0,
+          "c": 4
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "button"
+      },
+      "s": {
+        "id": "s",
+        "type": "D",
+        "name": "s",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false
+      },
+      "APPLY": {
+        "id": "APPLY",
+        "type": "INPUT",
+        "name": "APPLY",
+        "pos": {
+          "r": 0,
+          "c": 8
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "button"
+      },
+      "q": {
+        "id": "q",
+        "type": "D",
+        "name": "q",
+        "pos": {
+          "r": 2,
+          "c": 8
+        },
+        "value": false
+      },
+      "Q": {
+        "id": "Q",
+        "type": "OUTPUT",
+        "name": "Q",
+        "pos": {
+          "r": 2,
+          "c": 12
+        },
+        "value": false,
+        "fixed": true
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "DATA",
+        "endBlockId": "s",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "WRITE",
+        "endBlockId": "s",
+        "path": [
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ],
+        "inputRole": "EN"
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "s",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 2,
+            "c": 8
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "APPLY",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 0,
+            "c": 8
+          },
+          {
+            "r": 1,
+            "c": 8
+          },
+          {
+            "r": 2,
+            "c": 8
+          }
+        ],
+        "inputRole": "EN"
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "q",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 2,
+            "c": 8
+          },
+          {
+            "r": 2,
+            "c": 9
+          },
+          {
+            "r": 2,
+            "c": 10
+          },
+          {
+            "r": 2,
+            "c": 11
+          },
+          {
+            "r": 2,
+            "c": 12
+          }
+        ]
+      }
+    }
+  }
+}

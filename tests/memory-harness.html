@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><title>Memory editor regression harness</title>
+<link rel="stylesheet" href="/style.css">
+<style>body{margin:0;display:block;overflow:auto;background:#e2e8f0}#tools{height:40px;display:flex;gap:8px}#surface{position:relative;width:1158px;height:626px}canvas{position:absolute;left:0;top:0}button{cursor:pointer}</style>
+<div id="tools"><button id="move">이동</button><button id="wire">배선</button><button id="del">삭제</button><button id="select">선택</button><div><button id="copy">복사</button><button id="paste">붙여넣기</button></div><button id="undo">Undo</button><button id="redo">Redo</button></div>
+<div id="surface"><canvas id="bg"></canvas><canvas id="content"></canvas><canvas id="overlay"></canvas></div>
+<script type="module">
+import { createController } from '/src/canvas/controller.js';
+import { makeMemoryExample, MEMORY_EXAMPLES } from '/src/modules/memoryExamples.js';
+import * as engine from '/src/canvas/engine.js';
+import { snapshotCircuit } from '/src/canvas/circuitData.js';
+const el = id => document.getElementById(id);
+window.testCircuit = makeMemoryExample(MEMORY_EXAMPLES[1]);
+testCircuit.rows=12; testCircuit.cols=18;
+window.testController = createController({bgCanvas:el('bg'),contentCanvas:el('content'),overlayCanvas:el('overlay')},testCircuit,{
+  wireMoveInfo:el('move'),wireStatusInfo:el('wire'),wireDeleteInfo:el('del'),wireSelectInfo:el('select'),copyButton:el('copy'),pasteButton:el('paste'),undoButton:el('undo'),redoButton:el('redo')
+},{panelWidth:220,palette:['INPUT','OUTPUT','AND','OR','NOT','JUNCTION','D'],enableCopyPaste:true});
+window.testRead = () => ({ design:snapshotCircuit(testCircuit), tick:engine.getExecutionState(testCircuit).tick,
+  memory:Object.fromEntries(engine.getExecutionState(testCircuit).memory),
+  values:Object.fromEntries(Object.values(testCircuit.blocks).map(b=>[b.id,b.value])), running:testController.tickRunner.isRunning(),
+  diagnostics:engine.getEvaluationResult(testCircuit)?.diagnostics });
+window.testReset = () => { const c=makeMemoryExample(MEMORY_EXAMPLES[1]);c.rows=12;c.cols=18;testController.restoreCircuit(c); };
+window.testReady = true;
+</script></html>

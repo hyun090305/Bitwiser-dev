@@ -1,0 +1,257 @@
+{
+  "version": 2,
+  "stageId": 6,
+  "circuit": {
+    "rows": 6,
+    "cols": 6,
+    "blocks": {
+      "a": {
+        "id": "a",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 0,
+          "c": 0
+        },
+        "value": false,
+        "fixed": false
+      },
+      "b": {
+        "id": "b",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 2,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "or": {
+        "id": "or",
+        "type": "OR",
+        "pos": {
+          "r": 0,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "and": {
+        "id": "and",
+        "type": "AND",
+        "pos": {
+          "r": 2,
+          "c": 0
+        },
+        "value": false,
+        "fixed": false
+      },
+      "not": {
+        "id": "not",
+        "type": "NOT",
+        "pos": {
+          "r": 3,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "final": {
+        "id": "final",
+        "type": "AND",
+        "pos": {
+          "r": 1,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "out": {
+        "id": "out",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 3,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "a",
+        "endBlockId": "or",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 1
+          },
+          {
+            "r": 0,
+            "c": 2
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "b",
+        "endBlockId": "or",
+        "path": [
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 2
+          },
+          {
+            "r": 0,
+            "c": 2
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "b",
+        "endBlockId": "and",
+        "path": [
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 0
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "a",
+        "endBlockId": "and",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 1,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 0
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "and",
+        "endBlockId": "not",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 4
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "or",
+        "endBlockId": "final",
+        "path": [
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 0,
+            "c": 3
+          },
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "not",
+        "endBlockId": "final",
+        "path": [
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "final",
+        "endBlockId": "out",
+        "path": [
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      }
+    }
+  }
+}

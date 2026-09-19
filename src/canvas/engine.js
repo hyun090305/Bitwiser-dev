@@ -1,3 +1,5 @@
+import { previewCircuit } from './evaluation.js';
+export * from './evaluation.js';
 const dirtyCircuits = new WeakSet();
 
 export function markCircuitDirty(circuit) {
@@ -17,104 +19,11 @@ function consumeCircuitDirty(circuit) {
   return true;
 }
 
-function buildBlockAdjacency(circuit) {
-  const incoming = new Map();
-  const outgoing = new Map();
-
-  Object.values(circuit.wires).forEach(wire => {
-    const { startBlockId, endBlockId } = wire;
-    if (!startBlockId || !endBlockId) return;
-
-    if (!incoming.has(endBlockId)) {
-      incoming.set(endBlockId, []);
-    }
-    incoming.get(endBlockId).push(startBlockId);
-
-    if (!outgoing.has(startBlockId)) {
-      outgoing.set(startBlockId, []);
-    }
-    outgoing.get(startBlockId).push(endBlockId);
-  });
-
-  return { incoming, outgoing };
-}
-
-// Compute the logical output of a single block given current values.
-export function computeBlock(block, values, incomingMap) {
-  // INPUT blocks simply keep their assigned value
-  if (block.type === 'INPUT') {
-    return values.get(block.id);
-  }
-
-  const incoming = incomingMap.get(block.id) || [];
-  const readyVals = incoming
-    .map(id => values.get(id))
-    .filter(v => v !== undefined);
-
-  switch (block.type) {
-    case 'AND':
-      return readyVals.every(v => v);
-    case 'OR':
-      return readyVals.some(v => v);
-    case 'NOT':
-      return !readyVals[0];
-    case 'OUTPUT':
-      return readyVals.some(v => v);
-    case 'JUNCTION':
-      return readyVals[0];
-    default:
-      return undefined;
-  }
-}
-
-// Basic evaluation of the circuit using the in-memory circuit model
-// instead of traversing DOM cells.
+// Compatibility adapter: dirty rendering never advances logical time.
 export function evaluateCircuit(circuit) {
-  const values = new Map();
-  const blocks = Object.values(circuit.blocks);
-
-  blocks
-    .filter(b => b.type === 'INPUT')
-    .forEach(b => values.set(b.id, !!b.value));
-
-  const { incoming, outgoing } = buildBlockAdjacency(circuit);
-
-  const queue = [...blocks];
-  const enqueued = new Set(queue.map(b => b.id));
-  const maxIterations = Math.max(1, blocks.length * blocks.length);
-  let iterations = 0;
-
-  while (queue.length && iterations < maxIterations) {
-    iterations += 1;
-    const block = queue.shift();
-    enqueued.delete(block.id);
-
-    const oldVal = values.get(block.id);
-    const newVal = computeBlock(block, values, incoming);
-
-    if (newVal === undefined || newVal === oldVal) {
-      continue;
-    }
-
-    values.set(block.id, newVal);
-
-    const downstream = outgoing.get(block.id) || [];
-    downstream.forEach(id => {
-      const next = circuit.blocks[id];
-      if (!next || enqueued.has(id)) return;
-      queue.push(next);
-      enqueued.add(id);
-    });
-  }
-
-  // apply computed values back to blocks
-  blocks.forEach(b => {
-    b.value = values.get(b.id) || false;
-  });
-
+  const blocks = previewCircuit(circuit);
   dirtyCircuits.delete(circuit);
-
-  return circuit.blocks;
+  return blocks;
 }
 
 // Compute directional flow for each wire based on path

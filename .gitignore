@@ -4,3 +4,7 @@ dist/
 .npm-cache/
 .electron-cache/
 .electron-builder-cache/
+
+dist-web-demo/
+test-results/
+__pycache__/

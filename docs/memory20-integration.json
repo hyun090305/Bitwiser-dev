@@ -1,0 +1,1602 @@
+[
+  {
+    "slot": "C4-01",
+    "id": 25,
+    "title": "저장 스위치",
+    "logicalBlocks": 4,
+    "placedBlocks": 4,
+    "previousGrid": [
+      8,
+      9
+    ],
+    "grid": [
+      6,
+      6
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 23,
+    "counts": {
+      "WIRE": 3,
+      "JUNCTION": 0,
+      "NOT": 0,
+      "AND": 0,
+      "OR": 0,
+      "D": 1,
+      "INPUT": 2,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 3,
+        "unitCost": 1,
+        "subtotal": 3
+      },
+      {
+        "type": "JUNCTION",
+        "count": 0,
+        "unitCost": 1,
+        "subtotal": 0
+      },
+      {
+        "type": "NOT",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "AND",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "D",
+        "count": 1,
+        "unitCost": 20,
+        "subtotal": 20
+      },
+      {
+        "type": "INPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 8
+  },
+  {
+    "slot": "C4-02",
+    "id": 31,
+    "title": "변화 감지기",
+    "logicalBlocks": 6,
+    "placedBlocks": 7,
+    "previousGrid": [
+      11,
+      11
+    ],
+    "grid": [
+      6,
+      7
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 68,
+    "counts": {
+      "WIRE": 7,
+      "JUNCTION": 1,
+      "NOT": 1,
+      "AND": 1,
+      "OR": 0,
+      "D": 2,
+      "INPUT": 1,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 7,
+        "unitCost": 1,
+        "subtotal": 7
+      },
+      {
+        "type": "JUNCTION",
+        "count": 1,
+        "unitCost": 1,
+        "subtotal": 1
+      },
+      {
+        "type": "NOT",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "AND",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "D",
+        "count": 2,
+        "unitCost": 20,
+        "subtotal": 40
+      },
+      {
+        "type": "INPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 6
+  },
+  {
+    "slot": "C4-03",
+    "id": 28,
+    "title": "고장 기록등",
+    "logicalBlocks": 5,
+    "placedBlocks": 6,
+    "previousGrid": [
+      9,
+      10
+    ],
+    "grid": [
+      6,
+      7
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 39,
+    "counts": {
+      "WIRE": 8,
+      "JUNCTION": 1,
+      "NOT": 0,
+      "AND": 0,
+      "OR": 1,
+      "D": 1,
+      "INPUT": 2,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 8,
+        "unitCost": 1,
+        "subtotal": 8
+      },
+      {
+        "type": "JUNCTION",
+        "count": 1,
+        "unitCost": 1,
+        "subtotal": 1
+      },
+      {
+        "type": "NOT",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "AND",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "OR",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "D",
+        "count": 1,
+        "unitCost": 20,
+        "subtotal": 20
+      },
+      {
+        "type": "INPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 8
+  },
+  {
+    "slot": "C4-04",
+    "id": 35,
+    "title": "튀는 버튼",
+    "logicalBlocks": 11,
+    "placedBlocks": 13,
+    "previousGrid": [
+      20,
+      18
+    ],
+    "grid": [
+      10,
+      10
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 159,
+    "counts": {
+      "WIRE": 37,
+      "JUNCTION": 2,
+      "NOT": 0,
+      "AND": 3,
+      "OR": 3,
+      "D": 3,
+      "INPUT": 1,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 37,
+        "unitCost": 1,
+        "subtotal": 37
+      },
+      {
+        "type": "JUNCTION",
+        "count": 2,
+        "unitCost": 1,
+        "subtotal": 2
+      },
+      {
+        "type": "NOT",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "AND",
+        "count": 3,
+        "unitCost": 10,
+        "subtotal": 30
+      },
+      {
+        "type": "OR",
+        "count": 3,
+        "unitCost": 10,
+        "subtotal": 30
+      },
+      {
+        "type": "D",
+        "count": 3,
+        "unitCost": 20,
+        "subtotal": 60
+      },
+      {
+        "type": "INPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 16
+  },
+  {
+    "slot": "C4-05",
+    "id": 30,
+    "title": "자동으로 닫히는 문",
+    "logicalBlocks": 7,
+    "placedBlocks": 9,
+    "previousGrid": [
+      12,
+      13
+    ],
+    "grid": [
+      7,
+      9
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 92,
+    "counts": {
+      "WIRE": 10,
+      "JUNCTION": 2,
+      "NOT": 0,
+      "AND": 0,
+      "OR": 2,
+      "D": 3,
+      "INPUT": 1,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 10,
+        "unitCost": 1,
+        "subtotal": 10
+      },
+      {
+        "type": "JUNCTION",
+        "count": 2,
+        "unitCost": 1,
+        "subtotal": 2
+      },
+      {
+        "type": "NOT",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "AND",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "OR",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "D",
+        "count": 3,
+        "unitCost": 20,
+        "subtotal": 60
+      },
+      {
+        "type": "INPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 16
+  },
+  {
+    "slot": "C4-06",
+    "id": 32,
+    "title": "양방향 카운터",
+    "logicalBlocks": 32,
+    "placedBlocks": 38,
+    "previousGrid": [
+      48,
+      66
+    ],
+    "grid": [
+      19,
+      25
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 412,
+    "counts": {
+      "WIRE": 116,
+      "JUNCTION": 6,
+      "NOT": 12,
+      "AND": 11,
+      "OR": 2,
+      "D": 2,
+      "INPUT": 3,
+      "OUTPUT": 2
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 116,
+        "unitCost": 1,
+        "subtotal": 116
+      },
+      {
+        "type": "JUNCTION",
+        "count": 6,
+        "unitCost": 1,
+        "subtotal": 6
+      },
+      {
+        "type": "NOT",
+        "count": 12,
+        "unitCost": 10,
+        "subtotal": 120
+      },
+      {
+        "type": "AND",
+        "count": 11,
+        "unitCost": 10,
+        "subtotal": 110
+      },
+      {
+        "type": "OR",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "D",
+        "count": 2,
+        "unitCost": 20,
+        "subtotal": 40
+      },
+      {
+        "type": "INPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 32
+  },
+  {
+    "slot": "C4-07",
+    "id": 33,
+    "title": "네 단계 밝기",
+    "logicalBlocks": 16,
+    "placedBlocks": 17,
+    "previousGrid": [
+      25,
+      26
+    ],
+    "grid": [
+      12,
+      13
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 173,
+    "counts": {
+      "WIRE": 32,
+      "JUNCTION": 1,
+      "NOT": 3,
+      "AND": 5,
+      "OR": 2,
+      "D": 2,
+      "INPUT": 3,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 32,
+        "unitCost": 1,
+        "subtotal": 32
+      },
+      {
+        "type": "JUNCTION",
+        "count": 1,
+        "unitCost": 1,
+        "subtotal": 1
+      },
+      {
+        "type": "NOT",
+        "count": 3,
+        "unitCost": 10,
+        "subtotal": 30
+      },
+      {
+        "type": "AND",
+        "count": 5,
+        "unitCost": 10,
+        "subtotal": 50
+      },
+      {
+        "type": "OR",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "D",
+        "count": 2,
+        "unitCost": 20,
+        "subtotal": 40
+      },
+      {
+        "type": "INPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 32
+  },
+  {
+    "slot": "C4-08",
+    "id": 36,
+    "title": "공평한 사용권",
+    "logicalBlocks": 13,
+    "placedBlocks": 18,
+    "previousGrid": [
+      23,
+      28
+    ],
+    "grid": [
+      15,
+      16
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 172,
+    "counts": {
+      "WIRE": 57,
+      "JUNCTION": 5,
+      "NOT": 2,
+      "AND": 4,
+      "OR": 1,
+      "D": 2,
+      "INPUT": 2,
+      "OUTPUT": 2
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 57,
+        "unitCost": 1,
+        "subtotal": 57
+      },
+      {
+        "type": "JUNCTION",
+        "count": 5,
+        "unitCost": 1,
+        "subtotal": 5
+      },
+      {
+        "type": "NOT",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "AND",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "OR",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "D",
+        "count": 2,
+        "unitCost": 20,
+        "subtotal": 40
+      },
+      {
+        "type": "INPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 16
+  },
+  {
+    "slot": "C4-09",
+    "id": 37,
+    "title": "ABBA 잠금장치",
+    "logicalBlocks": 13,
+    "placedBlocks": 17,
+    "previousGrid": [
+      28,
+      39
+    ],
+    "grid": [
+      12,
+      16
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 194,
+    "counts": {
+      "WIRE": 50,
+      "JUNCTION": 4,
+      "NOT": 2,
+      "AND": 4,
+      "OR": 0,
+      "D": 4,
+      "INPUT": 2,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 50,
+        "unitCost": 1,
+        "subtotal": 50
+      },
+      {
+        "type": "JUNCTION",
+        "count": 4,
+        "unitCost": 1,
+        "subtotal": 4
+      },
+      {
+        "type": "NOT",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "AND",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "D",
+        "count": 4,
+        "unitCost": 20,
+        "subtotal": 80
+      },
+      {
+        "type": "INPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 92
+  },
+  {
+    "slot": "C4-10",
+    "id": 34,
+    "title": "응답 감시기",
+    "logicalBlocks": 8,
+    "placedBlocks": 10,
+    "previousGrid": [
+      15,
+      15
+    ],
+    "grid": [
+      7,
+      8
+    ],
+    "fixedIO": false,
+    "padding": 1,
+    "pricingVersion": "cost-v1",
+    "totalCost": 109,
+    "counts": {
+      "WIRE": 17,
+      "JUNCTION": 2,
+      "NOT": 1,
+      "AND": 2,
+      "OR": 0,
+      "D": 3,
+      "INPUT": 1,
+      "OUTPUT": 1
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 17,
+        "unitCost": 1,
+        "subtotal": 17
+      },
+      {
+        "type": "JUNCTION",
+        "count": 2,
+        "unitCost": 1,
+        "subtotal": 2
+      },
+      {
+        "type": "NOT",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "AND",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "D",
+        "count": 3,
+        "unitCost": 20,
+        "subtotal": 60
+      },
+      {
+        "type": "INPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 1,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 8
+  },
+  {
+    "slot": "C5-01",
+    "id": 45,
+    "title": "누적 계산기",
+    "logicalBlocks": 22,
+    "placedBlocks": 27,
+    "previousGrid": [
+      37,
+      36
+    ],
+    "grid": [
+      17,
+      20
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 289,
+    "counts": {
+      "WIRE": 104,
+      "JUNCTION": 5,
+      "NOT": 4,
+      "AND": 7,
+      "OR": 3,
+      "D": 2,
+      "INPUT": 4,
+      "OUTPUT": 2
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 104,
+        "unitCost": 1,
+        "subtotal": 104
+      },
+      {
+        "type": "JUNCTION",
+        "count": 5,
+        "unitCost": 1,
+        "subtotal": 5
+      },
+      {
+        "type": "NOT",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "AND",
+        "count": 7,
+        "unitCost": 10,
+        "subtotal": 70
+      },
+      {
+        "type": "OR",
+        "count": 3,
+        "unitCost": 10,
+        "subtotal": 30
+      },
+      {
+        "type": "D",
+        "count": 2,
+        "unitCost": 20,
+        "subtotal": 40
+      },
+      {
+        "type": "INPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 64
+  },
+  {
+    "slot": "C5-02",
+    "id": 38,
+    "title": "주소로 저장하고 읽기",
+    "logicalBlocks": 19,
+    "placedBlocks": 24,
+    "previousGrid": [
+      26,
+      34
+    ],
+    "grid": [
+      16,
+      17
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 253,
+    "counts": {
+      "WIRE": 78,
+      "JUNCTION": 5,
+      "NOT": 1,
+      "AND": 6,
+      "OR": 2,
+      "D": 4,
+      "INPUT": 4,
+      "OUTPUT": 2
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 78,
+        "unitCost": 1,
+        "subtotal": 78
+      },
+      {
+        "type": "JUNCTION",
+        "count": 5,
+        "unitCost": 1,
+        "subtotal": 5
+      },
+      {
+        "type": "NOT",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "AND",
+        "count": 6,
+        "unitCost": 10,
+        "subtotal": 60
+      },
+      {
+        "type": "OR",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "D",
+        "count": 4,
+        "unitCost": 20,
+        "subtotal": 80
+      },
+      {
+        "type": "INPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 256
+  },
+  {
+    "slot": "C5-03",
+    "id": 39,
+    "title": "한 번 되돌리기",
+    "logicalBlocks": 20,
+    "placedBlocks": 29,
+    "previousGrid": [
+      34,
+      49
+    ],
+    "grid": [
+      18,
+      21
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 303,
+    "counts": {
+      "WIRE": 114,
+      "JUNCTION": 9,
+      "NOT": 1,
+      "AND": 2,
+      "OR": 5,
+      "D": 5,
+      "INPUT": 4,
+      "OUTPUT": 3
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 114,
+        "unitCost": 1,
+        "subtotal": 114
+      },
+      {
+        "type": "JUNCTION",
+        "count": 9,
+        "unitCost": 1,
+        "subtotal": 9
+      },
+      {
+        "type": "NOT",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "AND",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "OR",
+        "count": 5,
+        "unitCost": 10,
+        "subtotal": 50
+      },
+      {
+        "type": "D",
+        "count": 5,
+        "unitCost": 20,
+        "subtotal": 100
+      },
+      {
+        "type": "INPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 320
+  },
+  {
+    "slot": "C5-04",
+    "id": 29,
+    "title": "준비 후 한 번에 반영",
+    "logicalBlocks": 23,
+    "placedBlocks": 31,
+    "previousGrid": [
+      40,
+      50
+    ],
+    "grid": [
+      20,
+      24
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 341,
+    "counts": {
+      "WIRE": 133,
+      "JUNCTION": 8,
+      "NOT": 4,
+      "AND": 4,
+      "OR": 4,
+      "D": 4,
+      "INPUT": 5,
+      "OUTPUT": 2
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 133,
+        "unitCost": 1,
+        "subtotal": 133
+      },
+      {
+        "type": "JUNCTION",
+        "count": 8,
+        "unitCost": 1,
+        "subtotal": 8
+      },
+      {
+        "type": "NOT",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "AND",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "OR",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "D",
+        "count": 4,
+        "unitCost": 20,
+        "subtotal": 80
+      },
+      {
+        "type": "INPUT",
+        "count": 5,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 512
+  },
+  {
+    "slot": "C5-05",
+    "id": 43,
+    "title": "한 줄로 수신하기",
+    "logicalBlocks": 21,
+    "placedBlocks": 31,
+    "previousGrid": [
+      63,
+      95
+    ],
+    "grid": [
+      18,
+      21
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 343,
+    "counts": {
+      "WIRE": 93,
+      "JUNCTION": 10,
+      "NOT": 2,
+      "AND": 2,
+      "OR": 0,
+      "D": 10,
+      "INPUT": 2,
+      "OUTPUT": 5
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 93,
+        "unitCost": 1,
+        "subtotal": 93
+      },
+      {
+        "type": "JUNCTION",
+        "count": 10,
+        "unitCost": 1,
+        "subtotal": 10
+      },
+      {
+        "type": "NOT",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "AND",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
+      },
+      {
+        "type": "D",
+        "count": 10,
+        "unitCost": 20,
+        "subtotal": 200
+      },
+      {
+        "type": "INPUT",
+        "count": 2,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 5,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 1024
+  },
+  {
+    "slot": "C5-06",
+    "id": 44,
+    "title": "한 줄로 전송하기",
+    "logicalBlocks": 39,
+    "placedBlocks": 55,
+    "previousGrid": [
+      60,
+      87
+    ],
+    "grid": [
+      21,
+      31
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 566,
+    "counts": {
+      "WIRE": 170,
+      "JUNCTION": 16,
+      "NOT": 3,
+      "AND": 12,
+      "OR": 7,
+      "D": 8,
+      "INPUT": 6,
+      "OUTPUT": 3
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 170,
+        "unitCost": 1,
+        "subtotal": 170
+      },
+      {
+        "type": "JUNCTION",
+        "count": 16,
+        "unitCost": 1,
+        "subtotal": 16
+      },
+      {
+        "type": "NOT",
+        "count": 3,
+        "unitCost": 10,
+        "subtotal": 30
+      },
+      {
+        "type": "AND",
+        "count": 12,
+        "unitCost": 10,
+        "subtotal": 120
+      },
+      {
+        "type": "OR",
+        "count": 7,
+        "unitCost": 10,
+        "subtotal": 70
+      },
+      {
+        "type": "D",
+        "count": 8,
+        "unitCost": 20,
+        "subtotal": 160
+      },
+      {
+        "type": "INPUT",
+        "count": 6,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 2496
+  },
+  {
+    "slot": "C5-07",
+    "id": 41,
+    "title": "마지막에 넣은 것부터",
+    "logicalBlocks": 29,
+    "placedBlocks": 41,
+    "previousGrid": [
+      47,
+      66
+    ],
+    "grid": [
+      19,
+      27
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 453,
+    "counts": {
+      "WIRE": 161,
+      "JUNCTION": 12,
+      "NOT": 4,
+      "AND": 6,
+      "OR": 6,
+      "D": 6,
+      "INPUT": 3,
+      "OUTPUT": 4
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 161,
+        "unitCost": 1,
+        "subtotal": 161
+      },
+      {
+        "type": "JUNCTION",
+        "count": 12,
+        "unitCost": 1,
+        "subtotal": 12
+      },
+      {
+        "type": "NOT",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "AND",
+        "count": 6,
+        "unitCost": 10,
+        "subtotal": 60
+      },
+      {
+        "type": "OR",
+        "count": 6,
+        "unitCost": 10,
+        "subtotal": 60
+      },
+      {
+        "type": "D",
+        "count": 6,
+        "unitCost": 20,
+        "subtotal": 120
+      },
+      {
+        "type": "INPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 320
+  },
+  {
+    "slot": "C5-08",
+    "id": 42,
+    "title": "먼저 넣은 것부터",
+    "logicalBlocks": 28,
+    "placedBlocks": 40,
+    "previousGrid": [
+      45,
+      63
+    ],
+    "grid": [
+      19,
+      24
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 428,
+    "counts": {
+      "WIRE": 146,
+      "JUNCTION": 12,
+      "NOT": 4,
+      "AND": 6,
+      "OR": 5,
+      "D": 6,
+      "INPUT": 3,
+      "OUTPUT": 4
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 146,
+        "unitCost": 1,
+        "subtotal": 146
+      },
+      {
+        "type": "JUNCTION",
+        "count": 12,
+        "unitCost": 1,
+        "subtotal": 12
+      },
+      {
+        "type": "NOT",
+        "count": 4,
+        "unitCost": 10,
+        "subtotal": 40
+      },
+      {
+        "type": "AND",
+        "count": 6,
+        "unitCost": 10,
+        "subtotal": 60
+      },
+      {
+        "type": "OR",
+        "count": 5,
+        "unitCost": 10,
+        "subtotal": 50
+      },
+      {
+        "type": "D",
+        "count": 6,
+        "unitCost": 20,
+        "subtotal": 120
+      },
+      {
+        "type": "INPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 320
+  },
+  {
+    "slot": "C5-09",
+    "id": 40,
+    "title": "수신 대기 우편함",
+    "logicalBlocks": 16,
+    "placedBlocks": 20,
+    "previousGrid": [
+      25,
+      29
+    ],
+    "grid": [
+      13,
+      16
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 198,
+    "counts": {
+      "WIRE": 54,
+      "JUNCTION": 4,
+      "NOT": 1,
+      "AND": 2,
+      "OR": 1,
+      "D": 5,
+      "INPUT": 3,
+      "OUTPUT": 4
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 54,
+        "unitCost": 1,
+        "subtotal": 54
+      },
+      {
+        "type": "JUNCTION",
+        "count": 4,
+        "unitCost": 1,
+        "subtotal": 4
+      },
+      {
+        "type": "NOT",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "AND",
+        "count": 2,
+        "unitCost": 10,
+        "subtotal": 20
+      },
+      {
+        "type": "OR",
+        "count": 1,
+        "unitCost": 10,
+        "subtotal": 10
+      },
+      {
+        "type": "D",
+        "count": 5,
+        "unitCost": 20,
+        "subtotal": 100
+      },
+      {
+        "type": "INPUT",
+        "count": 3,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 4,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 128
+  },
+  {
+    "slot": "C5-10",
+    "id": 46,
+    "title": "시간을 써서 나누기",
+    "logicalBlocks": 45,
+    "placedBlocks": 58,
+    "previousGrid": [
+      71,
+      78
+    ],
+    "grid": [
+      22,
+      35
+    ],
+    "fixedIO": false,
+    "padding": 2,
+    "pricingVersion": "cost-v1",
+    "totalCost": 643,
+    "counts": {
+      "WIRE": 210,
+      "JUNCTION": 13,
+      "NOT": 9,
+      "AND": 11,
+      "OR": 6,
+      "D": 8,
+      "INPUT": 5,
+      "OUTPUT": 6
+    },
+    "breakdown": [
+      {
+        "type": "WIRE",
+        "count": 210,
+        "unitCost": 1,
+        "subtotal": 210
+      },
+      {
+        "type": "JUNCTION",
+        "count": 13,
+        "unitCost": 1,
+        "subtotal": 13
+      },
+      {
+        "type": "NOT",
+        "count": 9,
+        "unitCost": 10,
+        "subtotal": 90
+      },
+      {
+        "type": "AND",
+        "count": 11,
+        "unitCost": 10,
+        "subtotal": 110
+      },
+      {
+        "type": "OR",
+        "count": 6,
+        "unitCost": 10,
+        "subtotal": 60
+      },
+      {
+        "type": "D",
+        "count": 8,
+        "unitCost": 20,
+        "subtotal": 160
+      },
+      {
+        "type": "INPUT",
+        "count": 5,
+        "unitCost": 0,
+        "subtotal": 0
+      },
+      {
+        "type": "OUTPUT",
+        "count": 6,
+        "unitCost": 0,
+        "subtotal": 0
+      }
+    ],
+    "transitions": 108
+  }
+]

@@ -1,0 +1,302 @@
+{
+  "purpose": "Verified final handoff reference; not a minimum or an authored star threshold",
+  "circuit": {
+    "rows": 7,
+    "cols": 9,
+    "blocks": {
+      "OPEN": {
+        "id": "OPEN",
+        "type": "INPUT",
+        "name": "OPEN",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "button"
+      },
+      "RECENT0": {
+        "id": "RECENT0",
+        "type": "D",
+        "name": "RECENT0",
+        "pos": {
+          "r": 5,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false
+      },
+      "RECENT1": {
+        "id": "RECENT1",
+        "type": "D",
+        "name": "RECENT1",
+        "pos": {
+          "r": 3,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "RECENT2": {
+        "id": "RECENT2",
+        "type": "D",
+        "name": "RECENT2",
+        "pos": {
+          "r": 1,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g1": {
+        "id": "g1",
+        "type": "OR",
+        "name": "g1",
+        "pos": {
+          "r": 4,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g2": {
+        "id": "g2",
+        "type": "OR",
+        "name": "g2",
+        "pos": {
+          "r": 3,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "OUT_DOOR": {
+        "id": "OUT_DOOR",
+        "type": "OUTPUT",
+        "name": "DOOR",
+        "pos": {
+          "r": 3,
+          "c": 7
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_1_0": {
+        "id": "branch_1_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 5,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_2_0": {
+        "id": "branch_2_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "OPEN",
+        "endBlockId": "RECENT0",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 1
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "RECENT0",
+        "endBlockId": "branch_1_0",
+        "path": [
+          {
+            "r": 5,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 5,
+            "c": 3
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "branch_1_0",
+        "endBlockId": "RECENT1",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "branch_1_0",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "RECENT1",
+        "endBlockId": "branch_2_0",
+        "path": [
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "branch_2_0",
+        "endBlockId": "RECENT2",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 5
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "branch_2_0",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "RECENT2",
+        "endBlockId": "g2",
+        "path": [
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      },
+      "w8": {
+        "id": "w8",
+        "startBlockId": "g1",
+        "endBlockId": "g2",
+        "path": [
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      },
+      "w9": {
+        "id": "w9",
+        "startBlockId": "g2",
+        "endBlockId": "OUT_DOOR",
+        "path": [
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 7
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,191 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 20,
+  "directed_edge_count": 28,
+  "simple_undirected_edge_count": 28,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "D0": [
+      "g3"
+    ],
+    "D1": [
+      "g7"
+    ],
+    "SAVE": [
+      "g2",
+      "g1",
+      "BACKUP0",
+      "CAN_UNDO",
+      "g5",
+      "BACKUP1",
+      "g6"
+    ],
+    "UNDO": [
+      "g5"
+    ],
+    "VALUE0": [
+      "BACKUP0",
+      "g4",
+      "g5",
+      "OUT_Q0"
+    ],
+    "VALUE1": [
+      "g5",
+      "g8",
+      "BACKUP1",
+      "OUT_Q1"
+    ],
+    "BACKUP0": [
+      "SAVE",
+      "g1",
+      "VALUE0"
+    ],
+    "BACKUP1": [
+      "g6",
+      "SAVE",
+      "VALUE1"
+    ],
+    "CAN_UNDO": [
+      "g5",
+      "SAVE",
+      "OUT_UNDO_AVAILABLE"
+    ],
+    "g1": [
+      "g4",
+      "BACKUP0",
+      "SAVE"
+    ],
+    "g2": [
+      "g3",
+      "SAVE",
+      "g7"
+    ],
+    "g3": [
+      "D0",
+      "g2",
+      "g4"
+    ],
+    "g4": [
+      "VALUE0",
+      "g1",
+      "g3"
+    ],
+    "g5": [
+      "VALUE0",
+      "VALUE1",
+      "SAVE",
+      "CAN_UNDO",
+      "UNDO"
+    ],
+    "g6": [
+      "g8",
+      "SAVE",
+      "BACKUP1"
+    ],
+    "g7": [
+      "g8",
+      "g2",
+      "D1"
+    ],
+    "g8": [
+      "VALUE1",
+      "g7",
+      "g6"
+    ],
+    "OUT_Q0": [
+      "VALUE0"
+    ],
+    "OUT_Q1": [
+      "VALUE1"
+    ],
+    "OUT_UNDO_AVAILABLE": [
+      "CAN_UNDO"
+    ]
+  },
+  "positions": {
+    "SAVE": [
+      0,
+      0
+    ],
+    "OUT_UNDO_AVAILABLE": [
+      11,
+      11
+    ],
+    "CAN_UNDO": [
+      12,
+      10
+    ],
+    "UNDO": [
+      13,
+      11
+    ],
+    "g5": [
+      15,
+      9
+    ],
+    "OUT_Q0": [
+      21,
+      15
+    ],
+    "VALUE0": [
+      22,
+      14
+    ],
+    "VALUE1": [
+      19,
+      8
+    ],
+    "BACKUP0": [
+      36,
+      0
+    ],
+    "OUT_Q1": [
+      19,
+      7
+    ],
+    "g8": [
+      21,
+      10
+    ],
+    "g6": [
+      23,
+      5
+    ],
+    "g7": [
+      26,
+      5
+    ],
+    "g2": [
+      28,
+      3
+    ],
+    "g3": [
+      30,
+      5
+    ],
+    "D0": [
+      30,
+      2
+    ],
+    "g4": [
+      32,
+      3
+    ],
+    "g1": [
+      34,
+      1
+    ],
+    "D1": [
+      24,
+      4
+    ],
+    "BACKUP1": [
+      20,
+      6
+    ]
+  }
+}

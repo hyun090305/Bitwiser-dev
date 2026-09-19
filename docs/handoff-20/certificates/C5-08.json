@@ -1,0 +1,263 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 28,
+  "directed_edge_count": 40,
+  "simple_undirected_edge_count": 40,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "DATA": [
+      "BACK",
+      "g13"
+    ],
+    "PUSH": [
+      "g9",
+      "g10"
+    ],
+    "POP": [
+      "g1"
+    ],
+    "HEAD": [
+      "g17",
+      "g16",
+      "LAST_POP"
+    ],
+    "BACK": [
+      "DATA",
+      "g8",
+      "g15"
+    ],
+    "NONEMPTY": [
+      "g1",
+      "g7",
+      "g9",
+      "g3",
+      "g18"
+    ],
+    "FULL_STATE": [
+      "g14",
+      "g12",
+      "g11",
+      "g7",
+      "OUT_FULL"
+    ],
+    "LAST_POP": [
+      "HEAD",
+      "g1",
+      "OUT_DATA_OUT"
+    ],
+    "g1": [
+      "g8",
+      "NONEMPTY",
+      "g2",
+      "LAST_POP",
+      "POP",
+      "POP_VALID"
+    ],
+    "g2": [
+      "g3",
+      "g1"
+    ],
+    "g3": [
+      "g10",
+      "g17",
+      "g2",
+      "NONEMPTY",
+      "g9"
+    ],
+    "g7": [
+      "FULL_STATE",
+      "NONEMPTY",
+      "g8",
+      "g13"
+    ],
+    "g8": [
+      "BACK",
+      "g7",
+      "g1"
+    ],
+    "g9": [
+      "NONEMPTY",
+      "g11",
+      "PUSH",
+      "g3"
+    ],
+    "g10": [
+      "PUSH",
+      "g12",
+      "g3"
+    ],
+    "g11": [
+      "g12",
+      "g9",
+      "FULL_STATE"
+    ],
+    "g12": [
+      "FULL_STATE",
+      "g10",
+      "g11"
+    ],
+    "g13": [
+      "g7",
+      "DATA",
+      "g15",
+      "g14"
+    ],
+    "g14": [
+      "g16",
+      "FULL_STATE",
+      "g13"
+    ],
+    "g15": [
+      "g13",
+      "BACK",
+      "g16"
+    ],
+    "g16": [
+      "HEAD",
+      "g14",
+      "g15"
+    ],
+    "g17": [
+      "g3",
+      "HEAD"
+    ],
+    "OUT_DATA_OUT": [
+      "LAST_POP"
+    ],
+    "POP_VALID": [
+      "g1",
+      "OUT_VALID"
+    ],
+    "OUT_VALID": [
+      "POP_VALID"
+    ],
+    "g18": [
+      "NONEMPTY",
+      "OUT_EMPTY"
+    ],
+    "OUT_EMPTY": [
+      "g18"
+    ],
+    "OUT_FULL": [
+      "FULL_STATE"
+    ]
+  },
+  "positions": {
+    "POP": [
+      0,
+      0
+    ],
+    "OUT_VALID": [
+      1,
+      1
+    ],
+    "POP_VALID": [
+      2,
+      2
+    ],
+    "g8": [
+      3,
+      3
+    ],
+    "BACK": [
+      7,
+      7
+    ],
+    "g15": [
+      8,
+      8
+    ],
+    "g16": [
+      24,
+      24
+    ],
+    "g13": [
+      24,
+      23
+    ],
+    "HEAD": [
+      31,
+      17
+    ],
+    "g12": [
+      32,
+      13
+    ],
+    "LAST_POP": [
+      33,
+      19
+    ],
+    "OUT_DATA_OUT": [
+      33,
+      18
+    ],
+    "g1": [
+      52,
+      0
+    ],
+    "PUSH": [
+      32,
+      10
+    ],
+    "g10": [
+      34,
+      11
+    ],
+    "g3": [
+      37,
+      8
+    ],
+    "g17": [
+      38,
+      9
+    ],
+    "g2": [
+      40,
+      7
+    ],
+    "OUT_EMPTY": [
+      40,
+      6
+    ],
+    "g18": [
+      41,
+      5
+    ],
+    "DATA": [
+      12,
+      6
+    ],
+    "g14": [
+      29,
+      18
+    ],
+    "g7": [
+      13,
+      5
+    ],
+    "FULL_STATE": [
+      23,
+      15
+    ],
+    "NONEMPTY": [
+      15,
+      4
+    ],
+    "OUT_FULL": [
+      27,
+      19
+    ],
+    "g11": [
+      22,
+      11
+    ],
+    "g9": [
+      21,
+      9
+    ]
+  }
+}

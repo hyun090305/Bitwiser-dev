@@ -1,0 +1,236 @@
+{
+  "id": "C5-07",
+  "nodes": [
+    {
+      "id": "DATA",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "PUSH",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "POP",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "HEAD",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "g6"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "BACK",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "g8"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "NONEMPTY",
+      "type": "DE",
+      "inputs": [
+        "g9",
+        "g7"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "FULL_STATE",
+      "type": "D",
+      "inputs": [
+        "g12"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "LAST_POP",
+      "type": "DE",
+      "inputs": [
+        "g16",
+        "g1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "AND",
+      "inputs": [
+        "NONEMPTY",
+        "POP"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "NONEMPTY",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "OR",
+      "inputs": [
+        "FULL_STATE",
+        "g3"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "NOT",
+      "inputs": [
+        "g4"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "NOT",
+      "inputs": [
+        "FULL_STATE"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "OR",
+      "inputs": [
+        "g1",
+        "g7"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "OR",
+      "inputs": [
+        "PUSH",
+        "g3"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "PUSH",
+        "g3"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "AND",
+      "inputs": [
+        "FULL_STATE",
+        "g9"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "OR",
+      "inputs": [
+        "g10",
+        "g11"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "AND",
+      "inputs": [
+        "HEAD",
+        "g6"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "OR",
+      "inputs": [
+        "g13",
+        "g4"
+      ]
+    },
+    {
+      "id": "g15",
+      "type": "OR",
+      "inputs": [
+        "BACK",
+        "g13"
+      ]
+    },
+    {
+      "id": "g16",
+      "type": "AND",
+      "inputs": [
+        "g14",
+        "g15"
+      ]
+    },
+    {
+      "id": "OUT_DATA_OUT",
+      "type": "OUTPUT",
+      "inputs": [
+        "LAST_POP"
+      ],
+      "name": "DATA_OUT"
+    },
+    {
+      "id": "POP_VALID",
+      "type": "D",
+      "inputs": [
+        "g1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "OUT_VALID",
+      "type": "OUTPUT",
+      "inputs": [
+        "POP_VALID"
+      ],
+      "name": "VALID"
+    },
+    {
+      "id": "g17",
+      "type": "NOT",
+      "inputs": [
+        "NONEMPTY"
+      ]
+    },
+    {
+      "id": "OUT_EMPTY",
+      "type": "OUTPUT",
+      "inputs": [
+        "g17"
+      ],
+      "name": "EMPTY"
+    },
+    {
+      "id": "OUT_FULL",
+      "type": "OUTPUT",
+      "inputs": [
+        "FULL_STATE"
+      ],
+      "name": "FULL"
+    }
+  ],
+  "solution": {
+    "architecture": "flags-s3-n1-r0-f1",
+    "note": "두 데이터 슬롯·NONEMPTY·FULL·마지막 POP 값·POP 성공 상태를 사용합니다. DATA_OUT만 남긴 24블록 평면 핵심판 대신 모든 상태 출력을 유지한 29블록판을 채택합니다."
+  },
+  "source_variant": "C5-07-status-full"
+}

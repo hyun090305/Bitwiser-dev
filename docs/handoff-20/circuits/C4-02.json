@@ -1,0 +1,55 @@
+{
+  "id": "C4-02",
+  "nodes": [
+    {
+      "id": "SIGNAL",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "PREV",
+      "type": "D",
+      "inputs": [
+        "SIGNAL"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "PULSE",
+      "type": "D",
+      "inputs": [
+        "g2"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "PREV"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "SIGNAL",
+        "g1"
+      ]
+    },
+    {
+      "id": "OUT_RISE",
+      "type": "OUTPUT",
+      "inputs": [
+        "PULSE"
+      ],
+      "name": "RISE"
+    }
+  ],
+  "solution": {
+    "architecture": "original-D-architecture",
+    "note": "이전 SIGNAL을 저장하는 D와 상승 사건을 저장하는 D를 따로 둡니다. 갱신 전 PREV로 사건을 계산하고 갱신 후 PULSE를 출력하여 첫 상승 tick을 보존합니다."
+  },
+  "source_variant": "C4-02"
+}

@@ -1,0 +1,127 @@
+{
+  "purpose": "Verified attainable budget, not a minimum claim",
+  "circuit": {
+    "rows": 6,
+    "cols": 8,
+    "blocks": {
+      "DATA": {
+        "id": "DATA",
+        "type": "INPUT",
+        "name": "DATA",
+        "pos": {
+          "r": 2,
+          "c": 0
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "switch"
+      },
+      "LOAD": {
+        "id": "LOAD",
+        "type": "INPUT",
+        "name": "LOAD",
+        "pos": {
+          "r": 0,
+          "c": 4
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "button"
+      },
+      "q": {
+        "id": "q",
+        "type": "D",
+        "name": "q",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false
+      },
+      "Q": {
+        "id": "Q",
+        "type": "OUTPUT",
+        "name": "Q",
+        "pos": {
+          "r": 2,
+          "c": 7
+        },
+        "value": false,
+        "fixed": true
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "DATA",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "LOAD",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ],
+        "inputRole": "EN"
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "q",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 7
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "version": 2,
+  "stageId": 3,
+  "circuit": {
+    "rows": 6,
+    "cols": 6,
+    "blocks": {
+      "a": {
+        "id": "a",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 0,
+          "c": 0
+        },
+        "value": false,
+        "fixed": false
+      },
+      "b": {
+        "id": "b",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 2,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g": {
+        "id": "g",
+        "type": "AND",
+        "pos": {
+          "r": 0,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "o": {
+        "id": "o",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 0,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "a",
+        "endBlockId": "g",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 1
+          },
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 0,
+            "c": 3
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "b",
+        "endBlockId": "g",
+        "path": [
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 1,
+            "c": 3
+          },
+          {
+            "r": 0,
+            "c": 3
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "g",
+        "endBlockId": "o",
+        "path": [
+          {
+            "r": 0,
+            "c": 3
+          },
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 0,
+            "c": 5
+          }
+        ]
+      }
+    }
+  }
+}

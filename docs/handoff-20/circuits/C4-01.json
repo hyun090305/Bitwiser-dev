@@ -1,0 +1,39 @@
+{
+  "id": "C4-01",
+  "nodes": [
+    {
+      "id": "DATA",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "LOAD",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "Q",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "LOAD"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "OUT_VALUE",
+      "type": "OUTPUT",
+      "inputs": [
+        "Q"
+      ],
+      "name": "VALUE"
+    }
+  ],
+  "solution": {
+    "architecture": "original-D-architecture",
+    "note": "D+EN 한 개에 DATA와 LOAD를 직접 연결합니다. LOAD=0의 유지용 MUX를 별도 게이트로 만들지 않습니다."
+  },
+  "source_variant": "C4-01"
+}

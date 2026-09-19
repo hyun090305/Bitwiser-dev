@@ -1,12 +1,31 @@
-const CACHE_NAME = 'bitgame-cache-v1';
+const CACHE_NAME = 'bitgame-cache-v19-memory20-compact';
 const urlsToCache = [
   '/',
   '/index.html',
-  '/style.v1.4.css',
+  '/style.css',
   '/src/main.js',
   '/background.js',
   '/levels.json',
   '/levels_en.json',
+  '/stage_map.json',
+  '/src/modules/stageCatalog.js',
+  '/src/modules/memory20References.js',
+  '/src/modules/dividerGrading.js',
+  '/src/modules/circuitCost.js',
+  '/src/modules/costRecords.js',
+  '/src/modules/stageCircuit.js',
+  '/src/modules/costUI.js',
+  '/src/modules/achievementStars.js',
+  '/src/modules/costLeaderboard.js',
+  '/src/modules/fullCostExperience.js',
+  '/src/modules/referenceFSM.js',
+  '/src/modules/circuitGrading.js',
+  '/src/modules/grading.js',
+  '/src/modules/gradingResultView.js',
+  '/src/modules/counterexampleTrace.js',
+  '/src/canvas/tracePlayback.js',
+  '/src/canvas/compiledCircuit.js',
+  '/src/canvas/evaluation.js',
   '/assets/icon-192.png',
   '/assets/icon-512.png',
   '/assets/not-gate-tutorial.gif',
@@ -32,7 +51,7 @@ self.addEventListener('activate', event => {
     caches.keys().then(keys =>
       Promise.all(
         keys.map(key => {
-          if (key !== CACHE_NAME) {
+          if (key.startsWith('bitgame-cache-') && key !== CACHE_NAME) {
             return caches.delete(key);
           }
         })

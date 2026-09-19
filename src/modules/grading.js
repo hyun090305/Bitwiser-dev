@@ -1,59 +1,12 @@
+import { gradeCircuit } from './circuitGrading.js';
+import { pauseCircuit } from '../canvas/tickRunner.js';
+import { getCircuitStats, snapshotCircuit } from '../canvas/circuitData.js';
 import { triggerConfetti } from './confetti.js';
-import { formatBlockLabelList, formatBlockLabels } from '../blockLabel.js';
-
-const WAIT_BETWEEN_TESTS = 320;
+import { formatBlockLabels } from '../blockLabel.js';
+import { createGradingResultView } from './gradingResultView.js';
 
 function defaultTranslate(t) {
   return typeof t === 'function' ? t : key => key;
-}
-
-function createDelay(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-
-function collectBlocks(circuit) {
-  return Object.values(circuit?.blocks || {});
-}
-
-function collectWires(circuit) {
-  return Object.values(circuit?.wires || {});
-}
-
-function validateConnections(circuit, alertFn, t = key => key) {
-  const blocks = collectBlocks(circuit);
-  for (const block of blocks) {
-    if (block.type === 'JUNCTION' || block.type === 'OUTPUT') {
-      const incoming = collectWires(circuit).filter(w => w.endBlockId === block.id);
-      if (incoming.length > 1) {
-        const template = t('gradingMultipleInputs');
-        const message = typeof template === 'string' && template !== 'gradingMultipleInputs'
-          ? template
-          : `❌ ${block.type} 블록에 여러 입력이 연결되어 있습니다. 회로를 수정해주세요.`;
-        alertFn(message.replace('{blockType}', block.type));
-        return false;
-      }
-    }
-  }
-  return true;
-}
-
-function ensureRequiredOutputs({
-  requiredOutputs,
-  actualOutputNames,
-  alertFn,
-  t
-}) {
-  const missing = requiredOutputs.filter(name => !actualOutputNames.includes(name));
-  if (missing.length > 0) {
-    alertFn(
-      t('outputMissingAlert').replace(
-        '{list}',
-        formatBlockLabelList(missing).join(', ')
-      )
-    );
-    return false;
-  }
-  return true;
 }
 
 function translateOrFallback(t, key, fallback) {
@@ -84,22 +37,6 @@ function setInlineStatus(ui, { title, percent, text, detail, state }) {
   }
   if (ui.text && typeof text === 'string') ui.text.textContent = formatBlockLabels(text);
   if (ui.detail && typeof detail === 'string') ui.detail.textContent = formatBlockLabels(detail);
-}
-
-function getCircuitStats(circuit) {
-  const blockCounts = collectBlocks(circuit).reduce((acc, block) => {
-    acc[block.type] = (acc[block.type] || 0) + 1;
-    return acc;
-  }, {});
-
-  const wireCells = new Set();
-  collectWires(circuit).forEach(wire => {
-    (wire.path || []).slice(1, -1).forEach(point => {
-      wireCells.add(`${point.r},${point.c}`);
-    });
-  });
-
-  return { blockCounts, usedWires: wireCells.size };
 }
 
 async function attemptAutoSave({
@@ -156,120 +93,31 @@ async function attemptAutoSave({
   return { saveSuccess, loginNeeded, statusMessage };
 }
 
-async function runTestCases({
-  circuit,
-  testCases,
-  evaluateCircuit,
-  inlineStatus,
-  t
-}) {
-  const blocks = collectBlocks(circuit);
-  const inputs = blocks.filter(block => block.type === 'INPUT');
-  const outputs = blocks.filter(block => block.type === 'OUTPUT');
-  const totalTests = testCases.length;
-  let passedCount = 0;
+async function runVerification({ circuit, testCases, inlineStatus, t, signal, ports }) {
   const ui = getInlineStatusElements(inlineStatus);
-  const inputLabel = translateOrFallback(t, 'thInput', 'Input');
-  const expectedLabel = translateOrFallback(t, 'thExpected', 'Expected');
-  const actualLabel = translateOrFallback(t, 'thActual', 'Actual');
-  const passedLabel = translateOrFallback(t, 'gradingCorrect', '✅ Correct');
-  const failedLabel = translateOrFallback(t, 'gradingIncorrect', '❌ Incorrect');
-  const passSummary = translateOrFallback(t, 'gradingAllPassed', '🎉 All simulation cases passed!');
-  const progressTitle = translateOrFallback(t, 'gradingResultsHeading', '시뮬레이션 진행');
-  const safeTotal = Math.max(1, totalTests);
-
-  setInlineStatus(ui, {
-    title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-    percent: 0,
-    text: `${totalTests} cases`,
-    detail: '',
-    state: 'running'
-  });
-
-  if (totalTests === 0) {
-    setInlineStatus(ui, {
-      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-      percent: 100,
-      text: passSummary,
-      detail: '',
-      state: 'passed'
-    });
-    return true;
-  }
-
-  for (let index = 0; index < totalTests; index += 1) {
-    const test = testCases[index];
-    const caseNumber = index + 1;
-    const inputText = Object.entries(test.inputs)
-      .map(([name, value]) => `${name}=${value}`)
-      .join(', ');
-    setInlineStatus(ui, {
-      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-      percent: Math.floor((passedCount / safeTotal) * 100),
-      text: `Case ${caseNumber}/${totalTests}`,
-      detail: `${inputLabel}: ${inputText}`,
-      state: 'running'
-    });
-
-    inputs.forEach(input => {
-      input.value = test.inputs[input.name] ?? 0;
-    });
-
-    const maybePromise = evaluateCircuit(circuit);
-    if (maybePromise && typeof maybePromise.then === 'function') {
-      await maybePromise;
+  const tr = (key, fallback) => translateOrFallback(t, key, fallback);
+  const title = tr('gradingVerifying', '회로 검증 중…');
+  const stats = result => tr('gradingSearchStats', '상태 {states}개 · 전이 {transitions}개 검사')
+    .replace('{states}', result.states || 0).replace('{transitions}', result.transitions || 0);
+  if (ui?.percent) ui.percent.hidden = true;
+  if (ui?.fill?.parentElement) ui.fill.parentElement.hidden = true;
+  setInlineStatus(ui, { title, text: stats({}), detail: '', state: 'running' });
+  const result = await gradeCircuit(circuit, testCases, {
+    signal, ports,
+    onProgress(progress) {
+      if (!signal?.aborted) setInlineStatus(ui, { title, text: stats(progress), detail: '', state: 'running' });
     }
-    await createDelay(WAIT_BETWEEN_TESTS);
-
-    let correct = true;
-    const actualText = outputs
-      .map(output => {
-        const actual = output.value ? 1 : 0;
-        const expected = test.expected[output.name];
-        if (actual !== expected) {
-          correct = false;
-        }
-        return `${output.name}=${actual}`;
-      })
-      .join(', ');
-
-    const expectedText = Object.entries(test.expected)
-      .map(([name, value]) => `${name}=${value}`)
-      .join(', ');
-
-    if (!correct) {
-      setInlineStatus(ui, {
-        title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-        percent: Math.floor((passedCount / safeTotal) * 100),
-        text: `${failedLabel} (${caseNumber}/${totalTests})`,
-        detail: `${inputLabel}: ${inputText}\n${expectedLabel}: ${expectedText}\n${actualLabel}: ${actualText}`,
-        state: 'failed'
-      });
-      return false;
-    }
-    passedCount += 1;
-    setInlineStatus(ui, {
-      title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-      percent: Math.floor((passedCount / safeTotal) * 100),
-      text: `${passedLabel} (${caseNumber}/${totalTests})`,
-      detail: `${inputLabel}: ${inputText}\n${expectedLabel}: ${expectedText}\n${actualLabel}: ${actualText}`,
-      state: 'running'
-    });
-  }
-
-  setInlineStatus(ui, {
-    title: progressTitle.replace(/<[^>]+>/g, '').replace(':', '').trim() || '시뮬레이션 진행',
-    percent: 100,
-    text: passSummary,
-    detail: '',
-    state: 'passed'
   });
-  return true;
+  // Returning to the editor must not reopen the grading panel asynchronously.
+  if (signal?.aborted || result.cancelled) return null;
+  return result;
 }
 
 export function createGradingController(config = {}) {
   const {
     getPlayCircuit,
+    onPassed,
+    onScoringChange,
     getLevelAnswer,
     getLevelBlockSet,
     getCurrentLevel,
@@ -284,7 +132,6 @@ export function createGradingController(config = {}) {
     showClearedModal,
     showClearedModalOptions,
     markLevelCleared,
-    playStoryFragmentForClearCount,
     saveRanking,
     saveProblemRanking,
     getUsername,
@@ -308,9 +155,48 @@ export function createGradingController(config = {}) {
   const inlineStatus = elements.gradingInlineStatus || null;
   const inlineBackButton = inlineStatus?.querySelector('#gradingInlineBackBtn') || null;
   let isScoring = false;
+  let activeAbort = null;
   let inlineStatusOpen = false;
   let pendingClearedLevel = null;
   const shownClearedLevels = new Set();
+  let resultOpen = false;
+  const resultView = createGradingResultView({
+    getCircuit: getPlayCircuit, getTraceView: config.getTraceView,
+    onClose: () => setResultOpen(false),
+    onEdit: () => { setInlineStatusOpen(false); returnToEditScreen?.(); gradeButton?.focus(); }
+  });
+
+  function setResultOpen(open) {
+    resultOpen = Boolean(open);
+    if (typeof window !== 'undefined') {
+      window.isGradingResultOpen = resultOpen;
+      document.body.classList.toggle('grading-result-mode', resultOpen);
+      document.dispatchEvent(new Event('bitwiser:scoring'));
+    }
+    if (gradeButton) gradeButton.style.display = resultOpen || inlineStatusOpen ? 'none' : '';
+  }
+
+  async function verifySelection(args, stage) {
+    const result = await runVerification(args);
+    if (!result) return false;
+    setInlineStatusOpen(false);
+    setResultOpen(true);
+    // Dedicated success views keep their cost records/rankings and use the
+    // shared result shell; all other outcomes use this trace-capable view.
+    if (!result.ok || (!onPassed && !showClearedModal)) resultView?.show(result, { stage });
+    return result.ok;
+  }
+
+  function cancel({ restoreFocus = false } = {}) {
+    activeAbort?.abort();
+    resultView?.close({ restoreFocus });
+    setResultOpen(false);
+    setInlineStatusOpen(false);
+  }
+  if (typeof document !== 'undefined') {
+    document.addEventListener('bitwiser:leavePlay', cancel);
+    document.addEventListener('bitwiser:editCircuit', cancel);
+  }
 
   function syncOverlay() {
     const statusVisible = inlineStatus ? !inlineStatus.hidden : inlineStatusOpen;
@@ -325,15 +211,18 @@ export function createGradingController(config = {}) {
       inlineStatus.hidden = !inlineStatusOpen;
     }
     if (gradeButton) {
-      gradeButton.style.display = inlineStatusOpen ? 'none' : '';
+      gradeButton.style.display = inlineStatusOpen || resultOpen ? 'none' : '';
     }
     syncOverlay();
   }
 
   function setIsScoring(value) {
     isScoring = Boolean(value);
+    if (isScoring) pauseCircuit(getPlayCircuit?.());
+    onScoringChange?.(isScoring);
     if (typeof window !== 'undefined') {
       window.isScoring = Boolean(value);
+      document.dispatchEvent(new Event('bitwiser:scoring'));
     }
     syncOverlay();
   }
@@ -341,6 +230,7 @@ export function createGradingController(config = {}) {
   if (inlineBackButton) {
     inlineBackButton.textContent = translateOrFallback(translate, 'returnToEditBtn', '🛠 Back to Edit');
     inlineBackButton.addEventListener('click', () => {
+      activeAbort?.abort();
       setInlineStatusOpen(false);
       const handler = typeof returnToEditScreen === 'function' ? returnToEditScreen : null;
       if (handler) handler();
@@ -349,39 +239,29 @@ export function createGradingController(config = {}) {
 
   async function gradeLevel(level) {
     const testCases = typeof getLevelAnswer === 'function' ? getLevelAnswer(level) : null;
-    const circuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
+    const liveCircuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
+    const circuit = liveCircuit ? snapshotCircuit(liveCircuit) : null;
     if (!testCases || !circuit) return;
 
-    if (!validateConnections(circuit, alertSafe, translate)) {
-      return;
-    }
-
-    const requiredOutputs = (typeof getLevelBlockSet === 'function' ? getLevelBlockSet(level) : []);
-    const requiredOutputNames = requiredOutputs
-      .filter(block => block.type === 'OUTPUT')
-      .map(block => block.name);
-    const actualOutputNames = collectBlocks(circuit)
-      .filter(block => block.type === 'OUTPUT')
-      .map(block => block.name);
-
-    if (!ensureRequiredOutputs({
-      requiredOutputs: requiredOutputNames,
-      actualOutputNames,
-      alertFn: alertSafe,
-      t: translate
-    })) {
-      return;
-    }
+    const blockSet = typeof getLevelBlockSet === 'function' ? getLevelBlockSet(level) : null;
+    const ports = blockSet ? {
+      inputs: blockSet.filter(b => b.type === 'INPUT').map(b => b.name),
+      outputs: blockSet.filter(b => b.type === 'OUTPUT').map(b => b.name)
+    } : undefined;
     setInlineStatusOpen(true);
 
-    const { evaluateCircuit } = await import('../canvas/engine.js');
-    const allCorrect = await runTestCases({
-      circuit,
-      testCases,
-      evaluateCircuit,
-      inlineStatus,
-      t: translate
-    });
+    const allCorrect = await verifySelection({ circuit, testCases, inlineStatus, t: translate, signal: activeAbort?.signal, ports }, level);
+    if (allCorrect && onPassed) {
+      triggerConfetti();
+      await onPassed(Number(level), snapshotCircuit(circuit));
+      attemptAutoSave({ getAutoSaveSetting, getCurrentUser, saveCircuit, updateSaveProgress, elements, t: translate, alertFn: alertSafe })
+        .then(({ saveSuccess, loginNeeded, statusMessage }) => {
+          if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
+            showCircuitSavedModal({ message: statusMessage, canShare: saveSuccess, loginRequired: loginNeeded });
+          }
+        }).catch(error => console.warn('Circuit autosave failed', error));
+      return;
+    }
 
     if (!allCorrect) {
       return;
@@ -411,22 +291,10 @@ export function createGradingController(config = {}) {
       ? getUsername() || anonymousLabel
       : anonymousLabel;
 
-    // Mark cleared now; new clears unlock a story reward before the cleared modal.
+    // Record progress before showing the cleared modal.
     pendingClearedLevel = level;
-    let clearResult = null;
     if (typeof markLevelCleared === 'function') {
-      clearResult = markLevelCleared(level);
-    }
-    if (
-      clearResult?.wasNew
-      && Number.isFinite(Number(clearResult.clearedCount))
-      && typeof playStoryFragmentForClearCount === 'function'
-    ) {
-      try {
-        await playStoryFragmentForClearCount(clearResult.clearedCount);
-      } catch (err) {
-        console.warn('Story reward playback failed', err);
-      }
+      markLevelCleared(level);
     }
     if (typeof showClearedModal === 'function') {
       try {
@@ -517,29 +385,12 @@ export function createGradingController(config = {}) {
     const key = typeof getActiveCustomProblemKey === 'function' ? getActiveCustomProblemKey() : null;
     if (!problem) return;
 
-    const circuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
+    const liveCircuit = typeof getPlayCircuit === 'function' ? getPlayCircuit() : null;
+    const circuit = liveCircuit ? snapshotCircuit(liveCircuit) : null;
     if (!circuit) return;
-
-    if (!validateConnections(circuit, alertSafe, translate)) {
-      return;
-    }
 
     const inNames = Array.from({ length: problem.inputCount }, (_, index) => `IN${index + 1}`);
     const outNames = Array.from({ length: problem.outputCount }, (_, index) => `OUT${index + 1}`);
-
-    const requiredOutputs = outNames;
-    const actualOutputNames = collectBlocks(circuit)
-      .filter(block => block.type === 'OUTPUT')
-      .map(block => block.name);
-
-    if (!ensureRequiredOutputs({
-      requiredOutputs,
-      actualOutputNames,
-      alertFn: alertSafe,
-      t: translate
-    })) {
-      return;
-    }
     setInlineStatusOpen(true);
 
     const testCases = problem.table.map(row => ({
@@ -547,11 +398,11 @@ export function createGradingController(config = {}) {
       expected: Object.fromEntries(outNames.map(name => [name, row[name]]))
     }));
 
-    const { evaluateCircuit } = await import('../canvas/engine.js');
-    const allCorrect = await runTestCases({
+    const allCorrect = await verifySelection({
       circuit,
       testCases,
-      evaluateCircuit,
+      ports: { inputs: inNames, outputs: outNames },
+      signal: activeAbort?.signal,
       inlineStatus,
       t: translate
     });
@@ -585,14 +436,20 @@ export function createGradingController(config = {}) {
     const level = typeof getCurrentLevel === 'function' ? getCurrentLevel() : null;
     if (!customProblem && level == null) return;
 
-    setIsScoring(true);
-    try {
-      if (customProblem) {
-        await gradeCustomProblem();
-      } else {
-        await gradeLevel(level);
+    return withScoring(() => customProblem ? gradeCustomProblem() : gradeLevel(level));
+  }
+
+  async function withScoring(work) {
+    if (isScoring) return;
+    activeAbort = new AbortController();
+    try { setIsScoring(true); return await work(); }
+    catch (error) {
+      if (!activeAbort?.signal.aborted) {
+        setInlineStatusOpen(false); setResultOpen(true);
+        resultView?.show({ status: 'invalid', diagnostics: [{ message: error.message }] });
       }
     } finally {
+      activeAbort = null;
       setIsScoring(false);
     }
   }
@@ -609,11 +466,18 @@ export function createGradingController(config = {}) {
 
   return {
     gradeCurrentSelection,
-    gradeLevel,
-    gradeCustomProblem,
+    gradeLevel: level => withScoring(() => gradeLevel(level)),
+    gradeCustomProblem: () => withScoring(gradeCustomProblem),
+    cancel,
+    destroy() {
+      cancel(); resultView?.destroy();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('bitwiser:leavePlay', cancel);
+        document.removeEventListener('bitwiser:editCircuit', cancel);
+      }
+    },
     setIsScoring,
     isScoring: () => isScoring,
     consumePendingClearedLevel
   };
 }
-

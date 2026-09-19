@@ -1,3 +1,4 @@
+import { snapshotCircuit } from '../canvas/circuitData.js';
 import { getGoogleNickname, getUsername } from './storage.js';
 
 const globalTranslate =
@@ -52,7 +53,7 @@ function sanitizeCircuit(rawCircuit) {
     wires: rawCircuit.wires && typeof rawCircuit.wires === 'object' ? rawCircuit.wires : {},
   };
   try {
-    return JSON.parse(JSON.stringify(base));
+    return snapshotCircuit(base);
   } catch (err) {
     console.warn('Failed to sanitize circuit payload', err);
     return null;

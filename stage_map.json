@@ -4,39 +4,241 @@
     "description": "All coordinates and sizes are in grid units."
   },
   "nodeTypes": {
-    "stage": { "defaultSize": { "w": 3, "h": 3 } },
-    "rank": { "defaultSize": { "w": 29, "h": 3 } },
-    "feature": { "defaultSize": { "w": 9, "h": 3 } },
-    "mode": { "defaultSize": { "w": 6, "h": 3 } }
+    "stage": {
+      "defaultSize": {
+        "w": 3,
+        "h": 3
+      }
+    },
+    "feature": {
+      "defaultSize": {
+        "w": 9,
+        "h": 3
+      }
+    },
+    "mode": {
+      "defaultSize": {
+        "w": 6,
+        "h": 3
+      }
+    }
   },
   "chapters": [
     {
+      "id": "extras",
+      "label": "Auxiliary Systems",
+      "order": 0,
+      "numbered": false,
+      "anchor": {
+        "x": -28,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": -28,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": -28,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "auxiliary_core"
+      }
+    },
+    {
       "id": "chapter_1",
       "label": "Logic Core",
+      "subtitle": {
+        "ko": "신호에 의미를 부여하다",
+        "en": "Give signals meaning."
+      },
       "order": 1,
-      "anchor": { "x": 0, "y": 0 },
-      "rankNodeId": "bit_solver"
+      "prerequisites": [],
+      "anchor": {
+        "x": 2,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": 2,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": 2,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "bit_solver"
+      }
     },
     {
       "id": "chapter_2",
-      "label": "Control Flow",
+      "label": "Memory Link",
+      "subtitle": {
+        "ko": "지나간 순간을 기억하다",
+        "en": "Remember what came before."
+      },
       "order": 2,
-      "anchor": { "x": 36, "y": 0 },
-      "rankNodeId": "bit_wiser"
+      "prerequisites": [
+        6
+      ],
+      "anchor": {
+        "x": 32,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": 32,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": 32,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "bit_wiser"
+      }
     },
     {
       "id": "chapter_3",
       "label": "Arithmetic Unit",
+      "subtitle": {
+        "ko": "비트로 계산하다",
+        "en": "Calculate with bits."
+      },
       "order": 3,
-      "anchor": { "x": 72, "y": 0 },
-      "rankNodeId": "bit_master"
+      "prerequisites": [
+        30
+      ],
+      "anchor": {
+        "x": 62,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": 62,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": 62,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "bit_master"
+      }
     },
     {
       "id": "chapter_4",
-      "label": "Auxiliary Systems",
+      "label": "Control Flow",
+      "subtitle": {
+        "ko": "다음 행동을 결정하다",
+        "en": "Decide what happens next."
+      },
       "order": 4,
-      "anchor": { "x": 102, "y": 0 },
-      "rankNodeId": "auxiliary_core"
+      "prerequisites": [
+        30
+      ],
+      "anchor": {
+        "x": 92,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": 92,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": 92,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "control_core"
+      }
+    },
+    {
+      "id": "chapter_5",
+      "label": "System Integration",
+      "subtitle": {
+        "ko": "흩어진 기능을 하나로 연결하다",
+        "en": "Bring the pieces together."
+      },
+      "order": 5,
+      "prerequisites": [
+        30,
+        14,
+        32
+      ],
+      "anchor": {
+        "x": 122,
+        "y": 4
+      },
+      "panel": {
+        "position": {
+          "x": 122,
+          "y": 4
+        },
+        "size": {
+          "w": 25,
+          "h": 17
+        }
+      },
+      "title": {
+        "position": {
+          "x": 122,
+          "y": 1
+        },
+        "size": {
+          "w": 25,
+          "h": 2.75
+        },
+        "styleId": "system_core"
+      }
     }
   ],
   "globals": {
@@ -44,184 +246,306 @@
   },
   "nodes": [
     {
-      "id": "bit_solver",
-      "label": "Logic Core",
-      "nodeType": "rank",
-      "category": "meta",
-      "chapterId": "chapter_1",
-      "position": { "x": 2, "y": 2 },
-      "size": { "w": 25, "h": 3 }
-    },
-    {
-      "id": "bit_wiser",
-      "label": "Control Flow",
-      "nodeType": "rank",
-      "category": "meta",
-      "chapterId": "chapter_2",
-      "position": { "x": 38, "y": 2 },
-      "size": { "w": 25, "h": 3 }
-    },
-    {
-      "id": "bit_master",
-      "label": "Arithmetic Unit",
-      "nodeType": "rank",
-      "category": "meta",
-      "chapterId": "chapter_3",
-      "position": { "x": 74, "y": 2 },
-      "size": { "w": 25, "h": 3 }
-    },
-    {
       "id": "tutorial",
-      "label": "Tutorial",
+      "label": "Tutorial: First Circuit",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 3, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 2.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c1_tutorial",
+      "gridPosition": {
+        "column": 1,
+        "row": 2
+      }
     },
     {
       "id": "not",
-      "label": "NOT",
+      "label": "NOT gate",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 8, "y": 8 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "nand",
-      "label": "NAND",
-      "nodeType": "stage",
-      "category": "basic_logic",
-      "chapterId": "chapter_1",
-      "position": { "x": 18, "y": 13 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "nor",
-      "label": "NOR",
-      "nodeType": "stage",
-      "category": "basic_logic",
-      "chapterId": "chapter_1",
-      "position": { "x": 13, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 7.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c1_not",
+      "gridPosition": {
+        "column": 2,
+        "row": 2
+      }
     },
     {
       "id": "or",
-      "label": "OR",
+      "label": "OR gate",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 13, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 12.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c1_or",
+      "gridPosition": {
+        "column": 3,
+        "row": 2
+      }
     },
     {
       "id": "and",
-      "label": "AND",
+      "label": "AND gate",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 18, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 17.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c1_and",
+      "gridPosition": {
+        "column": 4,
+        "row": 2
+      }
     },
     {
       "id": "xor",
-      "label": "XOR",
+      "label": "XOR gate",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_1",
-      "position": { "x": 23, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 22.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c1_xor",
+      "gridPosition": {
+        "column": 5,
+        "row": 2
+      }
     },
     {
-      "id": "auxiliary_core",
-      "label": "Auxiliary Core",
-      "nodeType": "rank",
-      "category": "meta",
-      "chapterId": "chapter_4",
-      "position": { "x": 104, "y": 2 },
-      "size": { "w": 25, "h": 3 }
-    },
-    {
-      "id": "lab",
-      "label": "Test Bench",
-      "nodeType": "mode",
-      "category": "meta",
-      "chapterId": "chapter_4",
-      "position": { "x": 105, "y": 8 },
-      "size": { "w": 8, "h": 3 }
-    },
-    {
-      "id": "user_created_stages",
-      "label": "External Blueprints",
-      "nodeType": "mode",
-      "category": "meta",
-      "chapterId": "chapter_4",
-      "position": { "x": 119, "y": 13 },
-      "size": { "w": 9, "h": 3 }
-    },
-    {
-      "id": "crossroad",
-      "label": "Crossroad",
+      "id": "nor",
+      "label": "NOR gate",
       "nodeType": "stage",
       "category": "basic_logic",
-      "chapterId": "chapter_2",
-      "position": { "x": 59, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "chapterId": "chapter_1",
+      "position": {
+        "x": 12.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": true,
+      "status": "playable",
+      "layoutKey": "c1_nor",
+      "gridPosition": {
+        "column": 3,
+        "row": 3
+      }
     },
     {
-      "id": "fixed_xor",
-      "label": "Fixed XOR",
+      "id": "nand",
+      "label": "NAND gate",
       "nodeType": "stage",
       "category": "basic_logic",
-      "chapterId": "chapter_2",
-      "position": { "x": 54, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "chapterId": "chapter_1",
+      "position": {
+        "x": 17.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": true,
+      "status": "playable",
+      "layoutKey": "c1_nand",
+      "gridPosition": {
+        "column": 4,
+        "row": 3
+      }
     },
     {
-      "id": "three_bit_shifter",
-      "label": "3-bit Shifter",
+      "id": "enabled_register",
+      "label": "Storage Switch",
       "nodeType": "stage",
-      "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 44, "y": 13 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "parity_checker",
-      "label": "Parity Checker",
-      "nodeType": "stage",
-      "category": "control_logic",
-      "chapterId": "chapter_2",
-      "position": { "x": 44, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 32.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_save",
+      "gridPosition": {
+        "column": 1,
+        "row": 2
+      }
     },
     {
       "id": "majority_gate",
-      "label": "Majority Gate",
+      "label": "Majority gate",
       "nodeType": "stage",
       "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 39, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 37.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c2_majority",
+      "gridPosition": {
+        "column": 2,
+        "row": 2
+      }
     },
     {
-      "id": "fixed_decoder_2to4",
-      "label": "Fixed 2-to-4 Decoder",
+      "id": "toggle_light",
+      "label": "Toggle Light",
       "nodeType": "stage",
-      "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 49, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 32.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_toggle",
+      "gridPosition": {
+        "column": 1,
+        "row": 3
+      }
     },
     {
-      "id": "decoder_2to4",
-      "label": "2-to-4 Decoder",
+      "id": "selector_2to1",
+      "label": "2-to-1 Selector",
       "nodeType": "stage",
-      "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 49, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 42.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_selector",
+      "gridPosition": {
+        "column": 3,
+        "row": 2
+      }
+    },
+    {
+      "id": "sticky_fault",
+      "label": "Fault Indicator",
+      "nodeType": "stage",
+      "chapterId": "chapter_2",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 37.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_fault",
+      "gridPosition": {
+        "column": 2,
+        "row": 3
+      }
+    },
+    {
+      "id": "staging_register",
+      "label": "Prepare and Commit",
+      "nodeType": "stage",
+      "chapterId": "chapter_2",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 42.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_buffer",
+      "gridPosition": {
+        "column": 3,
+        "row": 3
+      }
+    },
+    {
+      "id": "automatic_door",
+      "label": "Automatic Door",
+      "nodeType": "stage",
+      "chapterId": "chapter_2",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 47.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_door",
+      "gridPosition": {
+        "column": 4,
+        "row": 3
+      }
     },
     {
       "id": "priority_gate",
@@ -229,26 +553,64 @@
       "nodeType": "stage",
       "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 39, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 37.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": true,
+      "status": "playable",
+      "layoutKey": "c2_priority",
+      "gridPosition": {
+        "column": 2,
+        "row": 1
+      }
     },
     {
-      "id": "two_bit_max_selector",
-      "label": "2-bit Max Selector",
+      "id": "decoder_2to4",
+      "label": "2-to-4 Decoder",
       "nodeType": "stage",
       "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 54, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 42.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": true,
+      "status": "playable",
+      "layoutKey": "c2_decoder",
+      "gridPosition": {
+        "column": 3,
+        "row": 1
+      }
     },
     {
-      "id": "mux_4to1",
-      "label": "4-to-1 MUX",
+      "id": "rising_edge",
+      "label": "Rising Edge Detector",
       "nodeType": "stage",
-      "category": "control_logic",
       "chapterId": "chapter_2",
-      "position": { "x": 59, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "optional": true,
+      "status": "playable",
+      "position": {
+        "x": 52.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c2_rise",
+      "gridPosition": {
+        "column": 5,
+        "row": 3
+      }
     },
     {
       "id": "half_adder",
@@ -256,8 +618,43 @@
       "nodeType": "stage",
       "category": "arithmetic",
       "chapterId": "chapter_3",
-      "position": { "x": 75, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 62.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_half",
+      "gridPosition": {
+        "column": 1,
+        "row": 2
+      }
+    },
+    {
+      "id": "parity_checker",
+      "label": "Parity checker",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 67.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_parity",
+      "gridPosition": {
+        "column": 2,
+        "row": 2
+      }
     },
     {
       "id": "full_adder",
@@ -265,53 +662,21 @@
       "nodeType": "stage",
       "category": "arithmetic",
       "chapterId": "chapter_3",
-      "position": { "x": 80, "y": 8 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "overflow_detector",
-      "label": "Overflow Detector",
-      "nodeType": "stage",
-      "category": "arithmetic",
-      "chapterId": "chapter_3",
-      "position": { "x": 80, "y": 13 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "mod3_remainder",
-      "label": "Mod 3 Remainder",
-      "nodeType": "stage",
-      "category": "arithmetic",
-      "chapterId": "chapter_3",
-      "position": { "x": 95, "y": 13 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "two_bit_comparator",
-      "label": "2-bit Comparator",
-      "nodeType": "stage",
-      "category": "arithmetic",
-      "chapterId": "chapter_3",
-      "position": { "x": 85, "y": 8 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "two_bit_subtractor",
-      "label": "2-bit Subtractor",
-      "nodeType": "stage",
-      "category": "arithmetic",
-      "chapterId": "chapter_3",
-      "position": { "x": 85, "y": 13 },
-      "size": { "w": 3, "h": 3 }
-    },
-    {
-      "id": "two_bit_multiplier",
-      "label": "2-bit Multiplier",
-      "nodeType": "stage",
-      "category": "arithmetic",
-      "chapterId": "chapter_3",
-      "position": { "x": 95, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 72.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_full",
+      "gridPosition": {
+        "column": 3,
+        "row": 2
+      }
     },
     {
       "id": "two_bit_adder",
@@ -319,8 +684,87 @@
       "nodeType": "stage",
       "category": "arithmetic",
       "chapterId": "chapter_3",
-      "position": { "x": 90, "y": 8 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 77.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_adder",
+      "gridPosition": {
+        "column": 4,
+        "row": 2
+      }
+    },
+    {
+      "id": "two_bit_multiplier",
+      "label": "2-bit Multiplier",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 82.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_multiplier",
+      "gridPosition": {
+        "column": 5,
+        "row": 2
+      }
+    },
+    {
+      "id": "two_bit_comparator",
+      "label": "2-bit Comparator",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 67.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_comparator",
+      "gridPosition": {
+        "column": 2,
+        "row": 3
+      }
+    },
+    {
+      "id": "two_bit_max_selector",
+      "label": "2-bit Max Selector",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 72.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_max",
+      "gridPosition": {
+        "column": 3,
+        "row": 3
+      }
     },
     {
       "id": "twos_complement",
@@ -328,34 +772,808 @@
       "nodeType": "stage",
       "category": "arithmetic",
       "chapterId": "chapter_3",
-      "position": { "x": 90, "y": 13 },
-      "size": { "w": 3, "h": 3 }
+      "position": {
+        "x": 77.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_twos",
+      "gridPosition": {
+        "column": 4,
+        "row": 1
+      }
+    },
+    {
+      "id": "two_bit_subtractor",
+      "label": "2-bit Mod 4 Subtractor",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 82.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_subtractor",
+      "gridPosition": {
+        "column": 5,
+        "row": 1
+      }
+    },
+    {
+      "id": "mod3_remainder",
+      "label": "4-bit Mod 3 Remainder",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 82.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c3_remainder",
+      "gridPosition": {
+        "column": 5,
+        "row": 3
+      }
+    },
+    {
+      "id": "overflow_detector",
+      "label": "Overflow Detector",
+      "nodeType": "stage",
+      "category": "arithmetic",
+      "chapterId": "chapter_3",
+      "position": {
+        "x": 72.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "candidate",
+      "layoutKey": "c3_overflow",
+      "gridPosition": {
+        "column": 3,
+        "row": 1
+      }
+    },
+    {
+      "id": "mux_4to1",
+      "label": "4-to-1 MUX",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "chapterId": "chapter_4",
+      "position": {
+        "x": 102.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c4_mux",
+      "gridPosition": {
+        "column": 3,
+        "row": 2
+      }
+    },
+    {
+      "id": "three_bit_shifter",
+      "label": "3-bit Shifter",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "chapterId": "chapter_4",
+      "position": {
+        "x": 102.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c4_shifter",
+      "gridPosition": {
+        "column": 3,
+        "row": 3
+      }
+    },
+    {
+      "id": "up_down_counter",
+      "label": "Up/Down Counter",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 92.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_counter",
+      "gridPosition": {
+        "column": 1,
+        "row": 1
+      }
+    },
+    {
+      "id": "pwm",
+      "label": "Four Brightness Levels",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 97.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_pwm",
+      "gridPosition": {
+        "column": 2,
+        "row": 1
+      }
+    },
+    {
+      "id": "watchdog",
+      "label": "Watchdog",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 102.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_watchdog",
+      "gridPosition": {
+        "column": 3,
+        "row": 1
+      }
+    },
+    {
+      "id": "debouncer",
+      "label": "Bouncing Button",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 92.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_debounce",
+      "gridPosition": {
+        "column": 1,
+        "row": 2
+      }
+    },
+    {
+      "id": "round_robin",
+      "label": "Fair Access",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 97.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_round",
+      "gridPosition": {
+        "column": 2,
+        "row": 2
+      }
+    },
+    {
+      "id": "abba_lock",
+      "label": "ABBA Lock",
+      "nodeType": "stage",
+      "chapterId": "chapter_4",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 97.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c4_abba",
+      "gridPosition": {
+        "column": 2,
+        "row": 3
+      }
+    },
+    {
+      "id": "fixed_xor",
+      "label": "Fixed XOR Gate",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "chapterId": "chapter_4",
+      "position": {
+        "x": 107.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c4_fixedxor",
+      "gridPosition": {
+        "column": 4,
+        "row": 2
+      }
+    },
+    {
+      "id": "fixed_decoder_2to4",
+      "label": "Fixed 2-to-4 Decoder",
+      "nodeType": "stage",
+      "category": "control_logic",
+      "chapterId": "chapter_4",
+      "position": {
+        "x": 107.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c4_fixeddecoder",
+      "gridPosition": {
+        "column": 4,
+        "row": 3
+      }
+    },
+    {
+      "id": "crossroad",
+      "label": "7 x 7 crossroad",
+      "nodeType": "stage",
+      "category": "basic_logic",
+      "chapterId": "chapter_4",
+      "position": {
+        "x": 112.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "optional": false,
+      "status": "playable",
+      "layoutKey": "c4_cross",
+      "gridPosition": {
+        "column": 5,
+        "row": 2
+      }
+    },
+    {
+      "id": "register_bank",
+      "label": "Addressed Storage",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 122.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_register",
+      "gridPosition": {
+        "column": 1,
+        "row": 2
+      }
+    },
+    {
+      "id": "undo_register",
+      "label": "Undo Once",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 132.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_undo",
+      "gridPosition": {
+        "column": 3,
+        "row": 2
+      }
+    },
+    {
+      "id": "mailbox",
+      "label": "Mailbox",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 127.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_mail",
+      "gridPosition": {
+        "column": 2,
+        "row": 2
+      }
+    },
+    {
+      "id": "stack",
+      "label": "Last In, First Out",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 127.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_stack",
+      "gridPosition": {
+        "column": 2,
+        "row": 1
+      }
+    },
+    {
+      "id": "queue",
+      "label": "First In, First Out",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 127.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_queue",
+      "gridPosition": {
+        "column": 2,
+        "row": 3
+      }
+    },
+    {
+      "id": "serial_receiver",
+      "label": "Serial Receiver",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 122.5,
+        "y": 5.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_rx",
+      "gridPosition": {
+        "column": 1,
+        "row": 1
+      }
+    },
+    {
+      "id": "serial_transmitter",
+      "label": "Serial Transmitter",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 132.5,
+        "y": 15.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_tx",
+      "gridPosition": {
+        "column": 3,
+        "row": 3
+      }
+    },
+    {
+      "id": "accumulator",
+      "label": "Accumulator",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 137.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_accum",
+      "gridPosition": {
+        "column": 4,
+        "row": 2
+      }
+    },
+    {
+      "id": "iterative_multiplier",
+      "label": "Divide Over Time",
+      "nodeType": "stage",
+      "chapterId": "chapter_5",
+      "optional": false,
+      "status": "playable",
+      "position": {
+        "x": 142.5,
+        "y": 10.5
+      },
+      "size": {
+        "w": 4,
+        "h": 4
+      },
+      "layoutKey": "c5_iter",
+      "gridPosition": {
+        "column": 5,
+        "row": 2
+      }
+    },
+    {
+      "id": "lab",
+      "label": "Test Bench",
+      "nodeType": "mode",
+      "category": "meta",
+      "chapterId": "extras",
+      "position": {
+        "x": -23.375,
+        "y": 9.35
+      },
+      "size": {
+        "w": 7.2,
+        "h": 6.3
+      }
+    },
+    {
+      "id": "user_created_stages",
+      "label": "External Blueprints",
+      "nodeType": "mode",
+      "category": "meta",
+      "chapterId": "extras",
+      "position": {
+        "x": -14.825,
+        "y": 9.35
+      },
+      "size": {
+        "w": 7.2,
+        "h": 6.3
+      }
     }
   ],
   "edges": [
-    { "from": "tutorial", "to": "not", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "not", "to": "or", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "or", "to": "nor", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "or", "to": "and", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "and", "to": "nand", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "and", "to": "xor", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "fixed_xor", "to": "crossroad", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "parity_checker", "to": "three_bit_shifter", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "majority_gate", "to": "parity_checker", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "parity_checker", "to": "decoder_2to4", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "decoder_2to4", "to": "fixed_decoder_2to4", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "decoder_2to4", "to": "two_bit_max_selector", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "majority_gate", "to": "priority_gate", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_max_selector", "to": "mux_4to1", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_max_selector", "to": "fixed_xor", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "fixed_xor", "to": "crossroad", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "half_adder", "to": "full_adder", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "full_adder", "to": "overflow_detector", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "twos_complement", "to": "two_bit_subtractor", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_multiplier", "to": "mod3_remainder", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "full_adder", "to": "two_bit_comparator", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_comparator", "to": "two_bit_adder", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_adder", "to": "two_bit_multiplier", "style": "orthogonal", "edgeType": "progression" },
-    { "from": "two_bit_adder", "to": "twos_complement", "style": "orthogonal", "edgeType": "progression" }
+    {
+      "from": "tutorial",
+      "to": "not",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "not",
+      "to": "or",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "or",
+      "to": "and",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "and",
+      "to": "xor",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "or",
+      "to": "nor",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "and",
+      "to": "nand",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "enabled_register",
+      "to": "majority_gate",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "enabled_register",
+      "to": "toggle_light",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "majority_gate",
+      "to": "selector_2to1",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "toggle_light",
+      "to": "sticky_fault",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "selector_2to1",
+      "to": "staging_register",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "sticky_fault",
+      "to": "staging_register",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "staging_register",
+      "to": "automatic_door",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "majority_gate",
+      "to": "priority_gate",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "selector_2to1",
+      "to": "decoder_2to4",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "automatic_door",
+      "to": "rising_edge",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "half_adder",
+      "to": "parity_checker",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "parity_checker",
+      "to": "full_adder",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "full_adder",
+      "to": "two_bit_adder",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "two_bit_adder",
+      "to": "two_bit_multiplier",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "parity_checker",
+      "to": "two_bit_comparator",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "two_bit_comparator",
+      "to": "two_bit_max_selector",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "two_bit_adder",
+      "to": "twos_complement",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "twos_complement",
+      "to": "two_bit_subtractor",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "two_bit_multiplier",
+      "to": "mod3_remainder",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "full_adder",
+      "to": "overflow_detector",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "round_robin",
+      "to": "mux_4to1",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "mux_4to1",
+      "to": "three_bit_shifter",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "debouncer",
+      "to": "up_down_counter",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "up_down_counter",
+      "to": "pwm",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "pwm",
+      "to": "watchdog",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "debouncer",
+      "to": "round_robin",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "round_robin",
+      "to": "abba_lock",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "mux_4to1",
+      "to": "fixed_xor",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "fixed_xor",
+      "to": "fixed_decoder_2to4",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "fixed_xor",
+      "to": "crossroad",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "mailbox",
+      "to": "undo_register",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "register_bank",
+      "to": "mailbox",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "mailbox",
+      "to": "stack",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "mailbox",
+      "to": "queue",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "register_bank",
+      "to": "serial_receiver",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "undo_register",
+      "to": "serial_transmitter",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "undo_register",
+      "to": "accumulator",
+      "style": "straight",
+      "edgeType": "progression"
+    },
+    {
+      "from": "accumulator",
+      "to": "iterative_multiplier",
+      "style": "straight",
+      "edgeType": "progression"
+    }
   ]
 }

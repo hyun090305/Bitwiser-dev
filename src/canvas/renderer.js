@@ -1,6 +1,7 @@
 import { CELL, GAP } from './model.js';
 import { getActiveTheme, getThemeAccent } from '../themes.js';
 import { formatBlockLabels } from '../blockLabel.js';
+import { getTraceHighlight } from './tracePlayback.js';
 
 export const CELL_CORNER_RADIUS = 3;
 
@@ -776,7 +777,7 @@ export function drawBlock(
   ctx.save();
 
   const isActive = Boolean(
-    block.value && ['INPUT', 'OUTPUT', 'JUNCTION'].includes(block.type)
+    block.value && ['INPUT', 'OUTPUT', 'JUNCTION', 'D'].includes(block.type)
   );
   const blockRadius = Math.max(0, style.radius * scale);
   if (isActive) {
@@ -842,7 +843,7 @@ export function drawBlock(
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.fillText(
-    formatBlockLabels(block.name || block.type),
+    block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type),
     x + size / 2,
     y + size / 2
   );
@@ -1099,8 +1100,50 @@ export function renderContent(
     drawTutorialWireGuides(ctx, tutorialWireGuides, phase, offsetX, camera, themeForTutorial);
   }
   blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
+  // Labels sit on the incoming wire cell, independent of wire direction/color.
+  wires.forEach(w => {
+    if (circuit.blocks[w.endBlockId]?.type !== 'D' || !w.path?.length) return;
+    const rect = getCellScreenRect(w.path.at(-2) || w.path.at(-1), offsetX, camera);
+    if (!rect) return;
+    ctx.save();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(rect.x + rect.size * .18, rect.y + rect.size * .08, rect.size * .64, rect.size * .34);
+    ctx.fillStyle = '#101827';
+    ctx.font = `bold ${Math.max(9, 13 * rect.scale)}px sans-serif`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(w.inputRole || '?', rect.x + rect.size / 2, rect.y + rect.size / 4);
+    ctx.restore();
+  });
   if (tutorialHighlights.length) {
     drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);
+  }
+  const traceHighlight = getTraceHighlight(circuit);
+  for (const signal of traceHighlight?.blocks || []) {
+    const block = circuit.blocks[signal.blockId];
+    if (!block) continue;
+    const rect = getCellScreenRect(block.pos, offsetX, camera);
+    if (!rect) continue;
+    const failed = signal.passed === false;
+    const color = failed ? '#ff8c9f' : '#67e8f9';
+    ctx.save();
+    ctx.strokeStyle = color; ctx.lineWidth = failed ? 3 : 2;
+    ctx.shadowColor = color; ctx.shadowBlur = 16;
+    roundRect(ctx, rect.x - 4, rect.y - 4, rect.size + 8, rect.size + 8, 6); ctx.stroke();
+    ctx.shadowBlur = 0;
+    if (traceHighlight.type === 'expect' || traceHighlight.type === 'observe') {
+      const label = `${signal.signal}  ${signal.actual} ${failed ? '✕' : '✓'}`;
+      const expected = `EXPECTED ${signal.expected}`;
+      ctx.font = 'bold 12px monospace';
+      const width = Math.max(ctx.measureText(label).width, ctx.measureText(expected).width) + 18;
+      const x = rect.x + rect.size / 2 - width / 2, y = rect.y + rect.size + 10;
+      ctx.fillStyle = '#0b1426';
+      roundRect(ctx, x, y, width, 39, 5); ctx.fill(); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = color;
+      ctx.fillText(label, x + width / 2, y + 12);
+      ctx.font = '10px monospace'; ctx.fillStyle = '#e2e8f0';
+      ctx.fillText(expected, x + width / 2, y + 28);
+    }
+    ctx.restore();
   }
   ctx.restore();
 }

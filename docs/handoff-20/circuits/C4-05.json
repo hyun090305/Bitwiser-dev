@@ -1,0 +1,64 @@
+{
+  "id": "C4-05",
+  "nodes": [
+    {
+      "id": "OPEN",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "RECENT0",
+      "type": "D",
+      "inputs": [
+        "OPEN"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "RECENT1",
+      "type": "D",
+      "inputs": [
+        "RECENT0"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "RECENT2",
+      "type": "D",
+      "inputs": [
+        "RECENT1"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "OR",
+      "inputs": [
+        "RECENT0",
+        "RECENT1"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "OR",
+      "inputs": [
+        "RECENT2",
+        "g1"
+      ]
+    },
+    {
+      "id": "OUT_DOOR",
+      "type": "OUTPUT",
+      "inputs": [
+        "g2"
+      ],
+      "name": "DOOR"
+    }
+  ],
+  "solution": {
+    "architecture": "three-sample-delay",
+    "note": "세 D에 최근 OPEN을 지연 저장하고 OR합니다. 요청 tick을 포함한 3 tick 열림을 구현합니다."
+  },
+  "source_variant": "C4-05"
+}

@@ -1,0 +1,184 @@
+{
+  "purpose": "Verified attainable budget, not a minimum claim",
+  "circuit": {
+    "rows": 8,
+    "cols": 9,
+    "blocks": {
+      "PRESS": {
+        "id": "PRESS",
+        "type": "INPUT",
+        "name": "PRESS",
+        "pos": {
+          "r": 0,
+          "c": 4
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "button"
+      },
+      "q": {
+        "id": "q",
+        "type": "D",
+        "name": "q",
+        "pos": {
+          "r": 3,
+          "c": 4
+        },
+        "value": false
+      },
+      "n": {
+        "id": "n",
+        "type": "NOT",
+        "name": "n",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "value": false
+      },
+      "LIGHT": {
+        "id": "LIGHT",
+        "type": "OUTPUT",
+        "name": "LIGHT",
+        "pos": {
+          "r": 3,
+          "c": 8
+        },
+        "value": false,
+        "fixed": true
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "q",
+        "endBlockId": "n",
+        "path": [
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 1
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "n",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "PRESS",
+        "endBlockId": "q",
+        "path": [
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 0,
+            "c": 5
+          },
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 4
+          }
+        ],
+        "inputRole": "EN"
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "q",
+        "endBlockId": "LIGHT",
+        "path": [
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 7
+          },
+          {
+            "r": 3,
+            "c": 8
+          }
+        ]
+      }
+    }
+  }
+}

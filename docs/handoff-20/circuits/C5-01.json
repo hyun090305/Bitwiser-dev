@@ -1,0 +1,176 @@
+{
+  "id": "C5-01",
+  "nodes": [
+    {
+      "id": "D0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "ADD",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "RESET",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "ACC0",
+      "type": "DE",
+      "inputs": [
+        "g3",
+        "g5"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "ACC1",
+      "type": "DE",
+      "inputs": [
+        "g7",
+        "g14"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "ACC0"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "g1",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "ADD",
+        "D0"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "NOT",
+      "inputs": [
+        "ACC1"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "AND",
+      "inputs": [
+        "g2",
+        "g6"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "ACC0",
+        "D0"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "AND",
+      "inputs": [
+        "D1",
+        "g8"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "NOT",
+      "inputs": [
+        "g9"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "OR",
+      "inputs": [
+        "D1",
+        "g8"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "AND",
+      "inputs": [
+        "g10",
+        "g11"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "AND",
+      "inputs": [
+        "ADD",
+        "g12"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "g13"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "ACC0"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "ACC1"
+      ],
+      "name": "Q1"
+    }
+  ],
+  "solution": {
+    "architecture": "DE-conditional-inversion",
+    "note": "두 D+EN에 NOT(Q)와 비트별 반전 조건을 연결하여 mod 4 덧셈을 구현합니다. RESET 입력을 보존합니다."
+  },
+  "source_variant": "C5-01"
+}

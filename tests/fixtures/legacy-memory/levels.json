@@ -1,0 +1,404 @@
+{
+  "levelGridSizes": {
+    "25": [
+      6,
+      8
+    ],
+    "28": [
+      7,
+      10
+    ],
+    "29": [
+      6,
+      13
+    ],
+    "30": [
+      9,
+      13
+    ],
+    "31": [
+      9,
+      13
+    ],
+    "34": [
+      14,
+      16
+    ],
+    "35": [
+      13,
+      16
+    ]
+  },
+  "levelBlockSets": {
+    "25": [
+      {
+        "type": "INPUT",
+        "name": "DATA",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "LOAD",
+        "inputMode": "button"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "Q"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "28": [
+      {
+        "type": "INPUT",
+        "name": "FAULT",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "ACK",
+        "inputMode": "button"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "ALARM"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "29": [
+      {
+        "type": "INPUT",
+        "name": "DATA",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "WRITE",
+        "inputMode": "button"
+      },
+      {
+        "type": "INPUT",
+        "name": "APPLY",
+        "inputMode": "button"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "Q"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "30": [
+      {
+        "type": "INPUT",
+        "name": "OPEN",
+        "inputMode": "button"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "DOOR"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "31": [
+      {
+        "type": "INPUT",
+        "name": "SIGNAL",
+        "inputMode": "switch"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "RISE"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "34": [
+      {
+        "type": "INPUT",
+        "name": "KICK",
+        "inputMode": "button"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "TIMEOUT"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ],
+    "35": [
+      {
+        "type": "INPUT",
+        "name": "RAW",
+        "inputMode": "switch"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "CLEAN"
+      },
+      {
+        "type": "D"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "JUNCTION"
+      }
+    ]
+  },
+  "levelFixedIO": {
+    "25": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 16,
+          "type": "INPUT",
+          "name": "DATA",
+          "inputMode": "switch"
+        },
+        {
+          "index": 4,
+          "type": "INPUT",
+          "name": "LOAD",
+          "inputMode": "button"
+        },
+        {
+          "index": 23,
+          "type": "OUTPUT",
+          "name": "Q"
+        }
+      ]
+    },
+    "28": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 20,
+          "type": "INPUT",
+          "name": "FAULT",
+          "inputMode": "switch"
+        },
+        {
+          "index": 64,
+          "type": "INPUT",
+          "name": "ACK",
+          "inputMode": "button"
+        },
+        {
+          "index": 29,
+          "type": "OUTPUT",
+          "name": "ALARM"
+        }
+      ]
+    },
+    "29": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 26,
+          "type": "INPUT",
+          "name": "DATA",
+          "inputMode": "switch"
+        },
+        {
+          "index": 4,
+          "type": "INPUT",
+          "name": "WRITE",
+          "inputMode": "button"
+        },
+        {
+          "index": 8,
+          "type": "INPUT",
+          "name": "APPLY",
+          "inputMode": "button"
+        },
+        {
+          "index": 38,
+          "type": "OUTPUT",
+          "name": "Q"
+        }
+      ]
+    },
+    "30": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 26,
+          "type": "INPUT",
+          "name": "OPEN",
+          "inputMode": "button"
+        },
+        {
+          "index": 90,
+          "type": "OUTPUT",
+          "name": "DOOR"
+        }
+      ]
+    },
+    "31": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 26,
+          "type": "INPUT",
+          "name": "SIGNAL",
+          "inputMode": "switch"
+        },
+        {
+          "index": 90,
+          "type": "OUTPUT",
+          "name": "RISE"
+        }
+      ]
+    },
+    "34": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 8,
+          "type": "INPUT",
+          "name": "KICK",
+          "inputMode": "button"
+        },
+        {
+          "index": 195,
+          "type": "OUTPUT",
+          "name": "TIMEOUT"
+        }
+      ]
+    },
+    "35": {
+      "fixIO": true,
+      "grid": [
+        {
+          "index": 18,
+          "type": "INPUT",
+          "name": "RAW",
+          "inputMode": "switch"
+        },
+        {
+          "index": 178,
+          "type": "OUTPUT",
+          "name": "CLEAN"
+        }
+      ]
+    }
+  },
+  "levelAnswers": {
+    "25": {
+      "mode": "sequential",
+      "referenceId": "enabled-register"
+    },
+    "28": {
+      "mode": "sequential",
+      "referenceId": "sticky-fault"
+    },
+    "29": {
+      "mode": "sequential",
+      "referenceId": "staging-register"
+    },
+    "30": {
+      "mode": "sequential",
+      "referenceId": "automatic-door"
+    },
+    "31": {
+      "mode": "sequential",
+      "referenceId": "rising-edge"
+    },
+    "34": {
+      "mode": "sequential",
+      "referenceId": "watchdog"
+    },
+    "35": {
+      "mode": "sequential",
+      "referenceId": "debouncer"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "passed": true,
+  "stages_selected": 20,
+  "example_ticks": 140,
+  "divider_cases": 24,
+  "divider_ticks": 108,
+  "controls": [
+    "selection",
+    "topology",
+    "pin_graph",
+    "example",
+    "step",
+    "run_to_complete",
+    "reset",
+    "fixed_divider_inputs",
+    "invalid_B_zero",
+    "stop_at_first_complete"
+  ],
+  "scope": "LinkeDOM behavior and embedded interpreter; no full-browser pixel rendering"
+}

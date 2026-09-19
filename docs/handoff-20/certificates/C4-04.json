@@ -1,0 +1,113 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 11,
+  "directed_edge_count": 16,
+  "simple_undirected_edge_count": 16,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "RAW": [
+      "HISTORY1",
+      "g2",
+      "g4"
+    ],
+    "HISTORY1": [
+      "RAW",
+      "g3",
+      "HISTORY2",
+      "g1"
+    ],
+    "HISTORY2": [
+      "HISTORY1",
+      "g3",
+      "g1"
+    ],
+    "STABLE": [
+      "g6",
+      "g5",
+      "OUT_CLEAN"
+    ],
+    "g1": [
+      "HISTORY2",
+      "g2",
+      "HISTORY1"
+    ],
+    "g2": [
+      "g1",
+      "g6",
+      "RAW"
+    ],
+    "g3": [
+      "g4",
+      "HISTORY2",
+      "HISTORY1"
+    ],
+    "g4": [
+      "g5",
+      "g3",
+      "RAW"
+    ],
+    "g5": [
+      "STABLE",
+      "g4",
+      "g6"
+    ],
+    "g6": [
+      "g2",
+      "STABLE",
+      "g5"
+    ],
+    "OUT_CLEAN": [
+      "STABLE"
+    ]
+  },
+  "positions": {
+    "HISTORY2": [
+      0,
+      0
+    ],
+    "g1": [
+      3,
+      3
+    ],
+    "HISTORY1": [
+      2,
+      1
+    ],
+    "g2": [
+      7,
+      7
+    ],
+    "RAW": [
+      5,
+      2
+    ],
+    "g6": [
+      9,
+      5
+    ],
+    "STABLE": [
+      11,
+      7
+    ],
+    "OUT_CLEAN": [
+      11,
+      6
+    ],
+    "g5": [
+      14,
+      4
+    ],
+    "g4": [
+      15,
+      3
+    ],
+    "g3": [
+      18,
+      0
+    ]
+  }
+}

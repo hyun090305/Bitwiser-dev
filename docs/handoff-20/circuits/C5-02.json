@@ -1,0 +1,157 @@
+{
+  "id": "C5-02",
+  "nodes": [
+    {
+      "id": "D0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "ADDR",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "WRITE",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "WORD0_0",
+      "type": "DE",
+      "inputs": [
+        "D0",
+        "g2"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD0_1",
+      "type": "DE",
+      "inputs": [
+        "D1",
+        "g2"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD1_0",
+      "type": "DE",
+      "inputs": [
+        "D0",
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD1_1",
+      "type": "DE",
+      "inputs": [
+        "D1",
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "ADDR"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "WRITE",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "ADDR",
+        "WRITE"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "ADDR",
+        "WORD1_0"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "WORD0_0",
+        "g1"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "g4",
+        "g5"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "g6"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "g7",
+      "type": "AND",
+      "inputs": [
+        "ADDR",
+        "WORD1_1"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "WORD0_1",
+        "g1"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "OR",
+      "inputs": [
+        "g7",
+        "g8"
+      ]
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "g9"
+      ],
+      "name": "Q1"
+    }
+  ],
+  "solution": {
+    "architecture": "baseline",
+    "note": "주소별로 EN을 만든 네 D+EN과 주소 읽기 선택 논리를 사용합니다. 두 2비트 저장 공간과 현재 주소의 조합 읽기를 보존합니다."
+  },
+  "source_variant": "C5-02-core"
+}

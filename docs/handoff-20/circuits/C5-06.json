@@ -1,0 +1,309 @@
+{
+  "id": "C5-06",
+  "nodes": [
+    {
+      "id": "D0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D2",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D3",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "START",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "RESET",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "P0",
+      "type": "D",
+      "inputs": [
+        "g6"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "P1",
+      "type": "D",
+      "inputs": [
+        "g7"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "P2",
+      "type": "D",
+      "inputs": [
+        "g8"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "R0",
+      "type": "DE",
+      "inputs": [
+        "D0",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "R1",
+      "type": "D",
+      "inputs": [
+        "g12"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "R2",
+      "type": "D",
+      "inputs": [
+        "g15"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SERIAL_STATE",
+      "type": "DE",
+      "inputs": [
+        "g19",
+        "g21"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "VALID_STATE",
+      "type": "D",
+      "inputs": [
+        "g22"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "OR",
+      "inputs": [
+        "P0",
+        "P1"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "OR",
+      "inputs": [
+        "P2",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "NOT",
+      "inputs": [
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "START",
+        "g3"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "AND",
+      "inputs": [
+        "g4",
+        "g5"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "AND",
+      "inputs": [
+        "P0",
+        "g5"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "P1",
+        "g5"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "AND",
+      "inputs": [
+        "D1",
+        "g4"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "NOT",
+      "inputs": [
+        "g4"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "AND",
+      "inputs": [
+        "R0",
+        "g10"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "OR",
+      "inputs": [
+        "g11",
+        "g9"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "AND",
+      "inputs": [
+        "D2",
+        "g4"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "AND",
+      "inputs": [
+        "R1",
+        "g10"
+      ]
+    },
+    {
+      "id": "g15",
+      "type": "OR",
+      "inputs": [
+        "g13",
+        "g14"
+      ]
+    },
+    {
+      "id": "g16",
+      "type": "AND",
+      "inputs": [
+        "D3",
+        "g4"
+      ]
+    },
+    {
+      "id": "g17",
+      "type": "AND",
+      "inputs": [
+        "R2",
+        "g10"
+      ]
+    },
+    {
+      "id": "g18",
+      "type": "OR",
+      "inputs": [
+        "g16",
+        "g17"
+      ]
+    },
+    {
+      "id": "g19",
+      "type": "AND",
+      "inputs": [
+        "g18",
+        "g5"
+      ]
+    },
+    {
+      "id": "g20",
+      "type": "OR",
+      "inputs": [
+        "START",
+        "g2"
+      ]
+    },
+    {
+      "id": "g21",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "g20"
+      ]
+    },
+    {
+      "id": "g22",
+      "type": "AND",
+      "inputs": [
+        "g20",
+        "g5"
+      ]
+    },
+    {
+      "id": "OUT_SERIAL",
+      "type": "OUTPUT",
+      "inputs": [
+        "SERIAL_STATE"
+      ],
+      "name": "SERIAL"
+    },
+    {
+      "id": "OUT_VALID",
+      "type": "OUTPUT",
+      "inputs": [
+        "VALID_STATE"
+      ],
+      "name": "VALID"
+    },
+    {
+      "id": "OUT_BUSY",
+      "type": "OUTPUT",
+      "inputs": [
+        "g2"
+      ],
+      "name": "BUSY"
+    }
+  ],
+  "solution": {
+    "architecture": "thermoFalse-maskFalse-payload0",
+    "note": "세 단계 진행 상태를 한 단계씩 이동시키는 39블록 평면 회로입니다. 28블록 핵심판이나 RESET 없는 31블록판 대신 RESET·VALID·BUSY를 모두 보존합니다."
+  },
+  "source_variant": "C5-06"
+}

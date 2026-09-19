@@ -1,0 +1,141 @@
+{
+  "version": 2,
+  "stageId": 0,
+  "circuit": {
+    "rows": 6,
+    "cols": 6,
+    "blocks": {
+      "a": {
+        "id": "a",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 1,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false
+      },
+      "b": {
+        "id": "b",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false
+      },
+      "n": {
+        "id": "n",
+        "type": "NOT",
+        "pos": {
+          "r": 1,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g": {
+        "id": "g",
+        "type": "AND",
+        "pos": {
+          "r": 3,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "o": {
+        "id": "o",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 4,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "a",
+        "endBlockId": "n",
+        "path": [
+          {
+            "r": 1,
+            "c": 1
+          },
+          {
+            "r": 1,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 3
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "n",
+        "endBlockId": "g",
+        "path": [
+          {
+            "r": 1,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "b",
+        "endBlockId": "g",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "g",
+        "endBlockId": "o",
+        "path": [
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      }
+    }
+  }
+}

@@ -6,11 +6,13 @@ import {
 } from './storage.js';
 import { getLevelHints } from './levels.js';
 
+let localProgress = null;
 let currentHintStage = null;
 let currentHintProgress = 0;
 let hintTimerInterval = null;
 
 function checkHintCooldown(cb) {
+  if (localProgress) return cb(0);
   const localUntil = getHintCooldown();
   const user = firebase.auth().currentUser;
   if (user) {
@@ -23,6 +25,7 @@ function checkHintCooldown(cb) {
 }
 
 function loadHintProgress(stage, cb) {
+  if (localProgress) return cb(localProgress.get(stage));
   const local = getHintProgress(stage);
   const user = firebase.auth().currentUser;
   if (user) {
@@ -38,6 +41,7 @@ function loadHintProgress(stage, cb) {
 }
 
 function saveHintProgress(stage, count) {
+  if (localProgress) return localProgress.set(stage, count);
   setHintProgress(stage, count);
   const user = firebase.auth().currentUser;
   if (user) {
@@ -46,6 +50,7 @@ function saveHintProgress(stage, count) {
 }
 
 function startHintTimer(until) {
+  if (localProgress) return;
   clearInterval(hintTimerInterval);
   const timerEl = document.getElementById('nextHintTimer');
   if (!timerEl) return;
@@ -96,7 +101,7 @@ function renderHintButtons(hints, progress, cooldownUntil) {
     container.appendChild(btn);
   });
   const adBtn = document.getElementById('adHintBtn');
-  if (adBtn) adBtn.style.display = hasAvailable ? 'none' : 'inline-block';
+  if (adBtn) adBtn.style.display = localProgress || hasAvailable ? 'none' : 'inline-block';
 }
 
 function showHint(index) {
@@ -111,10 +116,12 @@ function showHint(index) {
   if (index >= currentHintProgress) {
     currentHintProgress = index + 1;
     saveHintProgress(currentHintStage, currentHintProgress);
+    if (!localProgress) {
     const until = Date.now() + 60 * 60 * 1000;
     setHintCooldown(until);
     const user = firebase.auth().currentUser;
     if (user) db.ref(`hintLocks/${user.uid}`).set(until);
+    }
   }
 
   checkHintCooldown(until => {
@@ -143,7 +150,8 @@ export function openHintModal(stage) {
   });
 }
 
-export function initializeHintUI() {
+export function initializeHintUI({ progress = null } = {}) {
+  localProgress = progress;
   const closeHintBtn = document.getElementById('closeHintBtn');
   const closeHintMsgBtn = document.getElementById('closeHintMessageBtn');
   if (closeHintBtn) {

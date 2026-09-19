@@ -1,0 +1,131 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 13,
+  "directed_edge_count": 19,
+  "simple_undirected_edge_count": 19,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "SIGNAL": [
+      "PREVIOUS1",
+      "g2"
+    ],
+    "SUBMIT": [
+      "PREVIOUS1",
+      "g6",
+      "PREVIOUS3",
+      "PREVIOUS2"
+    ],
+    "PREVIOUS1": [
+      "SIGNAL",
+      "SUBMIT",
+      "PREVIOUS2",
+      "g1"
+    ],
+    "PREVIOUS2": [
+      "SUBMIT",
+      "PREVIOUS3",
+      "g3",
+      "PREVIOUS1"
+    ],
+    "PREVIOUS3": [
+      "PREVIOUS2",
+      "SUBMIT",
+      "OPENED",
+      "g5"
+    ],
+    "OPENED": [
+      "PREVIOUS3",
+      "g6",
+      "OUT_UNLOCKED"
+    ],
+    "g1": [
+      "g2",
+      "PREVIOUS1"
+    ],
+    "g2": [
+      "g4",
+      "SIGNAL",
+      "g1"
+    ],
+    "g3": [
+      "g4",
+      "PREVIOUS2"
+    ],
+    "g4": [
+      "g5",
+      "g2",
+      "g3"
+    ],
+    "g5": [
+      "g6",
+      "g4",
+      "PREVIOUS3"
+    ],
+    "g6": [
+      "OPENED",
+      "SUBMIT",
+      "g5"
+    ],
+    "OUT_UNLOCKED": [
+      "OPENED"
+    ]
+  },
+  "positions": {
+    "SIGNAL": [
+      0,
+      0
+    ],
+    "PREVIOUS1": [
+      2,
+      2
+    ],
+    "g1": [
+      2,
+      1
+    ],
+    "SUBMIT": [
+      6,
+      6
+    ],
+    "g6": [
+      10,
+      10
+    ],
+    "OPENED": [
+      9,
+      8
+    ],
+    "g5": [
+      11,
+      11
+    ],
+    "PREVIOUS3": [
+      14,
+      7
+    ],
+    "g4": [
+      19,
+      3
+    ],
+    "g2": [
+      22,
+      0
+    ],
+    "PREVIOUS2": [
+      16,
+      5
+    ],
+    "g3": [
+      16,
+      4
+    ],
+    "OUT_UNLOCKED": [
+      10,
+      9
+    ]
+  }
+}

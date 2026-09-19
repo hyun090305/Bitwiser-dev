@@ -4,6 +4,7 @@ import { createCamera } from '../canvas/camera.js';
 import { onThemeChange } from '../themes.js';
 import { buildPaletteGroups, getLevelBlockSets } from './levels.js';
 import { initializeCircuitCommunity } from './circuitCommunity.js';
+import { MEMORY_LAB_BLOCKS } from './memoryExamples.js';
 import {
   hideStageMapScreen,
   showStageMapScreen,
@@ -76,6 +77,7 @@ function collectPaletteGroups(circuit) {
   }
 
   const { inputs, outputs } = getAvailableIONames(circuit, 5);
+  MEMORY_LAB_BLOCKS.forEach(block => unique.set(block.type, block));
   const blocks = [
     ...inputs.map(name => ({ type: 'INPUT', name })),
     ...outputs.map(name => ({ type: 'OUTPUT', name })),
@@ -97,6 +99,15 @@ let labCommunityControls = null;
 let originalGradeDisplay = '';
 let originalGameTitleText = '';
 let labThemeUnsub = null;
+
+function resizeLabViewport() {
+  if (!labController?.resizeCanvas) return;
+  const controlsHeight = labController.getPlaybackBarHeight?.() || 0;
+  const height = Math.max(1, window.innerHeight - controlsHeight - (controlsHeight ? 8 : 0));
+  const container = document.getElementById('labCanvasContainer');
+  if (container) container.style.height = `${height}px`;
+  labController.resizeCanvas(window.innerWidth, height);
+}
 
 function moveRightPanelInto(container) {
   const rightPanel = document.getElementById('rightPanel');
@@ -182,15 +193,12 @@ function createLabController({ preserveCircuit = false, cameraOptions = null } =
 
   if (reuseExistingCircuit) {
     removeLabResizeHandler();
-    labResizeHandler = () => {
-      if (!labController?.resizeCanvas) return;
-      labController.resizeCanvas(window.innerWidth, window.innerHeight);
-    };
+    labResizeHandler = resizeLabViewport;
     window.addEventListener('resize', labResizeHandler);
 
     const { inputs, outputs } = getAvailableIONames(labCircuit, 5);
     labController.setIOPaletteNames?.(inputs, outputs);
-    labController.resizeCanvas?.(innerWidth, innerHeight);
+    resizeLabViewport();
     labController.attachKeyboardHandlers?.();
     labController.setCopyPasteEnabled?.(true);
     
@@ -219,6 +227,7 @@ function createLabController({ preserveCircuit = false, cameraOptions = null } =
     if (!labController) return;
     const { inputs, outputs } = getAvailableIONames(labCircuit, 5);
     labController.setIOPaletteNames?.(inputs, outputs);
+    document.dispatchEvent(new CustomEvent('bitwiser:costContext', { detail: { circuit: labCircuit } }));
   };
 
   labController = createController(
@@ -255,11 +264,9 @@ function createLabController({ preserveCircuit = false, cameraOptions = null } =
   applyDynamicIOPalette();
 
   removeLabResizeHandler();
-  labResizeHandler = () => {
-    if (!labController?.resizeCanvas) return;
-    labController.resizeCanvas(window.innerWidth, window.innerHeight);
-  };
+  labResizeHandler = resizeLabViewport;
   window.addEventListener('resize', labResizeHandler);
+  resizeLabViewport();
 
   labController.attachKeyboardHandlers?.();
 }
@@ -295,9 +302,11 @@ function showLabModeUI(options = {}) {
     cameraOptions: options.camera
   });
   labInitialized = true;
+  document.dispatchEvent(new CustomEvent('bitwiser:costContext', { detail: { circuit: labCircuit } }));
 }
 
 function hideLabModeUI() {
+  labController?.tickRunner?.pause();
   const labScreen = document.getElementById('labScreen');
   if (!labScreen) return;
   
@@ -317,6 +326,7 @@ function hideLabModeUI() {
 
   concealLabScreen();
   restoreRightPanel();
+  document.dispatchEvent(new CustomEvent('bitwiser:costContext', { detail: { circuit: null } }));
   showStageMapScreen();
   
   if (returnCameraState) {
@@ -398,6 +408,7 @@ export function initializeLabMode() {
 }
 
 function startExitSequence() {
+  labController?.tickRunner?.pause();
   if (!labCamera || !labController) {
     hideLabModeUI();
     return;

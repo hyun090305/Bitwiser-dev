@@ -329,6 +329,18 @@
     gradingResultsHeading: {html: "<b>시뮬레이션 결과:</b><br><br>"},
     gradingCorrect: {text: "✅ 정상"},
     gradingIncorrect: {text: "❌ 불일치"},
+    gradingVerifying: {text: "회로 검증 중…"},
+    gradingVerified: {text: "✓ 통과"},
+    gradingSearchStats: {text: "상태 {states}개 · 전이 {transitions}개 검사"},
+    gradingIncomplete: {text: "검증 미완료"},
+    gradingLimit: {text: "탐색 한도에 도달했습니다. 회로를 단순화한 뒤 다시 검증하세요. 클리어는 기록되지 않았습니다."},
+    gradingInvalid: {text: "검증을 시작할 수 없습니다"},
+    gradingReset: {text: "초기 상태: 모든 D=0"},
+    gradingObserve: {text: "출력 관측 (tick 전)"},
+    gradingExpected: {text: "기대 출력"},
+    gradingActual: {text: "실제 출력"},
+    gradingMismatch: {text: "✕ 출력 불일치"},
+    gradingCounterexample: {text: "반례"},
     gradingAllPassed: {text: "🎉 모든 시뮬레이션 케이스를 통과했습니다!"},
     gradingSomeFailed: {text: "😢 일부 시뮬레이션 케이스에서 실패했습니다."},
     rankingLoading: {text: "로딩 중…"},
@@ -682,6 +694,18 @@
     gradingResultsHeading: {html: "<b>Simulation Results:</b><br><br>"},
     gradingCorrect: {text: "✅ Match"},
     gradingIncorrect: {text: "❌ Mismatch"},
+    gradingVerifying: {text: "Verifying circuit…"},
+    gradingVerified: {text: "✓ Passed"},
+    gradingSearchStats: {text: "{states} states · {transitions} transitions checked"},
+    gradingIncomplete: {text: "Verification incomplete"},
+    gradingLimit: {text: "The search limit was reached. Simplify the circuit and try again. No clear was recorded."},
+    gradingInvalid: {text: "Cannot verify circuit"},
+    gradingReset: {text: "Initial state: all D=0"},
+    gradingObserve: {text: "observe outputs (before tick)"},
+    gradingExpected: {text: "Expected"},
+    gradingActual: {text: "Actual"},
+    gradingMismatch: {text: "✕ Output mismatch"},
+    gradingCounterexample: {text: "Counterexample"},
     gradingAllPassed: {text: "🎉 All simulation cases passed!"},
     gradingSomeFailed: {text: "😢 Some simulation cases failed."},
     rankingLoading: {text: "Loading…"},
@@ -707,7 +731,8 @@
   }
 };
 
-let currentLang = localStorage.getItem('lang') || (navigator.language && navigator.language.startsWith('ko') ? 'ko' : 'en');
+function readLanguageSetting() { try { return localStorage.getItem('lang'); } catch { return null; } }
+let currentLang = readLanguageSetting() || (navigator.language && navigator.language.startsWith('ko') ? 'ko' : 'en');
 
 function applyTranslations() {
   const langMap = translations[currentLang];
@@ -726,7 +751,7 @@ function applyTranslations() {
 
 function setLanguage(lang) {
   currentLang = lang;
-  localStorage.setItem('lang', lang);
+  try { localStorage.setItem('lang', lang); } catch (error) { console.warn('Language setting is not persisted', error); }
   location.reload();
 }
 

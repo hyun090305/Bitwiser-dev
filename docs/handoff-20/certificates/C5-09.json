@@ -1,0 +1,149 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 16,
+  "directed_edge_count": 19,
+  "simple_undirected_edge_count": 19,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "DATA": [
+      "PAYLOAD"
+    ],
+    "SEND": [
+      "g3",
+      "OCCUPIED"
+    ],
+    "TAKE": [
+      "g2",
+      "g4"
+    ],
+    "PAYLOAD": [
+      "DATA",
+      "g3",
+      "DELIVERED"
+    ],
+    "OCCUPIED": [
+      "SEND",
+      "g4",
+      "g2",
+      "g1",
+      "OUT_FULL"
+    ],
+    "DELIVERED": [
+      "g4",
+      "PAYLOAD",
+      "OUT_DATA_OUT"
+    ],
+    "DELIVERY_VALID": [
+      "g4",
+      "OUT_VALID"
+    ],
+    "SEND_ACCEPTED": [
+      "g3",
+      "OUT_ACCEPTED"
+    ],
+    "g1": [
+      "g2",
+      "OCCUPIED"
+    ],
+    "g2": [
+      "OCCUPIED",
+      "TAKE",
+      "g3",
+      "g1"
+    ],
+    "g3": [
+      "PAYLOAD",
+      "SEND",
+      "g2",
+      "SEND_ACCEPTED"
+    ],
+    "g4": [
+      "TAKE",
+      "OCCUPIED",
+      "DELIVERED",
+      "DELIVERY_VALID"
+    ],
+    "OUT_FULL": [
+      "OCCUPIED"
+    ],
+    "OUT_DATA_OUT": [
+      "DELIVERED"
+    ],
+    "OUT_VALID": [
+      "DELIVERY_VALID"
+    ],
+    "OUT_ACCEPTED": [
+      "SEND_ACCEPTED"
+    ]
+  },
+  "positions": {
+    "TAKE": [
+      0,
+      0
+    ],
+    "g2": [
+      7,
+      7
+    ],
+    "OCCUPIED": [
+      2,
+      1
+    ],
+    "OUT_ACCEPTED": [
+      8,
+      8
+    ],
+    "SEND_ACCEPTED": [
+      9,
+      9
+    ],
+    "g3": [
+      14,
+      4
+    ],
+    "PAYLOAD": [
+      16,
+      6
+    ],
+    "DATA": [
+      17,
+      2
+    ],
+    "OUT_DATA_OUT": [
+      17,
+      7
+    ],
+    "DELIVERED": [
+      21,
+      3
+    ],
+    "OUT_VALID": [
+      22,
+      4
+    ],
+    "DELIVERY_VALID": [
+      23,
+      5
+    ],
+    "g4": [
+      28,
+      0
+    ],
+    "g1": [
+      6,
+      5
+    ],
+    "OUT_FULL": [
+      6,
+      4
+    ],
+    "SEND": [
+      8,
+      3
+    ]
+  }
+}

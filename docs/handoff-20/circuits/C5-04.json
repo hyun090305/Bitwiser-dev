@@ -1,0 +1,184 @@
+{
+  "id": "C5-04",
+  "nodes": [
+    {
+      "id": "D0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "WRITE",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "COMMIT",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "RESET",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "STAGING0",
+      "type": "DE",
+      "inputs": [
+        "g2",
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "STAGING1",
+      "type": "DE",
+      "inputs": [
+        "g5",
+        "g6"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "LIVE0",
+      "type": "DE",
+      "inputs": [
+        "g8",
+        "g9"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "LIVE1",
+      "type": "DE",
+      "inputs": [
+        "g11",
+        "g12"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "D0",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "WRITE"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "D1",
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "RESET",
+        "WRITE"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "STAGING0",
+        "g7"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "OR",
+      "inputs": [
+        "COMMIT",
+        "RESET"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "AND",
+      "inputs": [
+        "STAGING1",
+        "g10"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "OR",
+      "inputs": [
+        "COMMIT",
+        "RESET"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "LIVE0"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "LIVE1"
+      ],
+      "name": "Q1"
+    }
+  ],
+  "solution": {
+    "architecture": "DE-two-registers",
+    "note": "준비 레지스터와 공개 레지스터에 각각 D+EN 두 개를 사용합니다. 같은 명세의 18블록 비평면 후보 대신 RESET 배선을 분리한 23블록 평면 회로를 채택합니다."
+  },
+  "source_variant": "C5-04"
+}

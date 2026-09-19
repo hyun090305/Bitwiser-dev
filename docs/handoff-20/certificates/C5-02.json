@@ -1,0 +1,183 @@
+{
+  "status": "planar",
+  "planar": true,
+  "node_count": 19,
+  "directed_edge_count": 27,
+  "simple_undirected_edge_count": 27,
+  "connected_components": 1,
+  "scope": "underlying undirected graph; free terminals and free cyclic port order",
+  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
+  "networkx_version": "3.6.1",
+  "rotation": {
+    "D0": [
+      "WORD0_0",
+      "WORD1_0"
+    ],
+    "D1": [
+      "WORD0_1",
+      "WORD1_1"
+    ],
+    "ADDR": [
+      "g3",
+      "g4",
+      "g1",
+      "g7"
+    ],
+    "WRITE": [
+      "g2",
+      "g3"
+    ],
+    "WORD0_0": [
+      "D0",
+      "g2",
+      "g5"
+    ],
+    "WORD0_1": [
+      "g8",
+      "g2",
+      "D1"
+    ],
+    "WORD1_0": [
+      "g4",
+      "g3",
+      "D0"
+    ],
+    "WORD1_1": [
+      "D1",
+      "g3",
+      "g7"
+    ],
+    "g1": [
+      "ADDR",
+      "g5",
+      "g2",
+      "g8"
+    ],
+    "g2": [
+      "WORD0_0",
+      "WRITE",
+      "WORD0_1",
+      "g1"
+    ],
+    "g3": [
+      "WRITE",
+      "WORD1_0",
+      "ADDR",
+      "WORD1_1"
+    ],
+    "g4": [
+      "g6",
+      "ADDR",
+      "WORD1_0"
+    ],
+    "g5": [
+      "g1",
+      "g6",
+      "WORD0_0"
+    ],
+    "g6": [
+      "g5",
+      "g4",
+      "OUT_Q0"
+    ],
+    "OUT_Q0": [
+      "g6"
+    ],
+    "g7": [
+      "WORD1_1",
+      "ADDR",
+      "g9"
+    ],
+    "g8": [
+      "g1",
+      "WORD0_1",
+      "g9"
+    ],
+    "g9": [
+      "g7",
+      "g8",
+      "OUT_Q1"
+    ],
+    "OUT_Q1": [
+      "g9"
+    ]
+  },
+  "positions": {
+    "D0": [
+      0,
+      0
+    ],
+    "WORD1_0": [
+      16,
+      16
+    ],
+    "g3": [
+      14,
+      13
+    ],
+    "g4": [
+      19,
+      13
+    ],
+    "OUT_Q0": [
+      20,
+      14
+    ],
+    "g6": [
+      22,
+      12
+    ],
+    "g5": [
+      31,
+      3
+    ],
+    "WORD0_0": [
+      34,
+      0
+    ],
+    "WRITE": [
+      8,
+      6
+    ],
+    "ADDR": [
+      16,
+      11
+    ],
+    "g7": [
+      16,
+      8
+    ],
+    "g9": [
+      17,
+      7
+    ],
+    "OUT_Q1": [
+      17,
+      6
+    ],
+    "g8": [
+      20,
+      4
+    ],
+    "g1": [
+      22,
+      2
+    ],
+    "g2": [
+      4,
+      1
+    ],
+    "D1": [
+      9,
+      5
+    ],
+    "WORD0_1": [
+      8,
+      3
+    ],
+    "WORD1_1": [
+      13,
+      9
+    ]
+  }
+}

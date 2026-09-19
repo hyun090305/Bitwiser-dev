@@ -1,0 +1,202 @@
+{
+  "purpose": "Verified final handoff reference; not a minimum or an authored star threshold",
+  "circuit": {
+    "rows": 6,
+    "cols": 7,
+    "blocks": {
+      "FAULT": {
+        "id": "FAULT",
+        "type": "INPUT",
+        "name": "FAULT",
+        "pos": {
+          "r": 1,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "ACK": {
+        "id": "ACK",
+        "type": "INPUT",
+        "name": "ACK",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "button"
+      },
+      "LATCH": {
+        "id": "LATCH",
+        "type": "D",
+        "name": "LATCH",
+        "pos": {
+          "r": 4,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g1": {
+        "id": "g1",
+        "type": "OR",
+        "name": "g1",
+        "pos": {
+          "r": 3,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "OUT_ALARM": {
+        "id": "OUT_ALARM",
+        "type": "OUTPUT",
+        "name": "ALARM",
+        "pos": {
+          "r": 3,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_0_0": {
+        "id": "branch_0_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "FAULT",
+        "endBlockId": "branch_0_0",
+        "path": [
+          {
+            "r": 1,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 1
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "branch_0_0",
+        "endBlockId": "LATCH",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 4,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "branch_0_0",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "ACK",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 3
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "LATCH",
+        "endBlockId": "OUT_ALARM",
+        "path": [
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "g1",
+        "endBlockId": "LATCH",
+        "path": [
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ],
+        "inputRole": "EN"
+      }
+    }
+  }
+}

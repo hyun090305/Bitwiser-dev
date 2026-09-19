@@ -1,0 +1,181 @@
+{
+  "id": "C5-05",
+  "nodes": [
+    {
+      "id": "DATA",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "RECEIVE",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "SHIFT0",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "RECEIVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SHIFT1",
+      "type": "DE",
+      "inputs": [
+        "SHIFT0",
+        "RECEIVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "SHIFT2",
+      "type": "DE",
+      "inputs": [
+        "SHIFT1",
+        "RECEIVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "PHASE0",
+      "type": "DE",
+      "inputs": [
+        "g1",
+        "RECEIVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "PHASE1",
+      "type": "DE",
+      "inputs": [
+        "PHASE0",
+        "RECEIVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD0",
+      "type": "DE",
+      "inputs": [
+        "DATA",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD1",
+      "type": "DE",
+      "inputs": [
+        "SHIFT0",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD2",
+      "type": "DE",
+      "inputs": [
+        "SHIFT1",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "WORD3",
+      "type": "DE",
+      "inputs": [
+        "SHIFT2",
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "DONE_STATE",
+      "type": "D",
+      "inputs": [
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "PHASE1"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "PHASE0"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "RECEIVE",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "PHASE1",
+        "g3"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "WORD0"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "WORD1"
+      ],
+      "name": "Q1"
+    },
+    {
+      "id": "OUT_Q2",
+      "type": "OUTPUT",
+      "inputs": [
+        "WORD2"
+      ],
+      "name": "Q2"
+    },
+    {
+      "id": "OUT_Q3",
+      "type": "OUTPUT",
+      "inputs": [
+        "WORD3"
+      ],
+      "name": "Q3"
+    },
+    {
+      "id": "OUT_DONE",
+      "type": "OUTPUT",
+      "inputs": [
+        "DONE_STATE"
+      ],
+      "name": "DONE"
+    }
+  ],
+  "solution": {
+    "architecture": "johnson-status-preserved",
+    "note": "수신 이력·Johnson 진행 상태·완성 단어를 D+EN에 저장하며 DONE용 D를 유지합니다. DONE 없는 19블록판 대신 21블록판을 채택합니다."
+  },
+  "source_variant": "C5-05-status"
+}

@@ -1,3 +1,8 @@
+import { canConnect, assignNewInputRole, normalizeAfterEdit, swapMemoryInputs, incomingWires, maxInputs } from './connections.js';
+import { getExecutionState, synchronizeExecution, resetExecution, toggleButton, getEvaluationResult } from './evaluation.js';
+import { createMemoryControls, D_HELP } from '../modules/memoryControls.js';
+import { COST_RULES } from '../modules/circuitCost.js';
+import { snapshotCircuit, getCircuitStats, isValidWirePath } from './circuitData.js';
 import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import {
   drawGrid,
@@ -34,6 +39,7 @@ function cloneClipboard(data) {
         type: block?.type,
         name: block?.name,
         value: Boolean(block?.value),
+        inputMode: block?.inputMode,
       }))
     : [];
   const wires = Array.isArray(data.wires)
@@ -46,6 +52,7 @@ function cloneClipboard(data) {
           : [],
         startBlock: wire?.startBlock,
         endBlock: wire?.endBlock,
+        inputRole: wire?.inputRole,
       }))
     : [];
   return { blocks, wires };
@@ -137,6 +144,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let panelTotalWidth = panelWidth;
   let canvasHeight = gridHeight;
   let paletteItems = [];
+  let paletteCostTooltip = null;
   let groupRects = [];
   const clampToBounds = !unboundedGrid;
   let baseGridWidth = gridWidth;
@@ -156,6 +164,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       g.items.forEach(it => {
         paletteItems.push({
           type: it.type,
+          inputMode: it.inputMode,
           label: it.label || it.type,
           x: x + padding,
           y: currentY,
@@ -284,6 +293,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const redoStack = [];
   let hasInitialSnapshot = false;
   let engineHandle = null;
+  const memoryControls = createMemoryControls(circuit, overlayCanvas);
+  let lastEvaluation = null;
+  function isLocked() { return Boolean(window.isScoring || window.isGradingResultOpen); }
+  function beginEdit() { memoryControls.runner.pause(); }
+
 
   const pitch = CELL + GAP;
 
@@ -537,7 +551,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function notifyCircuitModified() {
+    beginEdit();
+    synchronizeExecution(circuit);
     markCircuitDirty(circuit);
+    evaluateCircuit(circuit);
+    memoryControls.refresh();
     if (typeof onCircuitModified === 'function') {
       try {
         onCircuitModified();
@@ -548,6 +566,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function setMode(nextMode) {
+    if (isLocked()) return;
+    if (nextMode !== 'idle') beginEdit();
     const previousMode = state.mode;
     if (previousMode === nextMode) {
       updateButtons();
@@ -567,8 +587,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     updateButtons();
   }
 
-  function snapshot() {
-    undoStack.push(JSON.stringify(circuit));
+  function snapshot(normalize = true) {
+    if (normalize) normalizeAfterEdit(circuit);
+    undoStack.push(JSON.stringify(snapshotCircuit(circuit)));
     if (undoStack.length > 100) undoStack.shift();
     redoStack.length = 0;
     if (hasInitialSnapshot) {
@@ -607,6 +628,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function undo() {
+    if (isLocked()) return;
+    beginEdit();
     if (undoStack.length <= 1) return;
     const current = undoStack.pop();
     redoStack.push(current);
@@ -615,6 +638,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function redo() {
+    if (isLocked()) return;
+    beginEdit();
     if (!redoStack.length) return;
     const next = redoStack.pop();
     undoStack.push(next);
@@ -623,9 +648,13 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   drawGrid(bgCtx, circuit.rows, circuit.cols, panelTotalWidth, camera, gridDrawOptions);
   drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
-  engineHandle = startEngine(contentCtx, circuit, (ctx, circ, phase) =>
-    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera, renderOptions)
-  );
+  engineHandle = startEngine(contentCtx, circuit, (ctx, circ, phase) => {
+    renderContent(ctx, circ, phase, panelTotalWidth, state.hoverBlockId, camera, renderOptions);
+    if (lastEvaluation !== getEvaluationResult(circ)) {
+      lastEvaluation = getEvaluationResult(circ);
+      memoryControls.refresh();
+    }
+  });
 
   function redrawPanel() {
     drawPanel(bgCtx, paletteItems, panelTotalWidth, canvasHeight, groupRects, panelStyleOptions);
@@ -653,6 +682,34 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return 'JUNC';
     }
     return type;
+  }
+
+  function hidePaletteCost() {
+    if (paletteCostTooltip) paletteCostTooltip.hidden = true;
+  }
+
+  function updatePaletteCost(e, x, y) {
+    const item = !e.touches && !e.buttons && !state.draggingBlock && !state.panning
+      && !state.selectionDrag && !state.pinch && !state.wireTrace.length && state.mode !== 'pasting'
+      ? paletteItems.find(it => !it.hidden && x >= it.x && x <= it.x + it.w && y >= it.y && y <= it.y + it.h)
+      : null;
+    if (!item) { hidePaletteCost(); return; }
+    if (!paletteCostTooltip) {
+      paletteCostTooltip = document.createElement('div');
+      paletteCostTooltip.className = 'palette-cost-tooltip';
+      paletteCostTooltip.setAttribute('role', 'tooltip');
+      const label = document.createElement('span'), price = document.createElement('strong');
+      paletteCostTooltip.append(label, price); document.body.append(paletteCostTooltip);
+    }
+    const ko = (window.currentLang || document.documentElement.lang || 'ko') === 'ko';
+    paletteCostTooltip.firstElementChild.textContent = normalizePaletteLabel(item.type, item.label);
+    paletteCostTooltip.lastElementChild.textContent = `${ko ? '비용' : 'Cost'} ${COST_RULES.prices[item.type] ?? '—'}`;
+    paletteCostTooltip.hidden = false;
+    const { width, height } = paletteCostTooltip.getBoundingClientRect();
+    const left = Math.min(e.clientX + 14, window.innerWidth - width - 8);
+    const top = e.clientY + 18 + height <= window.innerHeight - 8 ? e.clientY + 18 : e.clientY - height - 12;
+    paletteCostTooltip.style.left = `${Math.max(8, left)}px`;
+    paletteCostTooltip.style.top = `${Math.max(8, top)}px`;
   }
 
   function findPaletteItem(type, label, predicate = () => true) {
@@ -687,6 +744,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function replaceExistingBlock(existingBlock, nextBlock) {
     if (!existingBlock || existingBlock.fixed || !nextBlock?.type) return false;
 
+    if (incomingWires(circuit, existingBlock.id).length > maxInputs(nextBlock.type)) return false;
+    const previousType = existingBlock.type;
     returnBlockToPalette(existingBlock.type, existingBlock.name);
 
     existingBlock.type = nextBlock.type;
@@ -697,6 +756,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       existingBlock.value = nextBlock.value;
     }
     existingBlock.fixed = false;
+    if (nextBlock.type === 'INPUT') existingBlock.inputMode = nextBlock.inputMode || 'switch';
+    else delete existingBlock.inputMode;
+    if (nextBlock.type === 'D' && previousType !== 'D') {
+      getExecutionState(circuit).memory.set(existingBlock.id, false);
+      incomingWires(circuit, existingBlock.id).forEach((w, i) => { w.inputRole = i ? 'EN' : 'D'; });
+    }
 
     return true;
   }
@@ -733,13 +798,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   });
 
   function updateUsageCounts() {
-    const blockCount = Object.keys(circuit.blocks).length;
-    const wireCells = new Set();
-    Object.values(circuit.wires).forEach(w => {
-      w.path.slice(1, -1).forEach(p => wireCells.add(`${p.r},${p.c}`));
-    });
-    if (usedBlocksEl) usedBlocksEl.textContent = blockCount;
-    if (usedWiresEl) usedWiresEl.textContent = wireCells.size;
+    const { usedBlocks, usedWires } = getCircuitStats(circuit);
+    if (usedBlocksEl) usedBlocksEl.textContent = usedBlocks;
+    if (usedWiresEl) usedWiresEl.textContent = usedWires;
   }
 
   function updateCopyPasteButtons() {
@@ -951,6 +1012,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function expandGrid(direction) {
+    if (isLocked()) return false;
     if (!canExpandGrid(direction)) return false;
     if (direction === 'top') {
       const previousRows = circuit.rows;
@@ -979,6 +1041,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function shrinkGrid(direction) {
+    if (isLocked()) return false;
     if (!canShrinkGrid(direction)) return false;
     if (direction === 'top') {
       if (!shiftCircuit(0, -1)) return false;
@@ -1028,6 +1091,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function deleteSelection() {
+    if (isLocked()) return false;
     const sel = state.selection;
     if (!sel || !canDeleteSelection()) return false;
 
@@ -1210,6 +1274,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         type: block.type,
         name: block.name,
         value: Boolean(block.value),
+        inputMode: block.inputMode,
       });
     });
 
@@ -1224,6 +1289,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         path: wire.path.map(p => ({ r: p.r - origin.r, c: p.c - origin.c })),
         startBlock: startIdx,
         endBlock: endIdx,
+        inputRole: wire.inputRole,
       });
     });
 
@@ -1247,6 +1313,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function canPasteClipboardAt(anchor, clipboard) {
     if (!clipboard) return false;
+    if ((clipboard.blocks || []).some(b => b.type === 'D' && !paletteItems.some(p => p.type === 'D'))) return false;
     const blockTargets = new Map();
 
     for (const block of clipboard.blocks || []) {
@@ -1265,7 +1332,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       });
     }
 
+    const incomingCounts = new Map();
     for (const wire of clipboard.wires || []) {
+      const targetBlock = clipboard.blocks[wire.endBlock];
+      if (!targetBlock) return false;
+      const existing = blockAt({ r: anchor.r + targetBlock.offset.r, c: anchor.c + targetBlock.offset.c });
+      const type = existing?.type || (['INPUT', 'OUTPUT'].includes(targetBlock.type) ? 'JUNCTION' : targetBlock.type);
+      const count = (incomingCounts.get(wire.endBlock) ?? (existing ? incomingWires(circuit, existing.id).length : 0)) + 1;
+      if (count > maxInputs(type)) return false;
+      incomingCounts.set(wire.endBlock, count);
       const path = wire.path || [];
       for (let i = 0; i < path.length; i += 1) {
         const step = path[i];
@@ -1318,6 +1393,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function applyClipboardAt(anchor) {
+    if (isLocked()) return false;
+    beginEdit();
     const clipboard = state.clipboard;
     if (!clipboard || !canPasteClipboardAt(anchor, clipboard)) return false;
 
@@ -1362,6 +1439,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         path,
         startBlockId: startId,
         endBlockId: endId,
+        inputRole: wire.inputRole,
       });
       const endBlock = circuit.blocks[endId];
       if (endBlock) {
@@ -1450,6 +1528,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function moveSelection(dr, dc) {
+    if (isLocked()) return false;
     const sel = state.selection;
     if (!canMoveSelection(dr, dc)) return false;
 
@@ -1482,51 +1561,66 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return true;
   }
 
+  function wireValidationContext() {
+    return { withinBounds: (r, c) => !clampToBounds || withinBounds(r, c), blockAt, cellHasWire };
+  }
   function isValidWireTrace(trace) {
-    const seen = new Set();
-    for (let i = 0; i < trace.length; i++) {
-      const p = trace[i];
-      const key = `${p.r},${p.c}`;
-      if (clampToBounds && !withinBounds(p.r, p.c)) return false;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      if (i > 0) {
-        const prev = trace[i - 1];
-        const dr = Math.abs(p.r - prev.r);
-        const dc = Math.abs(p.c - prev.c);
-        if (dr + dc !== 1) return false;
-      }
-      if (i > 0 && i < trace.length - 1) {
-        if (blockAt(p) || cellHasWire(p)) return false;
-      }
-    }
-    return true;
+    return isValidWirePath(trace, wireValidationContext(), false);
+  }
+  function isValidWire(trace) {
+    if (!isValidWirePath(trace, wireValidationContext())) return false;
+    return canConnect(circuit, blockAt(trace[0]).id, blockAt(trace.at(-1)).id);
   }
 
-  function isValidWire(trace) {
-    // Require at least one intermediate cell so adjacent blocks cannot be linked
-    if (trace.length < 3) return false;
-    const startBlock = blockAt(trace[0]);
-    const endBlock = blockAt(trace[trace.length - 1]);
-    if (!startBlock || !endBlock || startBlock.id === endBlock.id) return false;
-    const seen = new Set();
-    for (let i = 0; i < trace.length; i++) {
-      const p = trace[i];
-      const key = `${p.r},${p.c}`;
-      if (clampToBounds && !withinBounds(p.r, p.c)) return false;
-      if (seen.has(key)) return false;
-      seen.add(key);
-      if (i > 0) {
-        const prev = trace[i - 1];
-        const dr = Math.abs(p.r - prev.r);
-        const dc = Math.abs(p.c - prev.c);
-        if (dr + dc !== 1) return false;
+  function hasMemoryConnections(drag) {
+    return drag.type === 'D' || drag.wires?.some(w => circuit.blocks[w.endBlockId]?.type === 'D');
+  }
+
+  // Moving a memory or its input keeps connection IDs/roles. Route around
+  // occupied cells; if there is no valid space, put the block and wires back.
+  function restoreMemoryDragWires(drag) {
+    const block = circuit.blocks[drag.id];
+    if (!block || !hasMemoryConnections(drag)) return;
+    const restored = [];
+    const occupied = new Set(Object.values(circuit.wires).flatMap(w => w.path.slice(1, -1).map(p => `${p.r},${p.c}`)));
+    for (const w of drag.wires || []) {
+      if (circuit.wires[w.id]) continue;
+      const start = circuit.blocks[w.startBlockId]?.pos;
+      const end = circuit.blocks[w.endBlockId]?.pos;
+      if (!start || !end) break;
+      const queue = [[{ ...start }]];
+      const visited = new Set([`${start.r},${start.c}`]);
+      const oldStart = w.path[0], oldEnd = w.path.at(-1);
+      const departure = { r: w.path[1].r - oldStart.r, c: w.path[1].c - oldStart.c };
+      const approach = { r: w.path.at(-2).r - oldEnd.r, c: w.path.at(-2).c - oldEnd.c };
+      let path = null;
+      for (let i = 0; i < queue.length && i < 4096 && !path; i++) {
+        const trail = queue[i];
+        const last = trail.at(-1);
+        for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
+          if (trail.length === 1 && (dr !== departure.r || dc !== departure.c)) continue;
+          const p = { r: last.r + dr, c: last.c + dc };
+          const key = `${p.r},${p.c}`;
+          if (!withinBounds(p.r,p.c) || p.r < Math.min(start.r,end.r)-4 || p.r > Math.max(start.r,end.r)+4 ||
+              p.c < Math.min(start.c,end.c)-4 || p.c > Math.max(start.c,end.c)+4) continue;
+          if (p.r === end.r && p.c === end.c) {
+            if (trail.length >= 2 && last.r === end.r + approach.r && last.c === end.c + approach.c) { path = [...trail,p]; break; }
+            continue;
+          }
+          if (visited.has(key) || occupied.has(key) || blockAt(p)) continue;
+          visited.add(key); queue.push([...trail,p]);
+        }
       }
-      if (i > 0 && i < trace.length - 1) {
-        if (blockAt(p) || cellHasWire(p)) return false;
-      }
+      if (!path) break;
+      restored.push({ ...w, path });
+      path.slice(1,-1).forEach(p => occupied.add(`${p.r},${p.c}`));
     }
-    return true;
+    const missing = (drag.wires || []).filter(w => !circuit.wires[w.id]);
+    if (restored.length === missing.length) restored.forEach(w => { circuit.wires[w.id] = w; });
+    else {
+      block.pos = { ...drag.origPos };
+      (drag.wires || []).forEach(w => { circuit.wires[w.id] = w; });
+    }
   }
 
   function updateButtons() {
@@ -1662,7 +1756,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function createKeydownHandler() {
     return e => {
       const key = e.key.toLowerCase();
-      if (window.isScoring) {
+      if (isLocked()) {
         if (key === 'z' || key === 'y') e.preventDefault();
         else if (key === 'r') e.preventDefault();
         return;
@@ -1759,6 +1853,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   attachKeyboardHandlers();
 
   function stopEngine() {
+    memoryControls.runner.pause();
     if (engineHandle && typeof engineHandle.stop === 'function') {
       engineHandle.stop();
     }
@@ -1767,6 +1862,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function destroy() {
     stopEngine();
+    paletteCostTooltip?.remove();
+    memoryControls.destroy();
     removeBoundEvents();
     try {
       unsubscribeSharedClipboard();
@@ -1783,27 +1880,31 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-  moveBtn?.addEventListener('click', () => {
+  bindEvent(moveBtn, 'click', () => {
     setMode('idle');
   });
 
-  wireBtn?.addEventListener('click', () => {
+  bindEvent(wireBtn, 'click', () => {
     setMode(state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing');
   });
 
-  delBtn?.addEventListener('click', () => {
+  bindEvent(delBtn, 'click', () => {
     setMode(state.mode === 'deleting' ? 'idle' : 'deleting');
   });
 
-  selectBtn?.addEventListener('click', () => {
+  bindEvent(selectBtn, 'click', () => {
     setMode(state.mode === 'selecting' ? 'idle' : 'selecting');
   });
 
   setCopyPasteEnabled(state.copyPasteEnabled);
 
   function handlePointerDown(e) {
+    hidePaletteCost();
+    if (isLocked()) return false;
     if (state.pinch) return true;
     const { x, y } = getPointerPos(e);
+    const target = x >= panelTotalWidth ? blockAt(pointerToBoundedCell(x, y) || {}) : null;
+    if (x < panelTotalWidth || (target && target.type !== 'INPUT') || ['wireDrawing', 'deleting', 'pasting'].includes(state.mode)) beginEdit();
     const isMiddleButton = e.button === 1;
     const isPrimary = e.button === 0 || e.button === undefined;
     const isSecondary = e.button === 2;
@@ -1841,7 +1942,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return true;
     }
-    state.pointerDown = { x, y };
+    state.pointerDown = { x, y, time: performance.now(), primary: isPrimary };
     state.pointerMoved = false;
     let handled = false;
     const isSelectionTrigger = e.button === 2 || (state.mode === 'selecting' && isPrimary);
@@ -1902,7 +2003,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             it.type && x >= it.x && x <= it.x + it.w && y >= it.y && y <= it.y + it.h
         );
         if (item) {
-          state.draggingBlock = { type: item.type, name: item.label, value: false };
+          state.draggingBlock = { type: item.type, name: item.label, value: false, inputMode: item.inputMode };
           playItemPickupSound();
           handled = true;
         }
@@ -2072,6 +2173,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handlePointerUp(e) {
+    if (isLocked()) return;
     if (state.pinch) {
       if (!e.touches || e.touches.length < 2) {
         endPinch();
@@ -2146,13 +2248,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       }
       return;
     }
-    if (!state.pointerMoved && state.mode === 'idle') {
+    if (state.pointerDown?.primary && !state.pointerMoved && !state.draggingBlock && state.mode === 'idle') {
       if (x >= panelTotalWidth && x < canvasWidth && y >= 0 && y < gridHeight) {
         const cell = pointerToBoundedCell(x, y);
         if (cell) {
           const blk = blockAt(cell);
+          if (blk?.type === 'D' && performance.now() - state.pointerDown.time < 500) {
+            if (swapMemoryInputs(circuit, blk.id)) snapshot();
+          }
           if (blk && blk.type === 'INPUT') {
-            blk.value = !blk.value;
+            if (blk.inputMode === 'button') toggleButton(circuit, blk.id);
+            else blk.value = !blk.value;
+            memoryControls.refresh();
             evaluateCircuit(circuit);
             renderContent(
               contentCtx,
@@ -2169,10 +2276,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 1) {
       if (isValidWire(state.wireTrace)) {
-        const id = 'w' + Date.now();
+        const id = nextUniqueId('w');
         const startBlock = blockAt(state.wireTrace[0]);
         const endBlock = blockAt(state.wireTrace[state.wireTrace.length - 1]);
         circuit.wires[id] = newWire({ id, path: [...state.wireTrace], startBlockId: startBlock.id, endBlockId: endBlock.id });
+        assignNewInputRole(circuit, circuit.wires[id]);
         endBlock.inputs = [...(endBlock.inputs || []), startBlock.id];
         renderContent(
           contentCtx,
@@ -2198,6 +2306,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             const id = state.draggingBlock.id;
             const target = state.draggingBlock.origPos;
             circuit.blocks[id] = newBlock({
+              ...state.draggingBlock,
               id,
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
@@ -2223,11 +2332,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         } else if (state.draggingBlock.id) {
           const existingBlock = blockAt(cell);
           const occupiedByWire = cellHasWire(cell);
-          if (existingBlock) {
+          if (existingBlock && !hasMemoryConnections(state.draggingBlock)) {
             const replaced = replaceExistingBlock(existingBlock, {
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
               value: state.draggingBlock.value,
+              inputMode: state.draggingBlock.inputMode,
             });
             if (replaced) {
               placed = true;
@@ -2239,6 +2349,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
             const target = collision ? state.draggingBlock.origPos : cell;
             const id = state.draggingBlock.id;
             circuit.blocks[id] = newBlock({
+              ...state.draggingBlock,
               id,
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
@@ -2264,6 +2375,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           if (!existingBlock && !occupiedByWire) {
             const id = 'b' + Date.now();
             circuit.blocks[id] = newBlock({
+              ...state.draggingBlock,
               id,
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
@@ -2276,6 +2388,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
               value: state.draggingBlock.value,
+              inputMode: state.draggingBlock.inputMode,
             });
             placed = replaced;
             if (replaced) {
@@ -2306,6 +2419,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const removedExistingBlock =
         !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
+        if (state.draggingBlock.id) restoreMemoryDragWires(state.draggingBlock);
         if (shouldPlayDropSound) {
           playItemDropSound();
         }
@@ -2344,7 +2458,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   bindEvent(overlayCanvas, 'touchend', handlePointerUp);
 
   function handlePointerMove(e) {
+    if (isLocked()) { hidePaletteCost(); return false; }
     const { x, y } = getPointerPos(e);
+    updatePaletteCost(e, x, y);
+    if (x < panelTotalWidth) overlayCanvas.title = '';
     if (state.panning) {
       if (state.panLast) {
         const moved = camera.pan(x - state.panLast.x, y - state.panLast.y);
@@ -2482,7 +2599,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         }
         const hovered = blockAt(cell);
         state.hoverBlockId = hovered ? hovered.id : null;
+        overlayCanvas.title = hovered?.type === 'D' ? D_HELP
+          : hovered?.inputMode === 'button' ? '클릭/탭: 입력 켜기/끄기 · 다음 tick 후 자동으로 꺼짐' : '';
         if (state.dragCandidate && (cell.r !== state.dragCandidate.start.r || cell.c !== state.dragCandidate.start.c)) {
+          beginEdit();
           const b = circuit.blocks[state.dragCandidate.id];
           if (b) {
             const removedWires = [];
@@ -2500,6 +2620,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               type: b.type,
               name: b.name,
               value: b.value,
+              inputMode: b.inputMode,
               origPos: b.pos,
               wires: removedWires
             };
@@ -2577,6 +2698,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   };
 
   bindEvent(overlayCanvas, 'mousemove', handlePointerMove);
+  bindEvent(overlayCanvas, 'mouseleave', hidePaletteCost);
+  bindEvent(document, 'pointerdown', hidePaletteCost, true);
+  bindEvent(document, 'keydown', hidePaletteCost);
+  bindEvent(document, 'scroll', hidePaletteCost, true);
+  bindEvent(window, 'blur', hidePaletteCost);
+  bindEvent(window, 'resize', hidePaletteCost);
   bindEvent(overlayCanvas, 'touchmove', handleOverlayTouchMove, passiveFalseOption);
   bindEvent(overlayCanvas, 'touchend', handleOverlayTouchEndPinch);
   bindEvent(overlayCanvas, 'touchcancel', handleOverlayTouchCancel);
@@ -2597,6 +2724,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function handleDocUp(e) {
+    if (isLocked()) return false;
     const rect = overlayCanvas.getBoundingClientRect();
     const scale = parseFloat(overlayCanvas.dataset.scale || '1');
     const point = e.changedTouches?.[0] || e;
@@ -2657,11 +2785,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   bindEvent(document, 'touchend', handleDocUp);
 
   function startBlockDrag(type, name) {
+    if (isLocked()) return;
+    beginEdit();
     state.draggingBlock = { type, name, value: false };
     playItemPickupSound();
   }
 
   function moveCircuit(dx, dy) {
+    if (isLocked()) return false;
     if (!dx && !dy) return false;
     const blocks = Object.values(circuit.blocks);
     const wires = Object.values(circuit.wires);
@@ -2714,6 +2845,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           // Fixed IN/OUT blocks always start in the disabled (0) state.
           value: false,
           fixed: true,
+          inputMode: state.inputMode,
         });
       }
     });
@@ -2733,10 +2865,23 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   updateUsageCounts();
-  snapshot();
+  snapshot(false);
+  function restoreDesign(data) {
+    beginEdit();
+    applyState(JSON.stringify(data));
+    resetExecution(circuit);
+    undoStack.length = 0;
+    redoStack.length = 0;
+    hasInitialSnapshot = false;
+    snapshot(false);
+    memoryControls.refresh();
+  }
   return {
+    restoreCircuit: restoreDesign,
     state,
     circuit,
+    tickRunner: memoryControls.runner,
+    getPlaybackBarHeight: memoryControls.getHeight,
     startBlockDrag,
     syncPaletteWithCircuit,
     setIOPaletteNames,
@@ -2758,5 +2903,35 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     canExpandGrid,
     canShrinkGrid,
     refreshVisuals,
+    createTraceView() {
+      if (!camera) return null;
+      const saved = camera.getState();
+      return {
+        focus(ids, bottomScreen) {
+          const targets = ids.map(id => circuit.blocks[id]).filter(Boolean);
+          if (!targets.length) return;
+          const bounds = overlayCanvas.getBoundingClientRect();
+          const availableHeight = Math.min(gridHeight, (bottomScreen - bounds.top - 65) * canvasHeight / bounds.height);
+          if (availableHeight < 60) return;
+          // Clamp against the unobscured viewport during replay, so blocks near
+          // the bottom of a bounded grid can be brought above the trace dock.
+          camera.setViewport(canvasWidth, canvasHeight, { gridWidth, gridHeight: availableHeight });
+          const points = targets.map(b => camera.cellToScreenCell(b.pos));
+          const state = camera.getState(), size = CELL * state.scale;
+          const minX = Math.min(...points.map(p => p.x)), maxX = Math.max(...points.map(p => p.x)) + size;
+          const minY = Math.min(...points.map(p => p.y)), maxY = Math.max(...points.map(p => p.y)) + size;
+          if (minX < state.panelWidth + 20 || maxX > canvasWidth - 20 || minY < 20 || maxY > availableHeight) {
+            camera.pan((state.panelWidth + canvasWidth) / 2 - (minX + maxX) / 2,
+              availableHeight / 2 - (minY + maxY) / 2);
+          }
+        },
+        restore() {
+          camera.setViewport(canvasWidth, canvasHeight, { gridWidth, gridHeight });
+          camera.setScale(saved.scale);
+          const current = camera.getState();
+          camera.pan((current.originX - saved.originX) * saved.scale, (current.originY - saved.originY) * saved.scale);
+        }
+      };
+    },
   };
 }

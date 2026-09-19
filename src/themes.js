@@ -1,8 +1,8 @@
 const THEME_STORAGE_KEY = 'bitwiserTheme';
 
 function safeGetItem(key) {
-  if (typeof localStorage === 'undefined') return null;
   try {
+    if (typeof localStorage === 'undefined') return null;
     return localStorage.getItem(key);
   } catch (err) {
     console.warn('Failed to read localStorage key', key, err);
@@ -11,8 +11,8 @@ function safeGetItem(key) {
 }
 
 function safeSetItem(key, value) {
-  if (typeof localStorage === 'undefined') return;
   try {
+    if (typeof localStorage === 'undefined') return;
     if (value == null) {
       localStorage.removeItem(key);
     } else {
@@ -32,8 +32,8 @@ const THEMES = [
       en: 'Soft pastels with gentle depth'
     },
     description: {
-      ko: '은은한 보라빛과 밝은 격자가 어우러진 기본 테마입니다. 회로 요소가 또렷하게 보이면서도 눈에 부담이 적도록 디자인했습니다.',
-      en: 'A balanced default palette with lavender blocks and crisp grid lines designed to stay easy on the eyes.'
+      ko: '은은한 보라빛과 밝은 격자가 어우러진 테마입니다. 회로 요소가 또렷하게 보이면서도 눈에 부담이 적도록 디자인했습니다.',
+      en: 'A balanced palette with lavender blocks and crisp grid lines designed to stay easy on the eyes.'
     },
     swatches: ['#c7d2fe', '#eef2ff', '#4338ca'],
     accentColor: '#6366f1',
@@ -517,7 +517,8 @@ const THEMES = [
   }
 ];
 
-const DEFAULT_THEME_ID = THEMES[0].id;
+const DEFAULT_THEME_ID = 'midnight-neon';
+let lockedThemeId = null;
 
 let activeThemeId = (() => {
   const stored = safeGetItem(THEME_STORAGE_KEY);
@@ -546,14 +547,23 @@ export function getThemeById(id) {
 }
 
 export function getActiveThemeId() {
-  return activeThemeId;
+  return lockedThemeId || activeThemeId;
 }
 
 export function getActiveTheme() {
-  return getThemeById(activeThemeId) || THEMES[0];
+  return getThemeById(getActiveThemeId()) || getThemeById(DEFAULT_THEME_ID);
+}
+
+// Preview policy is confined to this page; preserve the full game's saved choice.
+export function lockTheme(id) {
+  if (lockedThemeId || !getThemeById(id)) return getActiveTheme();
+  lockedThemeId = id;
+  notify(getActiveTheme());
+  return getActiveTheme();
 }
 
 export function setActiveTheme(id) {
+  if (lockedThemeId) return getActiveTheme();
   if (!id || activeThemeId === id) {
     return getActiveTheme();
   }

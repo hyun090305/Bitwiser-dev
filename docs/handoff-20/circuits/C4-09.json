@@ -1,0 +1,112 @@
+{
+  "id": "C4-09",
+  "nodes": [
+    {
+      "id": "SIGNAL",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "SUBMIT",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "PREVIOUS1",
+      "type": "DE",
+      "inputs": [
+        "SIGNAL",
+        "SUBMIT"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "PREVIOUS2",
+      "type": "DE",
+      "inputs": [
+        "PREVIOUS1",
+        "SUBMIT"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "PREVIOUS3",
+      "type": "DE",
+      "inputs": [
+        "PREVIOUS2",
+        "SUBMIT"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "OPENED",
+      "type": "DE",
+      "inputs": [
+        "PREVIOUS3",
+        "g6"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "PREVIOUS1"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "AND",
+      "inputs": [
+        "SIGNAL",
+        "g1"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "NOT",
+      "inputs": [
+        "PREVIOUS2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "g2",
+        "g3"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "AND",
+      "inputs": [
+        "PREVIOUS3",
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "AND",
+      "inputs": [
+        "SUBMIT",
+        "g5"
+      ]
+    },
+    {
+      "id": "OUT_UNLOCKED",
+      "type": "OUTPUT",
+      "inputs": [
+        "OPENED"
+      ],
+      "name": "UNLOCKED"
+    }
+  ],
+  "solution": {
+    "architecture": "enabled-serial-history",
+    "note": "SUBMIT을 EN으로 쓰는 세 비트 이력과 열린 상태를 저장하는 D+EN을 사용합니다. 대기는 보존하지만 오입력 시 진행을 모두 버리는 규칙은 최근 네 글자 검사로 바뀝니다."
+  },
+  "source_variant": "C4-09-planar-core"
+}

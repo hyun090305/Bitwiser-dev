@@ -1,0 +1,129 @@
+{
+  "id": "C4-07",
+  "nodes": [
+    {
+      "id": "DUTY0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "DUTY1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "RESET",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "GRAY0",
+      "type": "D",
+      "inputs": [
+        "g3"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "GRAY1",
+      "type": "D",
+      "inputs": [
+        "g4"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "NOT",
+      "inputs": [
+        "GRAY1"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "RESET"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "AND",
+      "inputs": [
+        "g1",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "GRAY0",
+        "g2"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "NOT",
+      "inputs": [
+        "GRAY0"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "AND",
+      "inputs": [
+        "DUTY0",
+        "g5"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "OR",
+      "inputs": [
+        "DUTY1",
+        "g6"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "DUTY0",
+        "GRAY0"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "OR",
+      "inputs": [
+        "g1",
+        "g8"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "g7",
+        "g9"
+      ]
+    },
+    {
+      "id": "OUT_PWM",
+      "type": "OUTPUT",
+      "inputs": [
+        "g10"
+      ],
+      "name": "PWM"
+    }
+  ],
+  "solution": {
+    "architecture": "gray-phase-comparator",
+    "note": "두 D의 Gray 위상 순환과 출력 비교식을 사용합니다. 외부에서 정의한 위상 0→1→2→3과 RESET 동작은 같습니다."
+  },
+  "source_variant": "C4-07"
+}

@@ -1,0 +1,116 @@
+{
+  "purpose": "Verified final handoff reference; not a minimum or an authored star threshold",
+  "circuit": {
+    "rows": 6,
+    "cols": 6,
+    "blocks": {
+      "DATA": {
+        "id": "DATA",
+        "type": "INPUT",
+        "name": "DATA",
+        "pos": {
+          "r": 1,
+          "c": 1
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "LOAD": {
+        "id": "LOAD",
+        "type": "INPUT",
+        "name": "LOAD",
+        "pos": {
+          "r": 3,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "button"
+      },
+      "Q": {
+        "id": "Q",
+        "type": "D",
+        "name": "Q",
+        "pos": {
+          "r": 2,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "OUT_VALUE": {
+        "id": "OUT_VALUE",
+        "type": "OUTPUT",
+        "name": "VALUE",
+        "pos": {
+          "r": 4,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "DATA",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 1,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "LOAD",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ],
+        "inputRole": "EN"
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "Q",
+        "endBlockId": "OUT_VALUE",
+        "path": [
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 2
+          }
+        ]
+      }
+    }
+  }
+}

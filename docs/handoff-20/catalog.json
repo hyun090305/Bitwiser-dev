@@ -1,0 +1,1194 @@
+[
+  {
+    "number": 1,
+    "slot": "C4-01",
+    "title": "저장 스위치",
+    "selected_variant": "C4-01",
+    "prior_baseline_variant": "C4-01",
+    "original_title": "저장 스위치",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "D+EN 한 개에 DATA와 LOAD를 직접 연결합니다. LOAD=0의 유지용 MUX를 별도 게이트로 만들지 않습니다.",
+    "original_inputs": [
+      "DATA",
+      "LOAD"
+    ],
+    "original_outputs": [
+      "VALUE"
+    ],
+    "inputs": [
+      "DATA",
+      "LOAD"
+    ],
+    "outputs": [
+      "VALUE"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 4,
+    "metrics": {
+      "total": 4,
+      "internal": 1,
+      "logic": 0,
+      "state": 1,
+      "edges": 3,
+      "counts": {
+        "INPUT": 2,
+        "DE": 1,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-01.json",
+    "certificate": "certificates/C4-01.json",
+    "spec": "specs/C4-01.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 2,
+    "slot": "C4-02",
+    "title": "변화 감지기",
+    "selected_variant": "C4-02",
+    "prior_baseline_variant": "C4-02",
+    "original_title": "변화 감지기",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "이전 SIGNAL을 저장하는 D와 상승 사건을 저장하는 D를 따로 둡니다. 갱신 전 PREV로 사건을 계산하고 갱신 후 PULSE를 출력하여 첫 상승 tick을 보존합니다.",
+    "original_inputs": [
+      "SIGNAL"
+    ],
+    "original_outputs": [
+      "RISE"
+    ],
+    "inputs": [
+      "SIGNAL"
+    ],
+    "outputs": [
+      "RISE"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 6,
+    "metrics": {
+      "total": 6,
+      "internal": 4,
+      "logic": 2,
+      "state": 2,
+      "edges": 6,
+      "counts": {
+        "INPUT": 1,
+        "D": 2,
+        "NOT": 1,
+        "AND": 1,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-02.json",
+    "certificate": "certificates/C4-02.json",
+    "spec": "specs/C4-02.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 3,
+    "slot": "C4-03",
+    "title": "고장 기록등",
+    "selected_variant": "C4-03",
+    "prior_baseline_variant": "C4-03",
+    "original_title": "고장 기록등",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "EN=FAULT OR ACK, DATA=FAULT인 D+EN을 사용합니다. FAULT와 ACK가 동시에 1이면 고장을 기록합니다.",
+    "original_inputs": [
+      "FAULT",
+      "ACK"
+    ],
+    "original_outputs": [
+      "ALARM"
+    ],
+    "inputs": [
+      "FAULT",
+      "ACK"
+    ],
+    "outputs": [
+      "ALARM"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 5,
+    "metrics": {
+      "total": 5,
+      "internal": 2,
+      "logic": 1,
+      "state": 1,
+      "edges": 5,
+      "counts": {
+        "INPUT": 2,
+        "DE": 1,
+        "OR": 1,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-03.json",
+    "certificate": "certificates/C4-03.json",
+    "spec": "specs/C4-03.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 4,
+    "slot": "C4-04",
+    "title": "튀는 버튼",
+    "selected_variant": "C4-04",
+    "prior_baseline_variant": "C4-04",
+    "original_title": "튀는 버튼",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "최근 두 RAW와 CLEAN을 세 D에 보관하고 세 샘플의 일치 여부로 CLEAN을 갱신합니다.",
+    "original_inputs": [
+      "RAW"
+    ],
+    "original_outputs": [
+      "CLEAN"
+    ],
+    "inputs": [
+      "RAW"
+    ],
+    "outputs": [
+      "CLEAN"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 11,
+    "metrics": {
+      "total": 11,
+      "internal": 9,
+      "logic": 6,
+      "state": 3,
+      "edges": 16,
+      "counts": {
+        "INPUT": 1,
+        "D": 3,
+        "AND": 3,
+        "OR": 3,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-04.json",
+    "certificate": "certificates/C4-04.json",
+    "spec": "specs/C4-04.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 5,
+    "slot": "C4-05",
+    "title": "자동으로 닫히는 문",
+    "selected_variant": "C4-05",
+    "prior_baseline_variant": "C4-05",
+    "original_title": "자동으로 닫히는 문",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "세 D에 최근 OPEN을 지연 저장하고 OR합니다. 요청 tick을 포함한 3 tick 열림을 구현합니다.",
+    "original_inputs": [
+      "OPEN"
+    ],
+    "original_outputs": [
+      "DOOR"
+    ],
+    "inputs": [
+      "OPEN"
+    ],
+    "outputs": [
+      "DOOR"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 7,
+    "metrics": {
+      "total": 7,
+      "internal": 5,
+      "logic": 2,
+      "state": 3,
+      "edges": 8,
+      "counts": {
+        "INPUT": 1,
+        "D": 3,
+        "OR": 2,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-05.json",
+    "certificate": "certificates/C4-05.json",
+    "spec": "specs/C4-05.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 6,
+    "slot": "C4-06",
+    "title": "양방향 카운터",
+    "selected_variant": "C4-06",
+    "prior_baseline_variant": "C4-06",
+    "original_title": "양방향 카운터",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "두 D+EN으로 비트별 반전 조건을 구현합니다. 같은 명세의 22블록 비평면 후보 대신 게이트 공유를 줄인 32블록 평면 회로를 채택합니다. RESET도 유지합니다.",
+    "original_inputs": [
+      "INC",
+      "DEC",
+      "RESET"
+    ],
+    "original_outputs": [
+      "BIT0",
+      "BIT1"
+    ],
+    "inputs": [
+      "INC",
+      "DEC",
+      "RESET"
+    ],
+    "outputs": [
+      "BIT0",
+      "BIT1"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 32,
+    "metrics": {
+      "total": 32,
+      "internal": 27,
+      "logic": 25,
+      "state": 2,
+      "edges": 44,
+      "counts": {
+        "INPUT": 3,
+        "DE": 2,
+        "NOT": 12,
+        "AND": 11,
+        "OR": 2,
+        "OUTPUT": 2
+      }
+    },
+    "circuit": "circuits/C4-06.json",
+    "certificate": "certificates/C4-06.json",
+    "spec": "specs/C4-06.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 7,
+    "slot": "C4-07",
+    "title": "네 단계 밝기",
+    "selected_variant": "C4-07",
+    "prior_baseline_variant": "C4-07",
+    "original_title": "네 단계 밝기",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "두 D의 Gray 위상 순환과 출력 비교식을 사용합니다. 외부에서 정의한 위상 0→1→2→3과 RESET 동작은 같습니다.",
+    "original_inputs": [
+      "DUTY0",
+      "DUTY1",
+      "RESET"
+    ],
+    "original_outputs": [
+      "PWM"
+    ],
+    "inputs": [
+      "DUTY0",
+      "DUTY1",
+      "RESET"
+    ],
+    "outputs": [
+      "PWM"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 16,
+    "metrics": {
+      "total": 16,
+      "internal": 12,
+      "logic": 10,
+      "state": 2,
+      "edges": 20,
+      "counts": {
+        "INPUT": 3,
+        "D": 2,
+        "NOT": 3,
+        "AND": 5,
+        "OR": 2,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-07.json",
+    "certificate": "certificates/C4-07.json",
+    "spec": "specs/C4-07.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 8,
+    "slot": "C4-08",
+    "title": "공평한 사용권",
+    "selected_variant": "C4-08",
+    "prior_baseline_variant": "C4-08",
+    "original_title": "공평한 사용권",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "D+EN에 마지막 승인자를, D에 이번 tick의 요청 유무를 기억해 승인 출력을 복원합니다. 요청이 없으면 마지막 승인자는 유지합니다.",
+    "original_inputs": [
+      "REQ_A",
+      "REQ_B"
+    ],
+    "original_outputs": [
+      "A_OK",
+      "B_OK"
+    ],
+    "inputs": [
+      "REQ_A",
+      "REQ_B"
+    ],
+    "outputs": [
+      "A_OK",
+      "B_OK"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 13,
+    "metrics": {
+      "total": 13,
+      "internal": 9,
+      "logic": 7,
+      "state": 2,
+      "edges": 17,
+      "counts": {
+        "INPUT": 2,
+        "DE": 1,
+        "D": 1,
+        "AND": 4,
+        "NOT": 2,
+        "OR": 1,
+        "OUTPUT": 2
+      }
+    },
+    "circuit": "circuits/C4-08.json",
+    "certificate": "certificates/C4-08.json",
+    "spec": "specs/C4-08.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 9,
+    "slot": "C4-09",
+    "title": "ABBA 잠금장치 — 한 글자씩 제출",
+    "selected_variant": "C4-09-planar-core",
+    "prior_baseline_variant": "C4-09-planar-core",
+    "original_title": "ABBA 잠금장치",
+    "change_kind": "redesigned_abba",
+    "change_summary": "입력 방식·패턴 판정 재설계, RESET 제거",
+    "implementation": "SUBMIT을 EN으로 쓰는 세 비트 이력과 열린 상태를 저장하는 D+EN을 사용합니다. 대기는 보존하지만 오입력 시 진행을 모두 버리는 규칙은 최근 네 글자 검사로 바뀝니다.",
+    "original_inputs": [
+      "A",
+      "B",
+      "RESET"
+    ],
+    "original_outputs": [
+      "UNLOCKED"
+    ],
+    "inputs": [
+      "SIGNAL",
+      "SUBMIT"
+    ],
+    "outputs": [
+      "UNLOCKED"
+    ],
+    "removed_inputs": [
+      "A",
+      "B",
+      "RESET"
+    ],
+    "added_inputs": [
+      "SIGNAL",
+      "SUBMIT"
+    ],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 13,
+    "metrics": {
+      "total": 13,
+      "internal": 10,
+      "logic": 6,
+      "state": 4,
+      "edges": 19,
+      "counts": {
+        "INPUT": 2,
+        "DE": 4,
+        "NOT": 2,
+        "AND": 4,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-09.json",
+    "certificate": "certificates/C4-09.json",
+    "spec": "specs/C4-09.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 10,
+    "slot": "C4-10",
+    "title": "응답 감시기",
+    "selected_variant": "C4-10",
+    "prior_baseline_variant": "C4-10",
+    "original_title": "응답 감시기",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "세 D에 무응답 1·2·3 tick 이상을 나타내는 상태를 저장합니다. KICK는 유지합니다.",
+    "original_inputs": [
+      "KICK"
+    ],
+    "original_outputs": [
+      "TIMEOUT"
+    ],
+    "inputs": [
+      "KICK"
+    ],
+    "outputs": [
+      "TIMEOUT"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 8,
+    "metrics": {
+      "total": 8,
+      "internal": 6,
+      "logic": 3,
+      "state": 3,
+      "edges": 9,
+      "counts": {
+        "INPUT": 1,
+        "D": 3,
+        "NOT": 1,
+        "AND": 2,
+        "OUTPUT": 1
+      }
+    },
+    "circuit": "circuits/C4-10.json",
+    "certificate": "certificates/C4-10.json",
+    "spec": "specs/C4-10.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 11,
+    "slot": "C5-01",
+    "title": "누적 계산기",
+    "selected_variant": "C5-01",
+    "prior_baseline_variant": "C5-01",
+    "original_title": "누적 계산기",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "두 D+EN에 NOT(Q)와 비트별 반전 조건을 연결하여 mod 4 덧셈을 구현합니다. RESET 입력을 보존합니다.",
+    "original_inputs": [
+      "D0",
+      "D1",
+      "ADD",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "inputs": [
+      "D0",
+      "D1",
+      "ADD",
+      "RESET"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 22,
+    "metrics": {
+      "total": 22,
+      "internal": 16,
+      "logic": 14,
+      "state": 2,
+      "edges": 30,
+      "counts": {
+        "INPUT": 4,
+        "DE": 2,
+        "NOT": 4,
+        "AND": 7,
+        "OR": 3,
+        "OUTPUT": 2
+      }
+    },
+    "circuit": "circuits/C5-01.json",
+    "certificate": "certificates/C5-01.json",
+    "spec": "specs/C5-01.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 12,
+    "slot": "C5-02",
+    "title": "주소로 저장하고 읽기 — 핵심판",
+    "selected_variant": "C5-02-core",
+    "prior_baseline_variant": "C5-02-core",
+    "original_title": "주소로 저장하고 읽기",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "주소별로 EN을 만든 네 D+EN과 주소 읽기 선택 논리를 사용합니다. 두 2비트 저장 공간과 현재 주소의 조합 읽기를 보존합니다.",
+    "original_inputs": [
+      "D0",
+      "D1",
+      "ADDR",
+      "WRITE",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "inputs": [
+      "D0",
+      "D1",
+      "ADDR",
+      "WRITE"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 19,
+    "metrics": {
+      "total": 19,
+      "internal": 13,
+      "logic": 9,
+      "state": 4,
+      "edges": 27,
+      "counts": {
+        "INPUT": 4,
+        "DE": 4,
+        "NOT": 1,
+        "AND": 6,
+        "OR": 2,
+        "OUTPUT": 2
+      }
+    },
+    "circuit": "circuits/C5-02.json",
+    "certificate": "certificates/C5-02.json",
+    "spec": "specs/C5-02.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 13,
+    "slot": "C5-03",
+    "title": "한 번 되돌리기 — RESET만 제외",
+    "selected_variant": "C5-03-noreset",
+    "prior_baseline_variant": "C5-03-noreset",
+    "original_title": "한 번 되돌리기",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "현재 값·백업 값의 네 D+EN과 UNDO_AVAILABLE용 D+EN을 모두 유지합니다. 플래그를 없앤 18블록 핵심판 대신 20블록 상태 출력 보존판을 채택합니다.",
+    "original_inputs": [
+      "D0",
+      "D1",
+      "SAVE",
+      "UNDO",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1",
+      "UNDO_AVAILABLE"
+    ],
+    "inputs": [
+      "D0",
+      "D1",
+      "SAVE",
+      "UNDO"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1",
+      "UNDO_AVAILABLE"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 20,
+    "metrics": {
+      "total": 20,
+      "internal": 13,
+      "logic": 8,
+      "state": 5,
+      "edges": 28,
+      "counts": {
+        "INPUT": 4,
+        "DE": 5,
+        "OR": 5,
+        "NOT": 1,
+        "AND": 2,
+        "OUTPUT": 3
+      }
+    },
+    "circuit": "circuits/C5-03.json",
+    "certificate": "certificates/C5-03.json",
+    "spec": "specs/C5-03.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 14,
+    "slot": "C5-04",
+    "title": "준비 후 한 번에 반영",
+    "selected_variant": "C5-04",
+    "prior_baseline_variant": "C5-04",
+    "original_title": "준비 후 한 번에 반영",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "준비 레지스터와 공개 레지스터에 각각 D+EN 두 개를 사용합니다. 같은 명세의 18블록 비평면 후보 대신 RESET 배선을 분리한 23블록 평면 회로를 채택합니다.",
+    "original_inputs": [
+      "D0",
+      "D1",
+      "WRITE",
+      "COMMIT",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "inputs": [
+      "D0",
+      "D1",
+      "WRITE",
+      "COMMIT",
+      "RESET"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 23,
+    "metrics": {
+      "total": 23,
+      "internal": 16,
+      "logic": 12,
+      "state": 4,
+      "edges": 30,
+      "counts": {
+        "INPUT": 5,
+        "DE": 4,
+        "NOT": 4,
+        "AND": 4,
+        "OR": 4,
+        "OUTPUT": 2
+      }
+    },
+    "circuit": "circuits/C5-04.json",
+    "certificate": "certificates/C5-04.json",
+    "spec": "specs/C5-04.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 15,
+    "slot": "C5-05",
+    "title": "한 줄로 수신하기 · RESET 제거",
+    "selected_variant": "C5-05-status",
+    "prior_baseline_variant": "C5-05-status",
+    "original_title": "한 줄로 수신하기",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "수신 이력·Johnson 진행 상태·완성 단어를 D+EN에 저장하며 DONE용 D를 유지합니다. DONE 없는 19블록판 대신 21블록판을 채택합니다.",
+    "original_inputs": [
+      "DATA",
+      "RECEIVE",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1",
+      "Q2",
+      "Q3",
+      "DONE"
+    ],
+    "inputs": [
+      "DATA",
+      "RECEIVE"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1",
+      "Q2",
+      "Q3",
+      "DONE"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 21,
+    "metrics": {
+      "total": 21,
+      "internal": 14,
+      "logic": 4,
+      "state": 10,
+      "edges": 30,
+      "counts": {
+        "INPUT": 2,
+        "DE": 9,
+        "D": 1,
+        "NOT": 2,
+        "AND": 2,
+        "OUTPUT": 5
+      }
+    },
+    "circuit": "circuits/C5-05.json",
+    "certificate": "certificates/C5-05.json",
+    "spec": "specs/C5-05.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 16,
+    "slot": "C5-06",
+    "title": "한 줄로 전송하기",
+    "selected_variant": "C5-06",
+    "prior_baseline_variant": "C5-06",
+    "original_title": "한 줄로 전송하기",
+    "change_kind": "unchanged",
+    "change_summary": "문제 명세 유지",
+    "implementation": "세 단계 진행 상태를 한 단계씩 이동시키는 39블록 평면 회로입니다. 28블록 핵심판이나 RESET 없는 31블록판 대신 RESET·VALID·BUSY를 모두 보존합니다.",
+    "original_inputs": [
+      "D0",
+      "D1",
+      "D2",
+      "D3",
+      "START",
+      "RESET"
+    ],
+    "original_outputs": [
+      "SERIAL",
+      "VALID",
+      "BUSY"
+    ],
+    "inputs": [
+      "D0",
+      "D1",
+      "D2",
+      "D3",
+      "START",
+      "RESET"
+    ],
+    "outputs": [
+      "SERIAL",
+      "VALID",
+      "BUSY"
+    ],
+    "removed_inputs": [],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 39,
+    "metrics": {
+      "total": 39,
+      "internal": 30,
+      "logic": 22,
+      "state": 8,
+      "edges": 54,
+      "counts": {
+        "INPUT": 6,
+        "D": 6,
+        "DE": 2,
+        "OR": 7,
+        "NOT": 3,
+        "AND": 12,
+        "OUTPUT": 3
+      }
+    },
+    "circuit": "circuits/C5-06.json",
+    "certificate": "certificates/C5-06.json",
+    "spec": "specs/C5-06.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 17,
+    "slot": "C5-07",
+    "title": "마지막에 넣은 것부터 · RESET만 제거",
+    "selected_variant": "C5-07-status-full",
+    "prior_baseline_variant": "C5-07-status-full",
+    "original_title": "마지막에 넣은 것부터",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "두 데이터 슬롯·NONEMPTY·FULL·마지막 POP 값·POP 성공 상태를 사용합니다. DATA_OUT만 남긴 24블록 평면 핵심판 대신 모든 상태 출력을 유지한 29블록판을 채택합니다.",
+    "original_inputs": [
+      "DATA",
+      "PUSH",
+      "POP",
+      "RESET"
+    ],
+    "original_outputs": [
+      "DATA_OUT",
+      "VALID",
+      "EMPTY",
+      "FULL"
+    ],
+    "inputs": [
+      "DATA",
+      "PUSH",
+      "POP"
+    ],
+    "outputs": [
+      "DATA_OUT",
+      "VALID",
+      "EMPTY",
+      "FULL"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 29,
+    "metrics": {
+      "total": 29,
+      "internal": 22,
+      "logic": 16,
+      "state": 6,
+      "edges": 42,
+      "counts": {
+        "INPUT": 3,
+        "DE": 4,
+        "D": 2,
+        "AND": 6,
+        "NOT": 4,
+        "OR": 6,
+        "OUTPUT": 4
+      }
+    },
+    "circuit": "circuits/C5-07.json",
+    "certificate": "certificates/C5-07.json",
+    "spec": "specs/C5-07.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 18,
+    "slot": "C5-08",
+    "title": "먼저 넣은 것부터 · RESET만 제거",
+    "selected_variant": "C5-08-status-full",
+    "prior_baseline_variant": "C5-08-status-full",
+    "original_title": "먼저 넣은 것부터",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "두 데이터 슬롯과 점유 상태를 갱신하며 먼저 들어온 데이터를 POP합니다. DATA_OUT만 남긴 23블록 평면 핵심판 대신 모든 상태 출력을 유지한 28블록판을 채택합니다.",
+    "original_inputs": [
+      "DATA",
+      "PUSH",
+      "POP",
+      "RESET"
+    ],
+    "original_outputs": [
+      "DATA_OUT",
+      "VALID",
+      "EMPTY",
+      "FULL"
+    ],
+    "inputs": [
+      "DATA",
+      "PUSH",
+      "POP"
+    ],
+    "outputs": [
+      "DATA_OUT",
+      "VALID",
+      "EMPTY",
+      "FULL"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 28,
+    "metrics": {
+      "total": 28,
+      "internal": 21,
+      "logic": 15,
+      "state": 6,
+      "edges": 40,
+      "counts": {
+        "INPUT": 3,
+        "DE": 4,
+        "D": 2,
+        "AND": 6,
+        "NOT": 4,
+        "OR": 5,
+        "OUTPUT": 4
+      }
+    },
+    "circuit": "circuits/C5-08.json",
+    "certificate": "certificates/C5-08.json",
+    "spec": "specs/C5-08.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 19,
+    "slot": "C5-09",
+    "title": "수신 대기 우편함 — RESET만 제외",
+    "selected_variant": "C5-09-noreset",
+    "prior_baseline_variant": "C5-09-noreset",
+    "original_title": "수신 대기 우편함",
+    "change_kind": "reset_removed",
+    "change_summary": "RESET만 제거, 원래 모든 출력 유지",
+    "implementation": "페이로드·점유·전달값·수신 성공·송신 성공을 저장합니다. DATA_OUT만 남긴 11블록판 대신 모든 상태 출력을 유지한 16블록판을 채택합니다.",
+    "original_inputs": [
+      "DATA",
+      "SEND",
+      "TAKE",
+      "RESET"
+    ],
+    "original_outputs": [
+      "FULL",
+      "DATA_OUT",
+      "VALID",
+      "ACCEPTED"
+    ],
+    "inputs": [
+      "DATA",
+      "SEND",
+      "TAKE"
+    ],
+    "outputs": [
+      "FULL",
+      "DATA_OUT",
+      "VALID",
+      "ACCEPTED"
+    ],
+    "removed_inputs": [
+      "RESET"
+    ],
+    "added_inputs": [],
+    "removed_outputs": [],
+    "added_outputs": [],
+    "blocks": 16,
+    "metrics": {
+      "total": 16,
+      "internal": 9,
+      "logic": 4,
+      "state": 5,
+      "edges": 19,
+      "counts": {
+        "INPUT": 3,
+        "DE": 3,
+        "D": 2,
+        "NOT": 1,
+        "OR": 1,
+        "AND": 2,
+        "OUTPUT": 4
+      }
+    },
+    "circuit": "circuits/C5-09.json",
+    "certificate": "certificates/C5-09.json",
+    "spec": "specs/C5-09.md",
+    "judge": {
+      "kind": "every_tick",
+      "sample": "post_tick",
+      "arbitrary_binary_inputs": true
+    }
+  },
+  {
+    "number": 20,
+    "slot": "C5-10",
+    "title": "시간을 써서 나누기",
+    "selected_variant": "C5-10-divider-complete",
+    "prior_baseline_variant": "C5-10-auto",
+    "original_title": "시간을 써서 곱하기",
+    "change_kind": "replaced_by_divider",
+    "change_summary": "곱셈 → 나눗셈; A=0~7, B=1~3, Q·R·COMPLETE, 10 tick 특별 채점",
+    "implementation": "최초 tick 준비 뒤 단위 수를 세며 몫과 나머지를 누적합니다. 45블록, D 3개와 D+EN 5개입니다. 이 해답은 A+1 tick에 처음 완료하지만 문제는 10 tick 이내의 모든 올바른 완료 시점을 허용합니다.",
+    "original_inputs": [
+      "A0",
+      "A1",
+      "B0",
+      "B1",
+      "START",
+      "RESET"
+    ],
+    "original_outputs": [
+      "Q0",
+      "Q1",
+      "Q2",
+      "Q3",
+      "BUSY",
+      "DONE"
+    ],
+    "inputs": [
+      "A0",
+      "A1",
+      "A2",
+      "B0",
+      "B1"
+    ],
+    "outputs": [
+      "Q0",
+      "Q1",
+      "Q2",
+      "R0",
+      "R1",
+      "COMPLETE"
+    ],
+    "removed_inputs": [
+      "START",
+      "RESET"
+    ],
+    "added_inputs": [
+      "A2"
+    ],
+    "removed_outputs": [
+      "Q3",
+      "BUSY",
+      "DONE"
+    ],
+    "added_outputs": [
+      "R0",
+      "R1",
+      "COMPLETE"
+    ],
+    "blocks": 45,
+    "metrics": {
+      "total": 45,
+      "internal": 34,
+      "logic": 26,
+      "state": 8,
+      "edges": 62,
+      "counts": {
+        "INPUT": 5,
+        "DE": 5,
+        "NOT": 9,
+        "D": 3,
+        "AND": 11,
+        "OR": 6,
+        "OUTPUT": 6
+      }
+    },
+    "circuit": "circuits/C5-10.json",
+    "certificate": "certificates/C5-10.json",
+    "spec": "specs/C5-10.md",
+    "judge": {
+      "kind": "first_complete",
+      "deadline_ticks": 10,
+      "sample": "post_tick",
+      "constant_inputs": true,
+      "A": [
+        0,
+        7
+      ],
+      "B": [
+        1,
+        3
+      ]
+    }
+  }
+]

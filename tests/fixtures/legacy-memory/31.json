@@ -1,0 +1,244 @@
+{
+  "purpose": "Verified attainable budget, not a minimum claim",
+  "circuit": {
+    "rows": 9,
+    "cols": 13,
+    "blocks": {
+      "SIGNAL": {
+        "id": "SIGNAL",
+        "type": "INPUT",
+        "name": "SIGNAL",
+        "pos": {
+          "r": 2,
+          "c": 0
+        },
+        "value": false,
+        "fixed": true,
+        "inputMode": "switch"
+      },
+      "p": {
+        "id": "p",
+        "type": "D",
+        "name": "p",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "value": false
+      },
+      "n": {
+        "id": "n",
+        "type": "NOT",
+        "name": "n",
+        "pos": {
+          "r": 2,
+          "c": 7
+        },
+        "value": false
+      },
+      "a": {
+        "id": "a",
+        "type": "AND",
+        "name": "a",
+        "pos": {
+          "r": 6,
+          "c": 7
+        },
+        "value": false
+      },
+      "RISE": {
+        "id": "RISE",
+        "type": "OUTPUT",
+        "name": "RISE",
+        "pos": {
+          "r": 6,
+          "c": 12
+        },
+        "value": false,
+        "fixed": true
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "SIGNAL",
+        "endBlockId": "p",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "p",
+        "endBlockId": "n",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 7
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "SIGNAL",
+        "endBlockId": "a",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 7
+          },
+          {
+            "r": 4,
+            "c": 7
+          },
+          {
+            "r": 5,
+            "c": 7
+          },
+          {
+            "r": 6,
+            "c": 7
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "n",
+        "endBlockId": "a",
+        "path": [
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 2,
+            "c": 8
+          },
+          {
+            "r": 3,
+            "c": 8
+          },
+          {
+            "r": 4,
+            "c": 8
+          },
+          {
+            "r": 5,
+            "c": 8
+          },
+          {
+            "r": 6,
+            "c": 8
+          },
+          {
+            "r": 6,
+            "c": 7
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "a",
+        "endBlockId": "RISE",
+        "path": [
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 8
+          },
+          {
+            "r": 7,
+            "c": 9
+          },
+          {
+            "r": 6,
+            "c": 9
+          },
+          {
+            "r": 6,
+            "c": 10
+          },
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 12
+          }
+        ]
+      }
+    }
+  }
+}

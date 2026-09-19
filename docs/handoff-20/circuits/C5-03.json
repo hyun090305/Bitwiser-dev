@@ -1,0 +1,166 @@
+{
+  "id": "C5-03",
+  "nodes": [
+    {
+      "id": "D0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "D1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "SAVE",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "UNDO",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "button"
+    },
+    {
+      "id": "VALUE0",
+      "type": "DE",
+      "inputs": [
+        "g4",
+        "g5"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "VALUE1",
+      "type": "DE",
+      "inputs": [
+        "g8",
+        "g5"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "BACKUP0",
+      "type": "DE",
+      "inputs": [
+        "VALUE0",
+        "SAVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "BACKUP1",
+      "type": "DE",
+      "inputs": [
+        "VALUE1",
+        "SAVE"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "CAN_UNDO",
+      "type": "DE",
+      "inputs": [
+        "SAVE",
+        "g5"
+      ],
+      "initial": 0
+    },
+    {
+      "id": "g1",
+      "type": "OR",
+      "inputs": [
+        "BACKUP0",
+        "SAVE"
+      ]
+    },
+    {
+      "id": "g2",
+      "type": "NOT",
+      "inputs": [
+        "SAVE"
+      ]
+    },
+    {
+      "id": "g3",
+      "type": "OR",
+      "inputs": [
+        "D0",
+        "g2"
+      ]
+    },
+    {
+      "id": "g4",
+      "type": "AND",
+      "inputs": [
+        "g1",
+        "g3"
+      ]
+    },
+    {
+      "id": "g5",
+      "type": "OR",
+      "inputs": [
+        "SAVE",
+        "UNDO"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "OR",
+      "inputs": [
+        "BACKUP1",
+        "SAVE"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "OR",
+      "inputs": [
+        "D1",
+        "g2"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "g6",
+        "g7"
+      ]
+    },
+    {
+      "id": "OUT_Q0",
+      "type": "OUTPUT",
+      "inputs": [
+        "VALUE0"
+      ],
+      "name": "Q0"
+    },
+    {
+      "id": "OUT_Q1",
+      "type": "OUTPUT",
+      "inputs": [
+        "VALUE1"
+      ],
+      "name": "Q1"
+    },
+    {
+      "id": "OUT_UNDO_AVAILABLE",
+      "type": "OUTPUT",
+      "inputs": [
+        "CAN_UNDO"
+      ],
+      "name": "UNDO_AVAILABLE"
+    }
+  ],
+  "solution": {
+    "architecture": "DE-idempotent-undo",
+    "note": "현재 값·백업 값의 네 D+EN과 UNDO_AVAILABLE용 D+EN을 모두 유지합니다. 플래그를 없앤 18블록 핵심판 대신 20블록 상태 출력 보존판을 채택합니다."
+  },
+  "source_variant": "C5-03-noreset"
+}

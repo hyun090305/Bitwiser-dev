@@ -8,8 +8,8 @@ const SFX_ENABLED_KEY = 'sfxEnabled';
 const LAST_ACCESSED_LEVEL_KEY = 'lastAccessedLevel';
 
 function safeGetItem(key) {
-  if (typeof localStorage === 'undefined') return null;
   try {
+    if (typeof localStorage === 'undefined') return null;
     return localStorage.getItem(key);
   } catch (err) {
     console.warn('Failed to read localStorage key', key, err);
@@ -18,8 +18,8 @@ function safeGetItem(key) {
 }
 
 function safeSetItem(key, value) {
-  if (typeof localStorage === 'undefined') return;
   try {
+    if (typeof localStorage === 'undefined') return;
     if (value === null || typeof value === 'undefined') {
       localStorage.removeItem(key);
     } else {
@@ -150,4 +150,17 @@ export function getLastAccessedLevel() {
 
 export function setLastAccessedLevel(level) {
   safeSetItem(LAST_ACCESSED_LEVEL_KEY, String(level));
+}
+
+export function getStageAccessRecord() {
+  try {
+    const raw = safeGetItem(`stageMapAccess_v3_${getUsername() || '익명'}`);
+    if (!raw) return null;
+    const record = JSON.parse(raw);
+    return record && Array.isArray(record.unlockedStages) && Array.isArray(record.unlockedChapters) ? record : null;
+  } catch { return null; }
+}
+
+export function setStageAccessRecord(record) {
+  safeSetItem(`stageMapAccess_v3_${getUsername() || '익명'}`, JSON.stringify(record));
 }
