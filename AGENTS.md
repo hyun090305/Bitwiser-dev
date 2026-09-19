@@ -1,179 +1,53 @@
-# 제목 없음
+# Bitwiser contributor instructions
 
-# Agents Overview for Bitwiser
+## Start here
 
-This document describes the major **agents** (modules) that make up the Bitwiser
+- Read this file, [architecture](docs/architecture.md), and [development workflow](docs/development-workflow.md), then inspect the relevant source and tests.
+- This repository is `hyun090305/Bitwiser-dev`; the default integration branch is `main`. Verify the remote, branch, HEAD, and working-tree status before editing.
+- Preserve existing user changes. Use a task branch or isolated checkout; do not reset unrelated work.
+- Check for more specific `AGENTS.md` / `AGENTS.override.md` instructions in the directories you touch.
 
-web‑based combinational logic circuit simulator. Each agent encapsulates a
+## Issue is the implementation contract
 
-distinct responsibility such as handling authentication, managing the grid and
+- When given an Issue, fetch its current body and discussion. Treat the maintained body (goal, scope, constraints, and acceptance criteria) as the source of truth for requested behavior.
+- Use the recorded base commit to understand the spec, then compare it with the actual checkout. Re-read affected code when the base has moved; never silently implement against stale assumptions.
+- Distinguish accepted decisions from suggestions in comments. Incorporate explicit user/maintainer decisions into the Issue body when authorized; do not treat every comment as a new requirement.
+- Preserve stable acceptance IDs (`AC-1`, `AC-2`, etc.) through implementation and review. Do not weaken criteria or tests to make a change pass.
+- Resolve ordinary implementation choices from the code. Ask only when unresolved requirements change observable behavior or conflict with the requested scope. Continue independent work.
+- If Issue access is unavailable, report it and request/provide an exact body snapshot. Do not invent requirements or claim to have read the Issue.
+- Follow the user's explicit current instructions; reconcile any resulting scope change with the Issue so later reviews have the same contract.
 
-circuits, orchestrating gameplay levels, rendering on the canvas, or
+## Preserve Bitwiser behavior
 
-interacting with external services. By documenting the responsibilities and
+- Keep changes focused. Follow existing JavaScript module patterns; avoid unrelated refactors, dependencies, formatting sweeps, and generated-data churn.
+- Preserve full web, Electron, and demo entry points. Shared modules must keep the demo's offline/local-storage boundary and full-version account/ranking paths intact.
+- Preserve stage IDs, unlock paths, Korean/English parity, fixed IO, and existing save compatibility unless the Issue explicitly changes them.
+- Keep combinational evaluation separate from time: rendering/input preview must not advance D memory. A tick samples all next states and commits them together. Failed ticks must not partially mutate state.
+- Preserve grading observation timing (`before_tick` / `after_tick`) and the divider's explicit contract. Incomplete/cancelled grading is not a pass. Result views/playback must reflect the grader's trace.
+- Reuse circuit snapshots and versioned records. Preserve v2 read/v3 write compatibility and D/EN roles; do not persist transient Q/tick/button state as a circuit design.
+- Cost/ranking changes must preserve version checks and historical records. Keep the two language files' star thresholds aligned.
+- See the linked domain documents in architecture.md before changing these contracts. They describe current behavior, not permission to expand the task.
 
-interactions of these agents, we improve the maintainability of the codebase
+## Validation
 
-and make it easier for new contributors to understand how the system works.
+- Inspect `package.json` for real commands; there is no generic `npm run build` or lint script.
+- For JavaScript, circuit, stage, or data behavior changes, run `npm test`, then the browser/Electron checks relevant to the changed surface in the workflow's validation table.
+- For shared web/demo markup, styles, modules, or catalog changes, also run `npm run build:demo`.
+- For documentation/template-only changes, check links, referenced paths/commands, template structure, and `git diff --check`; do not add product tests just for prose.
+- `stages:generate`, `stages:memory20`, and `stages:compact` rewrite stage data. Run them only for an intended stage-data change, then review the generated diff.
+- Report commands actually run, outcomes, and unverified checks with reasons. Historical test counts in docs are not evidence for the current commit.
+- Keep generated build/test outputs, credentials, and local runtime caches out of commits.
 
-## Purpose of Agents
+## Pull requests
 
-Bitwiser is designed as a collection of loosely coupled modules. Each module
+- Implement on a task branch and open a PR when requested/authorized by the task. Use [.github/pull_request_template.md](.github/pull_request_template.md).
+- Link the Issue with `Closes #NUMBER` only if the PR delivers the whole Issue; use `Refs #NUMBER` for partial delivery.
+- Map every acceptance ID to changed code/docs, validation evidence, and a status: met, unmet, or unverified. Document deviations and remaining limitations.
+- Recheck the latest Issue and complete diff before requesting review. Update the PR description when scope changes.
+- Do not merge, deploy, or change repository/service settings unless the user's task authorizes those actions.
 
-exposes a clear API and acts as an **agent** responsible for a specific
+## Code Review Rules
 
-functionality within the game. Agents communicate by importing one another’s
-
-functions, listening to callbacks and events, and passing data objects around.
-
-The high‑level architecture splits into two layers:
-
-- **UI and Gameplay layer** — agents in `src/modules` manage user accounts,
-    
-    levels, hints, tutorials, circuit sharing, navigation, ranking, and
-    
-    problem editing. They organise the overall flow and state of the game.
-    
-- **Canvas and Simulation layer** — agents in `src/canvas` implement the
-    
-    circuit model, physics (signal propagation), rendering and user
-    
-    interactions on the canvas. They operate on the 6×6 grid where players
-    
-    build circuits.
-    
-
-Below each agent is summarised with its core responsibilities and the key
-
-functions it exposes. For brevity only the most relevant public functions are
-
-mentioned.
-
-## UI and Gameplay Agents (src/modules)
-
-| Agent & file | Responsibility |
-| --- | --- |
-| **AuthAgent** (`auth.js`) | Handles user authentication. Manages login/logout flows, OAuth tokens and session persistence. Exports `initializeAuth()` and helpers to check login state. |
-| **AuthUIAgent** (`authUI.js`) | Provides the user interface for authentication. Renders login dialogs and profile menus and hooks them into AuthAgent. |
-| **StorageAgent** (`storage.js`) | Wraps browser storage APIs. Reads and writes user preferences such as username, hint progress, and auto‑save settings. Exports getters/setters like `getUsername()` and `setAutoSaveSetting()`. |
-| **GuestbookAgent** (`guestbook.js`) | Manages a simple in‑game guestbook. Handles CRUD operations for player messages. |
-| **ToastAgent** (`toast.js`) | Centralises toast notifications. Provides a `createToastManager()` that can show, update and hide messages with actions and progress indicators. |
-| **GridAgent** (`grid.js`) | Maintains the current grid dimensions and the active circuits/controllers for *play* and *problem* contexts. Handles resizing, zooming, creation and destruction of circuit contexts, and emits circuit‑modified events via `onCircuitModified()`. |
-| **LevelsAgent** (`levels.js`) | Loads level metadata from `levels.json`/`levels_en.json`, stores titles, grid sizes, block sets, answers and hints. Exposes methods to start and return from levels, mark levels cleared, and render stage lists. |
-| **HintsAgent** (`hints.js`) | Controls hint functionality. Tracks which hints have been viewed and opens/closes the hint modal when requested via `openHintModal()`. |
-| **TutorialsAgent** (`tutorials.js`) | Implements step‑by‑step tutorials shown at the start of certain levels. Provides `initializeTutorials()` and manages tutorial state. |
-| **GradingAgent** (`grading.js`) | Grades player circuits. Compares the output of the EngineAgent against level answers and updates scoring UI. |
-| **CircuitShareAgent** (`circuitShare.js`) | Implements circuit saving and sharing. Provides functions to export circuits to GIF, copy/share links, update save progress, and show modals. |
-| **NavigationAgent** (`navigation.js`) | Handles page/screen transitions, orientation locking and mobile detection. Exports `setupNavigation()` and helpers like `isMobileDevice()`. |
-| **ProblemEditorAgent** (`problemEditor.js`) | Powers the custom problem editor. Manages palettes for custom blocks, validates outputs, saves problems, and renders the list of user‑created problems. |
-| **RankAgent** (`rank.js`) | Fetches and stores player progress/score data. Displays overall and per‑problem rankings via UI functions such as `showOverallRanking()`. |
-| **LabModeAgent** (`labMode.js`) | Enables “lab mode,” a sandbox for free experimentation. Hooks into the grid to provide an unrestricted canvas. |
-| **ConfettiAgent** (`confetti.js`) | Produces celebratory confetti animations upon level completion or achievements. |
-| **UIAgent** (`ui.js`) | Placeholder module for future UI initialisation; currently unused. |
-
-### Interactions within the UI/Gameplay Layer
-
-- **AuthAgent** emits login state that other agents (e.g. RankAgent and
-    
-    CircuitShareAgent) use to decide whether saving/ranking is permitted.
-    
-- **StorageAgent** persists user preferences; many agents call it to fetch
-    
-    initial state on load.
-    
-- **GridAgent** maintains the active `play` and `problem` controllers. When a
-    
-    circuit is modified, it notifies listeners (e.g. GradingAgent and
-    
-    ProblemEditorAgent) via `onCircuitModified()` so they can update results or
-    
-    invalidate cached outputs.
-    
-- **LevelsAgent** calls `setupGrid()` (from GridAgent) when starting a level,
-    
-    sets grid dimensions, and uses **TutorialsAgent**, **HintsAgent** and
-    
-    **GradingAgent** to prepare the play environment.
-    
-- **CircuitShareAgent** depends on **GridAgent** to retrieve the active
-    
-    circuit for exporting; it also uses **ToastAgent** to show status updates.
-    
-- **RankAgent** and **LevelsAgent** coordinate via level events: when a level
-    
-    is cleared, **RankAgent** stores the result and updates leaderboards.
-    
-- **ProblemEditorAgent** uses **GridAgent** to build and preview custom
-    
-    problems; it uses **CircuitShareAgent** for saving and sharing.
-    
-
-## Canvas and Simulation Agents (src/canvas)
-
-| Agent & file | Responsibility |
-| --- | --- |
-| **ModelAgent** (`model.js`) | Defines the internal data structures for the circuit. Represents blocks (inputs, outputs, gates), wires and their connections, and exposes helper functions to add/remove items. |
-| **EngineAgent** (`engine.js`) | Simulates signal propagation through the circuit. Uses a breadth‑first search to evaluate combinational logic and update output values when inputs or connections change. |
-| **CameraAgent** (`camera.js`) | Maintains the camera transform for the canvas. Handles zooming, panning and converting between screen and world coordinates. |
-| **RendererAgent** (`renderer.js`) | Renders the grid, blocks, wires and animations onto an HTML canvas. Reads circuit state from ModelAgent and uses CameraAgent for coordinate transforms. |
-| **ControllerAgent** (`controller.js`) | Orchestrates user interactions on the canvas. Handles dragging and dropping of blocks, drawing and deleting wires, moving the camera, and bridging between UI events and updates to ModelAgent and EngineAgent. |
-
-### Data Flow on the Canvas
-
-1. **ControllerAgent** listens to mouse/touch events on the canvas and updates
-    
-    the **ModelAgent** when a block is added, moved or removed or when wires
-    
-    are drawn. It also triggers a simulation via **EngineAgent** after each
-    
-    change.
-    
-2. **EngineAgent** traverses the graph defined by the ModelAgent and
-    
-    computes new output values. It emits updates so that the UI can reflect
-    
-    changes (e.g. lighting up outputs or highlighting active gates).
-    
-3. **RendererAgent** redraws the circuit whenever the ModelAgent or CameraAgent
-    
-    signals that something changed. It draws blocks using symbolic icons,
-    
-    wires as lines with direction arrows and simple flow animations.
-    
-4. **CameraAgent** ensures that panning/zooming keeps the canvas centred and
-    
-    scaled appropriately across different screen sizes. The GridAgent calls
-    
-    `adjustGridZoom()` to fit the canvas into the available viewport.
-    
-
-## Extending the Agents
-
-- When adding new features, consider whether they belong in an existing agent
-    
-    or warrant a new module. For example, a “collaborative editing” feature
-    
-    might become a **CollaborationAgent** that handles WebSocket messaging and
-    
-    integrates with ProblemEditorAgent and GridAgent.
-    
-- To maintain low coupling, expose small, focused functions rather than
-    
-    directly manipulating another agent’s internal state. Use events or
-    
-    callbacks where appropriate.
-    
-
-## Summary
-
-Bitwiser’s architecture divides responsibilities among several agents. The
-
-UI/Gameplay agents coordinate authentication, level flow, progress tracking
-
-and sharing, while the Canvas/Simulation agents handle the low‑level
-
-representation and visualisation of circuits. Understanding these agents and
-
-their interactions will help contributors reason about changes and extend the
-
-game without introducing regressions.
+- Read the linked Issue and relevant code, then compare every acceptance criterion with the complete PR diff and evidence. A green test run or PR summary alone does not prove the requested behavior.
+- Check regressions in the affected full web/demo/Electron paths, stage/save compatibility, atomic D ticks, grading observation boundaries, and versioned cost records. Apply only checks relevant to the diff.
+- Report actionable findings with the criterion ID (when relevant), concrete trigger, expected/actual behavior, and precise file/line. Distinguish an implementation defect from missing validation evidence. Never claim an unrun check passed.
