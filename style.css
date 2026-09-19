@@ -616,20 +616,7 @@ html, body {
   position: relative;
   padding-bottom: 0;
   box-sizing: border-box;
-  background:
-    radial-gradient(circle at 50% 8%, rgba(30, 64, 175, 0.18), transparent 42%),
-    radial-gradient(circle at 50% 72%, rgba(15, 23, 42, 0.66), rgba(2, 6, 23, 0.96) 72%);
-}
-
-#gameScreen::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(115deg, rgba(148, 163, 184, 0.07), transparent 28%),
-    radial-gradient(circle at 70% 30%, rgba(56, 189, 248, 0.1), transparent 45%);
-  z-index: 0;
+  background: #020617;
 }
 
 .tutorial-stage {
@@ -756,28 +743,11 @@ html, body {
 
   #canvasContainer,
   #problemCanvasContainer {
-    background:
-      linear-gradient(180deg, rgba(15, 23, 42, 0.56), rgba(2, 6, 23, 0.62)),
-      repeating-linear-gradient(90deg, rgba(148, 163, 184, 0.05) 0, rgba(148, 163, 184, 0.05) 1px, transparent 1px, transparent 16px);
-    border: 1px solid rgba(71, 85, 105, 0.78);
-    border-radius: 10px;
-    box-shadow:
-      inset 0 0 0 1px rgba(148, 163, 184, 0.11),
-      inset 0 20px 40px rgba(2, 6, 23, 0.38),
-      0 18px 36px rgba(2, 6, 23, 0.34);
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    box-shadow: none;
     overflow: hidden;
-  }
-
-  #canvasContainer::after,
-  #problemCanvasContainer::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 180px;
-    width: 1px;
-    background: linear-gradient(180deg, transparent, rgba(56, 189, 248, 0.24), transparent);
-    pointer-events: none;
   }
 
 #gameArea {
@@ -806,9 +776,6 @@ html, body {
 
 :root {
   --console-border: rgba(71, 85, 105, 0.86);
-  --console-glass-bg: linear-gradient(165deg, rgba(15, 23, 42, 0.9), rgba(2, 6, 23, 0.95));
-  --console-shadow-outer: 0 28px 60px rgba(2, 6, 23, 0.64);
-  --console-shadow-inner: inset 0 1px 0 rgba(148, 163, 184, 0.15), inset 0 -1px 0 rgba(2, 6, 23, 0.8);
 }
 
 .console-frame {
@@ -821,21 +788,10 @@ html, body {
   gap: 0;
   border-radius: 26px;
   border: 3px solid var(--console-border);
-  background: var(--console-glass-bg);
-  box-shadow: var(--console-shadow-outer), var(--console-shadow-inner);
-  backdrop-filter: blur(10px);
+  background: #020617;
+  box-shadow: 0 16px 36px rgba(2, 6, 23, 0.38);
   overflow: hidden;
   position: relative;
-}
-
-.console-frame::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background:
-    radial-gradient(circle at 25% 0%, rgba(148, 163, 184, 0.16), transparent 44%),
-    linear-gradient(180deg, rgba(30, 41, 59, 0.22), transparent 42%);
-  pointer-events: none;
 }
 
 .console-frame__core {
@@ -847,7 +803,8 @@ html, body {
   align-items: center;
   padding: 0.65rem;
   border-right: 1px solid rgba(100, 116, 139, 0.45);
-  box-shadow: inset -10px 0 26px rgba(2, 6, 23, 0.42);
+  /* The workspace owns the surrounding surface; the canvas owns the grid theme. */
+  background: linear-gradient(180deg, #111a2c 0%, #0f172a 55%, #0d1525 100%);
 }
 
 .console-frame__core::before {
@@ -856,30 +813,15 @@ html, body {
   inset: 0.4rem;
   border: 1px solid rgba(51, 65, 85, 0.55);
   border-radius: 14px;
-  box-shadow: inset 0 0 0 1px rgba(148, 163, 184, 0.09);
   pointer-events: none;
 }
 
 .console-right-panel {
   padding: 1rem 0.9rem;
   justify-content: flex-start;
-  background:
-    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(2, 6, 23, 0.94)),
-    repeating-linear-gradient(90deg, rgba(56, 189, 248, 0.05) 0, rgba(56, 189, 248, 0.05) 1px, transparent 1px, transparent 14px);
-  border-left: 1px solid rgba(100, 116, 139, 0.5);
-  box-shadow: inset 10px 0 26px rgba(2, 6, 23, 0.6);
+  background: #08111f;
+  border-left: 1px solid rgba(71, 85, 105, 0.75);
   position: relative;
-}
-
-.console-right-panel::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    radial-gradient(circle at 14% 14%, rgba(14, 165, 233, 0.15), transparent 26%),
-    radial-gradient(circle at 80% 72%, rgba(14, 165, 233, 0.08), transparent 32%);
-  mix-blend-mode: screen;
 }
 
 .console-meta {
@@ -903,14 +845,13 @@ html, body {
 .system-menu-btn {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid rgba(56, 189, 248, 0.45);
-  background: linear-gradient(165deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
+  border: 1px solid #334155;
+  background: #111c2e;
   color: #bae6fd;
   font-size: 1.12rem;
   font-weight: 800;
   padding: 0.55rem 0.7rem;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(2, 6, 23, 0.45), inset 0 0 0 1px rgba(125, 211, 252, 0.16);
 }
 
 body.lab-mode-active .system-menu-btn {
@@ -1073,21 +1014,23 @@ body.system-menu-open {
   font-weight: 800;
   padding: 0.8rem 0.9rem;
   border-radius: 12px;
-  border-color: rgba(56, 189, 248, 0.5);
-  background: linear-gradient(180deg, rgba(14, 116, 144, 0.74), rgba(3, 105, 161, 0.72));
-  color: #e0f2fe;
-  box-shadow: 0 14px 30px rgba(2, 132, 199, 0.28), inset 0 0 0 1px rgba(125, 211, 252, 0.2);
+}
+
+#gameArea .console-right-panel #gradeButton {
+  border: 1px solid rgba(56, 189, 248, 0.72);
+  background: #153047;
+  color: #f0f9ff;
+  box-shadow: none;
+}
+
+#gameArea .console-right-panel #gradeButton:hover,
+#gameArea .console-right-panel #gradeButton:focus-visible {
+  background: #1b405b;
+  border-color: #7dd3fc;
 }
 
 #gridStageVignette {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  border-radius: 10px;
-  background:
-    radial-gradient(circle at center, rgba(255, 255, 255, 0.09) 0%, rgba(2, 6, 23, 0.32) 100%),
-    radial-gradient(circle at center, rgba(56, 189, 248, 0.15) 0%, transparent 56%);
-  box-shadow: inset 0 0 54px rgba(2, 132, 199, 0.24);
+  display: none;
 }
 
 .problem-console-frame {
@@ -1105,21 +1048,36 @@ body.system-menu-open {
 }
 
 .console-right-panel .status-toolbar__button {
-  border: 1px solid rgba(51, 65, 85, 0.95);
-  background: linear-gradient(180deg, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.95));
-  box-shadow: 0 8px 18px rgba(2, 6, 23, 0.44), inset 0 0 0 1px rgba(125, 211, 252, 0.08);
+  border: 1px solid #334155;
+  background: #111c2e;
+  box-shadow: none;
 }
 
 .console-right-panel .status-toolbar__button:hover,
 .console-right-panel .status-toolbar__button:focus-visible {
-  border-color: rgba(56, 189, 248, 0.72);
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.24), 0 12px 24px rgba(2, 132, 199, 0.32);
+  border-color: #64748b;
+  background: #1e293b;
+  box-shadow: none;
 }
 
 .console-right-panel .status-toolbar__button.active {
   border-color: rgba(56, 189, 248, 0.85);
-  background: linear-gradient(180deg, rgba(14, 116, 144, 0.78), rgba(3, 105, 161, 0.72));
-  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.3), 0 14px 24px rgba(2, 132, 199, 0.32);
+  background: #153047;
+  box-shadow: none;
+}
+
+#gameArea .console-right-panel #gradeButton:focus-visible,
+.console-right-panel .status-toolbar__button:focus-visible,
+.system-menu-btn:focus-visible {
+  outline: 2px solid #7dd3fc;
+  outline-offset: 3px;
+}
+
+.console-right-panel .status-toolbar__button:disabled,
+.console-right-panel .status-toolbar__button:disabled:hover {
+  background: #111c2e;
+  border-color: #334155;
+  box-shadow: none;
 }
 
   .toggle-key {
