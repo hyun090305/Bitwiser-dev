@@ -32,7 +32,7 @@ function extractElement(html, id) {
 const source = await read('index.html');
 let html = (await read('demo.html')).replace(/<!-- shared:([\w-]+) -->/g, (_, id) => extractElement(source, id));
 html = html.replace(extractElement(html, 'loadingStartBtn'), '<button id="loadingStartBtn" type="button" aria-label="START" disabled>START</button>');
-for (const id of ['labCommunityControls', 'loginArea', 'rankingPanel', 'guestbookPanel', 'blueprintArchiveTools', 'viewSavedBtn', 'saveCircuitBtn']) html = html.replace(extractElement(html, id), '');
+for (const id of ['labCommunityControls', 'loginArea', 'rankingPanel', 'guestbookPanel', 'blueprintArchiveTools', 'viewSavedBtn', 'saveCircuitBtn', 'nativeSaveNotice']) html = html.replace(extractElement(html, id), '');
 html = html.replace(/<button\b[^>]*\bdata-panel-target=[\s\S]*?<\/button>/g, tag => tag.includes('#rankingPanel') ? '<button class="hud-button" id="demoRankingHudBtn" type="button" data-full-feature="ranking" aria-label="Rankings">🏆</button>' : '');
 html = html.replace('id="viewRankingBtn"', 'id="viewRankingBtn" data-full-feature="ranking"');
 html = html.replace('id="exportGifBtn"', 'id="demoShareBtn" data-demo-text="share"');

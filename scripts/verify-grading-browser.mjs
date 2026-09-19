@@ -22,7 +22,9 @@ function block(id,type){c.blocks[id]=newBlock({id,type,name:id,pos:{r:0,c:0}})}
 function wire(a,b){const id='w'+Object.keys(c.wires).length;c.wires[id]=newWire({id,startBlockId:a,endBlockId:b,inputRole:c.blocks[b].type==='D'?'D':undefined,path:[]})}
 block('x','INPUT');block('o','OUTPUT');
 for(let i=0;i<depth;i++){block('d'+i,'D');wire(i?'d'+(i-1):'x','d'+i)}
-if(mode.startsWith('fail')){block('and','AND');for(let i=0;i<depth;i++)wire('d'+i,'and');wire('and','o')}
+// Use a two-input AND tree: the full circuit still fails only after all D
+// stages become 1, and remains valid under the editor's gate input limit.
+if(mode.startsWith('fail')){let previous='d0';for(let i=1;i<depth;i++){const id='and'+i;block(id,'AND');wire(previous,id);wire('d'+i,id);previous=id}wire(previous,'o')}
 const answers={mode:'sequential',reference:{inputs:['x'],outputs:['o'],stateCount:1,initialState:0,observeAt:mode==='failAfter'?'after_tick':'before_tick',evaluate:()=>({outputs:0,nextState:0})}};
 window.c=c;window.getExecutionState=getExecutionState;window.getTraceHighlight=getTraceHighlight;
 if(mode.startsWith('fail')) {

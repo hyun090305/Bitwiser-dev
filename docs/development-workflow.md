@@ -68,6 +68,7 @@ git diff --check
 | 스테이지 맵·해금 | `npm run test:map:browser` |
 | 정식 웹 진입·공통 초기화 | `npm run test:full:web` |
 | Electron 또는 공통 코드의 데스크톱 영향 | `npm run test:full:electron` |
+| Electron 회로 파일 저장 | `npm run test:saves:electron` — 별도 프로필에서 외부 네트워크 차단, 저장·종료·재실행·복원/삭제 |
 
 브라우저 검사는 Playwright 의존성과 실제 브라우저가 필요합니다. 현재 스크립트는 기본 `msedge` 채널을 사용하며 지원되는 다른 채널은 `BROWSER_CHANNEL`로 지정합니다. 체험판 검사는 기본 `http://127.0.0.1:8080`을 사용합니다. 포트를 바꾸면 서버의 `DEMO_PORT`와 검사의 `DEMO_URL`을 함께 맞춥니다. 다른 검사의 서버/네트워크 전제는 해당 스크립트를 확인합니다. Electron/GPU·외부 서비스 접근이 막히면 환경 제약으로 기록하고 통과로 표시하지 않습니다.
 

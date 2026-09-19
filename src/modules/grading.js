@@ -4,6 +4,7 @@ import { getCircuitStats, snapshotCircuit } from '../canvas/circuitData.js';
 import { triggerConfetti } from './confetti.js';
 import { formatBlockLabels } from '../blockLabel.js';
 import { createGradingResultView } from './gradingResultView.js';
+import { storageErrorMessage } from './circuitStorage.js';
 
 function defaultTranslate(t) {
   return typeof t === 'function' ? t : key => key;
@@ -41,7 +42,6 @@ function setInlineStatus(ui, { title, percent, text, detail, state }) {
 
 async function attemptAutoSave({
   getAutoSaveSetting,
-  getCurrentUser,
   saveCircuit,
   updateSaveProgress,
   elements,
@@ -50,19 +50,11 @@ async function attemptAutoSave({
 }) {
   const autoSaveEnabled = typeof getAutoSaveSetting === 'function' && getAutoSaveSetting();
   let saveSuccess = false;
-  let loginNeeded = false;
   let statusMessage = '';
   const toast = elements?.toast ?? {};
 
   if (!autoSaveEnabled) {
-    return { saveSuccess, loginNeeded, statusMessage };
-  }
-
-  const currentUser = typeof getCurrentUser === 'function' ? getCurrentUser() : null;
-  if (!currentUser) {
-    loginNeeded = true;
-    statusMessage = t('loginToSaveCircuit');
-    return { saveSuccess, loginNeeded, statusMessage };
+    return { saveSuccess, statusMessage };
   }
 
   try {
@@ -79,7 +71,7 @@ async function attemptAutoSave({
     statusMessage = t('circuitSaved');
   } catch (error) {
     if (typeof alertFn === 'function') {
-      alertFn(t('saveFailed').replace('{error}', error));
+      alertFn(storageErrorMessage(error, t));
     }
   } finally {
     if (toast.hideCircuitSaving) {
@@ -90,7 +82,7 @@ async function attemptAutoSave({
     }
   }
 
-  return { saveSuccess, loginNeeded, statusMessage };
+  return { saveSuccess, statusMessage };
 }
 
 async function runVerification({ circuit, testCases, inlineStatus, t, signal, ports }) {
@@ -125,7 +117,6 @@ export function createGradingController(config = {}) {
     getActiveCustomProblemKey,
     getHintProgress,
     getAutoSaveSetting,
-    getCurrentUser,
     saveCircuit,
     updateSaveProgress,
     showCircuitSavedModal,
@@ -254,10 +245,10 @@ export function createGradingController(config = {}) {
     if (allCorrect && onPassed) {
       triggerConfetti();
       await onPassed(Number(level), snapshotCircuit(circuit));
-      attemptAutoSave({ getAutoSaveSetting, getCurrentUser, saveCircuit, updateSaveProgress, elements, t: translate, alertFn: alertSafe })
-        .then(({ saveSuccess, loginNeeded, statusMessage }) => {
-          if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
-            showCircuitSavedModal({ message: statusMessage, canShare: saveSuccess, loginRequired: loginNeeded });
+      attemptAutoSave({ getAutoSaveSetting, saveCircuit, updateSaveProgress, elements, t: translate, alertFn: alertSafe })
+        .then(({ saveSuccess, statusMessage }) => {
+          if (saveSuccess && typeof showCircuitSavedModal === 'function') {
+            showCircuitSavedModal({ message: statusMessage, canShare: saveSuccess });
           }
         }).catch(error => console.warn('Circuit autosave failed', error));
       return;
@@ -272,7 +263,6 @@ export function createGradingController(config = {}) {
     // Start auto-save in background so UI (cleared modal) is not blocked by save
     const savePromise = attemptAutoSave({
       getAutoSaveSetting,
-      getCurrentUser,
       saveCircuit,
       updateSaveProgress,
       elements,
@@ -311,12 +301,11 @@ export function createGradingController(config = {}) {
 
     if (!rankingsRef || typeof rankingsRef.orderByChild !== 'function') {
       // When there is no rankings DB, simply show saved modal once save completes (if needed)
-      savePromise.then(({ saveSuccess, loginNeeded, statusMessage } = {}) => {
-        if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
+      savePromise.then(({ saveSuccess, statusMessage } = {}) => {
+        if (saveSuccess && typeof showCircuitSavedModal === 'function') {
           showCircuitSavedModal({
             message: statusMessage,
             canShare: saveSuccess,
-            loginRequired: loginNeeded
           });
         }
       }).catch(() => {});
@@ -368,12 +357,11 @@ export function createGradingController(config = {}) {
         }
 
         // When ranking logic completes, show saved modal if save result requires it
-        savePromise.then(({ saveSuccess, loginNeeded, statusMessage } = {}) => {
-          if ((saveSuccess || loginNeeded) && typeof showCircuitSavedModal === 'function') {
+        savePromise.then(({ saveSuccess, statusMessage } = {}) => {
+          if (saveSuccess && typeof showCircuitSavedModal === 'function') {
             showCircuitSavedModal({
               message: statusMessage,
-              canShare: saveSuccess,
-              loginRequired: loginNeeded
+              canShare: saveSuccess
             });
           }
         }).catch(() => {});

@@ -3095,6 +3095,16 @@ body.system-menu-open {
   display: block;
 }
 
+.saved-preview {
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 12px;
+  overflow: hidden;
+}
+
 .saved-item .deleteBtn {
   position: absolute;
   top: 4px;
@@ -4531,4 +4541,15 @@ body.lab-mode-active {
 }
 @media (prefers-reduced-motion: reduce) {
   .grading-result-panel *, .grading-result-panel *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+.saved-load {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
 }

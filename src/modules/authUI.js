@@ -9,12 +9,6 @@ import {
   getGoogleNickname,
   setGoogleNickname
 } from './storage.js';
-import {
-  configureGoogleProviderForDrive,
-  hasStoredDriveRefreshToken,
-  persistDriveTokensFromFirebaseResult
-} from './auth.js';
-
 let translate = key => key;
 let loadClearedLevelsFromDb = () => Promise.resolve();
 let maybeStartTutorial = () => {};
@@ -716,20 +710,9 @@ function setupLoginButtonHandlers(buttons, ids = {}) {
         firebase.auth().signOut();
       } else {
         const provider = new firebase.auth.GoogleAuthProvider();
-        const needsConsent = !hasStoredDriveRefreshToken();
-        configureGoogleProviderForDrive(provider, { forceConsent: needsConsent });
         firebase
           .auth()
           .signInWithPopup(provider)
-          .then(result => {
-            try {
-              if (!persistDriveTokensFromFirebaseResult(result) && needsConsent) {
-                console.warn('Drive tokens were not returned by Google sign-in; offline access may require manual consent.');
-              }
-            } catch (err) {
-              console.warn('Failed to persist Drive tokens from Google sign-in result', err);
-            }
-          })
           .catch(err => {
             alert(translate('loginFailed').replace('{code}', err.code).replace('{message}', err.message));
             console.error(err);
