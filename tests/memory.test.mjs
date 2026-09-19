@@ -38,13 +38,52 @@ test('unequal-depth AND/OR paths settle topologically for all inputs and storage
   }
 });
 
-test('legacy variable-input gates, unconnected gates and first-input NOT remain defined', () => {
-  const c = build({ x: 'INPUT', y: 'INPUT', z: 'INPUT', a: 'AND', r: 'OR', n: 'NOT', j: 'JUNCTION', o: 'OUTPUT' });
+test('binary gates, unconnected gates and first-input NOT remain defined', () => {
+  const c = build({ x: 'INPUT', y: 'INPUT', a: 'AND', r: 'OR', n: 'NOT', j: 'JUNCTION', o: 'OUTPUT' });
   evaluateCircuit(c);
   assert.deepEqual(['a','r','n','j','o'].map(id => c.blocks[id].value), [true,false,true,false,false]);
-  for (const id of ['x','y','z']) { connect(c,id,'a'); connect(c,id,'r'); c.blocks[id].value = true; }
+  for (const id of ['x','y']) { connect(c,id,'a'); connect(c,id,'r'); c.blocks[id].value = true; }
   connect(c,'x','n'); connect(c,'y','n'); c.blocks.y.value = false;
   evaluateCircuit(c); assert.equal(c.blocks.a.value,false); assert.equal(c.blocks.r.value,true); assert.equal(c.blocks.n.value,false);
+  assert.equal(getEvaluationResult(c).ok,true);
+});
+
+test('AND/OR allow two inputs, reject excess inputs in evaluation/grading, and recover after deletion', async () => {
+  for (const type of ['AND','OR']) {
+    const c = build({ x:'INPUT', y:'INPUT', z:'INPUT', g:type, o:'OUTPUT' }, [['g','o']]);
+    assert.equal(canConnect(c,'x','g'),true);
+    connect(c,'x','g');
+    for (const x of [false,true]) {
+      c.blocks.x.value=x; evaluateCircuit(c);
+      assert.equal(getEvaluationResult(c).ok,true);
+      assert.equal(c.blocks.o.value,x);
+    }
+    assert.equal(canConnect(c,'y','g'),true);
+    connect(c,'y','g');
+    const table = [];
+    for (const x of [false,true]) for (const y of [false,true]) for (const z of [false,true]) {
+      const o = type === 'AND' ? x && y : x || y;
+      table.push({inputs:{x,y,z},expected:{o}});
+      c.blocks.x.value=x; c.blocks.y.value=y; c.blocks.z.value=z; evaluateCircuit(c);
+      assert.equal(getEvaluationResult(c).ok,true);
+      assert.equal(c.blocks.o.value,o);
+    }
+    assert.equal((await gradeCircuit(c,table)).ok,true);
+    assert.equal(canConnect(c,'z','g'),false);
+    connect(c,'z','g','extra'); // Imported designs bypass editor connection checks.
+    evaluateCircuit(c);
+    assert.equal(getEvaluationResult(c).ok,false);
+    assert.equal(getEvaluationResult(c).diagnostics[0].code,'TOO_MANY_INPUTS');
+    assert.equal(getEvaluationResult(c).diagnostics[0].blockId,'g');
+    assert.equal(c.blocks.o.value,null);
+    const result = await gradeCircuit(c,table);
+    assert.equal(result.status,'invalid');
+    assert.equal(result.diagnostics[0].code,'TOO_MANY_INPUTS');
+    delete c.wires.extra;
+    assert.equal((await gradeCircuit(c,table)).ok,true);
+    delete c.wires.w2;
+    assert.equal(canConnect(c,'z','g'),true);
+  }
 });
 
 test('plan is reused across input changes, ticks and movement; role edits rebuild it', () => {

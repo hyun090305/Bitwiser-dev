@@ -69,8 +69,8 @@ test('problem mode selects the algorithm, including sequential submissions witho
 });
 
 test('product search detects hidden user history missed by representative reference paths', () => {
-  const c = circuit({x:'INPUT',a:'D',b:'D',d:'D',and:'AND',o:'OUTPUT'},
-    [['x','a'],['a','b'],['b','d'],['a','and'],['b','and'],['d','and'],['and','o']]);
+  const c = circuit({x:'INPUT',a:'D',b:'D',d:'D',ab:'AND',and:'AND',o:'OUTPUT'},
+    [['x','a'],['a','b'],['b','d'],['a','ab'],['b','ab'],['ab','and'],['d','and'],['and','o']]);
   // The reference has one state: traces []/[0]/[1] all see zero. Three
   // consecutive ones reach a different user state paired with that SAME state.
   const result = gradeCircuitSync(c,zero);
@@ -131,16 +131,16 @@ test('async search yields to real cancellation events and does not mutate editor
   assert.deepEqual(c,design);assert.deepEqual(getExecutionState(c),state);
 });
 
-test('compiled plans detach from edits and retain variadic/empty/first-input gate semantics', () => {
+test('compiled plans detach from edits and retain binary/empty/first-input gate semantics', () => {
   const c=circuit({x:'INPUT',y:'INPUT',z:'INPUT',a:'AND',or:'OR',n:'NOT',empty:'AND',o:'OUTPUT'},
-    [['x','a'],['y','a'],['z','a'],['x','or'],['y','or'],['z','or'],['x','n'],['y','n'],['a','o']]);
+    [['x','a'],['y','a'],['x','or'],['y','or'],['x','n'],['y','n'],['a','o']]);
   const compiled=compileCircuit(c).compiled, evaluator=compiled.createEvaluator();
   for(let input=0;input<8;input++) {
     const inputs=new Map(compiled.inputIds.map((id,i)=>[id,Boolean(input&(1<<i))]));
     const values=evaluateCombinational(c,{inputs}).values;
-    assert.equal(values.get('a'),input===7);assert.equal(values.get('or'),input!==0);
+    assert.equal(values.get('a'),(input&3)===3);assert.equal(values.get('or'),(input&3)!==0);
     assert.equal(values.get('n'),!(input&1));assert.equal(values.get('empty'),true);
-    assert.equal(evaluator.evaluate(0,input).outputs,Number(input===7));
+    assert.equal(evaluator.evaluate(0,input).outputs,Number((input&3)===3));
   }
   c.blocks.a.type='OR';
   assert.equal(evaluator.evaluate(0,1).outputs,0);

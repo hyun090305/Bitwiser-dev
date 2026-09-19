@@ -8,7 +8,7 @@ export function incomingWires(circuit, blockId) {
 }
 
 export function maxInputs(type) {
-  return type === 'D' ? 2 : ['OUTPUT', 'JUNCTION'].includes(type) ? 1 : Infinity;
+  return ['AND', 'OR', 'D'].includes(type) ? 2 : ['OUTPUT', 'JUNCTION'].includes(type) ? 1 : Infinity;
 }
 
 export function canConnect(circuit, startId, endId) {

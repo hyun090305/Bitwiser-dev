@@ -79,6 +79,34 @@ try {
   assert.equal(pasted.memory[copiedD.id],false);
   passed.push('copy/paste preserves swapped roles through fresh IDs, copied Q starts at zero');
 
+  for (const type of ['AND','OR']) {
+    await page.evaluate(async type=>{
+      testReset();
+      const c=testRead().design;
+      const {newBlock}=await import('/src/canvas/model.js');
+      c.blocks.memory.type=type;c.blocks.memory.name=type;
+      c.blocks.third=newBlock({id:'third',type:'INPUT',name:'IN3',pos:{r:4,c:4}});
+      delete c.wires.data;delete c.wires.enable;
+      testController.restoreCircuit(c);
+    },type);
+    await page.locator('#wire').click();
+    await drag([2,0],[2,4]);assert.equal(Object.keys((await read()).design.wires).length,2);
+    await drag([0,4],[2,4]);assert.equal(Object.keys((await read()).design.wires).length,3);
+    const full=(await read()).design;
+    await drag([4,4],[2,4]);assert.deepEqual((await read()).design,full);
+    await page.locator('#del').click();await click(1,4);
+    assert.equal(Object.keys((await read()).design.wires).length,2);
+    await page.locator('#undo').click();assert.deepEqual((await read()).design,full);
+    await page.locator('#redo').click();
+    await page.locator('#wire').click();await drag([4,4],[2,4]);
+    const repaired=await read();
+    assert.equal(Object.keys(repaired.design.wires).length,3);
+    assert.ok(Object.values(repaired.design.wires).some(w=>w.startBlockId==='third'&&w.endBlockId==='memory'));
+    assert.deepEqual(repaired.diagnostics,[]);
+    passed.push(`${type} accepts two inputs, rejects a third, and permits replacement after delete/Undo/Redo`);
+    await page.locator('#move').click();
+  }
+
   await page.evaluate(()=>{testReset();testCircuit.blocks.input.inputMode='button';testCircuit.blocks.input.value=false;});
   await click(2,0);assert.equal((await read()).values.input,true);
   await click(2,0);assert.equal((await read()).values.input,false);
