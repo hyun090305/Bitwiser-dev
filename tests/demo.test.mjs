@@ -46,9 +46,9 @@ test('counts include INPUT/OUTPUT/JUNCTION and deduplicate intermediate cells', 
     a:{path:[{r:0,c:0},{r:0,c:1},{r:0,c:2}]}, b:{path:[{r:1,c:1},{r:0,c:1},{r:0,c:2}]}
   }}), { blockCounts: {INPUT:1,OUTPUT:1,JUNCTION:1}, usedBlocks:3, usedWires:1 });
 });
-test('branch graph permits XOR without optional NOR/NAND and forbids excluded stages', () => {
-  assert.equal(isUnlocked(0,[]),true); assert.equal(isUnlocked(1,[]),false);
-  assert.equal(isUnlocked(4,[0,1,2]),true); assert.equal(isUnlocked(6,[0,1,2]),false);
+test('chapter access permits all Logic Core stages and forbids excluded stages', () => {
+  assert.equal(isUnlocked(0,[]),true); assert.equal(isUnlocked(1,[]),true);
+  assert.equal(isUnlocked(4,[0,1,2]),true); assert.equal(isUnlocked(6,[0,1,2]),true);
   assert.equal(isUnlocked(6,[0,1,2,3]),true);
   for (const id of [-1,8,19,24,32,null,'6',NaN]) assert.equal(isUnlocked(id,DEMO_IDS),false);
   const fullMap = read('stage_map.json');

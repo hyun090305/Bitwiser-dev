@@ -1,5 +1,5 @@
 // Stable persistence IDs. Display order and chapter membership never renumber saves.
-export const CATALOG_VERSION = 3;
+export const CATALOG_VERSION = 4;
 export const MEMORY_GATE = 30;
 export const CHAPTERS = [
   ['chapter_1', 'Logic Core', '신호에 의미를 부여하다', 'Give signals meaning.', 'bit_solver'],
@@ -350,56 +350,56 @@ const STAGE_SLOTS = {
 };
 
 export const STAGES = [
-  [0,'tutorial',1,[]],
-  [1,'not',1,[0]],
-  [2,'or',1,[1]],
-  [3,'and',1,[2]],
-  [6,'xor',1,[3]],
-  [4,'nor',1,[2],true],
-  [5,'nand',1,[3],true],
-  [25,'enabled_register',2,[]],
-  [7,'majority_gate',2,[25]],
-  [26,'toggle_light',2,[25]],
-  [27,'selector_2to1',2,[7]],
-  [28,'sticky_fault',2,[26]],
-  [29,'staging_register',2,[27, 28]],
-  [30,'automatic_door',2,[29]],
-  [23,'priority_gate',2,[7],true],
-  [11,'decoder_2to4',2,[27],true],
-  [31,'rising_edge',2,[30],true],
-  [9,'half_adder',3,[]],
-  [8,'parity_checker',3,[9]],
-  [10,'full_adder',3,[8]],
-  [14,'two_bit_adder',3,[10]],
-  [17,'two_bit_multiplier',3,[14]],
-  [13,'two_bit_comparator',3,[8]],
-  [16,'two_bit_max_selector',3,[13]],
-  [24,'twos_complement',3,[14]],
-  [15,'two_bit_subtractor',3,[24]],
-  [18,'mod3_remainder',3,[17]],
-  [null,'overflow_detector',3,[10],false,'candidate',"Overflow Detector"],
-  [12,'mux_4to1',4,[36]],
-  [21,'three_bit_shifter',4,[12]],
-  [32,'up_down_counter',4,[35]],
-  [33,'pwm',4,[32]],
-  [34,'watchdog',4,[33]],
-  [35,'debouncer',4,[]],
-  [36,'round_robin',4,[35]],
-  [37,'abba_lock',4,[36]],
-  [20,'fixed_xor',4,[12]],
-  [22,'fixed_decoder_2to4',4,[20]],
-  [19,'crossroad',4,[20]],
-  [38,'register_bank',5,[]],
-  [39,'undo_register',5,[40]],
-  [40,'mailbox',5,[38]],
-  [41,'stack',5,[40]],
-  [42,'queue',5,[40]],
-  [43,'serial_receiver',5,[38]],
-  [44,'serial_transmitter',5,[39]],
-  [45,'accumulator',5,[39]],
-  [46,'iterative_multiplier',5,[45]]
-].map(([id, nodeId, chapter, prerequisites, optional = false, status = 'playable', title]) => ({
-  id, nodeId, chapterId: `chapter_${chapter}`, prerequisites,
+  [0,'tutorial',1],
+  [1,'not',1],
+  [2,'or',1],
+  [3,'and',1],
+  [6,'xor',1],
+  [4,'nor',1,true],
+  [5,'nand',1,true],
+  [25,'enabled_register',2],
+  [7,'majority_gate',2],
+  [26,'toggle_light',2],
+  [27,'selector_2to1',2],
+  [28,'sticky_fault',2],
+  [29,'staging_register',2],
+  [30,'automatic_door',2],
+  [23,'priority_gate',2,true],
+  [11,'decoder_2to4',2,true],
+  [31,'rising_edge',2,true],
+  [9,'half_adder',3],
+  [8,'parity_checker',3],
+  [10,'full_adder',3],
+  [14,'two_bit_adder',3],
+  [17,'two_bit_multiplier',3],
+  [13,'two_bit_comparator',3],
+  [16,'two_bit_max_selector',3],
+  [24,'twos_complement',3],
+  [15,'two_bit_subtractor',3],
+  [18,'mod3_remainder',3],
+  [null,'overflow_detector',3,false,'candidate',"Overflow Detector"],
+  [12,'mux_4to1',4],
+  [21,'three_bit_shifter',4],
+  [32,'up_down_counter',4],
+  [33,'pwm',4],
+  [34,'watchdog',4],
+  [35,'debouncer',4],
+  [36,'round_robin',4],
+  [37,'abba_lock',4],
+  [20,'fixed_xor',4],
+  [22,'fixed_decoder_2to4',4],
+  [19,'crossroad',4],
+  [38,'register_bank',5],
+  [39,'undo_register',5],
+  [40,'mailbox',5],
+  [41,'stack',5],
+  [42,'queue',5],
+  [43,'serial_receiver',5],
+  [44,'serial_transmitter',5],
+  [45,'accumulator',5],
+  [46,'iterative_multiplier',5]
+].map(([id, nodeId, chapter, optional = false, status = 'playable', title]) => ({
+  id, nodeId, chapterId: `chapter_${chapter}`,
   ...STAGE_SLOTS[nodeId], optional, status,
   ...(id === 23 ? { budgetStatus: 'pending' } : {}), ...(title ? { title } : {})
 }));
@@ -410,22 +410,17 @@ export function chapterAccess(chapterId, cleared = [], access = {}) {
   const chapter = CHAPTERS.find(ch => ch.id === chapterId);
   const done = new Set(cleared);
   const missing = (chapter?.prerequisites || []).filter(id => !done.has(id));
+  // Legacy per-stage access grants the whole chapter, never an individual gate.
   const retained = Boolean(access.unlockedChapters?.includes(chapterId)
-    || STAGES.some(s => s.chapterId === chapterId && done.has(s.id)));
+    || STAGES.some(s => s.status === 'playable' && s.chapterId === chapterId
+      && (done.has(s.id) || access.unlockedStages?.includes(s.id))));
   return { unlocked: Boolean(chapter && (!missing.length || retained)), missing, retained };
 }
 export function canPlayStage(id, cleared = [], access = {}) {
   const stage = stageById(id);
-  const done = new Set(cleared);
-  return Boolean(stage?.status === 'playable' && (done.has(id) || access.unlockedStages?.includes(id)
-    || (chapterAccess(stage.chapterId, cleared, access).unlocked && stage.prerequisites.every(pre => done.has(pre)))));
+  return Boolean(stage?.status === 'playable' && chapterAccess(stage.chapterId, cleared, access).unlocked);
 }
 export function chapterForStage(id) { return CHAPTERS.find(c => c.id === stageById(id)?.chapterId); }
-export function nextAvailableStage(id, cleared = [], access = {}) {
-  const current = stageById(id);
-  const eligible = playableStages().filter(s => s.chapterId === current?.chapterId && !s.optional && !cleared.includes(s.id) && canPlayStage(s.id, cleared, access));
-  return eligible[0]?.id ?? null;
-}
 
 // Only a one-time import uses version 2 prerequisites and its common chapter gate.
 const LEGACY_PARENTS = {0:[],1:[0],2:[1],3:[2],4:[2],5:[3],6:[3],25:[6],7:[25],26:[25],
@@ -433,7 +428,7 @@ const LEGACY_PARENTS = {0:[],1:[0],2:[1],3:[2],4:[2],5:[3],6:[3],25:[6],7:[25],2
   14:[30,10],17:[30,14],13:[30],16:[30,13],24:[30,14],15:[30,24],18:[30,17],
   12:[30,11],21:[30],34:[30],35:[30,31],20:[30],22:[30,11],19:[30,20]};
 
-export function preserveStageAccess(cleared = [], previous = {}, { legacy = false, allowedIds = playableStages().map(s => s.id) } = {}) {
+export function preserveStageAccess(cleared = [], previous = {}, { legacy = (previous.catalogVersion ?? CATALOG_VERSION) < 3, allowedIds = playableStages().map(s => s.id) } = {}) {
   const allowed = new Set(allowedIds);
   const unlockedStages = new Set((previous.unlockedStages || []).filter(id => allowed.has(id)));
   const unlockedChapters = new Set((previous.unlockedChapters || []).filter(id => CHAPTERS.some(ch => ch.id === id)));
@@ -452,6 +447,8 @@ export function preserveStageAccess(cleared = [], previous = {}, { legacy = fals
   for (const ch of CHAPTERS) {
     if (STAGES.some(s => s.chapterId === ch.id && allowed.has(s.id)) && chapterAccess(ch.id, cleared, access).unlocked) unlockedChapters.add(ch.id);
   }
+  access.unlockedChapters = [...unlockedChapters];
+  // Retain a compatible snapshot for old readers; chapterAccess owns admission.
   for (const id of allowed) if (canPlayStage(id, cleared, access)) unlockedStages.add(id);
   return { catalogVersion: CATALOG_VERSION, unlockedStages: [...unlockedStages].sort((a,b) => a-b), unlockedChapters: [...unlockedChapters].sort() };
 }

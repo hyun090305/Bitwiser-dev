@@ -1,17 +1,11 @@
-import { STAGES, canPlayStage, nextAvailableStage, MEMORY_GATE } from '../modules/stageCatalog.js';
+import { STAGES, canPlayStage, MEMORY_GATE } from '../modules/stageCatalog.js';
 const stages = STAGES.filter(s => s.status === 'playable' && ['chapter_1','chapter_2'].includes(s.chapterId));
 export const DEMO_IDS = Object.freeze(stages.map(s => s.id));
-export const PREREQUISITES = Object.freeze(Object.fromEntries(stages.map(s => [s.id,s.prerequisites])));
 export const DEMO_NODES = Object.freeze(stages.map(s => s.nodeId));
 export const DEMO_NODE_LEVELS = Object.freeze(Object.fromEntries(stages.map(s => [s.nodeId,s.id])));
 export const DEMO_END_STAGE = MEMORY_GATE;
 export function isDemoStage(id) { return Number.isInteger(id) && DEMO_IDS.includes(id); }
 export function isUnlocked(id, cleared, access = {}) { return isDemoStage(id) && canPlayStage(id, cleared, access); }
-export function nextDemoStage(id, cleared, access = {}) {
-  if (id === 6 && isUnlocked(25, cleared, access) && !cleared.includes(25)) return 25;
-  const next = nextAvailableStage(id, cleared, access);
-  return isDemoStage(next) ? next : null;
-}
 export function demoMap(spec) {
   const nodes = spec.nodes.filter(n => n.nodeType !== 'stage' || DEMO_NODES.includes(n.id)).map(node => {
     const shell = {id:node.id,nodeType:node.nodeType,chapterId:node.chapterId,position:node.position,size:node.size,label:node.label,gridPosition:node.gridPosition,layoutKey:node.layoutKey};

@@ -16,7 +16,7 @@ import { initializeLoadingDots, setLoadingMilestone, hideLoadingScreen } from '.
 import { captureGIF } from '../modules/circuitShare.js';
 import { createDemoStore } from './store.js';
 import { SETTING_KEYS, makeRecord } from './records.js';
-import { nextDemoStage, DEMO_END_STAGE } from './catalog.js';
+import { DEMO_END_STAGE } from './catalog.js';
 import { initializeFullVersion } from './fullVersion.js';
 
 const $ = id => document.getElementById(id);
@@ -25,7 +25,7 @@ const words = {
   map: ['스테이지 맵', 'Stage map'], settings: ['설정', 'Settings'], fullVersion: ['정식판 살펴보기', 'Explore the full version'], ranking: ['랭킹', 'Rankings'],
   menu: ['시스템 메뉴', 'System menu'], mission: ['문제 설명', 'Mission'], hints: ['힌트', 'Hints'],
   share: ['결과 공유', 'Share result'],
-  close: ['닫기', 'Close'], retry: ['계속 최적화하기', 'Keep optimizing'], next: ['다음 문제', 'Next stage'],
+  close: ['닫기', 'Close'], retry: ['계속 최적화하기', 'Keep optimizing'], backToMap: ['맵으로 돌아가기', 'Back to map'],
   practice: ['다시 연습하기', 'Practice again'],
   cleared: ['회로 복구 완료', 'Circuit restored'], improved: ['개인 최고 기록 갱신!', 'New personal best!'],
   blocks: ['블록', 'Blocks'], wires: ['도선 점유 칸', 'Wire cells'], complete: ['완료 ✓', 'Complete ✓'], locked: ['잠김 🔒', 'Locked 🔒'], optional: ['선택', 'Optional'],
@@ -139,11 +139,8 @@ function showResult(id, result, budgets) {
   stylePassedResult(dialog, id);
   renderPerformance($('demoDialogBody'), { id, result, thresholds: data.levelStarThresholds?.[id], ranking: { restricted: true }, lang });
   button(text(id === 0 ? 'practice' : 'retry'), () => { closeDialog(); levels.returnToEditScreen(); });
-  const next = nextDemoStage(id, store.cleared(), store.state);
+  button(text('backToMap'), goMap).classList.add('demo-result-map');
   if (id === DEMO_END_STAGE) button(text('finish'), showEnding);
-  else if (next != null) button(text('next'), () => launch(next));
-  else button(text('map'), goMap);
-  if (id === DEMO_END_STAGE || next != null) button(text('map'), goMap);
   button(text('share'), showShare);
 }
 function download(blob, name) {

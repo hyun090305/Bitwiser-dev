@@ -514,7 +514,7 @@ export async function showClearedModal(level, options = {}) {
     modalSelector = '#clearedModal',
     stageTitleSelector = '#clearedStageName',
     rankingSelector = '#clearedRanking',
-    continueButtonSelector = '#clearedNextBtn',
+    continueButtonSelector = '#clearedMapBtn',
     closeButtonSelector = '.closeBtn',
     translate,
     loadClearedLevelsFromDb,
@@ -553,7 +553,7 @@ export async function showClearedModal(level, options = {}) {
   const currentNickname = getUsername() || localStorage.getItem('nickname') || '';
   const continueBtn = document.querySelector(continueButtonSelector);
   if (continueBtn) {
-    continueBtn.textContent = translateText(tr, 'clearedNextBtn', '다음');
+    continueBtn.textContent = translateText(tr, 'clearedMapBtn', '맵으로 돌아가기');
     continueBtn.disabled = false;
   }
 

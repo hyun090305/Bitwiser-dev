@@ -4426,7 +4426,7 @@ body.lab-mode-active {
 .cost-result button:disabled { opacity:.4; cursor:default; }
 #clearedModal .modal-buttons { margin-top:24px; flex-wrap:wrap; }
 #clearedModal .modal-content #clearedRanking { max-height:none; overflow:visible; margin:0; padding:0; }
-#clearedModal #clearedNextBtn { background:#166778; color:#efffff; border-color:#58aebf; }
+#clearedModal #clearedMapBtn { background:#166778; color:#efffff; border-color:#58aebf; }
 .cost-result { display:grid; grid-template-columns:minmax(0, 1.45fr) minmax(270px, 1fr); gap:28px; text-align:left; }
 .cost-result:has(>section:only-child), .cost-result.ranking-hidden { grid-template-columns:minmax(0, 1fr); }
 .cost-performance, .cost-ranking { min-width:0; }

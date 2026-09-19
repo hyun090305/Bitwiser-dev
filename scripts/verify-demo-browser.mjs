@@ -27,7 +27,7 @@ async function loadFixture(id,tier=3) {
 async function enter(id) {
   await enterStage(page,id);
 }
-async function grade(id,tier=3,advance=false) {
+async function grade(id,tier=3,returnToMap=false) {
   await loadFixture(id,tier);
   const readInputs=()=>page.evaluate(async()=>Object.values((await import('./src/modules/grid.js')).getPlayCircuit().blocks).filter(b=>b.type==='INPUT').map(b=>[b.id,b.value]));
   const originalInputs=await readInputs();
@@ -52,15 +52,16 @@ async function grade(id,tier=3,advance=false) {
   const snapshot=(await save()).stages[id].draft.circuit;
   assert.deepEqual(Object.values(snapshot.blocks).filter(b=>b.type==='INPUT').map(b=>[b.id,b.value]),originalInputs);
   await page.screenshot({path:`test-results/demo-result-${id}.png`});
+  assert.equal(await page.getByRole('button',{name:'Next stage',exact:true}).count(),0);
+  assert.equal(await page.locator('.demo-result-map').innerText(),'Back to map');
   if (id===30) {
     await page.getByRole('button',{name:'Finish demo',exact:true}).click();
     await page.getByRole('heading',{name:'MEMORY LINK · A small recovery complete',exact:true}).waitFor();
     await page.screenshot({path:'test-results/demo-ending.png'});
     await page.locator('#demoDialog').getByRole('button',{name:'Stage map',exact:true}).click();
-  } else if (advance) {
-    await page.getByRole('button',{name:'Next stage',exact:true}).click();
-    await page.locator('#startLevelBtn').click();
-    await page.locator('#levelIntroModal').waitFor({state:'hidden'});
+  } else if (returnToMap) {
+    await page.getByRole('button',{name:'Back to map',exact:true}).click();
+    await page.locator('#stageMapCanvas').waitFor({state:'visible'});
   } else await page.getByRole('button',{name:'Keep optimizing',exact:true}).click();
 }
 try {
@@ -79,6 +80,7 @@ try {
   await page.locator('#startLevelBtn').click();
   await page.screenshot({path:'test-results/demo-tutorial.png'});
   await grade(0,3,true);
+  await enter(1);
 
   assert.ok((await save()).stages[0].best);
   assert.equal(await page.evaluate(async()=> (await import('./src/modules/levels.js')).getCurrentLevel()),1);
@@ -124,7 +126,7 @@ try {
   await page.getByRole('button',{name:'Close',exact:true}).click();
   await fs.writeFile('test-results/demo-progress.json', JSON.stringify(await save()));
   await enter(4); await grade(4); await enter(5); await grade(5);
-  for (const id of [25,7,26,27,28,29,30,11,31]) { await enter(id); await grade(id); }
+  for (const id of [30,31,29,28,27,26,7,25,11]) { await enter(id); await grade(id); }
   await enter(23); // Existing Priority remains playable; optimization budget is pending.
   assert.ok((await save()).stages[23].draft);
   assert.equal('storySeen' in (await save()),false);

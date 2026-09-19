@@ -36,7 +36,8 @@ test('48 stable nodes match every approved slot, optional tag, parent and chapte
     assert.equal(stage.optional, expected.optional);
     assert.equal(stage.chapterId, `chapter_${chapter.chapter}`);
     if (expected.knownLegacyNodeId) assert.equal(stage.nodeId, expected.knownLegacyNodeId);
-    assert.deepEqual(stage.prerequisites, expected.unlock.allOf.map(key => byKey.get(key).id));
+    assert.equal('prerequisites' in stage, false);
+    assert.deepEqual(map.edges.filter(e=>e.to===stage.nodeId).map(e=>e.from), expected.unlock.allOf.map(key => byKey.get(key).nodeId));
     const anchor = map.chapters.find(ch => ch.id === stage.chapterId).anchor;
     assert.deepEqual([node.position.x-anchor.x+node.size.w/2,node.position.y-anchor.y+node.size.h/2], expected.center);
   }
@@ -67,7 +68,7 @@ test('all arrows have two border points, equal length, no intersections, and one
     const nodes=STAGES.filter(s=>s.chapterId===ch.id), edges=map.edges.filter(e=>nodeById.get(e.from).chapterId===ch.id);
     assert.equal(nodes.length,[7,10,11,11,9][i]);assert.equal(edges.length,[6,10,10,10,8][i]);
     assert.equal(edges.length-nodes.length+1,i===1?1:0);
-    const entry=nodes.find(s=>!s.prerequisites.length);assert.deepEqual(entry.gridPosition,{column:1,row:2});
+    const entry=nodes.find(s=>!edges.some(e=>e.to===s.nodeId));assert.deepEqual(entry.gridPosition,{column:1,row:2});
     const reached=new Set(), visit=(id,path=[])=>{
       assert.ok(!path.includes(id),'directed cycle');reached.add(id);
       edges.filter(e=>e.from===id).forEach(e=>visit(e.to,[...path,id]));
@@ -76,19 +77,8 @@ test('all arrows have two border points, equal length, no intersections, and one
   }
 });
 
-test('AND joins, optional branches and exact new chapter admission', () => {
-  assert.equal(canPlayStage(0,[]),true); assert.equal(canPlayStage(6,[0,1,2,3]),true);
-  assert.equal(canPlayStage(25,[0,1,2,3,6]),true);
-  for(const cleared of [[27],[28]])assert.equal(canPlayStage(29,cleared),false);
-  assert.equal(canPlayStage(29,[27,28]),true);assert.equal(canPlayStage(31,[29]),false);
-  assert.equal(canPlayStage(31,[30]),true);
-  assert.equal(chapterAccess('chapter_3',[30]).unlocked,true);assert.equal(chapterAccess('chapter_4',[30]).unlocked,true);
-  assert.equal(canPlayStage(8,[30,9]),true);assert.equal(canPlayStage(10,[30,9]),false);
-  for(const id of [10,13])assert.equal(canPlayStage(id,[30,8]),true);
-  assert.equal(canPlayStage(34,[30,32]),false);assert.equal(canPlayStage(34,[30,33]),true);
-  assert.deepEqual(STAGES.find(s=>s.id===43).prerequisites,[38]);
-  for(const id of [39,41,42])assert.deepEqual(STAGES.find(s=>s.id===id).prerequisites,[40]);
-  for(const id of [44,45])assert.deepEqual(STAGES.find(s=>s.id===id).prerequisites,[39]);
+test('chapter admission retains exact gates and candidate exclusion', () => {
+  assert.deepEqual(CHAPTERS.map(ch=>ch.prerequisites),[[],[6],[30],[30],[30,14,32]]);
   for(const cleared of [[],[30],[30,14],[14,32]])assert.equal(chapterAccess('chapter_5',cleared).unlocked,false);
   assert.equal(chapterAccess('chapter_5',[30,14,32]).unlocked,true);
   for(const stage of STAGES.filter(s=>s.status==='candidate'))assert.equal(canPlayStage(stage.id,Array.from({length:47},(_,i)=>i),{unlockedStages:[stage.id]}),false);
@@ -99,7 +89,7 @@ test('legacy access migrates once without fabricating clears, and new progress c
   const legacy=preserveStageAccess(cleared,{}, {legacy:true});
   assert.equal(canPlayStage(12,cleared,legacy),true);assert.equal(chapterAccess('chapter_5',cleared,legacy).unlocked,true);
   assert.deepEqual(preserveStageAccess(cleared,legacy),legacy);assert.deepEqual(cleared,copy);
-  const fresh=preserveStageAccess(cleared);assert.equal(canPlayStage(12,cleared,fresh),false);
+  const fresh=preserveStageAccess(cleared);assert.equal(canPlayStage(12,cleared,fresh),true);
   assert.equal(chapterAccess('chapter_5',cleared,fresh).unlocked,false);
   assert.equal(canPlayStage(12,[12]),true);
   assert.equal(canPlayStage(34,[],{unlockedStages:[34]}),true);
@@ -112,8 +102,8 @@ test('version 2 demo draft, best records, hints and unlocked rising edge survive
   raw.stages[31]={draft:{circuitVersion:2,circuit:read('tests/fixtures/demo/31-3.json').circuit}};
   raw.lastStageId=31;raw.hints[31]=1;
   const next=validateProgress(raw,levels,{},[]);
-  assert.equal(next.catalogVersion,3);assert.equal(next.lastStageId,31);assert.equal(next.hints[31],1);
-  assert.equal(isUnlocked(31,[29],next),true);assert.equal(isUnlocked(31,[29]),false);
+  assert.equal(next.catalogVersion,4);assert.equal(next.lastStageId,31);assert.equal(next.hints[31],1);
+  assert.equal(isUnlocked(31,[29],next),true);assert.equal(isUnlocked(31,[29]),true);
   assert.deepEqual(next.stages[29],raw.stages[29]);assert.equal(next.stages[30],undefined);
   assert.deepEqual(validateProgress(next,levels,{},[]),next);
   assert.ok(next.unlockedStages.every(id=>DEMO_IDS.includes(id)));

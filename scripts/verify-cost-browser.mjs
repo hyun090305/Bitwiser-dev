@@ -1,3 +1,4 @@
+import { observeMap, enterStage } from './demo-browser-helpers.mjs';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import { createServer } from 'node:http';
@@ -75,7 +76,10 @@ try {
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.doesNotMatch(await page.locator('#clearedModal .cost-stars').innerText(),/[★☆]/);
   assert.match(await page.locator('#clearedModal').innerText(),/연결되지 않았습니다/);
-  assert.equal(await page.locator('#clearedNextBtn').isEnabled(),true);
+  assert.equal(await page.locator('#clearedMapBtn').isEnabled(),true);
+  assert.equal(await page.locator('#clearedMapBtn').innerText(),'맵으로 돌아가기');
+  assert.equal(await page.getByRole('button',{name:/^(Next stage|다음 스테이지)$/i}).count(),0);
+  assert.notEqual(await page.locator('#clearedMapBtn').evaluate(el=>getComputedStyle(el).backgroundColor),await page.getByRole('button',{name:'다시 설계하기',exact:true}).evaluate(el=>getComputedStyle(el).backgroundColor));
   await page.screenshot({path:'test-results/cost/full-result-offline.png'});
   await page.locator('#clearedModal .cost-ranking-toggle').click();assert.equal(await page.locator('#clearedModal .cost-ranking').isVisible(),false);
   await page.getByRole('button',{name:'다시 설계하기',exact:true}).click();await restore(1);
@@ -84,6 +88,21 @@ try {
   await page.getByRole('button',{name:'다시 설계하기',exact:true}).click();await restore(1,2);
   await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
   assert.match(await page.locator('#clearedModal').innerText(),/기존 최고 기록 유지/);
+  await page.locator('#clearedMapBtn').click();
+  await page.locator('#stageMapCanvas').waitFor({state:'visible'});
+  await page.evaluate(async()=>{
+    window.currentLang='en';
+    const levels=await import('/src/modules/levels.js');await levels.startLevel(1);
+    const nav=await import('/src/modules/navigation.js');nav.hideStageMapScreen();nav.showGameScreen();
+  });
+  await page.locator('#startLevelBtn').click();await restore(1);
+  await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
+  assert.equal(await page.locator('#clearedMapBtn').innerText(),'Back to map');
+  assert.equal(await page.getByRole('button',{name:'Back to design',exact:true}).count(),1);
+  assert.equal(await page.getByRole('button',{name:/^Next stage$/i}).count(),0);
+  await page.getByRole('button',{name:'Back to design',exact:true}).click();
+  await page.evaluate(()=>{window.currentLang='ko';});
+  await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
   // Common ranking UI: async states, own row beyond page one, ties, no unsafe HTML.
   await page.evaluate(async()=>{
     const {renderCostRanking}=await import('/src/modules/costUI.js');
@@ -133,6 +152,7 @@ try {
   await page.setViewportSize({width:1440,height:980});
   const demoContext=await browser.newContext({viewport:{width:1440,height:980},locale:'ko-KR'});
   await demoContext.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
+  await observeMap(demoContext);
   await demoContext.addInitScript(()=>localStorage.setItem('lang','ko'));
   page=await demoContext.newPage();page.on('pageerror',e=>errors.push(e.stack || e.message));
   await page.goto(base+'/dist-web-demo/index.html',{waitUntil:'domcontentloaded'});
@@ -143,7 +163,7 @@ try {
   assert.match(await page.locator('#demoDialog').innerText(),/튜토리얼 완료/);
   assert.doesNotMatch(await page.locator('#demoDialog').innerText(),/최적화/);
   await page.screenshot({path:'test-results/cost/demo-tutorial.png'});
-  await page.getByRole('button',{name:'다음 문제',exact:true}).click();await page.locator('#startLevelBtn').click();await restore(1);
+  await page.getByRole('button',{name:'맵으로 돌아가기',exact:true}).click();await enterStage(page,1);await restore(1);
   const amount=await page.locator('.cost-total').innerText();
   await page.evaluate(async()=>{
     const g=await import('./src/modules/grid.js');const c=g.getPlayCircuit();const io=Object.values(c.blocks).find(b=>b.type==='INPUT');io.value=!io.value;
