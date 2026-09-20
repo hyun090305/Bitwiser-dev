@@ -864,11 +864,20 @@ export function drawBlock(
   ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
+  const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
+  if (block.type === 'INPUT' || block.type === 'OUTPUT') {
+    const availableWidth = size - 12 * scale;
+    const labelWidth = ctx.measureText(label).width;
+    if (labelWidth > availableWidth) {
+      // Shrink both dimensions equally; fillText's maxWidth can squash glyphs.
+      const fontSize = (fontMatch ? parseFloat(fontMatch[1]) : 16) * scale;
+      ctx.font = resolvedFont.replace(/\d+(?:\.\d+)?px/, `${fontSize * availableWidth / labelWidth}px`);
+    }
+  }
   ctx.fillText(
-    block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type),
+    label,
     x + size / 2,
-    y + size / 2,
-    ['INPUT', 'OUTPUT'].includes(block.type) ? size - 12 * scale : undefined
+    y + size / 2
   );
   ctx.restore();
 }
