@@ -5,6 +5,7 @@ import { getCurrentLevel, getLevelTitle, getLoadedStageData } from './levels.js'
 import { validateStageCircuit } from './stageCircuit.js';
 import { validateSavedCircuitRecord, matchesSaveContext } from './savedCircuitRecord.js';
 import { circuitStorage, isCircuitStorageAvailable, storageErrorMessage } from './circuitStorage.js';
+import { createCircuitGif } from '../canvas/gifExport.js';
 
 const CURRENT_CIRCUIT_VERSION = CIRCUIT_VERSION;
 
@@ -604,78 +605,9 @@ export function showCircuitSavedToast({ message, canShare = true, onContinue } =
 }
 
 export async function captureGIF(onFinish, { caption = '' } = {}) {
-  const bgCanvas = document.getElementById('bgCanvas');
-  const contentCanvas = document.getElementById('contentCanvas');
-  if (!bgCanvas || !contentCanvas) throw new Error('No canvas to export');
-
-  const dpr = window.devicePixelRatio || 1;
-  const totalWidth = bgCanvas.width / dpr;
-  const totalHeight = bgCanvas.height / dpr;
-
-  let gridWidth = totalWidth;
-  let gridHeight = totalHeight;
-  let panelWidth = 0;
-  let sourceWidth = totalWidth;
-  let sourceHeight = totalHeight;
-
-  try {
-    const { CELL, GAP } = await import('../canvas/model.js');
-    const controller = getActiveController();
-    const circuit = controller?.circuit || getActiveCircuit();
-    if (circuit) {
-      gridWidth = circuit.cols * (CELL + GAP) + GAP;
-      gridHeight = circuit.rows * (CELL + GAP) + GAP;
-      // The controller scales the grid inside the canvas. Crop its actual
-      // viewport, then resample to the circuit's base size for export.
-      panelWidth = Number(bgCanvas.dataset.panelWidth) || Math.max(0, totalWidth - gridWidth);
-      sourceWidth = Number(bgCanvas.dataset.gridViewportWidth) || totalWidth - panelWidth;
-      sourceHeight = Number(bgCanvas.dataset.gridViewportHeight) || totalHeight;
-    }
-  } catch (_) {}
-
-  const tempCanvas = document.createElement('canvas');
-  tempCanvas.width = gridWidth;
-  const captionHeight = caption ? 48 : 0;
-  tempCanvas.height = gridHeight + captionHeight;
-  const tempCtx = tempCanvas.getContext('2d');
-
-  const gif = new GIF({ workers: 2, workerScript: 'gif.worker.js', quality: 10, width: gridWidth, height: gridHeight + captionHeight });
-  const totalFrames = 10;
-
-  for (let f = 0; f < totalFrames; f++) {
-    tempCtx.clearRect(0, 0, gridWidth, gridHeight);
-    [bgCanvas, contentCanvas].forEach(c => {
-      tempCtx.drawImage(
-        c,
-        panelWidth * dpr,
-        0,
-        sourceWidth * dpr,
-        sourceHeight * dpr,
-        0,
-        0,
-        gridWidth,
-        gridHeight
-      );
-    });
-    if (caption) {
-      tempCtx.fillStyle = '#f8fafc';
-      tempCtx.fillRect(0, gridHeight, gridWidth, captionHeight);
-      tempCtx.fillStyle = '#312e81';
-      tempCtx.font = '12px sans-serif';
-      tempCtx.fillText(caption, 8, gridHeight + 28, gridWidth - 16);
-    }
-    gif.addFrame(tempCanvas, { delay: 50, copy: true });
-    await new Promise(r => setTimeout(r, 50));
-  }
-
-  return new Promise((resolve, reject) => {
-    const timeout = setTimeout(() => { gif.abort(); reject(new Error('GIF export timed out')); }, 30000);
-    gif.on('finished', blob => {
-      clearTimeout(timeout);
-      if (typeof onFinish === 'function') onFinish(blob);
-      resolve(blob);
-    });
-    gif.on('abort', () => { clearTimeout(timeout); reject(new Error('GIF export aborted')); });
-    try { gif.render(); } catch (error) { clearTimeout(timeout); reject(error); }
-  });
+  const circuit = getActiveController()?.circuit || getActiveCircuit();
+  if (!circuit) throw new Error('No circuit to export');
+  const blob = await createCircuitGif(circuit, { caption });
+  if (typeof onFinish === 'function') onFinish(blob);
+  return blob;
 }
