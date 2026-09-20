@@ -10,6 +10,24 @@ const out = path.join(root, 'dist-web-demo');
 const read = p => fs.readFile(path.join(root, p), 'utf8');
 const write = async (p, content) => { const dest = path.join(out, p); await fs.mkdir(path.dirname(dest), { recursive: true }); await fs.writeFile(dest, content); };
 
+// Ship only demo definitions, accepting both LF and Windows CRLF markers.
+const memoryFile = 'src/modules/memory20References.js';
+const memorySource = (await read(memoryFile)).replace(
+  /  \/\/ stage:([^\r\n]+)\r?\n([\s\S]*?)(?=  \/\/ stage:)/g,
+  (match, slot) => DEMO_IDS.includes(MEMORY20_IDS[slot]) ? match : ''
+);
+// This module is self-contained. Load the filtered bytes, not the full source,
+// and validate actual definitions before writing any build output.
+const { getMemory20Reference } = await import(`data:text/javascript;base64,${Buffer.from(memorySource).toString('base64')}`);
+const missing = [], unexpected = [];
+for (const [slot, id] of Object.entries(MEMORY20_IDS)) {
+  const present = Boolean(getMemory20Reference(slot));
+  if (DEMO_IDS.includes(id) && !present) missing.push(`Stage ${id} (${slot})`);
+  if (!DEMO_IDS.includes(id) && present) unexpected.push(`Stage ${id} (${slot})`);
+}
+if (missing.length) throw new Error(`Missing demo memory references: ${missing.join(', ')}`);
+if (unexpected.length) throw new Error(`Unexpected demo memory references: ${unexpected.join(', ')}`);
+
 // Pull whole, balanced elements from the existing HTML to keep the actual
 // editor and settings markup shared with the full web/Electron entry.
 function extractElement(html, id) {
@@ -81,12 +99,7 @@ async function copyModule(file) {
 }
 await copyModule('src/demo/main.js');
 await copyModule('src/canvas/controller.js'); // setupGrid loads this lazily
-// Ship only the behavioral definitions needed by the demo. The full game's
-// register banks, buffers and divider answers are not demo content.
-const memoryFile='src/modules/memory20References.js';
-let memorySource=await read(memoryFile);
-memorySource=memorySource.replace(/  \/\/ stage:([^\n]+)\n([\s\S]*?)(?=  \/\/ stage:)/g,(match,slot)=>DEMO_IDS.includes(MEMORY20_IDS[slot])?match:'');
-await write(memoryFile,memorySource);
+await write(memoryFile, memorySource);
 // The shared renderer only receives playable demo IDs. Full-stage map
 // placeholders cannot resolve to the full game's stage metadata.
 const catalogFile = 'src/modules/stageCatalog.js';
