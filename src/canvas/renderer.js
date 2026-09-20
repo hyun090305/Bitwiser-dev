@@ -7,6 +7,13 @@ export const CELL_CORNER_RADIUS = 3;
 
 const PITCH = CELL + GAP;
 const SIMPLE_GRID_THRESHOLD = 12;
+const SIGNAL_BLOCK_BORDERS = {
+  INPUT: '#54D6B2',
+  OUTPUT: '#F2AD55',
+  D: '#8E7CFF',
+  JUNCTION: '#5D7893'
+};
+const SIGNAL_ACTIVE_FILL = '#F2F0DF';
 
 const BASE_GRID_STYLE = {
   background: '#ffffff',
@@ -783,37 +790,30 @@ export function drawBlock(
   }
   ctx.save();
 
-  const isActive = Boolean(
-    block.value && ['INPUT', 'OUTPUT', 'JUNCTION', 'D'].includes(block.type)
-  );
+  const typeBorder = SIGNAL_BLOCK_BORDERS[block.type];
+  const isActive = Boolean(block.value && typeBorder);
+  const isJunction = block.type === 'JUNCTION';
   const blockRadius = Math.max(0, style.radius * scale);
-  if (isActive) {
-    const haloShadow = {
-      color: 'rgba(255, 220, 180, 0.28)',
-      blur: 26,
-      offsetX: 0,
-      offsetY: 6
-    };
-    applyScaledShadow(ctx, haloShadow, scale);
-    const baseGlowColor = 'rgba(255, 246, 225, 0.96)';
-    ctx.fillStyle = baseGlowColor;
+  if (isJunction) {
+    // Match the grid beneath the frame while masking incoming wire endpoints.
+    // This keeps the center empty even where several outgoing wires meet.
+    const grid = resolveGridStyle(options);
+    const cellFill = grid.gridFillA && grid.gridFillB
+      ? (r + c) % 2 === 0 ? grid.gridFillA : grid.gridFillB
+      : grid.gridFillA || grid.gridFillB;
+    applyShadow(ctx, null);
+    roundRect(ctx, x, y, size, size, blockRadius);
+    ctx.fillStyle = grid.background;
+    ctx.fill();
+    if (cellFill && (!camera || size > SIMPLE_GRID_THRESHOLD)) {
+      ctx.fillStyle = createFillStyle(ctx, cellFill, x, y, size, size) || cellFill;
+      ctx.fill();
+    }
+  } else if (isActive) {
+    applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
+    ctx.fillStyle = SIGNAL_ACTIVE_FILL;
     roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
-
-    ctx.shadowColor = 'transparent';
-    const cx = x + size * 0.42;
-    const cy = y + size * 0.38;
-    const innerRadius = Math.max(size * 0.06, 0);
-    const outerRadius = Math.max(size * 0.9, innerRadius + 0.1);
-    const glowGradient = ctx.createRadialGradient(cx, cy, innerRadius, cx, cy, outerRadius);
-    glowGradient.addColorStop(0, 'rgba(255, 255, 235, 0.25)');
-    glowGradient.addColorStop(0.58, 'rgba(255, 235, 160, 0.18)');
-    glowGradient.addColorStop(1, 'rgba(255, 200, 100, 0)');
-    ctx.globalCompositeOperation = 'lighter';
-    ctx.fillStyle = glowGradient;
-    roundRect(ctx, x, y, size, size, blockRadius);
-    ctx.fill();
-    ctx.globalCompositeOperation = 'source-over';
   } else {
     const fillSpec = hovered && style.hoverFill ? style.hoverFill : style.fill;
     applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
@@ -823,12 +823,27 @@ export function drawBlock(
     ctx.fill();
   }
 
-  if (style.strokeColor && style.strokeWidth > 0) {
-    ctx.shadowColor = 'transparent';
-    ctx.lineWidth = Math.max(style.strokeWidth * scale, 0.6);
-    ctx.strokeStyle = style.strokeColor;
+  const strokeColor = isJunction && isActive ? '#A9C9E8' : typeBorder || style.strokeColor;
+  const strokeWidth = typeBorder ? 2 : style.strokeWidth;
+  if (strokeColor && strokeWidth > 0) {
+    applyScaledShadow(ctx, isJunction && (isActive || hovered)
+      ? { color: strokeColor, blur: isActive ? 12 : 5, offsetX: 0, offsetY: 0 }
+      : null, scale);
+    ctx.lineWidth = Math.max(strokeWidth * scale, 0.6);
+    ctx.strokeStyle = strokeColor;
     roundRect(ctx, x, y, size, size, blockRadius);
     ctx.stroke();
+    if (block.type === 'D') {
+      const inset = 4 * scale;
+      ctx.lineWidth = Math.max(scale, 0.6);
+      roundRect(ctx, x + inset, y + inset, size - inset * 2, size - inset * 2, blockRadius);
+      ctx.stroke();
+    }
+  }
+
+  if (isJunction) {
+    ctx.restore();
+    return;
   }
 
   ctx.shadowColor = 'transparent';
@@ -852,7 +867,8 @@ export function drawBlock(
   ctx.fillText(
     block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type),
     x + size / 2,
-    y + size / 2
+    y + size / 2,
+    ['INPUT', 'OUTPUT'].includes(block.type) ? size - 12 * scale : undefined
   );
   ctx.restore();
 }
