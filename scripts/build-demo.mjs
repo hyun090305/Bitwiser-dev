@@ -53,10 +53,7 @@ html = html.replace(extractElement(html, 'loadingStartBtn'), '<button id="loadin
 for (const id of ['labCommunityControls', 'loginArea', 'rankingPanel', 'guestbookPanel', 'blueprintArchiveTools', 'viewSavedBtn', 'saveCircuitBtn', 'nativeSaveNotice']) html = html.replace(extractElement(html, id), '');
 html = html.replace(/<button\b[^>]*\bdata-panel-target=[\s\S]*?<\/button>/g, tag => tag.includes('#rankingPanel') ? '<button class="hud-button" id="demoRankingHudBtn" type="button" data-full-feature="ranking" aria-label="Rankings">🏆</button>' : '');
 html = html.replace('id="viewRankingBtn"', 'id="viewRankingBtn" data-full-feature="ranking"');
-html = html.replace('id="exportGifBtn"', 'id="demoShareBtn" data-demo-text="share"');
-html = html.replace('<div class="system-menu-footer">', `<section><div class="system-menu-grid">
-  <button id="demoSettingsBtn" data-demo-text="settings"></button>
-</div></section><div class="system-menu-footer">`);
+html = html.replace('id="exportGifBtn"', 'id="demoShareBtn"');
 const settings = extractElement(html, 'settingsModal');
 const themeHeading = settings.indexOf('id="themeHeading"');
 const themeStart = settings.lastIndexOf('<div class="settings-section">', themeHeading);

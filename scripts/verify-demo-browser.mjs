@@ -111,7 +111,10 @@ try {
   await page.waitForTimeout(550); assert.equal((await save()).stages[1].best.stars,1);
   await enter(2); await grade(2); await enter(3); await grade(3);
   await enter(6);
-  await page.locator('#systemMenuBtn').click(); await page.locator('#hintBtn').click();
+  await page.locator('#viewRankingBtn').click();
+  await page.locator('#fullVersionDialog[open][data-feature="ranking"]').waitFor();
+  await page.locator('.full-version-back').click();
+  await page.locator('#hintBtn').click();
   await page.locator('#hintButtons button').nth(0).click(); await page.locator('#closeHintMessageBtn').click();
   assert.equal(await page.locator('#hintButtons button').nth(1).isEnabled(),true);
   await page.locator('#hintButtons button').nth(1).click(); await page.locator('#closeHintMessageBtn').click(); await page.locator('#closeHintBtn').click();
@@ -119,7 +122,7 @@ try {
   const completed=await save(); assert.ok(completed.stages[6].best); assert.equal(completed.stages[4],undefined); assert.equal(completed.stages[5],undefined);
   assert.equal(completed.hints[6],2); assert.equal('storySeen' in completed,false);
   await enter(6); // A finished demo remains playable and shareable.
-  await page.locator('#systemMenuBtn').click(); await page.locator('#demoShareBtn').click();
+  await page.locator('#demoShareBtn').click();
   assert.ok((await page.locator('#demoDialog textarea').inputValue()).includes(`Circuit cost ${completed.stages[6].best.totalCost}`));
   const gifDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Download GIF',exact:true}).click();
   const gif=await gifDownload; await gif.saveAs('test-results/demo-result.gif'); assert.ok((await fs.stat('test-results/demo-result.gif')).size>100);

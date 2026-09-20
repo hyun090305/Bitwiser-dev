@@ -50,6 +50,6 @@ export async function enterStage(page, id) {
 export async function openSettings(page) {
   if (await page.locator('#gameScreen').isVisible()) {
     await page.locator('#systemMenuBtn').click();
-    await page.locator('#demoSettingsBtn').click();
+    await page.locator('#gameSettingsBtn').click();
   } else await page.locator('#settingsBtn').click();
 }

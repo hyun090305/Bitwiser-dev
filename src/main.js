@@ -675,7 +675,7 @@ async function startCustomProblem(key, problem) {
   hideStageMapScreen();
   showGameScreen();
   const rp = document.getElementById('rightPanel');
-  if (rp) rp.style.display = 'block';
+  if (rp) rp.style.display = '';
   
   showProblemIntro(problem, () => {
     document.body.classList.add('game-active');

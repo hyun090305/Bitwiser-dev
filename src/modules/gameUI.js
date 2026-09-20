@@ -4,6 +4,18 @@ import { getAvailableThemes, getActiveThemeId, setActiveTheme, getThemeById, onT
 import { drawGrid, renderContent, setupCanvas } from '../canvas/renderer.js';
 import { CELL, GAP } from '../canvas/model.js';
 const translate = key => window.t?.(key) || key;
+
+function containDialogFocus(event, dialog) {
+  if (event.key !== 'Tab') return;
+  const items = [...dialog.querySelectorAll('button, input, select, textarea, a[href], [tabindex]')]
+    .filter(el => !el.disabled && el.tabIndex >= 0 && el.getClientRects().length);
+  const first = items[0], last = items[items.length - 1];
+  if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+    event.preventDefault(); last?.focus();
+  } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+    event.preventDefault(); first?.focus();
+  }
+}
 export function isTextInputFocused() {
   const el = document.activeElement;
   if (!el) return false;
@@ -54,7 +66,34 @@ const platformSource =
     : '';
 const isApplePlatform = APPLE_PLATFORM_REGEX.test(platformSource);
 
+function setupPanelTooltips() {
+  const panel = document.getElementById('rightPanel');
+  if (!panel) return;
+  const buttons = [...panel.querySelectorAll('.has-tooltip')];
+  const positionTooltip = button => {
+    const bounds = panel.getBoundingClientRect();
+    const icon = button.getBoundingClientRect();
+    const left = bounds.left + panel.clientLeft + 8;
+    const right = bounds.left + panel.clientLeft + panel.clientWidth - 8;
+    button.style.setProperty('--tooltip-max-width', `${right - left}px`);
+    const width = parseFloat(getComputedStyle(button, '::after').width);
+    if (!Number.isFinite(width)) return;
+    const centered = icon.left + icon.width / 2 - width / 2;
+    const clamped = Math.max(left, Math.min(centered, right - width));
+    // Keep the caret on its icon; shift only a bubble that would be clipped.
+    button.style.setProperty('--tooltip-shift', `${clamped - centered}px`);
+  };
+  for (const button of buttons) {
+    button.addEventListener('pointerenter', () => positionTooltip(button));
+    button.addEventListener('focus', () => positionTooltip(button));
+  }
+  window.addEventListener('resize', () => {
+    buttons.filter(button => button.matches(':hover, :focus-visible')).forEach(positionTooltip);
+  });
+}
+
 export function setupKeyToggles() {
+  setupPanelTooltips();
   const bindings = [
     [statusToggle, 'Control'],
     [deleteToggle, 'Shift'],
@@ -428,25 +467,39 @@ export function setupSettings({ localSave = false } = {}) {
     }
   }
 
-  btn.addEventListener('click', () => {
-    modal.style.display = 'flex';
-  });
-  closeBtn.addEventListener('click', () => {
+  let returnFocus = btn;
+  const close = () => {
     modal.style.display = 'none';
-  });
+    if (returnFocus?.getClientRects().length) returnFocus.focus();
+  };
+  for (const opener of [btn, document.getElementById('gameSettingsBtn')].filter(Boolean)) {
+    opener.addEventListener('click', () => {
+      returnFocus = opener === btn ? btn : document.getElementById('systemMenuBtn');
+      modal.style.display = 'flex';
+      closeBtn.focus();
+    });
+  }
+  closeBtn.addEventListener('click', close);
   modal.addEventListener('click', e => {
-    if (e.target === modal) modal.style.display = 'none';
+    if (e.target === modal) close();
   });
+  document.addEventListener('keydown', event => {
+    if (modal.style.display !== 'flex') return;
+    event.stopPropagation();
+    if (event.key === 'Escape') { event.preventDefault(); close(); }
+    else containDialogFocus(event, modal);
+  }, true);
 }
 
 export function setupSystemMenuDrawer() {
   const button = document.getElementById('systemMenuBtn');
   const drawer = document.getElementById('systemMenuDrawer');
   const backdrop = document.getElementById('systemMenuBackdrop');
-  const drawerItems = drawer ? Array.from(drawer.querySelectorAll('button')) : [];
+  const controls = document.getElementById('controlsDialog');
   if (!button || !drawer || !backdrop) return;
 
   document.body.append(backdrop, drawer);
+  if (controls) document.body.append(controls);
 
   const updateLabel = () => {
     const expanded = button.getAttribute('aria-expanded') === 'true';
@@ -465,14 +518,17 @@ export function setupSystemMenuDrawer() {
     document.body.classList.add('system-menu-open');
     button.setAttribute('aria-expanded', 'true');
     updateLabel();
+    document.getElementById('continueGameBtn')?.focus();
   };
 
-  const close = () => {
+  const close = (restoreFocus = true) => {
+    const wasOpen = !drawer.hidden;
     backdrop.hidden = true;
     drawer.hidden = true;
     document.body.classList.remove('system-menu-open');
     button.setAttribute('aria-expanded', 'false');
     updateLabel();
+    if (wasOpen && restoreFocus && !button.hidden && button.getClientRects().length) button.focus();
   };
 
   const syncLabModeAvailability = () => {
@@ -481,7 +537,7 @@ export function setupSystemMenuDrawer() {
     button.disabled = disabled;
     button.setAttribute('aria-hidden', disabled ? 'true' : 'false');
     if (disabled && !drawer.hidden) {
-      close();
+      close(false);
     } else if (!disabled) {
       updateLabel();
     }
@@ -504,10 +560,32 @@ export function setupSystemMenuDrawer() {
     toggle();
   });
 
-  drawerItems.forEach(item => {
-    item.addEventListener('click', () => {
-      close();
-    });
+  // Close before an action opens another modal, regardless of setup order.
+  drawer.addEventListener('click', event => {
+    if (event.target.closest('button')) close();
+  }, true);
+
+  document.getElementById('controlsBtn')?.addEventListener('click', () => {
+    if (!controls) return;
+    const list = document.getElementById('controlsList');
+    list.replaceChildren();
+    // The toolbar's accessible labels remain the reference for editor bindings.
+    for (const id of ['wireStatusInfo', 'wireDeleteInfo', 'wireSelectInfo', 'DeleteAllInfo', 'undoBtn', 'redoBtn', 'copySelectionBtn', 'pasteSelectionBtn']) {
+      const source = document.getElementById(id);
+      if (!source) continue;
+      const item = document.createElement('li');
+      item.textContent = source.getAttribute('aria-label');
+      list.append(item);
+    }
+    controls.showModal();
+  });
+  document.getElementById('controlsCloseBtn')?.addEventListener('click', () => controls.close());
+  controls?.addEventListener('click', event => {
+    const box = controls.getBoundingClientRect();
+    if (event.target === controls && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) controls.close();
+  });
+  controls?.addEventListener('close', () => {
+    if (!button.hidden && button.getClientRects().length) button.focus();
   });
 
   backdrop.addEventListener('click', () => {
@@ -515,13 +593,15 @@ export function setupSystemMenuDrawer() {
   });
 
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape' && !drawer.hidden) {
-      close();
-      if (!button.hidden) {
-        button.focus();
-      }
-    }
-  });
+    if (drawer.hidden && !controls?.open) return;
+    // Reading a reference or navigating a menu must not edit the circuit.
+    event.stopPropagation();
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      if (controls?.open) controls.close();
+      else close();
+    } else containDialogFocus(event, controls?.open ? controls : drawer);
+  }, true);
 
   if (typeof MutationObserver !== 'undefined') {
     const observer = new MutationObserver(syncLabModeAvailability);

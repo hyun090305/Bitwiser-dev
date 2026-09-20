@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitgame-cache-v20-local-saves';
+const CACHE_NAME = 'bitgame-cache-v21-gameplay-actions';
 const urlsToCache = [
   '/',
   '/index.html',

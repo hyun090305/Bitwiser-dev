@@ -833,6 +833,136 @@ html, body {
   position: relative;
 }
 
+#rightPanel {
+  min-width: 0;
+  min-height: 0;
+  gap: 0.65rem;
+  overflow-y: auto;
+}
+
+#rightPanel > * { flex-shrink: 0; }
+#rightPanel .console-meta { flex-direction: row; }
+#rightPanel #gameTitle {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  font-size: clamp(18px, 1.8vw, 26px);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+#rightPanel .system-menu-btn {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: 9px;
+}
+
+.stage-quick-actions, .circuit-action-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+.stage-quick-actions button {
+  flex: 1;
+  padding: 0.5rem 0.25rem;
+  font: inherit;
+  font-size: 0.78rem;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  background: #111c2e;
+  color: #cbd5e1;
+  cursor: pointer;
+}
+.stage-quick-actions button:hover { background: #1e293b; }
+.stage-quick-actions button:focus-visible,
+.system-menu-drawer button:focus-visible,
+.controls-dialog button:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+
+#rightPanel .console-section-heading {
+  width: 100%;
+  margin: 0;
+  color: #94a3b8;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: left;
+}
+#rightPanel .status-toolbar, #rightPanel .history-toolbar, #rightPanel .edit-toolbar {
+  position: relative;
+  width: 100%;
+  gap: 0.35rem;
+  padding: 0;
+  margin: 0;
+}
+#rightPanel .status-toolbar__button {
+  box-sizing: border-box;
+  width: 38px;
+  height: 38px;
+  padding: 6px;
+}
+#rightPanel .status-toolbar__button[hidden] { display: none; }
+#rightPanel .has-tooltip::after {
+  /* Hidden bubbles must not add horizontal scrollable overflow. */
+  content: none;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: var(--tooltip-max-width, 140px);
+  white-space: normal;
+  text-align: center;
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -6px);
+  transition-property: opacity;
+}
+#rightPanel .has-tooltip:hover::after,
+#rightPanel .has-tooltip:focus-visible::after {
+  content: attr(data-tooltip);
+  transform: translate(calc(-50% + var(--tooltip-shift, 0px)), -12px);
+}
+.circuit-management {
+  box-sizing: border-box;
+  width: 100%;
+  border-top: 1px solid #334155;
+  padding-top: 0.7rem;
+}
+.circuit-management .circuit-action-row { position: relative; margin-top: 0.5rem; }
+.circuit-management #nativeSaveNotice {
+  margin: 0.5rem 0 0;
+  font-size: 0.7rem;
+  line-height: 1.5;
+  color: #94a3b8;
+}
+/* These stage actions were unavailable inside the hidden Lab menu. */
+body.lab-mode-active #stageQuickActions,
+body.lab-mode-active #circuitManagement { display: none; }
+
+.controls-dialog {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 2rem));
+  max-height: 86dvh;
+  overflow: auto;
+  padding: 1.4rem;
+  border: 1px solid #476278;
+  border-radius: 18px;
+  background: #08111f;
+  color: #e2e8f0;
+  text-align: left;
+  line-height: 1.6;
+}
+.controls-dialog::backdrop { background: rgba(2, 6, 23, 0.6); }
+.controls-dialog h2 { margin: 0; font-size: 1.1rem; color: #bae6fd; }
+.controls-dialog p { font-size: 0.85rem; color: #cbd5e1; }
+.controls-dialog ul { padding-left: 1.3rem; font-size: 0.9rem; }
+.controls-dialog button {
+  width: 100%;
+  padding: 0.55rem;
+  border: 1px solid #334155;
+  border-radius: 9px;
+  background: #153047;
+  color: #f0f9ff;
+  cursor: pointer;
+}
+
 
 .console-subtext {
   margin: 0;
