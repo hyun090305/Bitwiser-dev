@@ -793,23 +793,9 @@ export function drawBlock(
   const typeBorder = SIGNAL_BLOCK_BORDERS[block.type];
   const isActive = Boolean(block.value && typeBorder);
   const isJunction = block.type === 'JUNCTION';
+  const isButton = block.type === 'INPUT' && block.inputMode === 'button';
   const blockRadius = Math.max(0, style.radius * scale);
-  if (isJunction) {
-    // Match the grid beneath the frame while masking incoming wire endpoints.
-    // This keeps the center empty even where several outgoing wires meet.
-    const grid = resolveGridStyle(options);
-    const cellFill = grid.gridFillA && grid.gridFillB
-      ? (r + c) % 2 === 0 ? grid.gridFillA : grid.gridFillB
-      : grid.gridFillA || grid.gridFillB;
-    applyShadow(ctx, null);
-    roundRect(ctx, x, y, size, size, blockRadius);
-    ctx.fillStyle = grid.background;
-    ctx.fill();
-    if (cellFill && (!camera || size > SIMPLE_GRID_THRESHOLD)) {
-      ctx.fillStyle = createFillStyle(ctx, cellFill, x, y, size, size) || cellFill;
-      ctx.fill();
-    }
-  } else if (isActive) {
+  if (isActive && !isButton) {
     applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
     ctx.fillStyle = SIGNAL_ACTIVE_FILL;
     roundRect(ctx, x, y, size, size, blockRadius);
@@ -823,12 +809,33 @@ export function drawBlock(
     ctx.fill();
   }
 
-  const strokeColor = isJunction && isActive ? '#A9C9E8' : typeBorder || style.strokeColor;
+  if (isButton) {
+    // A momentary input changes only its centered press surface.
+    const plateX = x + 6 * scale;
+    const plateY = y + 10 * scale;
+    const plateWidth = size - 12 * scale;
+    const plateHeight = size - 20 * scale;
+    ctx.save();
+    applyShadow(ctx, null);
+    roundRect(ctx, plateX, plateY, plateWidth, plateHeight, blockRadius);
+    ctx.fillStyle = isActive ? SIGNAL_ACTIVE_FILL
+      : createFillStyle(ctx, style.fill, plateX, plateY, plateWidth, plateHeight);
+    ctx.fill();
+    if (!isActive) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+      ctx.fill();
+    }
+    ctx.strokeStyle = typeBorder;
+    ctx.lineWidth = Math.max(scale, 0.6);
+    ctx.globalAlpha *= 0.6;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const strokeColor = typeBorder || style.strokeColor;
   const strokeWidth = typeBorder ? 2 : style.strokeWidth;
   if (strokeColor && strokeWidth > 0) {
-    applyScaledShadow(ctx, isJunction && (isActive || hovered)
-      ? { color: strokeColor, blur: isActive ? 12 : 5, offsetX: 0, offsetY: 0 }
-      : null, scale);
+    applyShadow(ctx, null);
     ctx.lineWidth = Math.max(strokeWidth * scale, 0.6);
     ctx.strokeStyle = strokeColor;
     roundRect(ctx, x, y, size, size, blockRadius);
@@ -866,7 +873,7 @@ export function drawBlock(
   ctx.textBaseline = 'middle';
   const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
   if (block.type === 'INPUT' || block.type === 'OUTPUT') {
-    const availableWidth = size - 12 * scale;
+    const availableWidth = size - (isButton ? 18 : 12) * scale;
     const labelWidth = ctx.measureText(label).width;
     if (labelWidth > availableWidth) {
       // Shrink both dimensions equally; fillText's maxWidth can squash glyphs.
