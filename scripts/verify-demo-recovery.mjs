@@ -44,7 +44,7 @@ try {
   assert.equal(await p.evaluate(async()=> (await import('./src/modules/grid.js')).getPlayCircuit().blocks.g.pos.c),4);
   // A failed clipboard copy offers selectable text and a download.
   await enterStage(p,6);
-  await p.locator('#systemMenuBtn').tap();await p.locator('#demoShareBtn').click();
+  await p.locator('#demoShareBtn').tap();
   await p.evaluate(()=>Object.defineProperty(navigator,'clipboard',{value:{writeText:()=>Promise.reject(new Error('denied'))},configurable:true}));
   await p.getByRole('button',{name:'텍스트 복사',exact:true}).click();await p.getByText('복사 권한이 없습니다.',{exact:false}).waitFor();
   await p.evaluate(()=>{window.GIF=class { constructor(){throw new Error('Encoder unavailable');} };});

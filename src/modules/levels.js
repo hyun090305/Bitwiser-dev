@@ -198,7 +198,7 @@ export function returnToEditScreen() {
   if (overlay) overlay.style.display = 'none';
 
   const rightPanel = document.getElementById('rightPanel');
-  if (rightPanel) rightPanel.style.display = 'block';
+  if (rightPanel) rightPanel.style.display = '';
   const gradingInlineStatus = document.getElementById('gradingInlineStatus');
   if (gradingInlineStatus) gradingInlineStatus.hidden = true;
   const gradeButton = document.getElementById('gradeButton');

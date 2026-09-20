@@ -143,6 +143,7 @@ try {
   });
   assert.equal(await page.locator('#circuitCostBoard .cost-total').innerText(),'0');
   assert.equal(await page.locator('#circuitCostBoard .cost-target').count(),0);
+  assert.equal(await page.locator('#systemMenuBtn, #stageQuickActions, #circuitManagement').filter({ visible: true }).count(), 0);
   await hoverPalette('D','labBgCanvas');
   assert.match(await page.locator('.palette-cost-tooltip:visible').innerText(),/비용 20/);
   const tooltipBounds=await page.locator('.palette-cost-tooltip:visible').boundingBox();
@@ -195,14 +196,15 @@ try {
   assert.equal(await page.locator('#demoDialog .cost-best-stars .earned').count(),3);
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.equal(await page.locator('#demoDialog .cost-goal').count(),0);
-  await page.getByRole('button',{name:'결과 공유',exact:true}).click();
-  await page.getByRole('button',{name:'닫기',exact:true}).click();
+  await page.locator('#demoDialog').getByRole('button',{name:'결과 공유',exact:true}).click();
+  await page.locator('#demoDialog').getByRole('button',{name:'닫기',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.isGradingResultOpen),false);
   assert.equal(await page.locator('#gradeButton').isVisible(),true);
   await page.locator('#gradeButton').click();await page.locator('#demoDialog[open]').waitFor();
   await page.keyboard.press('Escape');
   assert.equal(await page.evaluate(()=>window.isGradingResultOpen),false);
   assert.equal(await page.locator('#gameScreen .status-toolbar').evaluate(el=>getComputedStyle(el).visibility),'visible');
+  assert.equal(await page.locator('#rightPanel').evaluate(el=>getComputedStyle(el).display),'flex');
   assert.deepEqual(errors,[]);
   console.log('Cost browser checks passed: palette hover and drag dismissal, Korean/English costs, SVG rewards, removed breakdown, full offline play, verified result/board/save agreement, improvement and regression, tutorial, restricted demo, exact own rank, pagination, hide/show, empty/failure, narrow layout.');
 }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

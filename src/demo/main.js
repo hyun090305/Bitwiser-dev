@@ -237,10 +237,10 @@ async function boot() {
   refreshProgress(); showStageMapScreen();
   $('gradeButton').addEventListener('click', () => grading.gradeCurrentSelection().catch(error => { console.error(error); showStatus(text('error'), true); }));
   $('backToLevelsBtn').addEventListener('click', goMap);
-  $('demoSettingsBtn').addEventListener('click', () => $('settingsBtn').click());
   $('showIntroBtn').addEventListener('click', () => { if (activeStage !== null) levels.showIntroModal(activeStage); });
   $('hintBtn').addEventListener('click', () => { if (activeStage !== null) openHintModal(activeStage); });
   $('demoShareBtn').addEventListener('click', showShare);
+  for (const attribute of ['title', 'aria-label', 'data-tooltip']) $('demoShareBtn').setAttribute(attribute, text('share'));
   $('demoLanguageBtn').addEventListener('click', () => {
     flushDraft(); store.state.settings.lang = lang === 'ko' ? 'en' : 'ko'; store.persist(); window.setLanguage(store.state.settings.lang);
   });
@@ -291,7 +291,7 @@ async function boot() {
       const offerUpdate = () => {
         if (!reg.waiting || !navigator.serviceWorker.controller) return;
         const b = $('demoUpdateBtn'); b.hidden = false;
-        for (const id of ['settingsBtn', 'demoSettingsBtn']) { $(id).dataset.updateReady = 'true'; $(id).title = text('update'); }
+        for (const id of ['settingsBtn', 'gameSettingsBtn']) { $(id).dataset.updateReady = 'true'; $(id).title = text('update'); }
         b.onclick = () => { if (busy) return; flushDraft(); if (store.persist()) reg.waiting.postMessage('activate-update'); };
       };
       offerUpdate(); reg.addEventListener('updatefound', () => reg.installing?.addEventListener('statechange', offerUpdate));

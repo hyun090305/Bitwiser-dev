@@ -6,6 +6,7 @@ import { randomUUID } from 'node:crypto';
 import { snapshotCircuit } from '../src/canvas/circuitData.js';
 import { getSavePaths } from '../electron/circuit-store.cjs';
 import { launchPackagedElectron } from './packaged-electron-test-launcher.mjs';
+import { verifyGameplayActions } from './gameplay-ui-checks.mjs';
 
 const root = path.resolve('.');
 const packaged = process.argv.includes('--packaged');
@@ -73,7 +74,9 @@ async function close() {
 }
 try {
   await launch(); await stage(1, fixture);
-  await page.locator('#systemMenuBtn').click();
+  await page.setViewportSize({ width: 1280, height: 850 });
+  await verifyGameplayActions(page, { screenshot: `test-results/${outputName}-actions` });
+  await stage(1, fixture);
   await page.locator('#saveCircuitBtn').click();
   await waitCount(1);
   await page.waitForFunction(() => document.querySelector('.toast-container')?.textContent.includes(window.t('circuitSaved')));
@@ -116,8 +119,8 @@ try {
   await page.evaluate(async () => {
     const g = await import('./src/modules/grid.js');
     g.getPlayController().restoreCircuit({ rows: 6, cols: 6, blocks: {}, wires: {} });
-    (await import('./src/modules/circuitShare.js')).openSavedModal();
   });
+  await page.locator('#viewSavedBtn').click();
   await page.locator('.saved-load').first().click();
   assert.deepEqual(await readCircuit(), snapshotCircuit(fixture));
   report.checks.push('A new Electron process lists and loads files from the previous process');

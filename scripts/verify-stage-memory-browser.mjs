@@ -36,7 +36,7 @@ try {
   await clickBlock('DATA');await clickBlock('LOAD');await step();
   await clickBlock('DATA');await step();assert.equal((await read()).memory[memoryId],true);
   await page.screenshot({path:'test-results/memory-stage-tutorial.png'});
-  await page.locator('#systemMenuBtn').click();await page.locator('#hintBtn').click();await page.locator('#hintButtons button').first().click();
+  await page.locator('#hintBtn').click();await page.locator('#hintButtons button').first().click();
   assert.match(await page.locator('#hintMessage').innerText(),/LOAD to EN/);assert.doesNotMatch(await page.locator('#hintMessage').innerText(),/undefined/);
   await page.locator('#closeHintMessageBtn').click();await page.locator('#closeHintBtn').click();
   await clickBlock(memoryId);await page.waitForTimeout(600);
