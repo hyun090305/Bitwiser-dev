@@ -271,7 +271,7 @@ async function boot() {
   document.addEventListener('keydown', event => {
     if (window.isGradingResultOpen) return;
     if (dialog.open) { if (!['Escape', 'Tab'].includes(event.key)) event.stopImmediatePropagation(); return; }
-    if (document.body.classList.contains('system-menu-open') || $('settingsModal').style.display === 'flex') {
+    if (document.body.classList.contains('system-menu-open') || $('settingsModal').style.display === 'flex' || $('controlsDialog').open) {
       if (!['Escape', 'Tab'].includes(event.key)) event.stopImmediatePropagation();
       return;
     }

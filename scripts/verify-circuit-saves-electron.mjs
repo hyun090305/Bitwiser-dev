@@ -29,6 +29,7 @@ async function launch() {
   assert.equal(await app.evaluate(({ app }) => app.getPath('userData')), profile);
   report.processes.push(app.process().pid);
   page = await app.firstWindow();
+  page.setDefaultTimeout(20000);
   page.on('pageerror', error => errors.push(error.message));
   await page.addInitScript(() => {
     window.saveAlerts = [];

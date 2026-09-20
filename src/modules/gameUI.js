@@ -66,7 +66,34 @@ const platformSource =
     : '';
 const isApplePlatform = APPLE_PLATFORM_REGEX.test(platformSource);
 
+function setupPanelTooltips() {
+  const panel = document.getElementById('rightPanel');
+  if (!panel) return;
+  const buttons = [...panel.querySelectorAll('.has-tooltip')];
+  const positionTooltip = button => {
+    const bounds = panel.getBoundingClientRect();
+    const icon = button.getBoundingClientRect();
+    const left = bounds.left + panel.clientLeft + 8;
+    const right = bounds.left + panel.clientLeft + panel.clientWidth - 8;
+    button.style.setProperty('--tooltip-max-width', `${right - left}px`);
+    const width = parseFloat(getComputedStyle(button, '::after').width);
+    if (!Number.isFinite(width)) return;
+    const centered = icon.left + icon.width / 2 - width / 2;
+    const clamped = Math.max(left, Math.min(centered, right - width));
+    // Keep the caret on its icon; shift only a bubble that would be clipped.
+    button.style.setProperty('--tooltip-shift', `${clamped - centered}px`);
+  };
+  for (const button of buttons) {
+    button.addEventListener('pointerenter', () => positionTooltip(button));
+    button.addEventListener('focus', () => positionTooltip(button));
+  }
+  window.addEventListener('resize', () => {
+    buttons.filter(button => button.matches(':hover, :focus-visible')).forEach(positionTooltip);
+  });
+}
+
 export function setupKeyToggles() {
+  setupPanelTooltips();
   const bindings = [
     [statusToggle, 'Control'],
     [deleteToggle, 'Shift'],

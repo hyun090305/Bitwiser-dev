@@ -1,4 +1,51 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+
+const movableCircuit = JSON.parse(await fs.readFile(new URL('../tests/fixtures/demo/1-3.json', import.meta.url), 'utf8')).circuit;
+const circuitSnapshot = page => page.evaluate(async () => {
+  const { snapshotCircuit } = await import('./src/canvas/circuitData.js');
+  return snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit());
+});
+const restoreCircuit = (page, circuit) => page.evaluate(async circuit => {
+  (await import('./src/modules/grid.js')).getPlayController().restoreCircuit(circuit);
+}, circuit);
+
+async function verifyPanelTooltips(page) {
+  const originalSize = await page.evaluate(() => ({ width: innerWidth, height: innerHeight }));
+  for (const size of [originalSize, { width: 1100, height: 720 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(size);
+    const icons = page.locator('#rightPanel .has-tooltip:visible');
+    for (const icon of await icons.all()) {
+      await icon.hover({ timeout: 5000 });
+      await page.waitForFunction(id => getComputedStyle(document.getElementById(id), '::after').opacity === '1', await icon.getAttribute('id'), { timeout: 5000 });
+      const geometry = await icon.evaluate(button => {
+        const panel = document.getElementById('rightPanel');
+        const bounds = panel.getBoundingClientRect(), rect = button.getBoundingClientRect();
+        const style = getComputedStyle(button), bubble = getComputedStyle(button, '::after'), caret = getComputedStyle(button, '::before');
+        const width = parseFloat(bubble.width), center = rect.left + rect.width / 2;
+        const left = bounds.left + panel.clientLeft + 8, right = bounds.left + panel.clientLeft + panel.clientWidth - 8;
+        const origin = rect.left + parseFloat(style.borderLeftWidth);
+        return { id: button.id, position: style.position, width, center, left, right,
+          bubbleLeft: origin + parseFloat(bubble.left) + new DOMMatrix(bubble.transform).m41,
+          caretCenter: origin + parseFloat(caret.left),
+          expectedLeft: Math.max(left, Math.min(center - width / 2, right - width)),
+          panelFits: panel.scrollWidth <= panel.clientWidth };
+      });
+      assert.equal(geometry.position, 'relative', geometry.id);
+      assert.ok(geometry.width > 0 && geometry.bubbleLeft >= geometry.left - 1 && geometry.bubbleLeft + geometry.width <= geometry.right + 1, JSON.stringify(geometry));
+      assert.ok(Math.abs(geometry.bubbleLeft - geometry.expectedLeft) < 1, JSON.stringify(geometry));
+      assert.ok(Math.abs(geometry.caretCenter - geometry.center) < 1, JSON.stringify(geometry));
+      assert.ok(geometry.panelFits, JSON.stringify(geometry));
+    }
+    await page.mouse.move(0, 0);
+    await page.keyboard.press('Tab');
+    await page.locator('#wireStatusInfo').focus();
+    await page.waitForFunction(() => getComputedStyle(document.getElementById('wireStatusInfo'), '::after').opacity === '1', null, { timeout: 5000 });
+    assert.equal(await page.locator('#wireStatusInfo').evaluate(el => el.matches(':focus-visible')), true);
+    await page.locator('#gradeButton').focus();
+  }
+  await page.setViewportSize(originalSize);
+}
 
 // Runs against the actual shared UI in full web, demo, and Electron sessions.
 export async function verifyGameplayActions(page, { demo = false, screenshot } = {}) {
@@ -62,7 +109,14 @@ export async function verifyGameplayActions(page, { demo = false, screenshot } =
   await page.locator('#sfxCheckbox').setChecked(originalSfx);
   await page.locator('#settingsCloseBtn').click(); await assertClosed();
 
-  const before = await page.evaluate(async () => JSON.stringify((await import('./src/modules/grid.js')).getPlayCircuit()));
+  const originalCircuit = await circuitSnapshot(page);
+  await restoreCircuit(page, movableCircuit);
+  const before = await circuitSnapshot(page);
+  // A populated, movable fixture proves the shortcut would change the design
+  // without a modal; an empty circuit cannot detect leaked arrow-key events.
+  await page.keyboard.press('ArrowRight');
+  assert.notDeepEqual(await circuitSnapshot(page), before);
+  await restoreCircuit(page, movableCircuit);
   await menu.click(); await page.locator('#controlsBtn').click();
   await page.locator('#controlsDialog').waitFor({ state: 'visible' });
   const reference = await page.locator('#controlsList li').allTextContents();
@@ -71,12 +125,15 @@ export async function verifyGameplayActions(page, { demo = false, screenshot } =
   assert.match(reference.join('\n'), ko ? /마우스 오른쪽/ : /Right click/);
   assert.match(reference.join('\n'), ko ? /Ctrl \/ Cmd/ : /Ctrl or Cmd/);
   for (const key of ['R', 'Z', 'Y', 'C', 'V']) assert.ok(reference.some(label => label.includes(key)));
-  for (const key of ['r', 'z', 'y', 'ArrowRight']) await page.keyboard.press(key);
-  assert.equal(await page.evaluate(async () => JSON.stringify((await import('./src/modules/grid.js')).getPlayCircuit())), before);
+  for (const key of ['ArrowRight', 'ArrowLeft', 'ArrowUp', 'ArrowDown', 'r', 'z', 'y']) {
+    await page.keyboard.press(key);
+    assert.deepEqual(await circuitSnapshot(page), before, `Controls dialog leaked ${key}`);
+  }
   if (screenshot) await page.screenshot({ path: `${screenshot}-controls.png` });
   await page.keyboard.press('Escape'); await assertClosed();
   await menu.click(); await page.locator('#controlsBtn').click();
   await page.locator('#controlsCloseBtn').click(); await assertClosed();
+  await restoreCircuit(page, originalCircuit);
 
   const tooltips = await page.locator('#rightPanel .has-tooltip').evaluateAll(nodes => nodes.map(n => ({
     id: n.id, label: n.getAttribute('aria-label'), tooltip: n.dataset.tooltip, icon: !!n.querySelector('img, span[aria-hidden=true]')
@@ -87,9 +144,7 @@ export async function verifyGameplayActions(page, { demo = false, screenshot } =
     const normalize = text => text.replace(/\bor\b/g, '/').replace(/\s/g, '');
     assert.equal(normalize(item.tooltip), normalize(item.label), item.id);
   }
-  await page.locator('#wireStatusInfo').hover();
-  await page.waitForFunction(() => getComputedStyle(document.getElementById('wireStatusInfo'), '::after').opacity === '1');
-  await page.mouse.move(0, 0);
+  await verifyPanelTooltips(page);
   await page.locator('#rightPanel').evaluate(el => { el.scrollTop = 0; });
   const layout = await page.evaluate(() => {
     const panel = document.getElementById('rightPanel'), frame = document.getElementById('consoleFrame');

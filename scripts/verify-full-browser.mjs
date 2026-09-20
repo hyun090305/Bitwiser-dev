@@ -16,8 +16,14 @@ const server=createServer(async(req,res)=>{
 });
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});
-const page=await browser.newPage({locale:'en-US'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
+const page=await browser.newPage({locale:'en-US',serviceWorkers:'block'});const errors=[];page.on('pageerror',e=>errors.push(e.message));
 await page.route('**/*', route => route.request().url().startsWith(`http://127.0.0.1:${server.address().port}`) ? route.continue() : route.abort());
+// Expose the real custom-problem callback only in this disconnected test page.
+// This exercises the production entry path without a Firebase write or test API.
+await page.route('**/src/main.js*', async route => {
+  const response = await route.fetch();
+  await route.fulfill({ response, body: `${await response.text()}\nwindow.testStartCustomProblem = startCustomProblem;\n` });
+});
 try{
   await page.goto(`http://127.0.0.1:${server.address().port}`);
   await page.waitForFunction(()=>document.getElementById('loadingStartBtn')?.disabled===false,{},{timeout:25000});
@@ -50,6 +56,16 @@ try{
     await page.reload();
     await page.setViewportSize({ width: 1280, height: 850 });
     await page.locator('#loadingStartBtn').click();
+    await page.evaluate(() => window.testStartCustomProblem('review-layout', {
+      title: 'Review custom problem', gridRows: 6, gridCols: 6, inputCount: 1, outputCount: 1,
+      table: [{ IN1: 0, OUT1: 1 }, { IN1: 1, OUT1: 0 }]
+    }));
+    await page.locator('#startLevelBtn').click();
+    assert.equal(await page.locator('#gameTitle').innerText(), 'Review custom problem');
+    assert.equal(await page.locator('#rightPanel').evaluate(el => getComputedStyle(el).display), 'flex');
+    await page.locator('#systemMenuBtn').click();
+    await page.locator('#backToLevelsBtn').click();
+    await page.locator('#stageMapCanvas').waitFor({ state: 'visible' });
     await page.evaluate(async () => {
       const levels = await import('./src/modules/levels.js');
       levels.configureLevelModule({ progressProvider: () => [0] });
