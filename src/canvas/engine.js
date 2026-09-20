@@ -1,6 +1,7 @@
 import { previewCircuit } from './evaluation.js';
 export * from './evaluation.js';
 const dirtyCircuits = new WeakSet();
+export const WIRE_FLOW_SPEED = 60; // dash units per second
 
 export function markCircuitDirty(circuit) {
   if (circuit && typeof circuit === 'object') {
@@ -48,7 +49,6 @@ export function startEngine(ctx, circuit, renderer) {
   let lastTime = null;
   let rafId = null;
   let running = true;
-  const FLOW_SPEED = 60; // dash units per second (roughly 60fps equivalent)
 
   function scheduleNext() {
     if (!running) return;
@@ -70,7 +70,7 @@ export function startEngine(ctx, circuit, renderer) {
     const delta = time - lastTime;
     lastTime = time;
     // Advance the animation at a constant rate regardless of display refresh.
-    phase += (delta / 1000) * FLOW_SPEED;
+    phase += (delta / 1000) * WIRE_FLOW_SPEED;
     if (phase > 1e6) {
       phase -= 1e6;
     }

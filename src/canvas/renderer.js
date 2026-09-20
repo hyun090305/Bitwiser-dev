@@ -236,6 +236,13 @@ function resolveWireStyle(options = {}) {
   return style;
 }
 
+export function getWireFlowPeriod(options = {}) {
+  const { dashPattern } = resolveWireStyle(options);
+  if (!Array.isArray(dashPattern)) return 0;
+  // Canvas repeats odd-length dash arrays twice to complete the pattern.
+  return dashPattern.reduce((sum, value) => sum + value, 0) * (dashPattern.length % 2 ? 2 : 1);
+}
+
 export function roundRect(ctx, x, y, w, h, r = CELL_CORNER_RADIUS) {
   ctx.beginPath();
   ctx.moveTo(x + r, y);
@@ -871,7 +878,7 @@ export function drawWire(
     : [];
   if (pattern.length > 0) {
     ctx.setLineDash(pattern);
-    const patternLength = pattern.reduce((sum, value) => sum + value, 0) || 1;
+    const patternLength = getWireFlowPeriod(options) * scale || 1;
     const offsetUnits = ((phase * scale) % patternLength + patternLength) % patternLength;
     ctx.lineDashOffset = -offsetUnits;
   } else {
