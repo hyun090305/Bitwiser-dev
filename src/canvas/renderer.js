@@ -811,18 +811,19 @@ export function drawBlock(
 
   if (isButton) {
     // Equal insets keep the momentary input's press surface square.
-    const plateInset = 7 * scale;
+    const plateInset = 5 * scale;
     const plateX = x + plateInset;
     const plateY = y + plateInset;
     const plateSize = size - 2 * plateInset;
+    const plateRadius = Math.max(1.5 * scale, blockRadius - scale);
     ctx.save();
     applyShadow(ctx, null);
-    roundRect(ctx, plateX, plateY, plateSize, plateSize, blockRadius);
+    roundRect(ctx, plateX, plateY, plateSize, plateSize, plateRadius);
     ctx.fillStyle = isActive ? SIGNAL_ACTIVE_FILL
       : createFillStyle(ctx, style.fill, plateX, plateY, plateSize, plateSize);
     ctx.fill();
     if (!isActive) {
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.10)';
       ctx.fill();
     }
     ctx.strokeStyle = typeBorder;
@@ -873,7 +874,7 @@ export function drawBlock(
   ctx.textBaseline = 'middle';
   const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
   if (block.type === 'INPUT' || block.type === 'OUTPUT') {
-    const availableWidth = size - (isButton ? 20 : 12) * scale;
+    const availableWidth = size - (isButton ? 16 : 12) * scale;
     const labelWidth = ctx.measureText(label).width;
     if (labelWidth > availableWidth) {
       // Shrink both dimensions equally; fillText's maxWidth can squash glyphs.
