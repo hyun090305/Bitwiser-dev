@@ -810,16 +810,16 @@ export function drawBlock(
   }
 
   if (isButton) {
-    // A momentary input changes only its centered press surface.
-    const plateX = x + 6 * scale;
-    const plateY = y + 10 * scale;
-    const plateWidth = size - 12 * scale;
-    const plateHeight = size - 20 * scale;
+    // Equal insets keep the momentary input's press surface square.
+    const plateInset = 7 * scale;
+    const plateX = x + plateInset;
+    const plateY = y + plateInset;
+    const plateSize = size - 2 * plateInset;
     ctx.save();
     applyShadow(ctx, null);
-    roundRect(ctx, plateX, plateY, plateWidth, plateHeight, blockRadius);
+    roundRect(ctx, plateX, plateY, plateSize, plateSize, blockRadius);
     ctx.fillStyle = isActive ? SIGNAL_ACTIVE_FILL
-      : createFillStyle(ctx, style.fill, plateX, plateY, plateWidth, plateHeight);
+      : createFillStyle(ctx, style.fill, plateX, plateY, plateSize, plateSize);
     ctx.fill();
     if (!isActive) {
       ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
@@ -873,7 +873,7 @@ export function drawBlock(
   ctx.textBaseline = 'middle';
   const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
   if (block.type === 'INPUT' || block.type === 'OUTPUT') {
-    const availableWidth = size - (isButton ? 18 : 12) * scale;
+    const availableWidth = size - (isButton ? 20 : 12) * scale;
     const labelWidth = ctx.measureText(label).width;
     if (labelWidth > availableWidth) {
       // Shrink both dimensions equally; fillText's maxWidth can squash glyphs.
