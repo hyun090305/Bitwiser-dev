@@ -57,7 +57,8 @@ try {
   });
   await page.locator('#startLevelBtn').click();await restore(1,2);
   const initial=await page.locator('.cost-total').innerText();
-  assert.ok(Number(initial)>10);assert.match(await page.locator('#circuitCostBoard').innerText(),/기준 준비 중/);
+  assert.equal(Number(initial),14);
+  assert.deepEqual(await page.locator('#circuitCostBoard .cost-target').allTextContents(),['≤ 14','≤ 12']);
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.deepEqual(await page.evaluate(()=>window.paletteCostLabels),[]);
   await page.screenshot({path:'test-results/cost/full-editor.png'});
@@ -71,7 +72,8 @@ try {
   assert.equal(await page.locator('.palette-cost-tooltip:visible').count(),0);
   await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
   assert.equal(await page.locator('#clearedModal .cost-result-total').innerText(),initial);
-  assert.equal(await page.locator('#clearedModal .earned').count(),1);
+  assert.equal(await page.locator('#clearedModal .cost-stars .earned').count(),2);
+  assert.match(await page.locator('#clearedModal .cost-goal').innerText(),/비용 2 감소/);
   assert.equal(await page.locator('#clearedModal .cost-stars svg').count(),3);
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.doesNotMatch(await page.locator('#clearedModal .cost-stars').innerText(),/[★☆]/);
@@ -84,6 +86,7 @@ try {
   await page.locator('#clearedModal .cost-ranking-toggle').click();assert.equal(await page.locator('#clearedModal .cost-ranking').isVisible(),false);
   await page.getByRole('button',{name:'다시 설계하기',exact:true}).click();await restore(1);
   await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
+  assert.equal(await page.locator('#clearedModal .cost-stars .earned').count(),3);
   assert.match(await page.locator('#clearedModal').innerText(),/개인 최고 갱신/);
   await page.getByRole('button',{name:'다시 설계하기',exact:true}).click();await restore(1,2);
   await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
@@ -174,10 +177,10 @@ try {
   assert.equal(await page.locator('#demoDialog .cost-result-total').innerText(),amount);
   assert.match(await page.locator('#demoDialog').innerText(),/정식판에서/);
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('bitwiser:web-demo:v1')));
-  assert.equal(saved.stages[1].best.totalCost,Number(amount));assert.equal(saved.stages[1].best.stars,1);
+  assert.equal(saved.stages[1].best.totalCost,Number(amount));assert.equal(saved.stages[1].best.stars,3);
   await page.screenshot({path:'test-results/cost/demo-result.png'});
-  // Test-only targets: direct three-star award, retained history after returning
-  // to the shipped null configuration, and no fabricated next-cost message.
+  // Test-only target changes preserve historical stars, including when targets
+  // become pending again, without fabricating a next-cost message.
   await page.getByRole('button',{name:'계속 최적화하기',exact:true}).click();
   await page.evaluate(async amount=>{
     (await import('./src/modules/levels.js')).getLoadedStageData().levelStarThresholds[1]={twoStarMaxCost:amount+2,threeStarMaxCost:amount};
