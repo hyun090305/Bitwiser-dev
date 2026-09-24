@@ -2,13 +2,23 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { calculateCircuitCost, COST_RULES, evaluateCostStars, validateStarThresholds } from '../src/modules/circuitCost.js';
-import { makeCostRecord, createCostStore, highestStars, isCurrentCostRecord } from '../src/modules/costRecords.js';
+import { makeCostRecord, createCostStore, highestStars, isCurrentCostRecord, stageRules } from '../src/modules/costRecords.js';
+import { GRADING_VERSION, gradeCircuitSync, gradeCircuit } from '../src/modules/circuitGrading.js';
+import { snapshotCircuit, getCircuitStats } from '../src/canvas/circuitData.js';
 import { rankCostEntries, createCostLeaderboard } from '../src/modules/costLeaderboard.js';
 import { createDemoStore, SAVE_KEY } from '../src/demo/store.js';
 import { createGradingController } from '../src/modules/grading.js';
 const levels = JSON.parse(fs.readFileSync('levels.json', 'utf8'));
 const fixture = (id, tier=3) => JSON.parse(fs.readFileSync(`tests/fixtures/demo/${id}-${id===0?'tutorial':tier}.json`, 'utf8')).circuit;
 const memory = () => { const map = new Map(); return { getItem: k => map.get(k) ?? null, setItem: (k,v) => map.set(k,v) }; };
+const memoryFixture = id => JSON.parse(fs.readFileSync(`tests/fixtures/memory20/${id}.json`, 'utf8')).circuit;
+const doorShortcut = () => JSON.parse(fs.readFileSync('tests/fixtures/observations/30-shortcut.json', 'utf8')).circuit;
+const oldRecord = (circuit, id) => {
+  const rules = JSON.parse(stageRules(levels, id)); rules[0] = 3;
+  const snapshot = snapshotCircuit(circuit);
+  return { stageId:id, gradingVersion:3, stageRules:JSON.stringify(rules), circuitVersion:3,
+    circuit:snapshot, ...getCircuitStats(snapshot), ...calculateCircuitCost(snapshot), stars:3 };
+};
 
 test('prices count committed occupancy including unused/fixed logic, never IO or duplicate junction cells', () => {
   const blocks = {};
@@ -118,4 +128,64 @@ test('online personal progress only restores matching verified stages and never 
   const data={1:{rules:{me:valid,other:{...valid,nickname:'other'},old:{...valid,pricingVersion:'old'}}},0:{rules:{me:{...valid,stageId:0}}}};
   const board=createCostLeaderboard({db:{ref:()=>({once:async()=>snap(data)})},levels,getNickname:()=> 'me'});
   const records=await board.loadPersonal();assert.equal(records.length,1);assert.equal(records[0].totalCost,valid.totalCost);
+});
+
+test('AC-6: previous grading records retain designs, stars and clears without becoming current costs', () => {
+  assert.equal(GRADING_VERSION, 4);
+  const stale = oldRecord(doorShortcut(), 30), passingOld = oldRecord(memoryFixture(29), 29);
+  const unrelated = makeCostRecord(fixture(1), 1, levels), storage = memory();
+  const key = 'bitwiser:cost-progress:v1:history';
+  storage.setItem(key, JSON.stringify({ stages: { 30:{best:stale,bestStars:stale}, 29:{best:passingOld,bestStars:passingOld}, 1:{best:unrelated} } }));
+  const open = () => createCostStore({ storage, levels, owner:'history', onFailure:error=>{throw error;} });
+  let store = open();
+  assert.equal(store.best(30), null); assert.equal(store.best(29), null);
+  assert.deepEqual(store.state.stages[30].best, stale);
+  assert.equal(store.stars(30), 3); assert.ok(store.cleared().includes(30));
+  assert.deepEqual(store.best(1), unrelated);
+  const before = JSON.stringify(store.state);
+  assert.throws(() => store.recordClear(30, doorShortcut()), /does not pass/);
+  assert.equal(JSON.stringify(store.state), before);
+  store.persist(); store = open();
+  assert.equal(JSON.stringify(store.state), before);
+  store.recordClear(30, memoryFixture(30)); store = open();
+  assert.ok(isCurrentCostRecord(store.best(30), levels, 30));
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [stale]);
+  assert.equal(store.stars(30), 3);
+  assert.deepEqual(store.state.stages[29].best, passingOld);
+  assert.deepEqual(store.best(1), unrelated);
+});
+
+test('AC-6: one failed current revalidation is quarantined without resetting other progress or earned stars', () => {
+  const rejected = { ...oldRecord(doorShortcut(), 30), gradingVersion:GRADING_VERSION, stageRules:stageRules(levels, 30) };
+  const good = { ...makeCostRecord(fixture(1), 1, levels), stars:3 }, storage = memory(), errors = [];
+  storage.setItem('bitwiser:cost-progress:v1:local', JSON.stringify({ stages:{30:{best:rejected},1:{best:good}} }));
+  const open = () => createCostStore({ storage, levels, onFailure:error=>errors.push(error) });
+  const store = open();
+  assert.equal(errors.length, 1); assert.equal(store.best(30), null);
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [rejected]);
+  assert.ok(store.cleared().includes(30)); assert.equal(store.stars(30), 3);
+  assert.ok(store.best(1)); assert.equal(store.stars(1), 3);
+  store.persist(); assert.deepEqual(open().state, store.state);
+  assert.equal(errors.length, 1, 'a quarantined record is not reintroduced as a current best on reload');
+});
+
+test('AC-6/7: sync, async, cost submission and ranking reads reject release failures and old-version promotion', async () => {
+  const bad = doorShortcut();
+  assert.equal(gradeCircuitSync(bad, levels.levelAnswers[30]).status, 'fail');
+  assert.equal((await gradeCircuit(bad, levels.levelAnswers[30])).status, 'fail');
+  assert.throws(() => makeCostRecord(bad, 30, levels), /does not pass/);
+  const stale = { ...oldRecord(bad, 30), nickname:'me' };
+  const forged = { ...stale, gradingVersion:GRADING_VERSION, stageRules:stageRules(levels, 30) };
+  const good = { ...makeCostRecord(memoryFixture(30), 30, levels), nickname:'other' };
+  const snap = (value, key='') => ({key,val:()=>value,forEach:fn=>{for(const [k,v] of Object.entries(value)) fn(snap(v,k));}});
+  let transactions = 0;
+  const db = { ref:path=>({
+    once:async()=>snap(path.split('/').length === 2 ? {30:{current:{forged,good},old:{stale}}} : {stale,forged,good}),
+    transaction:async()=>{transactions++;}
+  }) };
+  const board = createCostLeaderboard({ db, levels, getNickname:()=> 'me', ensureNickname:async n=>n });
+  await assert.rejects(board.submit(30, bad), /does not pass/);
+  assert.equal(transactions, 0);
+  assert.deepEqual((await board.load(30)).entries.map(entry=>entry.nickname), ['other']);
+  assert.deepEqual(await board.loadPersonal(), []);
 });

@@ -6,6 +6,16 @@ const element = (tag, className, text) => {
   return el;
 };
 
+export function observationLabel(observation, language = globalThis.window?.currentLang || globalThis.document?.documentElement.lang) {
+  const labels = {
+    before_tick: ['tick 전', 'Before tick'],
+    after_tick: ['tick 직후', 'After tick'],
+    after_release: ['버튼 해제 후', 'After button release'],
+    address_read: ['주소 읽기 (tick 없음)', 'Address read (no tick)']
+  };
+  return labels[observation]?.[language === 'en' ? 1 : 0] || '';
+}
+
 export function createTraceEvent(event, index) {
   const node = element('li', `trace-event trace-event--${event.type}`);
   node.dataset.eventType = event.type;
@@ -31,6 +41,11 @@ export function createTraceEvent(event, index) {
     }
     if (!signals.length) data.append(element('span', 'trace-event__hint', '∅'));
     node.append(data);
+  }
+  const phase = observationLabel(event.observation);
+  if (phase) {
+    node.dataset.observation = event.observation;
+    node.append(element('span', 'trace-event__hint trace-event__observation', phase));
   }
   return node;
 }

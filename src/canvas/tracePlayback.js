@@ -33,8 +33,8 @@ export function applyTraceEvent(circuit, event) {
     previewCircuit(circuit);
   } else if (event.type === 'tick') {
     // Explicit sampled inputs retain button values until a SET says otherwise.
-    // FSM verification has no implicit button-release event. Snapshot/commit/
-    // settle are all performed by the existing engine, never by the UI.
+    // Release and address probes are explicit SET events, never extra ticks.
+    // Snapshot/commit/settle are performed by the existing engine, not the UI.
     const result = tickCircuit(circuit, getExecutionState(circuit), { inputs: inputSnapshot(circuit), display: true });
     if (!result.ok) throw new Error(result.diagnostics[0].message);
     blocks = Object.values(circuit.blocks).filter(b => b.type === 'D').map(b => ({ blockId: b.id }));
@@ -50,6 +50,7 @@ export function applyTraceEvent(circuit, event) {
   const evaluation = getEvaluationResult(circuit);
   if (evaluation?.ok === false) throw new Error(evaluation.diagnostics[0].message);
   const highlight = { type: event.type, blocks };
+  if (event.observation) highlight.observation = event.observation;
   highlights.set(circuit, highlight);
   return highlight;
 }

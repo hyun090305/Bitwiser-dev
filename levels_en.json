@@ -6744,7 +6744,7 @@
     },
     "25": {
       "title": "Storage Switch",
-      "desc": "Store DATA in VALUE when LOAD is on. Otherwise keep the saved value, even if DATA changes. VALUE starts at 0.",
+      "desc": "Store DATA in VALUE when LOAD is on. Otherwise keep the saved value, even if DATA changes. VALUE starts at 0. After each tick, LOAD automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The DATA switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -6868,7 +6868,7 @@
     },
     "28": {
       "title": "Fault Indicator",
-      "desc": "FAULT turns ALARM on and keeps it on. ACK clears it, but FAULT wins if both arrive together. With no request, hold the value. ALARM starts off.",
+      "desc": "FAULT turns ALARM on and keeps it on. ACK clears it, but FAULT wins if both arrive together. With no request, hold the value. ALARM starts off. After each tick, ACK automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The FAULT switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -6916,7 +6916,7 @@
     },
     "29": {
       "title": "Response Check",
-      "desc": "Check responses from both paths A and B. Remember the first response for as long as it takes the other to arrive. Set GO to 1 on the tick when both have arrived, then clear both records. Repeated responses from one path count only once. Simultaneous responses also count, and new responses can be received from the very next tick. If A and B arrive together every tick, GO stays 1 on those consecutive ticks. Otherwise, GO is 0 on ticks without a complete pair. Initially there are no records and GO is 0.",
+      "desc": "Check responses from both paths A and B. Remember the first response for as long as it takes the other to arrive. Set GO to 1 on the tick when both have arrived, then clear both records. Repeated responses from one path count only once. Simultaneous responses also count, and new responses can be received from the very next tick. If A and B arrive together every tick, GO stays 1 on those consecutive ticks. Otherwise, GO is 0 on ticks without a complete pair. Initially there are no records and GO is 0. After each tick, A·B automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick.",
       "table": [
         {
           "tick": 1,
@@ -6978,7 +6978,7 @@
     },
     "30": {
       "title": "Automatic Door",
-      "desc": "OPEN keeps DOOR on for three ticks, including the request tick. Another request restarts the timer. OPEN 1→0→0→0 should produce DOOR 1→1→1→0. The door starts closed.",
+      "desc": "OPEN keeps DOOR on for three ticks, including the request tick. Another request restarts the timer. OPEN 1→0→0→0 should produce DOOR 1→1→1→0. The door starts closed. After each tick, OPEN automatically turns off; keep that tick's outputs when the button is released. Release is not another tick.",
       "table": [
         {
           "tick": 1,
@@ -7098,7 +7098,7 @@
     },
     "32": {
       "title": "Up/Down Counter",
-      "desc": "Count from 0 to 3 using BIT1·BIT0. INC alone adds one; DEC alone subtracts one. Wrap between 3 and 0. Both on or both off leave the count unchanged. Start at 0; RESET overrides both requests and clears the count.",
+      "desc": "Count from 0 to 3 using BIT1·BIT0. INC alone adds one; DEC alone subtracts one. Wrap between 3 and 0. Both on or both off leave the count unchanged. Start at 0; RESET overrides both requests and clears the count. After each tick, INC·DEC·RESET automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick.",
       "table": [
         {
           "tick": 1,
@@ -7167,7 +7167,7 @@
     },
     "33": {
       "title": "Four Brightness Levels",
-      "desc": "Use DUTY1·DUTY0 to select brightness 0–3. A phase starts at 0 and advances through 1→2→3→0 each tick. Turn PWM on when the phase is below DUTY, giving 0%, 25%, 50% or 75% brightness. RESET returns the phase to 0; the same lighting rule still applies.",
+      "desc": "Use DUTY1·DUTY0 to select brightness 0–3. A phase starts at 0 and advances through 1→2→3→0 each tick. Turn PWM on when the phase is below DUTY, giving 0%, 25%, 50% or 75% brightness. RESET returns the phase to 0; the same lighting rule still applies. After each tick, RESET automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The DUTY1·DUTY0 switches keep their values.",
       "table": [
         {
           "tick": 1,
@@ -7229,7 +7229,7 @@
     },
     "34": {
       "title": "Watchdog",
-      "desc": "Turn TIMEOUT on after three consecutive ticks without KICK and keep it on. KICK immediately clears TIMEOUT and restarts the wait. TIMEOUT starts off.",
+      "desc": "Turn TIMEOUT on after three consecutive ticks without KICK and keep it on. KICK immediately clears TIMEOUT and restarts the wait. TIMEOUT starts off. After each tick, KICK automatically turns off; keep that tick's outputs when the button is released. Release is not another tick.",
       "table": [
         {
           "tick": 1,
@@ -7417,7 +7417,7 @@
     },
     "37": {
       "title": "ABBA Lock",
-      "desc": "SIGNAL means A when 1 and B when 0. Accept a letter only when SUBMIT is on. Turn UNLOCKED on when the latest four submitted letters are ABBA, including within AABBA. Waiting preserves the letters; once unlocked, stay unlocked. Start with no letters.",
+      "desc": "SIGNAL means A when 1 and B when 0. Accept a letter only when SUBMIT is on. Turn UNLOCKED on when the latest four submitted letters are ABBA, including within AABBA. Waiting preserves the letters; once unlocked, stay unlocked. Start with no letters. After each tick, SUBMIT automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The SIGNAL switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -7472,7 +7472,7 @@
     },
     "38": {
       "title": "Addressed Storage",
-      "desc": "Build two two-bit storage slots, both starting at 00. WRITE saves D1·D0 to the slot selected by ADDR. Q1·Q0 always reads the selected slot: changing ADDR changes the readout immediately, and a write tick shows the new value.",
+      "desc": "Build two two-bit storage slots, both starting at 00. WRITE saves D1·D0 to the slot selected by ADDR. Q1·Q0 always reads the selected slot: with WRITE off, changing ADDR to 0 or 1 changes the readout immediately without a tick, and a write tick shows the new value. After each tick, WRITE automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The D1·D0·ADDR switches keep their values.",
       "table": [
         {
           "tick": 1,
@@ -7528,7 +7528,7 @@
     },
     "39": {
       "title": "Undo Once",
-      "desc": "SAVE stores D1·D0 and keeps the previous value for one UNDO. Undoing clears UNDO_AVAILABLE until the next SAVE. Even saving the same value enables undo. SAVE wins when both are requested. Current and previous values start at 00, with undo unavailable.",
+      "desc": "SAVE stores D1·D0 and keeps the previous value for one UNDO. Undoing clears UNDO_AVAILABLE until the next SAVE. Even saving the same value enables undo. SAVE wins when both are requested. Current and previous values start at 00, with undo unavailable. After each tick, SAVE·UNDO automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick. The D1·D0 switches keep their values.",
       "table": [
         {
           "tick": 1,
@@ -7600,7 +7600,7 @@
     },
     "40": {
       "title": "Mailbox",
-      "desc": "SEND puts DATA into a one-bit mailbox; TAKE retrieves it into DATA_OUT. Pulse ACCEPTED for a successful send and VALID for a successful take.\nTogether, take first, then send. If empty, only send; if full without a take, reject the send. Hold DATA_OUT unless a take succeeds. FULL shows the resulting state. Start empty with all outputs at 0.",
+      "desc": "SEND puts DATA into a one-bit mailbox; TAKE retrieves it into DATA_OUT. Pulse ACCEPTED for a successful send and VALID for a successful take.\nTogether, take first, then send. If empty, only send; if full without a take, reject the send. Hold DATA_OUT unless a take succeeds. FULL shows the resulting state. Start empty with all outputs at 0. After each tick, SEND·TAKE automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick. The DATA switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -7672,7 +7672,7 @@
     },
     "41": {
       "title": "Last In, First Out",
-      "desc": "PUSH stores DATA in a stack of up to two bits. POP retrieves the newest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0.",
+      "desc": "PUSH stores DATA in a stack of up to two bits. POP retrieves the newest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0. After each tick, PUSH·POP automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick. The DATA switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -7766,7 +7766,7 @@
     },
     "42": {
       "title": "First In, First Out",
-      "desc": "PUSH stores DATA in a queue of up to two bits. POP retrieves the oldest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0.",
+      "desc": "PUSH stores DATA in a queue of up to two bits. POP retrieves the oldest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0. After each tick, PUSH·POP automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick. The DATA switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -7860,7 +7860,7 @@
     },
     "43": {
       "title": "Serial Receiver",
-      "desc": "Accept one DATA bit whenever RECEIVE is on, highest bit first. On the fourth bit, update Q3·Q2·Q1·Q0 together and pulse DONE for that tick. Otherwise hold Q and clear DONE. Waiting preserves progress; each four bits forms a new word. Q starts at 0000.",
+      "desc": "Accept one DATA bit whenever RECEIVE is on, highest bit first. On the fourth bit, update Q3·Q2·Q1·Q0 together and pulse DONE for that tick. Otherwise hold Q and clear DONE. Waiting preserves progress; each four bits forms a new word. Q starts at 0000. After each tick, RECEIVE automatically turns off; keep that tick's outputs when the button is released. Release is not another tick. The DATA switch keeps its value.",
       "table": [
         {
           "tick": 1,
@@ -8040,7 +8040,7 @@
     },
     "45": {
       "title": "Accumulator",
-      "desc": "When ADD is on, add D1·D0 to Q1·Q0. Wrap the two-bit sum after 3. Otherwise hold the sum. Start at 0; RESET overrides ADD and clears the sum.",
+      "desc": "When ADD is on, add D1·D0 to Q1·Q0. Wrap the two-bit sum after 3. Otherwise hold the sum. Start at 0; RESET overrides ADD and clears the sum. After each tick, ADD·RESET automatically turn off; keep that tick's outputs when the buttons are released. Release is not another tick. The D1·D0 switches keep their values.",
       "table": [
         {
           "tick": 1,

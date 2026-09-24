@@ -9,6 +9,14 @@ export const MEMORY20_IDS = Object.freeze({
 // Keep published reference IDs stable when a slot is replaced.
 export const memory20ReferenceId = slot => `memory20:${slot === 'C5-04' ? 'response-check' : slot}`;
 const b = (n, i) => (n >>> i) & 1;
+// Trusted puzzle policy: submitted INPUT modes cannot disable these checks.
+const releaseButtons = {
+  'C4-01':['LOAD'], 'C4-03':['ACK'], 'response-check':['A','B'],
+  'C4-05':['OPEN'], 'C4-06':['INC','DEC','RESET'], 'C4-07':['RESET'],
+  'C4-09':['SUBMIT'], 'C4-10':['KICK'], 'C5-01':['ADD','RESET'],
+  'C5-02':['WRITE'], 'C5-03':['SAVE','UNDO'], 'C5-05':['RECEIVE'],
+  'C5-07':['PUSH','POP'], 'C5-08':['PUSH','POP'], 'C5-09':['SEND','TAKE']
+};
 // Each definition: input names, output names, initial state, transition.
 // The build selects only demo definitions using these per-stage markers.
 const specs = {
@@ -78,6 +86,10 @@ export function getMemory20Reference(slot) {
     }
   }
   const ref=Object.freeze({inputs:Object.freeze(inputs),outputs:Object.freeze(outputs),initialState:0,stateCount:states.length,
-    observeAt:'after_tick',evaluate:(state,input)=>table[state][input]});
+    observeAt:'after_tick',evaluate:(state,input)=>table[state][input],
+    ...(releaseButtons[slot] ? {releaseButtons:Object.freeze(releaseButtons[slot])} : {}),
+    // Read the stored words directly. Calling step here would invent a tick.
+    ...(slot==='C5-02' ? {readProbe:Object.freeze({vary:Object.freeze(['ADDR']),fixed:Object.freeze({WRITE:0}),
+      observe:(state,input)=>states[state][b(input,inputs.indexOf('ADDR'))]})} : {})});
   cache.set(slot,ref);return ref;
 }

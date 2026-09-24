@@ -1,5 +1,5 @@
 import { chapterForStage } from './stageCatalog.js';
-import { createCounterexampleTrace } from './counterexampleTrace.js';
+import { createCounterexampleTrace, observationLabel } from './counterexampleTrace.js';
 import { createTracePlayback } from '../canvas/tracePlayback.js';
 
 const el = (tag, className, text) => {
@@ -73,6 +73,8 @@ export function createGradingResultView({ getCircuit, getTraceView, onEdit, onCl
         : tr('채점 결과: 잘못된 연결', 'Result: invalid circuit');
       const header = createResultHeader({ stage, title });
       header.querySelector('h2').id = 'gradingResultTitle'; panel.append(header);
+      const failedObservation = !result.ok && observationLabel(result.observation);
+      if (failedObservation) panel.append(el('p', 'grading-result-message grading-result-observation', `${tr('실패 시점', 'Mismatch observed')}: ${failedObservation}`));
       let traceView = null;
       if (result.trace?.length) {
         const section = el('section', 'grading-result-trace');
@@ -111,7 +113,8 @@ export function createGradingResultView({ getCircuit, getTraceView, onEdit, onCl
                 return;
               }
               traceView.setActive(step.index);
-              live.textContent = `${step.index + 1} / ${result.trace.length} · ${step.event.type.toUpperCase()}`;
+              const phase = observationLabel(step.event.observation);
+              live.textContent = `${step.index + 1} / ${result.trace.length} · ${step.event.type.toUpperCase()}${phase ? ` · ${phase}` : ''}`;
               cameraView?.focus(step.highlight.blocks.map(b => b.blockId), panel.getBoundingClientRect().top);
               timer = setTimeout(advance, 650);
             } catch (error) {

@@ -5,6 +5,8 @@ import { gradeCircuitSync } from '../src/modules/circuitGrading.js';
 import { makeCircuit, newBlock, newWire } from '../src/canvas/model.js';
 import { getExecutionState, previewCircuit, tickCircuit } from '../src/canvas/evaluation.js';
 import { applyTraceEvent, createTracePlayback, getTraceHighlight } from '../src/canvas/tracePlayback.js';
+import { observationLabel } from '../src/modules/counterexampleTrace.js';
+import { automaticDoorShortcut, responseCheckShortcut, registeredAddressMemory } from './helpers/sequential-observation-circuits.mjs';
 
 function register() {
   const c = makeCircuit();
@@ -92,4 +94,136 @@ test('truth-table trace has no invented tick or memory initialization', () => {
 test('existing FSMs retain before-tick grading semantics', () => {
   assert.deepEqual(gradeCircuitSync(register(), zero()), gradeCircuitSync(register(), zero('before_tick')));
   assert.equal(gradeCircuitSync(register(), zero('guess')).diagnostics[0].code, 'INVALID_OBSERVATION');
+});
+
+test('release and repeated address reads replay explicit inputs without changing memory or tick history', () => {
+  const c = JSON.parse(fs.readFileSync(new URL('./fixtures/memory20/38.json', import.meta.url))).circuit;
+  const inputs = Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'INPUT').map(b => [b.name, b]));
+  const outputs = Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'OUTPUT').map(b => [b.name, b]));
+  const set = values => ({ type: 'set', inputs: Object.entries(values).map(([signal, value]) => ({ signal, value, blockId: inputs[signal].id })) });
+  const expect = (observation, q) => ({ type: 'expect', observation, outputs: ['Q0', 'Q1'].map((signal, i) => ({
+    signal, blockId: outputs[signal].id, actual: (q >> i) & 1, expected: (q >> i) & 1, passed: true
+  })) });
+  const trace = [{ type: 'init', memory: [] }];
+  // Initial reads, writes to both addresses, and bidirectional repeated reads.
+  for (const ADDR of [0, 1]) trace.push(set({ WRITE: 0, ADDR, D0: 1, D1: 1 }), expect('address_read', 0));
+  for (const [ADDR, D0, D1] of [[0, 1, 0], [1, 0, 1]]) {
+    const value = D0 | (D1 << 1);
+    trace.push(set({ WRITE: 1, ADDR, D0, D1 }), { type: 'tick' }, expect('after_tick', value),
+      set({ WRITE: 0, ADDR, D0, D1 }), expect('after_release', value));
+  }
+  for (const ADDR of [0, 1, 0, 0, 1, 1]) trace.push(set({ WRITE: 0, ADDR, D0: 0, D1: 1 }), expect('address_read', ADDR ? 2 : 1));
+
+  for (const input of Object.values(inputs)) input.value = true;
+  tickCircuit(c);
+  const savedState = structuredClone(getExecutionState(c)), savedCircuit = structuredClone(c);
+  const playback = createTracePlayback(c, trace);
+  // Cancel at every boundary, including after the last observation, then restart.
+  for (let stop = 1; stop <= trace.length; stop++) {
+    playback.start();
+    for (let i = 0; i < stop; i++) {
+      const before = structuredClone(getExecutionState(c));
+      const step = playback.step();
+      assert.equal(step.event, trace[i]);
+      if (step.event.type !== 'init' && step.event.type !== 'tick') assert.deepEqual(getExecutionState(c), before);
+      if (step.event.type === 'tick') {
+        assert.equal(getExecutionState(c).tick, before.tick + 1);
+        assert.equal(inputs.WRITE.value, true, 'only an explicit SET releases the sampled button');
+      }
+      if (step.event.type === 'set') for (const signal of step.event.inputs) assert.equal(Number(inputs[signal.signal].value), signal.value);
+      if (step.event.type === 'expect') {
+        assert.equal(step.highlight.observation, step.event.observation);
+        assert.deepEqual(step.highlight.blocks.map(b => b.actual), step.event.outputs.map(s => s.actual));
+        assert.ok(step.highlight.blocks.every(b => b.passed));
+      }
+    }
+    if (stop === trace.length) {
+      assert.equal(playback.step(), null);
+      assert.equal(getExecutionState(c).tick, 2, 'all read probes share the two real write ticks');
+    }
+    playback.restore();
+    assert.deepEqual(getExecutionState(c), savedState);
+    assert.deepEqual(c, savedCircuit);
+    assert.equal(getTraceHighlight(c), undefined);
+  }
+});
+
+test('observation labels distinguish all supplied boundaries in Korean and English', () => {
+  for (const language of ['ko', 'en']) {
+    const labels = ['before_tick', 'after_tick', 'after_release', 'address_read'].map(phase => observationLabel(phase, language));
+    assert.equal(new Set(labels).size, 4);
+    assert.ok(labels.every(Boolean));
+  }
+  assert.match(observationLabel('after_release', 'ko'), /버튼 해제/);
+  assert.match(observationLabel('after_release', 'en'), /button release/);
+  assert.match(observationLabel('address_read', 'ko'), /tick 없음/);
+  assert.match(observationLabel('address_read', 'en'), /no tick/);
+  assert.equal(observationLabel(undefined, 'en'), '');
+});
+
+for (const [stage, make, observation] of [
+  [30, automaticDoorShortcut, 'after_release'],
+  [29, responseCheckShortcut, 'after_release'],
+  [38, registeredAddressMemory, 'address_read']
+]) test(`stage ${stage}: failure metadata, rendered event phase and actual replay agree at ${observation}`, () => {
+  const c = make(); previewCircuit(c);
+  const before = structuredClone(c);
+  const definitions = JSON.parse(fs.readFileSync(new URL('../levels.json', import.meta.url)));
+  const result = gradeCircuitSync(c, definitions.levelAnswers[stage]);
+  assert.equal(result.status, 'fail');
+  assert.equal(result.observation, observation);
+  assert.deepEqual(c, before, 'grading cannot modify the editor circuit');
+  const finalSet = result.trace.at(-2), finalExpect = result.trace.at(-1);
+  assert.equal(finalSet.type, 'set');
+  assert.equal(finalExpect.observation, observation);
+  assert.deepEqual(Object.fromEntries(finalSet.inputs.map(s => [s.signal, s.value])), result.inputs);
+  assert.deepEqual(Object.fromEntries(finalExpect.outputs.map(s => [s.signal, s.actual])), result.actual);
+  assert.deepEqual(Object.fromEntries(finalExpect.outputs.map(s => [s.signal, s.expected])), result.expected);
+  const playback = createTracePlayback(c, result.trace); playback.start();
+  let step, ticks = 0;
+  while ((step = playback.step())) {
+    if (step.event.type === 'tick') ticks++;
+    assert.equal(getExecutionState(c).tick, ticks);
+    if (step.event.type === 'expect') {
+      assert.equal(step.highlight.observation, step.event.observation);
+      assert.deepEqual(step.highlight.blocks.map(b => b.actual), step.event.outputs.map(s => s.actual));
+      assert.deepEqual(step.highlight.blocks.map(b => b.passed), step.event.outputs.map(s => s.passed));
+    }
+  }
+  assert.ok(getTraceHighlight(c).blocks.some(b => !b.passed));
+  playback.restore();
+  assert.deepEqual(c, before);
+});
+
+test('a later after-tick failure retains each successful parent release in its replay', () => {
+  const c = register(); c.blocks.x.inputMode = 'button';
+  const answers = zero('after_tick'); answers.reference.releaseButtons = ['x'];
+  const result = gradeCircuitSync(c, answers);
+  assert.equal(result.observation, 'after_tick');
+  assert.deepEqual(result.trace.map(e => e.type), ['init', 'set', 'tick', 'expect', 'set', 'expect', 'set', 'tick', 'expect']);
+  assert.equal(result.trace[5].observation, 'after_release');
+  assert.equal(result.trace[4].inputs[0].value, 0);
+  const playback = createTracePlayback(c, result.trace); playback.start();
+  let step;
+  while ((step = playback.step())) if (step.event.type === 'expect') {
+    assert.equal(step.highlight.blocks[0].actual, step.event.outputs[0].actual);
+    assert.equal(step.highlight.blocks[0].passed, step.event.outputs[0].passed);
+  }
+  assert.equal(getExecutionState(c).tick, 2);
+  playback.restore();
+});
+
+test('initial address-read failure replays without any tick', () => {
+  const c = makeCircuit();
+  for (const name of ['D0', 'D1', 'ADDR', 'WRITE', 'Q0', 'Q1']) {
+    c.blocks[name] = newBlock({ id: name, name, type: name.startsWith('Q') ? 'OUTPUT' : 'INPUT', pos: { r: 0, c: 0 } });
+  }
+  for (const bit of [0, 1]) c.wires[bit] = newWire({ id: String(bit), startBlockId: `D${bit}`, endBlockId: `Q${bit}`, path: [] });
+  const result = gradeCircuitSync(c, { mode: 'sequential', referenceId: 'memory20:C5-02' });
+  assert.equal(result.observation, 'address_read');
+  assert.deepEqual(result.trace.map(e => e.type), ['init', 'set', 'expect']);
+  const playback = createTracePlayback(c, result.trace); playback.start();
+  while (playback.step()) assert.equal(getExecutionState(c).tick, 0);
+  assert.ok(getTraceHighlight(c).blocks.some(b => !b.passed));
+  playback.restore();
 });

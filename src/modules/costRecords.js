@@ -32,6 +32,7 @@ export function highestStars(entry, levels, id) {
   return Math.min(3, Math.max(stored, awarded));
 }
 export function mergeCostRecord(entry, record, levels, id) {
+  const earnedStars = highestStars(entry, levels, id);
   const previous = isCurrentCostRecord(entry.best, levels, id) ? entry.best : null;
   const first = !previous;
   const improved = first || record.totalCost < previous.totalCost;
@@ -39,7 +40,7 @@ export function mergeCostRecord(entry, record, levels, id) {
     if (entry.best && !previous) (entry.previousCostRecords ||= []).push(entry.best);
     entry.best = record;
   }
-  entry.highestStars = Math.max(highestStars(entry, levels, id), record.stars);
+  entry.highestStars = Math.max(earnedStars, highestStars(entry, levels, id), record.stars);
   if (!entry.bestStars || record.stars > entry.bestStars.stars) entry.bestStars = record;
   return { record, first, improved, previousCost: previous?.totalCost ?? null, best: entry.best, highestStars: entry.highestStars };
 }
@@ -57,9 +58,19 @@ export function createCostStore({ storage, owner = 'local', levels, onFailure = 
       state = parsed;
       for (const [id, entry] of Object.entries(state.stages)) {
         if (!isCurrentCostRecord(entry.best, levels, id)) continue;
-        // Recalculate claimed totals/counts from the associated verified snapshot.
-        entry.best = makeCostRecord(entry.best.circuit, Number(id), levels);
-        entry.highestStars = highestStars(entry, levels, id);
+        const earnedStars = Math.max(entry.best.stars || 0, entry.bestStars?.stars || 0, entry.highestStars || 0);
+        try {
+          // Recalculate claimed totals/counts from the associated verified snapshot.
+          entry.best = makeCostRecord(entry.best.circuit, Number(id), levels);
+        } catch (error) {
+          // One unverifiable score must not discard this player's other stages
+          // or erase the historical clear and associated design.
+          (entry.previousCostRecords ||= []).push(entry.best);
+          entry.historicalClear = true;
+          delete entry.best;
+          onFailure(error);
+        }
+        entry.highestStars = Math.min(3, Math.max(earnedStars, highestStars(entry, levels, id)));
       }
     }
   } catch (error) { state = { stages: {} }; damaged = true; onFailure(error); }
@@ -72,7 +83,7 @@ export function createCostStore({ storage, owner = 'local', levels, onFailure = 
   };
   return {
     get state() { return state; },
-    cleared: () => Object.keys(state.stages).filter(id => state.stages[id].best).map(Number),
+    cleared: () => Object.keys(state.stages).filter(id => state.stages[id].best || state.stages[id].historicalClear).map(Number),
     best: id => isCurrentCostRecord(state.stages[id]?.best, levels, id) ? state.stages[id].best : null,
     stars: id => {
       const entry = state.stages[id], stars = highestStars(entry, levels, id);
