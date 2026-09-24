@@ -14,6 +14,7 @@ const SIGNAL_BLOCK_BORDERS = {
   JUNCTION: '#5D7893'
 };
 const SIGNAL_ACTIVE_FILL = '#F2F0DF';
+const BUTTON_ACTIVE_MARGIN_FILL = '#CDC9B2';
 
 const BASE_GRID_STYLE = {
   background: '#ffffff',
@@ -795,9 +796,13 @@ export function drawBlock(
   const isJunction = block.type === 'JUNCTION';
   const isButton = block.type === 'INPUT' && block.inputMode === 'button';
   const blockRadius = Math.max(0, style.radius * scale);
-  if (isActive && !isButton) {
-    applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
-    ctx.fillStyle = SIGNAL_ACTIVE_FILL;
+  if (isActive) {
+    if (isButton) {
+      applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
+    } else {
+      applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
+    }
+    ctx.fillStyle = isButton ? BUTTON_ACTIVE_MARGIN_FILL : SIGNAL_ACTIVE_FILL;
     roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
   } else {
