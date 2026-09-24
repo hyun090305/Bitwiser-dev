@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import { demoMap, DEMO_IDS, DEMO_NODE_LEVELS } from '../src/demo/catalog.js';
 import { STAGES } from '../src/modules/stageCatalog.js';
-import { MEMORY20_IDS } from '../src/modules/memory20References.js';
+import { MEMORY20_IDS, memory20ReferenceId } from '../src/modules/memory20References.js';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const out = path.join(root, 'dist-web-demo');
 const read = p => fs.readFile(path.join(root, p), 'utf8');
@@ -21,7 +21,7 @@ const memorySource = (await read(memoryFile)).replace(
 const { getMemory20Reference } = await import(`data:text/javascript;base64,${Buffer.from(memorySource).toString('base64')}`);
 const missing = [], unexpected = [];
 for (const [slot, id] of Object.entries(MEMORY20_IDS)) {
-  const present = Boolean(getMemory20Reference(slot));
+  const present = Boolean(getMemory20Reference(memory20ReferenceId(slot).slice(9)));
   if (DEMO_IDS.includes(id) && !present) missing.push(`Stage ${id} (${slot})`);
   if (!DEMO_IDS.includes(id) && present) unexpected.push(`Stage ${id} (${slot})`);
 }

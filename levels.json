@@ -29,7 +29,7 @@
     "26": "토글 조명",
     "27": "2-to-1 Selector",
     "28": "고장 기록등",
-    "29": "준비 후 한 번에 반영",
+    "29": "응답 확인",
     "30": "자동으로 닫히는 문",
     "31": "변화 감지기",
     "32": "양방향 카운터",
@@ -166,8 +166,8 @@
       7
     ],
     "29": [
-      20,
-      24
+      14,
+      17
     ],
     "30": [
       7,
@@ -1163,36 +1163,17 @@
     "29": [
       {
         "type": "INPUT",
-        "name": "D0",
-        "inputMode": "switch"
-      },
-      {
-        "type": "INPUT",
-        "name": "D1",
-        "inputMode": "switch"
-      },
-      {
-        "type": "INPUT",
-        "name": "WRITE",
+        "name": "A",
         "inputMode": "button"
       },
       {
         "type": "INPUT",
-        "name": "COMMIT",
-        "inputMode": "button"
-      },
-      {
-        "type": "INPUT",
-        "name": "RESET",
+        "name": "B",
         "inputMode": "button"
       },
       {
         "type": "OUTPUT",
-        "name": "Q0"
-      },
-      {
-        "type": "OUTPUT",
-        "name": "Q1"
+        "name": "GO"
       },
       {
         "type": "D"
@@ -5706,7 +5687,7 @@
     },
     "29": {
       "mode": "sequential",
-      "referenceId": "memory20:C5-04"
+      "referenceId": "memory20:response-check"
     },
     "30": {
       "mode": "sequential",
@@ -6934,63 +6915,64 @@
       ]
     },
     "29": {
-      "title": "준비 후 한 번에 반영",
-      "desc": "WRITE로 D1·D0를 준비해 두고, COMMIT으로 준비한 값을 Q1·Q0에 공개하세요. 함께 요청하면 이전 준비값을 공개하면서 새 값을 준비합니다. 공개해도 준비값은 남습니다. 처음에는 모두 00이며 RESET은 다른 요청보다 우선해 둘 다 지웁니다.",
+      "title": "응답 확인",
+      "desc": "두 경로 A와 B의 응답을 모두 확인하세요. 먼저 도착한 응답은 다른 응답이 올 때까지 계속 기억합니다. 두 응답이 모인 tick에 GO를 1로 켜고, 사용한 기록은 모두 지우세요. 같은 경로의 응답이 반복되어도 한 번으로 셉니다. 동시에 도착해도 확인하며, 다음 tick부터 새 응답을 받습니다. A와 B가 매 tick 함께 오면 GO도 연속해서 1입니다. 두 응답이 모이지 않은 tick에는 GO가 0입니다. 처음에는 기록이 없고 GO는 0입니다.",
       "table": [
         {
           "tick": 1,
           "observation": "after",
-          "D0": 1,
-          "D1": 0,
-          "WRITE": 1,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 0
+          "A": 1,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 2,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 0
+          "A": 0,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 3,
           "observation": "after",
-          "D0": 0,
-          "D1": 1,
-          "WRITE": 1,
-          "COMMIT": 1,
-          "RESET": 0,
-          "Q0": 1,
-          "Q1": 0
+          "A": 0,
+          "B": 1,
+          "GO": 1
         },
         {
           "tick": 4,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 1,
-          "Q1": 0
+          "A": 0,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 5,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 1,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 1
+          "A": 1,
+          "B": 1,
+          "GO": 1
+        },
+        {
+          "tick": 6,
+          "observation": "after",
+          "A": 1,
+          "B": 1,
+          "GO": 1
+        },
+        {
+          "tick": 7,
+          "observation": "after",
+          "A": 0,
+          "B": 1,
+          "GO": 0
+        },
+        {
+          "tick": 8,
+          "observation": "after",
+          "A": 1,
+          "B": 0,
+          "GO": 1
         }
       ]
     },
@@ -8313,7 +8295,7 @@
       "hints": [
         {
           "type": "설명",
-          "content": "준비용 저장소와 공개용 저장소를 따로 만들고 각각 WRITE와 COMMIT으로 갱신해 보세요."
+          "content": "어느 경로에서 응답이 왔는지 각각 기억해 보세요. 확인에 사용한 응답이 다음 확인에 다시 쓰이지 않게 해야 합니다."
         }
       ]
     },
@@ -9053,7 +9035,7 @@
   "levelRevisions": {
     "25": "memory20-free-compact-2026-09-18",
     "28": "memory20-free-compact-2026-09-18",
-    "29": "memory20-free-compact-2026-09-18",
+    "29": "response-check-2026-09-24",
     "30": "memory20-free-compact-2026-09-18",
     "31": "memory20-free-compact-2026-09-18",
     "32": "memory20-free-compact-2026-09-18",
@@ -9303,6 +9285,70 @@
               "name": "Q1"
             }
           ]
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:C5-04"
+        }
+      },
+      {
+        "levelGridSizes": [
+          20,
+          24
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "D0",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "D1",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "WRITE",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "COMMIT",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "RESET",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "Q0"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "Q1"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
         },
         "levelAnswers": {
           "mode": "sequential",

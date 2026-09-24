@@ -76,15 +76,10 @@ def step(stage, state, u):
             value, available = backup, 0
         return (value, backup, available), {**bits(value, "Q", 2), "UNDO_AVAILABLE": available}
     if stage == "C5-04":
-        staging, live = state
-        if u["RESET"]:
-            staging, live = 0, 0
-        else:
-            if u["COMMIT"]:
-                live = staging
-            if u["WRITE"]:
-                staging = number(u, "D", 2)
-        return (staging, live), bits(live, "Q", 2)
+        seen_a, seen_b = state
+        seen_a, seen_b = int(seen_a or u["A"]), int(seen_b or u["B"])
+        go = int(seen_a and seen_b)
+        return ((0, 0) if go else (seen_a, seen_b)), {"GO": go}
     if stage == "C5-05":
         pending, word = state
         done = 0

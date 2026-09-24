@@ -1,5 +1,5 @@
 import fs from 'node:fs/promises';
-import { MEMORY20_IDS } from '../src/modules/memory20References.js';
+import { MEMORY20_IDS, memory20ReferenceId } from '../src/modules/memory20References.js';
 import { gradeCircuitSync } from '../src/modules/circuitGrading.js';
 import { validateStageCircuit } from '../src/modules/stageCircuit.js';
 import { calculateCircuitCost } from '../src/modules/circuitCost.js';
@@ -19,14 +19,20 @@ for(const data of languages)for(const id of Object.values(MEMORY20_IDS)) {
   if(data.levelRevisions?.[id]==='memory20-final-2026-09-18') {
     (data.levelPreviousLayouts??={})[id]=[Object.fromEntries(['levelGridSizes','levelBlockSets','levelFixedIO','levelAnswers'].map(key=>[key,structuredClone(data[key][id])]))];
   }
+  if(id===29&&data.levelAnswers[id]?.referenceId==='memory20:C5-04') {
+    const definition=Object.fromEntries(['levelGridSizes','levelBlockSets','levelFixedIO','levelAnswers'].map(key=>[key,structuredClone(data[key][id])]));
+    const previous=(data.levelPreviousLayouts??={})[id]??=[];
+    if(!previous.some(item=>JSON.stringify(item)===JSON.stringify(definition)))previous.push(definition);
+  }
 }
 for(const entry of catalog) {
   const id=MEMORY20_IDS[entry.slot],fixture=await read(`tests/fixtures/memory20/${id}.json`),c=fixture.circuit;
+  if(id===29&&(c.rows!==14||c.cols!==17))throw new Error('Response Check must retain its 14x17 board');
   const [titleKo,ko,hintKo]=memory20Korean[entry.slot];
   const [titleEn,descEn,hintEn]=memory20Copy[entry.slot];
   const palette=Object.values(c.blocks).filter(b=>['INPUT','OUTPUT'].includes(b.type)).map(b=>({type:b.type,name:b.name,...(b.type==='INPUT'?{inputMode:b.inputMode}:{})}));
   palette.push(...['D','NOT','AND','OR','JUNCTION'].map(type=>({type})));
-  const answers={mode:'sequential',referenceId:`memory20:${entry.slot}`};
+  const answers={mode:'sequential',referenceId:memory20ReferenceId(entry.slot)};
   const table=entry.slot==='C5-10'?[[0,3],[2,3],[6,2],[7,1],[7,3]].map(([A,B])=>Object.fromEntries([
     ...Array.from({length:3},(_,i)=>[`A${i}`,(A>>>i)&1]),...Array.from({length:2},(_,i)=>[`B${i}`,(B>>>i)&1]),
     ...Array.from({length:3},(_,i)=>[`Q${i}`,(Math.floor(A/B)>>>i)&1]),...Array.from({length:2},(_,i)=>[`R${i}`,((A%B)>>>i)&1]),['COMPLETE',1]
@@ -40,7 +46,7 @@ for(const entry of catalog) {
     data.levelDescriptions[id]={title:data.levelTitles[id],desc:language?descEn:ko,table};
     data.levelHints[`stage${id}`]={hints:[{type:language?'Explanation':'설명',content:language?hintEn:hintKo}]};
     data.levelStarThresholds[id]??={twoStarMaxCost:null,threeStarMaxCost:null};
-    (data.levelRevisions??={})[id]='memory20-free-compact-2026-09-18';
+    (data.levelRevisions??={})[id]=id===29?'response-check-2026-09-24':'memory20-free-compact-2026-09-18';
     validateStageCircuit(c,id,data);
   }
   const result=gradeCircuitSync(c,answers);if(!result.ok)throw new Error(`${id}: ${JSON.stringify(result)}`);

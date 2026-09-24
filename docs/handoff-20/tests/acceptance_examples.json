@@ -1034,76 +1034,122 @@
   },
   {
     "slot": "C5-04",
-    "source": "independent reference",
+    "label": "Responses, consumption and consecutive checks",
     "trace": [
       {
         "tick": 1,
         "inputs": {
-          "D0": 1,
-          "D1": 0,
-          "WRITE": 1,
-          "COMMIT": 0,
-          "RESET": 0
+          "A": 1,
+          "B": 0
         },
         "outputs": {
-          "Q0": 0,
-          "Q1": 0
+          "GO": 0
         }
       },
       {
         "tick": 2,
         "inputs": {
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0
+          "A": 0,
+          "B": 0
         },
         "outputs": {
-          "Q0": 0,
-          "Q1": 0
+          "GO": 0
         }
       },
       {
         "tick": 3,
         "inputs": {
-          "D0": 0,
-          "D1": 1,
-          "WRITE": 1,
-          "COMMIT": 1,
-          "RESET": 0
+          "A": 0,
+          "B": 1
         },
         "outputs": {
-          "Q0": 1,
-          "Q1": 0
+          "GO": 1
         }
       },
       {
         "tick": 4,
         "inputs": {
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0
+          "A": 0,
+          "B": 0
         },
         "outputs": {
-          "Q0": 1,
-          "Q1": 0
+          "GO": 0
         }
       },
       {
         "tick": 5,
         "inputs": {
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 1,
-          "RESET": 0
+          "A": 1,
+          "B": 1
         },
         "outputs": {
-          "Q0": 0,
-          "Q1": 1
+          "GO": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "A": 1,
+          "B": 1
+        },
+        "outputs": {
+          "GO": 1
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "A": 0,
+          "B": 1
+        },
+        "outputs": {
+          "GO": 0
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "A": 1,
+          "B": 0
+        },
+        "outputs": {
+          "GO": 1
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C5-04",
+    "label": "Duplicate A on confirmation is consumed",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "A": 1,
+          "B": 0
+        },
+        "outputs": {
+          "GO": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "A": 1,
+          "B": 1
+        },
+        "outputs": {
+          "GO": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "A": 0,
+          "B": 1
+        },
+        "outputs": {
+          "GO": 0
         }
       }
     ]
@@ -1976,54 +2022,6 @@
         },
         "outputs": {
           "UNLOCKED": 1
-        }
-      }
-    ]
-  },
-  {
-    "slot": "C5-04",
-    "label": "simultaneous WRITE/COMMIT publishes old staging",
-    "trace": [
-      {
-        "tick": 1,
-        "inputs": {
-          "D0": 1,
-          "D1": 0,
-          "WRITE": 1,
-          "COMMIT": 0,
-          "RESET": 0
-        },
-        "outputs": {
-          "Q0": 0,
-          "Q1": 0
-        }
-      },
-      {
-        "tick": 2,
-        "inputs": {
-          "D0": 0,
-          "D1": 1,
-          "WRITE": 1,
-          "COMMIT": 1,
-          "RESET": 0
-        },
-        "outputs": {
-          "Q0": 1,
-          "Q1": 0
-        }
-      },
-      {
-        "tick": 3,
-        "inputs": {
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 1,
-          "RESET": 0
-        },
-        "outputs": {
-          "Q0": 0,
-          "Q1": 1
         }
       }
     ]

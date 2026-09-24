@@ -2,7 +2,7 @@
   "all_pass": true,
   "stage_count": 20,
   "planar_count": 20,
-  "stream_transitions": 5674,
+  "stream_transitions": 5178,
   "divider_cases": 24,
   "divider_ticks": 108,
   "judge_boundary_tests": [
@@ -274,19 +274,19 @@
     },
     {
       "slot": "C5-04",
-      "circuit_sha256": "654c9df28868792c58b2250e37be8cf00e6345235a1d06a7c4e5b8f4cd61c519",
+      "circuit_sha256": "4cbba96737e4123750f6422854b38a3e795d4761b83d91885826ea9f167cf54c",
       "planar_drawing": {
-        "vertices": 23,
-        "edges": 30,
-        "disjoint_edge_pairs_checked": 365,
+        "vertices": 12,
+        "edges": 15,
+        "disjoint_edge_pairs_checked": 75,
         "intersections": 0,
         "nonincident_vertices_on_edges": 0
       },
       "kind": "all_reachable_product_states",
       "status": "PASS_EXHAUSTIVE",
-      "states": 16,
-      "input_combinations": 32,
-      "transitions": 512
+      "states": 4,
+      "input_combinations": 4,
+      "transitions": 16
     },
     {
       "slot": "C5-05",

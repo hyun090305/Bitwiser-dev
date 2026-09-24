@@ -507,7 +507,7 @@
     },
     {
       "id": "staging_register",
-      "label": "Prepare and Commit",
+      "label": "Response Check",
       "nodeType": "stage",
       "chapterId": "chapter_2",
       "optional": false,

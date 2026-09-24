@@ -1042,82 +1042,82 @@
   {
     "slot": "C5-04",
     "id": 29,
-    "title": "준비 후 한 번에 반영",
-    "logicalBlocks": 23,
-    "placedBlocks": 31,
+    "title": "응답 확인",
+    "logicalBlocks": 12,
+    "placedBlocks": 12,
     "previousGrid": [
       40,
       50
     ],
     "grid": [
-      20,
-      24
+      14,
+      17
     ],
     "fixedIO": false,
     "padding": 2,
     "pricingVersion": "cost-v1",
-    "totalCost": 341,
+    "totalCost": 162,
     "counts": {
-      "WIRE": 133,
-      "JUNCTION": 8,
-      "NOT": 4,
-      "AND": 4,
-      "OR": 4,
-      "D": 4,
-      "INPUT": 5,
-      "OUTPUT": 2
+      "WIRE": 42,
+      "JUNCTION": 0,
+      "NOT": 1,
+      "AND": 3,
+      "OR": 2,
+      "D": 3,
+      "INPUT": 2,
+      "OUTPUT": 1
     },
     "breakdown": [
       {
         "type": "WIRE",
-        "count": 133,
+        "count": 42,
         "unitCost": 1,
-        "subtotal": 133
+        "subtotal": 42
       },
       {
         "type": "JUNCTION",
-        "count": 8,
+        "count": 0,
         "unitCost": 1,
-        "subtotal": 8
+        "subtotal": 0
       },
       {
         "type": "NOT",
-        "count": 4,
+        "count": 1,
         "unitCost": 10,
-        "subtotal": 40
+        "subtotal": 10
       },
       {
         "type": "AND",
-        "count": 4,
+        "count": 3,
         "unitCost": 10,
-        "subtotal": 40
+        "subtotal": 30
       },
       {
         "type": "OR",
-        "count": 4,
+        "count": 2,
         "unitCost": 10,
-        "subtotal": 40
+        "subtotal": 20
       },
       {
         "type": "D",
-        "count": 4,
+        "count": 3,
         "unitCost": 20,
-        "subtotal": 80
+        "subtotal": 60
       },
       {
         "type": "INPUT",
-        "count": 5,
+        "count": 2,
         "unitCost": 0,
         "subtotal": 0
       },
       {
         "type": "OUTPUT",
-        "count": 2,
+        "count": 1,
         "unitCost": 0,
         "subtotal": 0
       }
     ],
-    "transitions": 512
+    "transitions": 16
   },
   {
     "slot": "C5-05",

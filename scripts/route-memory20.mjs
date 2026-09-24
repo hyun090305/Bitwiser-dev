@@ -3,7 +3,7 @@ import { routeHandoff } from './lib/route-handoff.mjs';
 import { packCircuit } from './lib/compact-circuit.mjs';
 import { isValidWirePath } from '../src/canvas/circuitData.js';
 import { gradeCircuitSync } from '../src/modules/circuitGrading.js';
-import { MEMORY20_IDS } from '../src/modules/memory20References.js';
+import { MEMORY20_IDS, memory20ReferenceId } from '../src/modules/memory20References.js';
 const read=async p=>JSON.parse(await fs.readFile(p,'utf8'));
 const root='docs/handoff-20';
 const reroute=process.argv.includes('--reroute'),selected=process.argv.slice(2).filter(x=>!x.startsWith('--'));
@@ -19,7 +19,7 @@ for(const entry of await read(`${root}/catalog.json`)) {
     if(!isValidWirePath(w.path,{withinBounds:(r,col)=>r>=0&&col>=0&&r<c.rows&&col<c.cols,blockAt:p=>positions.get(`${p.r},${p.c}`),cellHasWire:p=>occupied.has(`${p.r},${p.c}`)}))throw new Error(`${entry.slot}: illegal wire ${w.id}`);
     w.path.slice(1,-1).forEach(p=>occupied.add(`${p.r},${p.c}`));
   }
-  const result=gradeCircuitSync(c,{mode:'sequential',referenceId:`memory20:${entry.slot}`});
+  const result=gradeCircuitSync(c,{mode:'sequential',referenceId:memory20ReferenceId(entry.slot)});
   if(!result.ok)throw new Error(`${entry.slot}: ${JSON.stringify(result)}`);
   await fs.mkdir('tests/fixtures/memory20',{recursive:true});
   await fs.writeFile(file,JSON.stringify({slot:entry.slot,sourceVariant:entry.selected_variant,logicalBlocks:entry.blocks,circuit:c})+'\n');

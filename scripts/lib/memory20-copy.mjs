@@ -66,9 +66,9 @@ export const memory20Copy = {
     "Keep current and backup words plus an availability bit. SAVE must copy the old current value into the backup."
   ],
   "C5-04": [
-    "Prepare and Commit",
-    "WRITE prepares D1·D0 without changing Q1·Q0. COMMIT publishes the prepared value. Together, they publish the old prepared value while preparing the new one. Committing does not erase it. Both values start at 00; RESET overrides all requests and clears both.",
-    "Use separate staging and published registers. Give them WRITE and COMMIT enables, with RESET clearing all four memories."
+    "Response Check",
+    "Check responses from both paths A and B. Remember the first response for as long as it takes the other to arrive. Set GO to 1 on the tick when both have arrived, then clear both records. Repeated responses from one path count only once. Simultaneous responses also count, and new responses can be received from the very next tick. If A and B arrive together every tick, GO stays 1 on those consecutive ticks. Otherwise, GO is 0 on ticks without a complete pair. Initially there are no records and GO is 0.",
+    "Remember which paths have responded. Make sure responses used for one check cannot be reused for the next."
   ],
   "C5-05": [
     "Serial Receiver",

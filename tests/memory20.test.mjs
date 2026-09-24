@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
-import {MEMORY20_IDS,getMemory20Reference} from '../src/modules/memory20References.js';
+import {MEMORY20_IDS,memory20ReferenceId} from '../src/modules/memory20References.js';
+import {getReferenceFSM} from '../src/modules/referenceFSM.js';
 import {gradeCircuitSync,gradeCircuit} from '../src/modules/circuitGrading.js';
 import {compileCircuit,createExecutionState,tickCircuit} from '../src/canvas/evaluation.js';
 import {validateStageCircuit} from '../src/modules/stageCircuit.js';
@@ -37,11 +38,11 @@ test('20 supplied circuits have playable, bilingual, physically legal final defi
     assert.ok(Object.values(c.blocks).every(b=>['INPUT','OUTPUT','AND','OR','NOT','D','JUNCTION'].includes(b.type)));
     assert.equal(gradeCircuitSync(c,levels.levelAnswers[id]).ok,true,entry.slot);
     for(const row of levels.levelDescriptions[id].table)assert.ok([...entry.inputs,...entry.outputs].every(name=>Object.hasOwn(row,name)),`example ports ${entry.slot}`);
-    if(id!==46)assert.equal(getMemory20Reference(entry.slot).observeAt,'after_tick');
+    if(id!==46)assert.equal(getReferenceFSM(memory20ReferenceId(entry.slot)).observeAt,'after_tick');
   }
 });
 
-test('game tick engine agrees with all 5,782 independently verified Python transitions',()=>{
+test('game tick engine agrees with all independently verified Python transitions',()=>{
   let comparisons=0;
   for(const group of read('docs/handoff-20/tests/exhaustive_transitions.json')) {
     const c=fixture(MEMORY20_IDS[group.slot]);
@@ -54,7 +55,9 @@ test('game tick engine agrees with all 5,782 independently verified Python trans
       assert.deepEqual(outputIds.map(id=>Number(result.values.get(id))),expected,group.slot);comparisons++;
     }
   }
-  assert.equal(comparisons,5782);
+  const summary=read('docs/handoff-20/verification_summary.json');
+  assert.equal(comparisons,summary.stream_transitions+summary.divider_ticks);
+  assert.equal(comparisons,5286);
 });
 
 test('acceptance sequences cover history, simultaneous requests, idle data holds and pulses',()=>{
