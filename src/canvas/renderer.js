@@ -14,6 +14,7 @@ const SIGNAL_BLOCK_BORDERS = {
   JUNCTION: '#5D7893'
 };
 const SIGNAL_ACTIVE_FILL = '#F2F0DF';
+const BUTTON_ACTIVE_MARGIN_FILL = '#CDC9B2';
 
 const BASE_GRID_STYLE = {
   background: '#ffffff',
@@ -793,25 +794,15 @@ export function drawBlock(
   const typeBorder = SIGNAL_BLOCK_BORDERS[block.type];
   const isActive = Boolean(block.value && typeBorder);
   const isJunction = block.type === 'JUNCTION';
+  const isButton = block.type === 'INPUT' && block.inputMode === 'button';
   const blockRadius = Math.max(0, style.radius * scale);
-  if (isJunction) {
-    // Match the grid beneath the frame while masking incoming wire endpoints.
-    // This keeps the center empty even where several outgoing wires meet.
-    const grid = resolveGridStyle(options);
-    const cellFill = grid.gridFillA && grid.gridFillB
-      ? (r + c) % 2 === 0 ? grid.gridFillA : grid.gridFillB
-      : grid.gridFillA || grid.gridFillB;
-    applyShadow(ctx, null);
-    roundRect(ctx, x, y, size, size, blockRadius);
-    ctx.fillStyle = grid.background;
-    ctx.fill();
-    if (cellFill && (!camera || size > SIMPLE_GRID_THRESHOLD)) {
-      ctx.fillStyle = createFillStyle(ctx, cellFill, x, y, size, size) || cellFill;
-      ctx.fill();
+  if (isActive) {
+    if (isButton) {
+      applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
+    } else {
+      applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
     }
-  } else if (isActive) {
-    applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
-    ctx.fillStyle = SIGNAL_ACTIVE_FILL;
+    ctx.fillStyle = isButton ? BUTTON_ACTIVE_MARGIN_FILL : SIGNAL_ACTIVE_FILL;
     roundRect(ctx, x, y, size, size, blockRadius);
     ctx.fill();
   } else {
@@ -823,12 +814,34 @@ export function drawBlock(
     ctx.fill();
   }
 
-  const strokeColor = isJunction && isActive ? '#A9C9E8' : typeBorder || style.strokeColor;
+  if (isButton) {
+    // Equal insets keep the momentary input's press surface square.
+    const plateInset = 5 * scale;
+    const plateX = x + plateInset;
+    const plateY = y + plateInset;
+    const plateSize = size - 2 * plateInset;
+    const plateRadius = Math.max(1.5 * scale, blockRadius - scale);
+    ctx.save();
+    applyShadow(ctx, null);
+    roundRect(ctx, plateX, plateY, plateSize, plateSize, plateRadius);
+    ctx.fillStyle = isActive ? SIGNAL_ACTIVE_FILL
+      : createFillStyle(ctx, style.fill, plateX, plateY, plateSize, plateSize);
+    ctx.fill();
+    if (!isActive) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.10)';
+      ctx.fill();
+    }
+    ctx.strokeStyle = typeBorder;
+    ctx.lineWidth = Math.max(scale, 0.6);
+    ctx.globalAlpha *= 0.6;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  const strokeColor = typeBorder || style.strokeColor;
   const strokeWidth = typeBorder ? 2 : style.strokeWidth;
   if (strokeColor && strokeWidth > 0) {
-    applyScaledShadow(ctx, isJunction && (isActive || hovered)
-      ? { color: strokeColor, blur: isActive ? 12 : 5, offsetX: 0, offsetY: 0 }
-      : null, scale);
+    applyShadow(ctx, null);
     ctx.lineWidth = Math.max(strokeWidth * scale, 0.6);
     ctx.strokeStyle = strokeColor;
     roundRect(ctx, x, y, size, size, blockRadius);
@@ -866,7 +879,7 @@ export function drawBlock(
   ctx.textBaseline = 'middle';
   const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
   if (block.type === 'INPUT' || block.type === 'OUTPUT') {
-    const availableWidth = size - 12 * scale;
+    const availableWidth = size - (isButton ? 16 : 12) * scale;
     const labelWidth = ctx.measureText(label).width;
     if (labelWidth > availableWidth) {
       // Shrink both dimensions equally; fillText's maxWidth can squash glyphs.

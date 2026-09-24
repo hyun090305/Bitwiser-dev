@@ -2646,7 +2646,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           overlayCtx.globalAlpha = 0.5;
           drawBlock(
             overlayCtx,
-            { type: state.draggingBlock.type, name: state.draggingBlock.name, pos: cell },
+            { type: state.draggingBlock.type, name: state.draggingBlock.name,
+              inputMode: state.draggingBlock.inputMode, pos: cell },
             panelTotalWidth,
             false,
             camera
