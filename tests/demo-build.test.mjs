@@ -6,7 +6,7 @@ import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import { DEMO_IDS } from '../src/demo/catalog.js';
-import { MEMORY20_IDS, getMemory20Reference } from '../src/modules/memory20References.js';
+import { MEMORY20_IDS, getMemory20Reference, memory20ReferenceId } from '../src/modules/memory20References.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const memoryFile = 'src/modules/memory20References.js';
@@ -48,13 +48,15 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     const output = path.join(directory, 'dist-web-demo', memoryFile);
     const built = await import(pathToFileURL(output).href);
     assert.ok(built.getMemory20Reference('C4-05'), 'Stage 30 automatic door');
+    assert.deepEqual(built.getMemory20Reference('C5-04').inputs, ['D0','D1','WRITE','COMMIT','RESET'], 'archived two-bit reference');
     for (const [slot, id] of Object.entries(MEMORY20_IDS)) {
-      const actual = built.getMemory20Reference(slot);
+      const referenceSlot = memory20ReferenceId(slot).slice(9);
+      const actual = built.getMemory20Reference(referenceSlot);
       if (!DEMO_IDS.includes(id)) {
         assert.equal(actual, undefined, `Full-only Stage ${id} (${slot}) must be excluded`);
         continue;
       }
-      const expected = getMemory20Reference(slot);
+      const expected = getMemory20Reference(referenceSlot);
       assert.ok(actual, `Missing Stage ${id} (${slot})`);
       for (const key of ['inputs', 'outputs', 'initialState', 'stateCount', 'observeAt']) {
         assert.deepEqual(actual[key], expected[key], `${slot}: ${key}`);
@@ -78,6 +80,13 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
     assert.match(result.stderr, /Missing demo memory references: Stage 30 \(C4-05\)/);
     assert.doesNotMatch(result.stdout, /Demo built:/);
     await assert.rejects(fs.access(path.join(directory, 'dist-web-demo')), { code: 'ENOENT' });
+  });
+
+  test(`${label} demo build requires the replacement response-check definition`, async t => {
+    const directory = await setup(t, newline, text => text.replace("'response-check':", "'missing-response-check':"));
+    const result = build(directory);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Missing demo memory references: Stage 29 \(C5-04\)/);
   });
 
   test(`${label} demo build rejects full-only definitions left by a broken marker boundary`, async t => {

@@ -29,7 +29,7 @@
     "26": "Toggle Light",
     "27": "2-to-1 Selector",
     "28": "Fault Indicator",
-    "29": "Prepare and Commit",
+    "29": "Response Check",
     "30": "Automatic Door",
     "31": "Rising Edge Detector",
     "32": "Up/Down Counter",
@@ -166,8 +166,8 @@
       7
     ],
     "29": [
-      20,
-      24
+      12,
+      12
     ],
     "30": [
       7,
@@ -1163,36 +1163,17 @@
     "29": [
       {
         "type": "INPUT",
-        "name": "D0",
-        "inputMode": "switch"
-      },
-      {
-        "type": "INPUT",
-        "name": "D1",
-        "inputMode": "switch"
-      },
-      {
-        "type": "INPUT",
-        "name": "WRITE",
+        "name": "A",
         "inputMode": "button"
       },
       {
         "type": "INPUT",
-        "name": "COMMIT",
-        "inputMode": "button"
-      },
-      {
-        "type": "INPUT",
-        "name": "RESET",
+        "name": "B",
         "inputMode": "button"
       },
       {
         "type": "OUTPUT",
-        "name": "Q0"
-      },
-      {
-        "type": "OUTPUT",
-        "name": "Q1"
+        "name": "GO"
       },
       {
         "type": "D"
@@ -5706,7 +5687,7 @@
     },
     "29": {
       "mode": "sequential",
-      "referenceId": "memory20:C5-04"
+      "referenceId": "memory20:response-check"
     },
     "30": {
       "mode": "sequential",
@@ -6934,63 +6915,64 @@
       ]
     },
     "29": {
-      "title": "Prepare and Commit",
-      "desc": "WRITE prepares D1·D0 without changing Q1·Q0. COMMIT publishes the prepared value. Together, they publish the old prepared value while preparing the new one. Committing does not erase it. Both values start at 00; RESET overrides all requests and clears both.",
+      "title": "Response Check",
+      "desc": "Check responses from both paths A and B. Remember the first response for as long as it takes the other to arrive. Set GO to 1 on the tick when both have arrived, then clear both records. Repeated responses from one path count only once. Simultaneous responses also count, and new responses can be received from the very next tick. If A and B arrive together every tick, GO stays 1 on those consecutive ticks. Otherwise, GO is 0 on ticks without a complete pair. Initially there are no records and GO is 0.",
       "table": [
         {
           "tick": 1,
           "observation": "after",
-          "D0": 1,
-          "D1": 0,
-          "WRITE": 1,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 0
+          "A": 1,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 2,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 0
+          "A": 0,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 3,
           "observation": "after",
-          "D0": 0,
-          "D1": 1,
-          "WRITE": 1,
-          "COMMIT": 1,
-          "RESET": 0,
-          "Q0": 1,
-          "Q1": 0
+          "A": 0,
+          "B": 1,
+          "GO": 1
         },
         {
           "tick": 4,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 0,
-          "RESET": 0,
-          "Q0": 1,
-          "Q1": 0
+          "A": 0,
+          "B": 0,
+          "GO": 0
         },
         {
           "tick": 5,
           "observation": "after",
-          "D0": 0,
-          "D1": 0,
-          "WRITE": 0,
-          "COMMIT": 1,
-          "RESET": 0,
-          "Q0": 0,
-          "Q1": 1
+          "A": 1,
+          "B": 1,
+          "GO": 1
+        },
+        {
+          "tick": 6,
+          "observation": "after",
+          "A": 1,
+          "B": 1,
+          "GO": 1
+        },
+        {
+          "tick": 7,
+          "observation": "after",
+          "A": 0,
+          "B": 1,
+          "GO": 0
+        },
+        {
+          "tick": 8,
+          "observation": "after",
+          "A": 1,
+          "B": 0,
+          "GO": 1
         }
       ]
     },
@@ -8313,7 +8295,7 @@
       "hints": [
         {
           "type": "Explanation",
-          "content": "Use separate staging and published registers. Give them WRITE and COMMIT enables, with RESET clearing all four memories."
+          "content": "Remember which paths have responded. Make sure responses used for one check cannot be reused for the next."
         }
       ]
     },
@@ -9053,7 +9035,7 @@
   "levelRevisions": {
     "25": "memory20-free-compact-2026-09-18",
     "28": "memory20-free-compact-2026-09-18",
-    "29": "memory20-free-compact-2026-09-18",
+    "29": "response-check-2026-09-24",
     "30": "memory20-free-compact-2026-09-18",
     "31": "memory20-free-compact-2026-09-18",
     "32": "memory20-free-compact-2026-09-18",
@@ -9307,6 +9289,115 @@
         "levelAnswers": {
           "mode": "sequential",
           "referenceId": "memory20:C5-04"
+        }
+      },
+      {
+        "levelGridSizes": [
+          20,
+          24
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "D0",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "D1",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "WRITE",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "COMMIT",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "RESET",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "Q0"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "Q1"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:C5-04"
+        }
+      },
+      {
+        "levelGridSizes": [
+          14,
+          17
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "A",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "B",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "GO"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:response-check"
         }
       }
     ],

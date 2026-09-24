@@ -6,6 +6,8 @@ export const MEMORY20_IDS = Object.freeze({
   'C5-01':45, 'C5-02':38, 'C5-03':39, 'C5-04':29, 'C5-05':43,
   'C5-06':44, 'C5-07':41, 'C5-08':42, 'C5-09':40, 'C5-10':46
 });
+// Keep published reference IDs stable when a slot is replaced.
+export const memory20ReferenceId = slot => `memory20:${slot === 'C5-04' ? 'response-check' : slot}`;
 const b = (n, i) => (n >>> i) & 1;
 // Each definition: input names, output names, initial state, transition.
 // The build selects only demo definitions using these per-stage markers.
@@ -37,6 +39,11 @@ const specs = {
   // stage:C5-03
   'C5-03': [['D0','D1','SAVE','UNDO'],['Q0','Q1','UNDO_AVAILABLE'],[0,0,0],([q,old,yes],x)=>{if(x.SAVE)[q,old,yes]=[x.D0+2*x.D1,q,1];else if(x.UNDO&&yes)[q,yes]=[old,0];return [[q,old,yes],[b(q,0),b(q,1),yes]];}],
   // stage:C5-04
+  'response-check': [['A','B'],['GO'],[0,0],([a,b],x)=>{
+    const seenA=Number(a||x.A),seenB=Number(b||x.B),go=Number(seenA&&seenB);
+    return [go?[0,0]:[seenA,seenB],[go]];
+  }],
+  // Archived two-bit staging puzzle; old definitions still refer to this ID.
   'C5-04': [['D0','D1','WRITE','COMMIT','RESET'],['Q0','Q1'],[0,0],([s,q],x)=>{if(x.RESET)[s,q]=[0,0];else {if(x.COMMIT)q=s;if(x.WRITE)s=x.D0+2*x.D1;}return [[s,q],[b(q,0),b(q,1)]];}],
   // stage:C5-05
   'C5-05': [['DATA','RECEIVE'],['Q0','Q1','Q2','Q3','DONE'],['',0],([p,q],x)=>{let done=0;if(x.RECEIVE){p+=x.DATA;if(p.length===4){q=parseInt(p,2);p='';done=1;}}return [[p,q],[b(q,0),b(q,1),b(q,2),b(q,3),done]];}],

@@ -1,4 +1,4 @@
-import { getMemory20Reference, MEMORY20_IDS } from './memory20References.js';
+import { getMemory20Reference, MEMORY20_IDS, memory20ReferenceId } from './memory20References.js';
 // Legacy/lab FSMs observe before a tick; memory20 references opt into after_tick.
 const fsm = (inputs, outputs, stateCount, evaluate) => Object.freeze({
   inputs: Object.freeze(inputs), outputs: Object.freeze(outputs), stateCount, initialState: 0, evaluate
@@ -23,6 +23,6 @@ const references = Object.freeze({
 
 export const STAGE_REFERENCE_IDS = Object.freeze({
   26: 'toggle-light',
-  ...Object.fromEntries(Object.entries(MEMORY20_IDS).filter(([slot])=>slot!=='C5-10').map(([slot,id])=>[id,`memory20:${slot}`]))
+  ...Object.fromEntries(Object.entries(MEMORY20_IDS).filter(([slot])=>slot!=='C5-10').map(([slot,id])=>[id,memory20ReferenceId(slot)]))
 });
 export function getReferenceFSM(id) { return id?.startsWith('memory20:') ? getMemory20Reference(id.slice(9)) : references[id]; }

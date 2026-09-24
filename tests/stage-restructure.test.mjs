@@ -66,14 +66,14 @@ test('all new references pass bilingual physical validation and sequential gradi
   }
 });
 
-test('explicit timing contracts include retrigger, simultaneous WRITE/COMMIT and post-tick edges',()=>{
+test('explicit timing contracts include retrigger, response consumption and post-tick edges',()=>{
   function run(id,inputs) {
     const c=fixture(id),state=createExecutionState(c),io=Object.values(c.blocks).filter(b=>b.type==='INPUT'),outputs=Object.values(c.blocks).filter(b=>b.type==='OUTPUT');
     return inputs.map(x=>{const result=tickCircuit(c,state,{inputs:new Map(io.map(b=>[b.id,!!x[b.name]])),display:false});assert.equal(result.ok,true);return outputs.map(b=>Number(result.values.get(b.id)));});
   }
   assert.deepEqual(run(30,[1,0,0,0].map(OPEN=>({OPEN}))),[[1],[1],[1],[0]]);
   assert.deepEqual(run(30,[1,0,1,0,0,0].map(OPEN=>({OPEN}))),[[1],[1],[1],[1],[1],[0]]);
-  assert.deepEqual(run(29,[{D0:1,WRITE:1,COMMIT:1},{D1:1,WRITE:1,COMMIT:1},{COMMIT:1}]),[[0,0],[1,0],[0,1]]);
+  assert.deepEqual(run(29,[{A:1},{B:1},{B:1},{A:1},{A:1,B:1},{A:1,B:1},{}]),[[0],[1],[0],[1],[1],[1],[0]]);
   assert.deepEqual(run(31,[0,1,1,0,1,0].map(SIGNAL=>({SIGNAL}))),[[0],[1],[0],[0],[1],[0]]);
   assert.deepEqual(run(28,[{FAULT:1,ACK:1},{},{ACK:1}]),[[1],[1],[0]]);
   assert.deepEqual(run(26,[1,1,0,1].map(PRESS=>({PRESS}))),[[1],[0],[0],[1]]);
