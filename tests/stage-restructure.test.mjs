@@ -55,10 +55,11 @@ test('demo chapter access excludes later chapters and keeps the ending stage',()
 
 test('all new references pass bilingual physical validation and sequential grading',()=>{
   const en=read('levels_en.json');
+  const expectedStars={25:3,26:2,27:2,28:2,29:1,30:3,31:3};
   for(let id=25;id<=31;id++) {
     for(const key of ['levelAnswers','levelBlockSets','levelGridSizes','levelFixedIO'])assert.deepEqual(levels[key][id],en[key][id]);
     for(const data of [levels,en])assert.ok(data.levelHints[`stage${id}`].hints.every(h=>h.type&&h.content));
-    const record=makeRecord(fixture(id),id,levels,{});assert.equal(record.stars,1);
+    const record=makeRecord(fixture(id),id,levels,{});assert.equal(record.stars,expectedStars[id]);
     assert.equal(gradeCircuitSync(record.circuit,en.levelAnswers[id]).ok,true);
     const c=fixture(id);
     const required=Object.values(c.blocks).filter(b=>b.type==='D');

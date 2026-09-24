@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitgame-cache-v21-gameplay-actions';
+const CACHE_NAME = 'bitgame-cache-v22-chapter-star-targets';
 const urlsToCache = [
   '/',
   '/index.html',

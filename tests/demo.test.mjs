@@ -23,14 +23,21 @@ const options = { levels, budgets, themeIds: ['soft-glow'] };
 function setup(extra = {}) { const storage = memoryStorage(); return { storage, store: createDemoStore({ ...options, storage, ...extra }) }; }
 function unlock(store, to) { for (const id of [0,1,2,3].filter(id => id < to)) store.recordClear(id, fixture(id)); }
 
-test('all shipped puzzles keep null cost targets and passing fixtures earn one star', () => {
+test('passing demo fixtures earn the configured cost stars in both languages', () => {
   const en = read('levels_en.json');
+  // Fixture filenames retain the old block/wire tiers, not the current cost stars.
+  const expected = {
+    1:[2,3], 2:[2,3], 3:[2,3], 4:[2,3], 5:[2,3], 6:[2,2],
+    7:[2,2], 11:[1,1], 25:[2,3], 26:[1,2], 27:[1,2],
+    28:[2,2], 29:[1,1], 30:[2,3], 31:[2,3]
+  };
   for (const id of [0,...budgetIds]) {
     for (const key of ['levelGridSizes','levelBlockSets','levelAnswers','levelFixedIO']) assert.deepEqual(levels[key]?.[id], en[key]?.[id]);
     for (const tier of id === 0 ? [0] : [2,3]) {
       const circuit = fixture(id, tier);
       const record = makeRecord(circuit, id, levels, budgets);
-      assert.equal(record.stars, id === 0 ? 0 : 1);
+      assert.equal(record.stars, id === 0 ? 0 : expected[id][tier-2]);
+      assert.equal(makeRecord(circuit, id, en, budgets).stars, record.stars);
       assert.ok(passesStage(circuit, id, en));
       if (id) {
         assert.ok(budgets[id][3].usedBlocks <= budgets[id][2].usedBlocks);
@@ -42,7 +49,7 @@ test('all shipped puzzles keep null cost targets and passing fixtures earn one s
 test('cost stars include boundaries and award three directly', () => {
   const thresholds = { 1: { twoStarMaxCost: 20, threeStarMaxCost: 12 } };
   for (const [totalCost, stars] of [[11,3],[12,3],[13,2],[20,2],[21,1]]) assert.equal(awardStars(1,{totalCost},thresholds), stars);
-  for (const id of Object.keys(levels.levelTitles).filter(id => id !== '0')) assert.equal(validateStarThresholds(levels.levelStarThresholds[id]).status, 'pending');
+  for (const id of DEMO_IDS.filter(id => id !== 0)) assert.equal(validateStarThresholds(levels.levelStarThresholds[id]).status, 'ready');
 });
 test('counts include INPUT/OUTPUT/JUNCTION and deduplicate intermediate cells', () => {
   assert.deepEqual(getCircuitStats({ blocks: {a:{type:'INPUT'},b:{type:'OUTPUT'},c:{type:'JUNCTION'}}, wires: {

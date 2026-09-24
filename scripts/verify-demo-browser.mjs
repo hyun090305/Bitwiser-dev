@@ -104,11 +104,11 @@ try {
   await page.waitForFunction(() => !document.getElementById('gradingReplayBtn').disabled);
   await page.locator('#gradingResultEditBtn').click();
   await grade(1,2);
-  assert.equal((await save()).stages[1].best.stars,1);
-  await grade(1,3); assert.equal((await save()).stages[1].best.stars,1);
+  assert.equal((await save()).stages[1].best.stars,2);
+  await grade(1,3); assert.equal((await save()).stages[1].best.stars,3);
   // Preserve the better record while saving a later unfinished draft.
   await page.evaluate(async()=>{const g=await import('./src/modules/grid.js');const c=structuredClone(g.getPlayCircuit());c.wires={};g.getPlayController().restoreCircuit(c);});
-  await page.waitForTimeout(550); assert.equal((await save()).stages[1].best.stars,1);
+  await page.waitForTimeout(550); assert.equal((await save()).stages[1].best.stars,3);
   await enter(2); await grade(2); await enter(3); await grade(3);
   await enter(6);
   await page.locator('#viewRankingBtn').click();
@@ -130,7 +130,7 @@ try {
   await fs.writeFile('test-results/demo-progress.json', JSON.stringify(await save()));
   await enter(4); await grade(4); await enter(5); await grade(5);
   for (const id of [30,31,29,28,27,26,7,25,11]) { await enter(id); await grade(id); }
-  await enter(23); // Existing Priority remains playable; optimization budget is pending.
+  await enter(23); // Existing Priority remains playable with configured cost targets.
   assert.ok((await save()).stages[23].draft);
   assert.equal('storySeen' in (await save()),false);
   const forbidden=await page.evaluate(async()=>{try {await (await import('./src/modules/levels.js')).startLevel(24);return false;}catch{return true;}}); assert.equal(forbidden,true);

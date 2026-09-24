@@ -44,7 +44,7 @@ test('AC-1/5: response check has bilingual Button ports, free 12x12 IO and a dis
   assert.equal(levels.levelAnswers[29].referenceId, 'memory20:response-check');
   assert.equal(STAGE_REFERENCE_IDS[29], 'memory20:response-check');
   assert.equal(levels.levelRevisions[29], 'response-check-2026-09-24');
-  assert.deepEqual(levels.levelStarThresholds[29], { twoStarMaxCost: null, threeStarMaxCost: null });
+  assert.deepEqual(levels.levelStarThresholds[29], { twoStarMaxCost: 120, threeStarMaxCost: 95 });
   for (const data of [levels, en]) {
     assert.doesNotMatch(JSON.stringify([data.levelDescriptions[29], data.levelHints.stage29]), /WRITE|COMMIT|RESET|Q0|Q1/);
     for (const c of [fixture(), ...[2, 3].map(tier => read(`tests/fixtures/demo/29-${tier}.json`).circuit)]) {

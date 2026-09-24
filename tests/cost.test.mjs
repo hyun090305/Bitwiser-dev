@@ -42,26 +42,48 @@ test('star placeholders, invalid pairs, zero/equal limits, failed verification a
   }
   const t={twoStarMaxCost:0,threeStarMaxCost:0};
   assert.equal(evaluateCostStars(1,true,0,t),3); assert.equal(evaluateCostStars(1,false,0,t),0); assert.equal(evaluateCostStars(0,true,0,t),0);
+});
+
+test('Chapter 1 original and Chapter 2 agreed cost targets match both languages and include their boundaries', () => {
+  // [three-star maximum, two-star maximum], from the approved Chapter 1/2 table.
+  const targets = {
+    1:[12,14], 2:[13,15], 3:[13,15], 4:[24,27], 5:[24,27], 6:[52,60],
+    23:[120,135], 11:[82,95], 25:[24,28], 7:[54,65], 27:[58,65],
+    26:[39,45], 28:[38,58], 29:[95,120], 30:[92,105], 31:[68,75]
+  };
   for (const file of ['levels.json','levels_en.json']) {
     const l=JSON.parse(fs.readFileSync(file,'utf8'));
     assert.deepEqual(Object.keys(l.levelStarThresholds),Object.keys(l.levelTitles).filter(id=>id!=='0'));
-    for(const value of Object.values(l.levelStarThresholds)) assert.deepEqual(value,{twoStarMaxCost:null,threeStarMaxCost:null});
+    for (const [id, value] of Object.entries(l.levelStarThresholds)) {
+      const [three, two] = targets[id] || [null, null];
+      assert.deepEqual(value, {twoStarMaxCost:two, threeStarMaxCost:three}, `${file} stage ${id}`);
+      if (three === null) {
+        assert.equal(evaluateCostStars(id,true,0,value),1);
+        continue;
+      }
+      for (const [cost, stars] of [[three,3],[three+1,2],[two,2],[two+1,1]]) {
+        assert.equal(evaluateCostStars(id,true,cost,value),stars, `stage ${id}, cost ${cost}`);
+      }
+      assert.equal(evaluateCostStars(id,false,three,value),0);
+    }
   }
 });
 test('record validation rejects failed circuits, recalculates cost and freezes the associated placement', () => {
   const c=fixture(1); const r=makeCostRecord(c,1,levels);
-  assert.equal(r.totalCost,calculateCircuitCost(c).totalCost); assert.equal(r.stars,1);
+  assert.equal(r.totalCost,calculateCircuitCost(c).totalCost); assert.equal(r.stars,3);
   c.blocks.g.type='D'; assert.equal(r.circuit.blocks.g.type,'NOT');
   const failed=fixture(1);failed.wires={}; assert.throws(()=>makeCostRecord(failed,1,levels),/does not pass/);
 });
 test('first, improved, tie and worse costs preserve actual best and allow later stars without replay', () => {
   const data=structuredClone(levels), storage=memory();
+  data.levelStarThresholds[1]={twoStarMaxCost:null,threeStarMaxCost:null};
   const store=createCostStore({storage,levels:data});
   const worse=fixture(1,2), better=fixture(1);
   const first=store.recordClear(1,worse); assert.equal(first.first,true);
   const improved=store.recordClear(1,better); assert.equal(improved.improved,true); assert.equal(improved.previousCost,first.record.totalCost);
   const tied=store.recordClear(1,better); assert.equal(tied.first,false); assert.equal(tied.improved,false);
   const bad=store.recordClear(1,worse); assert.equal(bad.improved,false); assert.equal(bad.best.totalCost,improved.record.totalCost);
+  assert.equal(store.stars(1),1);
   data.levelStarThresholds[1]={twoStarMaxCost:bad.record.totalCost,threeStarMaxCost:bad.best.totalCost};
   assert.equal(store.stars(1),3);
   const reloaded=createCostStore({storage,levels:data}); assert.equal(reloaded.stars(1),3);
@@ -83,7 +105,7 @@ test('legacy demo stars, clears and drafts survive without invented costs; new c
   const again=createDemoStore(options);assert.equal(again.state.stages[1].best.totalCost,undefined);
   assert.equal(highestStars(again.state.stages[1],levels,1),3);assert.ok(again.cleared().includes(1));
   assert.deepEqual(again.state.stages[1].draft,raw.stages[1].draft);
-  const next=again.recordClear(1,fixture(1));assert.equal(next.record.stars,1);assert.equal(next.highestStars,3);
+  const next=again.recordClear(1,fixture(1));assert.equal(next.record.stars,3);assert.equal(next.highestStars,3);
   assert.equal(again.state.stages[1].previousCostRecords[0].totalCost,undefined);
   assert.deepEqual(createDemoStore(options).state.stages[1].previousCostRecords,again.state.stages[1].previousCostRecords);
 });

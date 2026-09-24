@@ -8438,32 +8438,32 @@
   },
   "levelStarThresholds": {
     "1": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 14,
+      "threeStarMaxCost": 12
     },
     "2": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 15,
+      "threeStarMaxCost": 13
     },
     "3": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 15,
+      "threeStarMaxCost": 13
     },
     "4": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 27,
+      "threeStarMaxCost": 24
     },
     "5": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 27,
+      "threeStarMaxCost": 24
     },
     "6": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 60,
+      "threeStarMaxCost": 52
     },
     "7": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 65,
+      "threeStarMaxCost": 54
     },
     "8": {
       "twoStarMaxCost": null,
@@ -8478,8 +8478,8 @@
       "threeStarMaxCost": null
     },
     "11": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 95,
+      "threeStarMaxCost": 82
     },
     "12": {
       "twoStarMaxCost": null,
@@ -8526,40 +8526,40 @@
       "threeStarMaxCost": null
     },
     "23": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 135,
+      "threeStarMaxCost": 120
     },
     "24": {
       "twoStarMaxCost": null,
       "threeStarMaxCost": null
     },
     "25": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 28,
+      "threeStarMaxCost": 24
     },
     "26": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 45,
+      "threeStarMaxCost": 39
     },
     "27": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 65,
+      "threeStarMaxCost": 58
     },
     "28": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 58,
+      "threeStarMaxCost": 38
     },
     "29": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 120,
+      "threeStarMaxCost": 95
     },
     "30": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 105,
+      "threeStarMaxCost": 92
     },
     "31": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 75,
+      "threeStarMaxCost": 68
     },
     "32": {
       "twoStarMaxCost": null,
