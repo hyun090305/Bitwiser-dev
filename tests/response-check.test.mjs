@@ -15,20 +15,22 @@ const read = file => JSON.parse(fs.readFileSync(new URL('../' + file, import.met
 const levels = read('levels.json'), en = read('levels_en.json');
 const fixture = () => read('tests/fixtures/memory20/29.json').circuit;
 const reference = getReferenceFSM(levels.levelAnswers[29].referenceId);
+const twoBitDefinition = levels.levelPreviousLayouts[29].find(definition =>
+  definition.levelAnswers.referenceId === 'memory20:C5-04' && definition.levelGridSizes.join('x') === '20x24');
 const storageFor = entries => {
   const values = new Map(entries);
   return { getItem: key => values.get(key), setItem: (key, value) => values.set(key, value) };
 };
 
-test('AC-1/5: response check has bilingual Button ports, free 14x17 IO and a distinct revision', () => {
+test('AC-1/5: response check has bilingual Button ports, free 12x12 IO and a distinct revision', () => {
   assert.equal(levels.levelTitles[29], '응답 확인');
   assert.equal(en.levelTitles[29], 'Response Check');
-  assert.deepEqual(levels.levelGridSizes[29], [14, 17]);
+  assert.deepEqual(levels.levelGridSizes[29], [12, 12]);
   const solution = fixture(), points = [...Object.values(solution.blocks).map(b => b.pos), ...Object.values(solution.wires).flatMap(w => w.path)];
-  assert.equal(Math.min(...points.map(p => p.r)), 2);
+  assert.equal(Math.min(...points.map(p => p.r)), 1);
   assert.equal(Math.max(...points.map(p => p.r)), solution.rows - 3);
-  assert.equal(Math.min(...points.map(p => p.c)), 2);
-  assert.equal(Math.max(...points.map(p => p.c)), solution.cols - 3);
+  assert.equal(Math.min(...points.map(p => p.c)), 1);
+  assert.equal(Math.max(...points.map(p => p.c)), solution.cols - 2);
   assert.deepEqual(levels.levelFixedIO[29], { fixIO: false, grid: [] });
   assert.deepEqual(levels.levelBlockSets[29], [
     { type: 'INPUT', name: 'A', inputMode: 'button' },
@@ -142,7 +144,7 @@ test('AC-5: grader rejects forgotten, queued, retained, delayed and latched resp
 });
 
 test('AC-7: both old definitions still grade their original circuits and cannot become current records', () => {
-  const definitions = [levels.levelLegacyDefinitions[29], levels.levelPreviousLayouts[29].at(-1)];
+  const definitions = [levels.levelLegacyDefinitions[29], twoBitDefinition];
   const files = ['29.json', '29-2bit.json'];
   for (const [i, definition] of definitions.entries()) {
     const c = read(`tests/fixtures/legacy-memory/${files[i]}`).circuit;
@@ -190,8 +192,33 @@ test('AC-7: demo reload, new clear and backup round-trip preserve both old desig
   assert.ok(store.isUnlocked(30));
 });
 
+test('AC-7: resizing preserves the previous 14x17 response-check save and backup', () => {
+  const definition = levels.levelPreviousLayouts[29].find(item =>
+    item.levelAnswers.referenceId === 'memory20:response-check' && item.levelGridSizes.join('x') === '14x17');
+  assert.ok(definition);
+  const oldLevels = { ...levels, ...Object.fromEntries(Object.entries(definition).map(([key, value]) => [key, {29: value}])) };
+  const circuit = read('tests/fixtures/legacy-memory/29-response-check-14x17.json').circuit;
+  const record = makeCostRecord(circuit, 29, oldLevels);
+  assert.equal(isCurrentCostRecord(record, levels, 29), false);
+  const old = emptyProgress(); old.lastStageId = 29; old.unlockedStages = [29];
+  old.stages[29] = { draft: record, best: record, bestStars: record };
+  const storage = storageFor([[SAVE_KEY, JSON.stringify(old)]]);
+  const open = () => createDemoStore({ storage, levels, budgets: {}, themeIds: [], onFailure: error => { throw error; } });
+  let store = open();
+  assert.equal(store.state.stages[29].draft, undefined);
+  assert.equal(store.state.stages[29].best, undefined);
+  const archived = structuredClone(store.state.stages[29].legacyStageRecords);
+  for (const key of ['draft', 'best', 'bestStars']) assert.deepEqual(archived[0][key], record);
+  assert.ok(store.isUnlocked(29)); assert.ok(store.isUnlocked(30));
+  store.setDraft(29, fixture()); store.recordClear(29, fixture()); store = open();
+  assert.ok(isCurrentCostRecord(store.state.stages[29].best, levels, 29));
+  const backup = store.exportBackup();
+  assert.equal(store.replace(store.parseBackup(backup)), true);
+  assert.deepEqual(open().state.stages[29].legacyStageRecords, archived);
+});
+
 test('AC-7: full cost history remains distinct while a new response-check clear is recorded', () => {
-  const definition = levels.levelPreviousLayouts[29].at(-1);
+  const definition = twoBitDefinition;
   const oldLevels = { ...levels, ...Object.fromEntries(Object.entries(definition).map(([key,value]) => [key, {29:value}])) };
   const previous = makeCostRecord(read('tests/fixtures/legacy-memory/29-2bit.json').circuit, 29, oldLevels);
   previous.stars = 3;

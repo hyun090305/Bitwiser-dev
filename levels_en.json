@@ -166,8 +166,8 @@
       7
     ],
     "29": [
-      14,
-      17
+      12,
+      12
     ],
     "30": [
       7,
@@ -9353,6 +9353,51 @@
         "levelAnswers": {
           "mode": "sequential",
           "referenceId": "memory20:C5-04"
+        }
+      },
+      {
+        "levelGridSizes": [
+          14,
+          17
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "A",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "B",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "GO"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:response-check"
         }
       }
     ],

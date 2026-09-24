@@ -19,7 +19,8 @@ for(const data of languages)for(const id of Object.values(MEMORY20_IDS)) {
   if(data.levelRevisions?.[id]==='memory20-final-2026-09-18') {
     (data.levelPreviousLayouts??={})[id]=[Object.fromEntries(['levelGridSizes','levelBlockSets','levelFixedIO','levelAnswers'].map(key=>[key,structuredClone(data[key][id])]))];
   }
-  if(id===29&&data.levelAnswers[id]?.referenceId==='memory20:C5-04') {
+  const previousResponseLayout=data.levelAnswers[id]?.referenceId==='memory20:response-check'&&data.levelGridSizes[id]?.join('x')!=='12x12';
+  if(id===29&&(data.levelAnswers[id]?.referenceId==='memory20:C5-04'||previousResponseLayout)) {
     const definition=Object.fromEntries(['levelGridSizes','levelBlockSets','levelFixedIO','levelAnswers'].map(key=>[key,structuredClone(data[key][id])]));
     const previous=(data.levelPreviousLayouts??={})[id]??=[];
     if(!previous.some(item=>JSON.stringify(item)===JSON.stringify(definition)))previous.push(definition);
@@ -27,7 +28,7 @@ for(const data of languages)for(const id of Object.values(MEMORY20_IDS)) {
 }
 for(const entry of catalog) {
   const id=MEMORY20_IDS[entry.slot],fixture=await read(`tests/fixtures/memory20/${id}.json`),c=fixture.circuit;
-  if(id===29&&(c.rows!==14||c.cols!==17))throw new Error('Response Check must retain its 14x17 board');
+  if(id===29&&(c.rows!==12||c.cols!==12))throw new Error('Response Check must retain its 12x12 board');
   const [titleKo,ko,hintKo]=memory20Korean[entry.slot];
   const [titleEn,descEn,hintEn]=memory20Copy[entry.slot];
   const palette=Object.values(c.blocks).filter(b=>['INPUT','OUTPUT'].includes(b.type)).map(b=>({type:b.type,name:b.name,...(b.type==='INPUT'?{inputMode:b.inputMode}:{})}));
@@ -53,7 +54,7 @@ for(const entry of catalog) {
   const folder=id>=32?'tests/fixtures/stages':'tests/fixtures/demo';
   for(const [tier,circuit] of [[3,c],[2,detourReference(c)]])await write(`${folder}/${id}-${tier}.json`,{purpose:'Verified final handoff reference; not a minimum or an authored star threshold',circuit});
   report.push({slot:entry.slot,id,title:titleKo,logicalBlocks:entry.blocks,placedBlocks:Object.keys(c.blocks).length,
-    previousGrid:languages[0].levelPreviousLayouts?.[id]?.[0]?.levelGridSizes,grid:[c.rows,c.cols],fixedIO:false,padding:entry.blocks<=11?1:2,
+    previousGrid:languages[0].levelPreviousLayouts?.[id]?.[0]?.levelGridSizes,grid:[c.rows,c.cols],fixedIO:false,padding:id===29||entry.blocks<=11?1:2,
     ...calculateCircuitCost(c),transitions:result.transitions});
 }
 for(const [i,file] of ['levels.json','levels_en.json'].entries())await write(file,languages[i]);

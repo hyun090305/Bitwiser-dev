@@ -1050,15 +1050,15 @@
       50
     ],
     "grid": [
-      14,
-      17
+      12,
+      12
     ],
     "fixedIO": false,
-    "padding": 2,
+    "padding": 1,
     "pricingVersion": "cost-v1",
-    "totalCost": 162,
+    "totalCost": 153,
     "counts": {
-      "WIRE": 42,
+      "WIRE": 33,
       "JUNCTION": 0,
       "NOT": 1,
       "AND": 3,
@@ -1070,9 +1070,9 @@
     "breakdown": [
       {
         "type": "WIRE",
-        "count": 42,
+        "count": 33,
         "unitCost": 1,
-        "subtotal": 42
+        "subtotal": 33
       },
       {
         "type": "JUNCTION",

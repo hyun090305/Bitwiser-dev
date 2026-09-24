@@ -26,9 +26,12 @@ let browser, app;
 async function verify(page, surface, lang) {
   page.on('pageerror', error => errors.push(`${surface}/${lang}: ${error.message}`));
   await page.locator('#loadingStartBtn:enabled').click();
-  await page.evaluate(async () => {
+  await page.locator('#loadingScreen').waitFor({state:'hidden'});
+  // Demo START launches the saved stage after the loading-screen transition.
+  if (surface === 'demo') await page.locator('#levelIntroModal').waitFor({state:'visible'});
+  else await page.evaluate(async () => {
     const levels = await import('./src/modules/levels.js');
-    if (!location.pathname.includes('dist-web-demo')) levels.configureLevelModule({progressProvider:()=>[6]});
+    levels.configureLevelModule({progressProvider:()=>[6]});
     await levels.startLevel(29);
     const nav = await import('./src/modules/navigation.js'); nav.hideStageMapScreen(); nav.showGameScreen();
   });
@@ -42,7 +45,7 @@ async function verify(page, surface, lang) {
     const levels = await import('./src/modules/levels.js'), grid = await import('./src/modules/grid.js');
     return { grid:levels.getLevelGridSize(29), palette:levels.getLevelBlockSet(29), fixed:levels.getLevelFixedIO(29), blocks:Object.keys(grid.getPlayCircuit().blocks).length };
   });
-  assert.deepEqual(data.grid, [14,17]); assert.equal(data.fixed.fixIO, false);
+  assert.deepEqual(data.grid, [12,12]); assert.equal(data.fixed.fixIO, false);
   assert.equal(data.blocks, 0);
   assert.deepEqual(data.palette.filter(b => b.type==='INPUT'), [{type:'INPUT',name:'A',inputMode:'button'},{type:'INPUT',name:'B',inputMode:'button'}]);
   assert.deepEqual(data.palette.filter(b => b.type==='OUTPUT'), [{type:'OUTPUT',name:'GO'}]);
@@ -91,7 +94,7 @@ try {
   browser = await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});
   for (const surface of ['web','demo']) for (const lang of ['ko','en']) {
     const context = await browser.newContext({viewport:{width:1440,height:1000},serviceWorkers:'block'});
-    const progress = emptyProgress(); progress.unlockedChapters=['chapter_2'];
+    const progress = emptyProgress(); progress.unlockedChapters=['chapter_2']; progress.lastStageId=29;
     await context.addInitScript(({lang,progress}) => {
       localStorage.setItem('lang',lang); localStorage.setItem('bgmEnabled','false'); localStorage.setItem('autoSaveCircuit','false');
       localStorage.setItem('bitwiser:web-demo:v1',JSON.stringify(progress));

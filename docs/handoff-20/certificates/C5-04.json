@@ -9,52 +9,52 @@
   "algorithm": "Explicit integer drawing; checked by exact_embedding_check in verify.py",
   "positions": {
     "A": [
-      4,
-      3
+      3,
+      2
     ],
     "B": [
-      12,
-      3
+      9,
+      2
     ],
     "SEEN_A": [
-      2,
-      9
+      1,
+      7
     ],
     "SEEN_B": [
-      14,
-      9
+      10,
+      7
     ],
     "PULSE": [
-      8,
-      4
+      6,
+      3
     ],
     "HAVE_A": [
-      4,
-      7
+      3,
+      5
     ],
     "HAVE_B": [
-      12,
-      7
+      9,
+      5
     ],
     "READY": [
-      8,
-      7
+      6,
+      5
     ],
     "NOT_READY": [
-      8,
-      11
+      6,
+      9
     ],
     "NEXT_A": [
-      4,
-      11
+      3,
+      9
     ],
     "NEXT_B": [
-      12,
-      11
+      9,
+      9
     ],
     "OUT_GO": [
-      8,
-      2
+      6,
+      1
     ]
   }
 }
