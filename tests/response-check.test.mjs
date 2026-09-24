@@ -63,19 +63,22 @@ test('AC-2/3/4: all behavioral states and inputs match an independent pending-pa
     [[1,0],[1,0],[0,1],[0,1]],
     [[2,0],[0,1],[2,0],[0,1]]
   ];
-  const known = new Map([[0, reference.initialState]]), queue = [0];
-  assert.equal(reference.stateCount, 3);
+  const known = new Map([['0:0', reference.initialState]]), queue = ['0:0'];
+  assert.equal(reference.stateCount, 4);
   assert.equal(reference.observeAt, 'after_tick');
-  for (const pending of queue) for (let input = 0; input < 4; input++) {
+  for (const key of queue) for (let input = 0; input < 4; input++) {
+    const [pending, pulse] = key.split(':').map(Number);
     const [next, output] = table[pending][input];
-    const actual = reference.evaluate(known.get(pending), input);
+    const actual = reference.evaluate(known.get(key), input), nextKey = `${next}:${output}`;
+    assert.equal(reference.observe(known.get(key), input), pulse, 'input changes preserve the current pulse');
     assert.equal(actual.outputs, output, `${pending}/${input}`);
-    if (!known.has(next)) { known.set(next, actual.nextState); queue.push(next); }
-    assert.equal(actual.nextState, known.get(next));
+    if (!known.has(nextKey)) { known.set(nextKey, actual.nextState); queue.push(nextKey); }
+    assert.equal(actual.nextState, known.get(nextKey));
+    assert.equal(reference.step(known.get(key), input), actual.nextState);
   }
-  assert.equal(known.size, 3);
+  assert.equal(known.size, 4);
   for (const pending of [1, 2]) {
-    assert.equal(reference.evaluate(known.get(pending), 0).nextState, known.get(pending), 'idle is an indefinite self-loop');
+    assert.equal(reference.step(known.get(`${pending}:0`), 0), known.get(`${pending}:0`), 'idle is an indefinite self-loop');
   }
 });
 

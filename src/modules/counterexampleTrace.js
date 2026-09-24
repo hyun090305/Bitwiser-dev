@@ -6,6 +6,18 @@ const element = (tag, className, text) => {
   return el;
 };
 
+export function observationLabel(observation, language = globalThis.window?.currentLang || globalThis.document?.documentElement.lang) {
+  const labels = {
+    initial: ['초기 상태', 'Initial state'],
+    after_set: ['입력 변경 후 (tick 없음)', 'After input change (no tick)'],
+    before_tick: ['tick 전', 'Before tick'],
+    after_tick: ['tick 완료 후', 'After completed tick'],
+    after_release: ['버튼 해제 후', 'After button release'],
+    address_read: ['주소 읽기 (tick 없음)', 'Address read (no tick)']
+  };
+  return labels[observation]?.[language === 'en' ? 1 : 0] || '';
+}
+
 export function createTraceEvent(event, index) {
   const node = element('li', `trace-event trace-event--${event.type}`);
   node.dataset.eventType = event.type;
@@ -14,7 +26,11 @@ export function createTraceEvent(event, index) {
   const data = element('div', 'trace-event__data');
   if (event.type === 'tick') {
     data.append(element('strong', 'trace-event__clock', '↑'));
-    node.append(data, element('span', 'trace-event__hint', 'MEMORY COMMIT'));
+    const en = (globalThis.window?.currentLang || document.documentElement.lang) === 'en';
+    const hint = event.tickMode === 'visible'
+      ? [en ? 'TICK COMPLETE' : 'tick 완료', ...(event.releaseInputs || []).map(s => `${s.signal}=0`)].join(' · ')
+      : 'MEMORY COMMIT';
+    node.append(data, element('span', 'trace-event__hint', hint));
   } else {
     const signals = event.type === 'init' ? event.memory || [] : eventSignals(event);
     for (const signal of signals) {
@@ -31,6 +47,11 @@ export function createTraceEvent(event, index) {
     }
     if (!signals.length) data.append(element('span', 'trace-event__hint', '∅'));
     node.append(data);
+  }
+  const phase = observationLabel(event.observation);
+  if (phase) {
+    node.dataset.observation = event.observation;
+    node.append(element('span', 'trace-event__hint trace-event__observation', phase));
   }
   return node;
 }

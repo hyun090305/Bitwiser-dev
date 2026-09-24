@@ -10,7 +10,7 @@ export function createDemoStore({ storage, levels, budgets, themeIds, onFailure 
   let damaged = false;
   try {
     const raw = storage?.getItem(SAVE_KEY);
-    if (raw) state = validateProgress(JSON.parse(raw), levels, budgets, themeIds);
+    if (raw) state = validateProgress(JSON.parse(raw), levels, budgets, themeIds, { recoverFailedRecords:true });
   } catch (error) { damaged = true; onFailure(error); }
   function persist(next = state) {
     try {
@@ -25,7 +25,7 @@ export function createDemoStore({ storage, levels, budgets, themeIds, onFailure 
       return true;
     } catch (error) { onFailure(error); return false; }
   }
-  const cleared = () => DEMO_IDS.filter(id => state.stages[id]?.best);
+  const cleared = () => DEMO_IDS.filter(id => state.stages[id]?.best || state.stages[id]?.historicalClear);
   const unlocked = id => isUnlocked(id, cleared(), state);
   return {
     get state() { return state; }, cleared,

@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createServer } from 'node:http';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
+import { initialOutputShortcut, responseCheckShortcut, registeredAddressMemory } from '../tests/helpers/sequential-observation-circuits.mjs';
 
 const root = path.resolve('.');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif', '.mp3': 'audio/mpeg' };
@@ -110,6 +111,96 @@ try {
   await page.evaluate(() => document.dispatchEvent(new Event('bitwiser:leavePlay')));
   assert.equal(await page.locator('#gradingResultOverlay').isVisible(), false);
   assert.equal(await page.evaluate(() => window.isGradingResultOpen), false);
+  const definitions = JSON.parse(await fs.readFile('levels.json', 'utf8'));
+  for (const language of ['ko', 'en']) for (const [stage, circuit, observation, phaseLabel] of [
+    [25, initialOutputShortcut(), 'initial', language === 'ko' ? '초기 상태' : 'Initial state'],
+    [38, registeredAddressMemory(), 'after_set', language === 'ko' ? '입력 변경 후 (tick 없음)' : 'After input change (no tick)'],
+    [29, responseCheckShortcut(), 'after_tick', language === 'ko' ? 'tick 완료 후' : 'After completed tick']
+  ]) {
+    await page.setViewportSize(language === 'ko' ? { width: 1440, height: 980 } : { width: 420, height: 850 });
+    await page.evaluate(async ({ stage, language }) => {
+      window.currentLang = language; document.documentElement.lang = language;
+      const levels = await import('/src/modules/levels.js');
+      levels.configureLevelModule({ progressProvider: () => Array.from({ length: 47 }, (_, id) => id) });
+      await levels.startLevel(stage);
+      const nav = await import('/src/modules/navigation.js'); nav.hideStageMapScreen(); nav.showGameScreen();
+    }, { stage, language });
+    await page.locator('#startLevelBtn').click();
+    const expected = await page.evaluate(async ({ circuit, answers }) => {
+      const grid = await import('/src/modules/grid.js'); grid.getPlayController().restoreCircuit(circuit);
+      const c = grid.getPlayCircuit();
+      const { getExecutionState, tickCircuit, previewCircuit } = await import('/src/canvas/evaluation.js');
+      const { getTraceHighlight } = await import('/src/canvas/tracePlayback.js');
+      for (const b of Object.values(c.blocks)) if (b.type === 'INPUT') b.value = true;
+      tickCircuit(c); previewCircuit(c);
+      window.phaseSnapshot = () => JSON.stringify({ c, execution: getExecutionState(c) }, (_key, value) => value instanceof Map ? [...value] : value);
+      window.phaseBefore = window.phaseSnapshot();
+      window.phaseStep = () => ({
+        execution: JSON.parse(JSON.stringify(getExecutionState(c), (_key, value) => value instanceof Map ? [...value] : value)),
+        inputs: Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'INPUT').map(b => [b.name, Number(b.value)])),
+        outputs: Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'OUTPUT').map(b => [b.name, Number(b.value)])),
+        highlight: getTraceHighlight(c)
+      });
+      window.traceLabels = [];
+      return (await import('/src/modules/circuitGrading.js')).gradeCircuitSync(c, answers);
+    }, { circuit, answers: definitions.levelAnswers[stage] });
+    assert.equal(expected.observation, observation);
+    assert.equal(expected.trace.at(-2).type, {initial:'init',after_set:'set',after_tick:'tick'}[observation]);
+    assert.equal(expected.trace.at(-1).type, 'expect');
+    await page.locator('#gradeButton').click();
+    await page.locator('#gradingResultOverlay[data-state=failed]').waitFor();
+    assert.equal(await page.locator('.trace-event[data-failed=true]').getAttribute('data-observation'), observation);
+    assert.equal(await page.locator('.trace-event[data-failed=true] .trace-event__observation').innerText(), phaseLabel);
+    assert.ok((await page.locator('.grading-result-message').innerText()).includes(phaseLabel));
+    assert.deepEqual(await page.locator('.trace-event').evaluateAll(nodes => nodes.map(n => ({ type: n.dataset.eventType, observation: n.dataset.observation || null }))),
+      expected.trace.map(e => ({ type: e.type, observation: e.observation || null })));
+    for (const [index, event] of expected.trace.entries()) if (event.type === 'tick') {
+      const hint = await page.locator(`.trace-event[data-event-index="${index}"] .trace-event__hint`).innerText();
+      assert.ok(hint.includes(language === 'en' ? 'TICK COMPLETE' : 'tick 완료'));
+      for (const signal of event.releaseInputs) assert.ok(hint.includes(`${signal.signal}=0`));
+    }
+    const bounds = await page.locator('.grading-result-panel').boundingBox();
+    assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= (language === 'ko' ? 1440 : 420));
+    await page.screenshot({ path: `test-results/result-trace/${observation}-${language}.png` });
+    await page.locator('#gradingReplayBtn').click();
+    let previous, ticks = 0;
+    for (let i = 0; i < expected.trace.length; i++) {
+      await page.waitForFunction(index => document.querySelector('.trace-event[aria-current=step]')?.dataset.eventIndex === String(index), i);
+      const current = await page.evaluate(() => window.phaseStep()), event = expected.trace[i];
+      if (event.type === 'tick') {
+        ticks++;
+        assert.equal(event.tickMode, 'visible');
+        for (const signal of event.releaseInputs) assert.equal(current.inputs[signal.signal], 0);
+        for (const output of expected.trace[i+1].outputs) assert.equal(current.outputs[output.signal], output.actual, 'TICK already displays the fully released result');
+      }
+      assert.equal(current.execution.tick, ticks);
+      if (previous && event.type !== 'tick') assert.deepEqual(current.execution, previous.execution, 'SET/EXPECT must not advance execution state');
+      if (event.type === 'set') assert.deepEqual(current.inputs, Object.fromEntries(event.inputs.map(s => [s.signal, s.value])));
+      if (event.type === 'expect') {
+        assert.equal(current.highlight.observation, event.observation);
+        for (const output of event.outputs) assert.equal(current.outputs[output.signal], output.actual);
+        assert.deepEqual(current.highlight.blocks.map(b => b.actual), event.outputs.map(s => s.actual));
+      }
+      previous = current;
+    }
+    await page.waitForFunction(() => !document.getElementById('gradingReplayBtn').disabled);
+    assert.equal(await page.locator('.grading-result-observation').isVisible(), false);
+    assert.ok((await page.locator('.grading-result-progress').innerText()).includes(phaseLabel));
+    await page.waitForFunction(() => window.traceLabels.length > 0);
+    assert.ok((await page.evaluate(() => window.phaseStep().highlight.blocks)).some(b => !b.passed));
+    await page.screenshot({ path: `test-results/result-trace/${observation}-${language}-replay.png` });
+    await page.locator('#gradingResultEditBtn').click();
+    assert.equal(await page.evaluate(() => window.phaseSnapshot() === window.phaseBefore), true);
+    // Restart, then cancel through both Escape and stage navigation.
+    await page.locator('#gradeButton').click();
+    await page.locator('#gradingResultOverlay[data-state=failed]').waitFor();
+    await page.locator('#gradingReplayBtn').click();
+    await page.waitForFunction(() => document.querySelector('.trace-event[aria-current=step]')?.dataset.eventIndex === '0');
+    if (language === 'ko') await page.keyboard.press('Escape');
+    else await page.evaluate(() => document.dispatchEvent(new Event('bitwiser:leavePlay')));
+    assert.equal(await page.locator('#gradingResultOverlay').isVisible(), false);
+    assert.equal(await page.evaluate(() => window.phaseSnapshot() === window.phaseBefore), true);
+  }
   assert.deepEqual(errors, []);
-  console.log('Full result browser passed: Stage 35 trace/replay, visible output badge, toolbar/keyboard lock, focus and runtime restoration, invalid connections, combinational trace, navigation cleanup.');
+  console.log('Full result browser passed: Stage 35 trace/replay, initial/SET/completed-tick failure phases in Korean/English and desktop/mobile, exact inputs/outputs and released TICK frames, visible output badge, toolbar/keyboard lock, focus/runtime restoration, invalid connections, combinational trace, navigation cleanup.');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }

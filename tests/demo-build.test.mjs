@@ -58,12 +58,16 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
       }
       const expected = getMemory20Reference(referenceSlot);
       assert.ok(actual, `Missing Stage ${id} (${slot})`);
-      for (const key of ['inputs', 'outputs', 'initialState', 'stateCount', 'observeAt']) {
+      for (const key of ['inputs', 'outputs', 'initialState', 'stateCount', 'observeAt', 'observationMode', 'releaseButtons']) {
         assert.deepEqual(actual[key], expected[key], `${slot}: ${key}`);
       }
       for (let state = 0; state < expected.stateCount; state++) {
         for (let input = 0; input < 2 ** expected.inputs.length; input++) {
           assert.deepEqual(actual.evaluate(state, input), expected.evaluate(state, input), `${slot}: ${state}/${input}`);
+          if (expected.observationMode === 'visible') {
+            assert.equal(actual.step(state, input), expected.step(state, input), `${slot}: step ${state}/${input}`);
+            assert.equal(actual.observe(state, input), expected.observe(state, input), `${slot}: observe ${state}/${input}`);
+          }
         }
       }
     }
@@ -74,7 +78,7 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
 
   test(`${label} demo build fails with stage and slot when a required definition is missing`, async t => {
     // Keep the marker so merely counting comments cannot satisfy validation.
-    const directory = await setup(t, newline, text => text.replace(/^  'C4-05':.*\n/m, ''));
+    const directory = await setup(t, newline, text => text.replace(/^  'C4-05': \[\[.*\n/m, ''));
     const result = build(directory);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Missing demo memory references: Stage 30 \(C4-05\)/);
@@ -83,7 +87,7 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
   });
 
   test(`${label} demo build requires the replacement response-check definition`, async t => {
-    const directory = await setup(t, newline, text => text.replace("'response-check':", "'missing-response-check':"));
+    const directory = await setup(t, newline, text => text.replace("'response-check': [[", "'missing-response-check': [["));
     const result = build(directory);
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /Missing demo memory references: Stage 29 \(C5-04\)/);

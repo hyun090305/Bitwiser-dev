@@ -5,7 +5,10 @@ import fs from 'node:fs';
 import { DEMO_IDS, DEMO_NODES, DEMO_NODE_LEVELS, isUnlocked, demoMap } from '../src/demo/catalog.js';
 import { STAGES } from '../src/modules/stageCatalog.js';
 import { getCircuitStats, isValidWirePath } from '../src/canvas/circuitData.js';
-import { validateCircuit, makeRecord, awardStars, validateProgress, passesStage } from '../src/demo/records.js';
+import { validateCircuit, makeRecord, awardStars, validateProgress, passesStage, emptyProgress } from '../src/demo/records.js';
+import { stageRules, isCurrentCostRecord, highestStars } from '../src/modules/costRecords.js';
+import { GRADING_VERSION, gradeCircuitSync } from '../src/modules/circuitGrading.js';
+import { snapshotCircuit } from '../src/canvas/circuitData.js';
 import { createDemoStore, SAVE_KEY } from '../src/demo/store.js';
 const read = file => JSON.parse(fs.readFileSync(new URL('../' + file, import.meta.url), 'utf8'));
 const levels = read('levels.json');
@@ -123,4 +126,113 @@ test('corrupt local data is preserved; illegal wire geometry is rejected by shar
     const c=fixture(1); mutate(c); assert.throws(()=>validateCircuit(c,1,levels));
   }
   const c=fixture(1); c.wires.w0.path=[c.blocks.a.pos,c.blocks.g.pos]; assert.throws(()=>validateCircuit(c,1,levels));
+});
+
+for (const version of [3, 4]) test(`AC-6/7: v${version} records preserve full demo history across save, reload and backup import`, () => {
+  const circuit = read('tests/fixtures/observations/30-shortcut.json').circuit;
+  const record = (c, id) => {
+    const rules = JSON.parse(stageRules(levels, id)); rules[0] = version;
+    return { circuitVersion:3, circuit:snapshotCircuit(c), gradingVersion:version, stageId:id,
+      stageRules:JSON.stringify(rules), ...getCircuitStats(c), ...calculateCircuitCost(c), stars:3 };
+  };
+  const old = record(circuit, 30), passingOld = record(fixture(29), 29), unrelated = makeRecord(fixture(1), 1, levels);
+  const raw = emptyProgress(); raw.gradingVersion = version; raw.lastStageId = 30;
+  raw.unlockedStages = [29,30]; raw.unlockedChapters = ['chapter_2'];
+  raw.stages = {30:{best:old,bestStars:structuredClone(old),draft:{circuitVersion:3,circuit:snapshotCircuit(fixture(30))}},
+    29:{best:passingOld,bestStars:passingOld},1:{best:unrelated,bestStars:unrelated}};
+  delete raw.stages[30].bestStars.gradingVersion; // Pre-record-version legacy data uses its container's version.
+  raw.hints[30] = 1; raw.settings = {lang:'en',bgmEnabled:false};
+  const storage = memoryStorage(); storage.setItem(SAVE_KEY, JSON.stringify(raw));
+  const open = () => createDemoStore({...options,storage,onFailure:error=>{throw error;}});
+  let store = open();
+  assert.equal(store.state.gradingVersion, GRADING_VERSION);
+  assert.deepEqual(store.state.stages[30].best, old);
+  assert.equal(store.state.stages[30].bestStars.gradingVersion, version);
+  assert.equal(highestStars(store.state.stages[30], levels, 30), 3);
+  assert.ok(store.cleared().includes(30)); assert.ok(store.isUnlocked(30));
+  assert.equal(isCurrentCostRecord(store.state.stages[30].best, levels, 30), false);
+  assert.equal(isCurrentCostRecord(store.state.stages[29].best, levels, 29), false);
+  assert.deepEqual(store.state.stages[1].best, unrelated);
+  assert.deepEqual(store.state.stages[30].draft, raw.stages[30].draft);
+  assert.deepEqual(store.state.hints, raw.hints); assert.deepEqual(store.state.settings, raw.settings);
+  const before = store.exportBackup();
+  assert.throws(() => store.recordClear(30, circuit), /does not pass/);
+  assert.equal(store.exportBackup(), before);
+  assert.equal(store.replace(store.parseBackup(before)), true); store = open();
+  assert.equal(store.exportBackup(), before);
+  store.recordClear(30, fixture(30)); store = open();
+  assert.ok(isCurrentCostRecord(store.state.stages[30].best, levels, 30));
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [old]);
+  assert.deepEqual(store.state.stages[30].bestStars.circuit, old.circuit);
+  assert.equal(highestStars(store.state.stages[30], levels, 30), 3);
+  const exported = store.exportBackup();
+  assert.equal(store.replace(store.parseBackup(exported)), true);
+  assert.equal(open().exportBackup(), exported);
+  const falselyCurrent = JSON.parse(before);
+  falselyCurrent.gradingVersion = version;
+  falselyCurrent.stages[30].best.gradingVersion = GRADING_VERSION;
+  falselyCurrent.stages[30].best.stageRules = stageRules(levels, 30);
+  assert.throws(() => store.parseBackup(JSON.stringify(falselyCurrent)), /does not pass/);
+  assert.equal(store.exportBackup(), exported);
+});
+
+test('AC-6: local current-record revalidation isolates failures while backup import remains strict', () => {
+  const invalid = { ...makeRecord(fixture(30), 30, levels),
+    circuit:snapshotCircuit(read('tests/fixtures/observations/30-shortcut.json').circuit), stars:3 };
+  const good = makeRecord(fixture(1), 1, levels), survivor = makeRecord(fixture(29), 29, levels);
+  const failingStars = { ...survivor, circuit:{...survivor.circuit,wires:{}}, stars:3 };
+  const raw = emptyProgress(); raw.lastStageId = 30;
+  raw.unlockedStages = [29,30]; raw.unlockedChapters = ['chapter_2'];
+  raw.stages = {1:{best:good,bestStars:good},
+    29:{best:survivor,bestStars:failingStars},
+    30:{best:invalid,bestStars:invalid,draft:{circuitVersion:3,circuit:invalid.circuit}}};
+  raw.hints = {30:1}; raw.settings = {lang:'en',bgmEnabled:false};
+  const storage = memoryStorage(); storage.setItem(SAVE_KEY, JSON.stringify(raw));
+  const open = () => createDemoStore({...options,storage,onFailure:error=>{throw error;}});
+  let store = open();
+  assert.deepEqual(store.state.stages[1].best, good);
+  assert.deepEqual(store.state.stages[29].best, survivor);
+  assert.deepEqual(store.state.stages[29].bestStars, survivor);
+  assert.equal(highestStars(store.state.stages[29], levels, 29), 3);
+  assert.deepEqual(store.state.stages[29].previousCostRecords, [failingStars]);
+  assert.equal(store.state.stages[30].best, undefined);
+  assert.equal(store.state.stages[30].bestStars, undefined);
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [invalid,invalid]);
+  assert.deepEqual(store.state.stages[30].draft, raw.stages[30].draft);
+  assert.equal(highestStars(store.state.stages[30], levels, 30), 3);
+  assert.ok(store.cleared().includes(30)); assert.ok(store.isUnlocked(30));
+  assert.deepEqual(store.state.hints, raw.hints); assert.deepEqual(store.state.settings, raw.settings);
+  const restored = store.exportBackup();
+  assert.throws(() => store.parseBackup(JSON.stringify(raw)), /does not pass/);
+  assert.equal(store.exportBackup(), restored);
+  store.persist(); store = open();
+  assert.deepEqual(JSON.parse(store.exportBackup()), JSON.parse(restored), 'startup quarantine is stable across persistence and reload');
+  assert.equal(store.replace(store.parseBackup(restored)), true);
+  assert.deepEqual(JSON.parse(open().exportBackup()), JSON.parse(restored), 'exported history is accepted without promoting its failed records');
+  store.recordClear(30, fixture(30)); store = open();
+  assert.ok(isCurrentCostRecord(store.state.stages[30].best, levels, 30));
+  assert.equal(highestStars(store.state.stages[30], levels, 30), 3);
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [invalid,invalid]);
+});
+
+test('AC-6/7: a local sequential revalidation time limit preserves progress without creating a current best', t => {
+  const normal = makeRecord(fixture(30), 30, levels), unrelated = makeRecord(fixture(1), 1, levels);
+  const raw = emptyProgress(); raw.unlockedStages = [30]; raw.lastStageId = 30;
+  raw.stages = {1:{best:unrelated,bestStars:unrelated},30:{best:normal,bestStars:normal}};
+  const storage = memoryStorage(); storage.setItem(SAVE_KEY, JSON.stringify(raw));
+  let now = 0;
+  t.mock.method(performance, 'now', () => now += 10001);
+  const limited = gradeCircuitSync(normal.circuit, levels.levelAnswers[30]);
+  assert.equal(limited.status, 'incomplete'); assert.equal(limited.reason, 'TIME_LIMIT');
+  const store = createDemoStore({...options,storage,onFailure:error=>{throw error;}});
+  assert.deepEqual(store.state.stages[1].previousCostRecords, [unrelated,unrelated]);
+  assert.ok(store.cleared().includes(1));
+  assert.equal(store.state.stages[30].best, undefined);
+  assert.ok(store.cleared().includes(30)); assert.ok(store.isUnlocked(30));
+  assert.deepEqual(store.state.stages[30].previousCostRecords, [normal,normal]);
+  assert.equal(highestStars(store.state.stages[30], levels, 30), normal.stars);
+  store.persist(); t.mock.restoreAll();
+  const reloaded = createDemoStore({...options,storage,onFailure:error=>{throw error;}});
+  assert.deepEqual(reloaded.state, store.state);
+  assert.equal(reloaded.state.stages[30].best, undefined, 'finishing a later load does not promote archived results');
 });

@@ -255,7 +255,7 @@ async function boot() {
       if (file.size > 1024 * 1024) throw new Error('Backup exceeds 1 MiB');
       const validated = store.parseBackup(await file.text());
       openDialog(text('importBackup')); paragraph(text('backupReady'));
-      paragraph(`${text('complete')}: ${Object.values(validated.stages).filter(s => s.best).length}`);
+      paragraph(`${text('complete')}: ${Object.values(validated.stages).filter(s => s.best || s.historicalClear).length}`);
       button(text('restoreBackup'), async () => {
         flushDraft(); download(new Blob([store.exportBackup()], {type:'application/json'}), 'bitwiser-before-restore.json');
         if (store.replace(validated)) location.reload();

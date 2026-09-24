@@ -4638,6 +4638,7 @@ body.lab-mode-active {
 .is-replaying .grading-result-panel { padding: 18px 24px; max-height: 48dvh; }
 .is-replaying .grading-result-header { margin-bottom: 12px; }
 .is-replaying .grading-result-header .level-intro-screen__title { font-size: 20px; }
+.is-replaying .grading-result-observation { display: none; }
 .is-replaying .grading-result-trace .level-intro-screen__logic-label { display: none; }
 .is-replaying .grading-result-trace__heading { justify-content: flex-end; height: 0; position: relative; top: -24px; }
 .is-replaying .trace-navigation { margin: 0; }
