@@ -96,7 +96,7 @@ test('existing FSMs retain before-tick grading semantics', () => {
   assert.equal(gradeCircuitSync(register(), zero('guess')).diagnostics[0].code, 'INVALID_OBSERVATION');
 });
 
-test('release and repeated address reads replay explicit inputs without changing memory or tick history', () => {
+test('legacy unmarked ticks and explicit releases retain their original playback semantics', () => {
   const c = JSON.parse(fs.readFileSync(new URL('./fixtures/memory20/38.json', import.meta.url))).circuit;
   const inputs = Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'INPUT').map(b => [b.name, b]));
   const outputs = Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'OUTPUT').map(b => [b.name, b]));
@@ -150,8 +150,8 @@ test('release and repeated address reads replay explicit inputs without changing
 
 test('observation labels distinguish all supplied boundaries in Korean and English', () => {
   for (const language of ['ko', 'en']) {
-    const labels = ['before_tick', 'after_tick', 'after_release', 'address_read'].map(phase => observationLabel(phase, language));
-    assert.equal(new Set(labels).size, 4);
+    const labels = ['initial', 'after_set', 'before_tick', 'after_tick', 'after_release', 'address_read'].map(phase => observationLabel(phase, language));
+    assert.equal(new Set(labels).size, 6);
     assert.ok(labels.every(Boolean));
   }
   assert.match(observationLabel('after_release', 'ko'), /버튼 해제/);
@@ -162,9 +162,9 @@ test('observation labels distinguish all supplied boundaries in Korean and Engli
 });
 
 for (const [stage, make, observation] of [
-  [30, automaticDoorShortcut, 'after_release'],
-  [29, responseCheckShortcut, 'after_release'],
-  [38, registeredAddressMemory, 'address_read']
+  [30, automaticDoorShortcut, 'after_set'],
+  [29, responseCheckShortcut, 'after_tick'],
+  [38, registeredAddressMemory, 'after_set']
 ]) test(`stage ${stage}: failure metadata, rendered event phase and actual replay agree at ${observation}`, () => {
   const c = make(); previewCircuit(c);
   const before = structuredClone(c);
@@ -174,9 +174,8 @@ for (const [stage, make, observation] of [
   assert.equal(result.observation, observation);
   assert.deepEqual(c, before, 'grading cannot modify the editor circuit');
   const finalSet = result.trace.at(-2), finalExpect = result.trace.at(-1);
-  assert.equal(finalSet.type, 'set');
+  assert.equal(finalSet.type, observation === 'after_tick' ? 'tick' : 'set');
   assert.equal(finalExpect.observation, observation);
-  assert.deepEqual(Object.fromEntries(finalSet.inputs.map(s => [s.signal, s.value])), result.inputs);
   assert.deepEqual(Object.fromEntries(finalExpect.outputs.map(s => [s.signal, s.actual])), result.actual);
   assert.deepEqual(Object.fromEntries(finalExpect.outputs.map(s => [s.signal, s.expected])), result.expected);
   const playback = createTracePlayback(c, result.trace); playback.start();
@@ -191,18 +190,22 @@ for (const [stage, make, observation] of [
     }
   }
   assert.ok(getTraceHighlight(c).blocks.some(b => !b.passed));
+  assert.deepEqual(Object.fromEntries(Object.values(c.blocks).filter(b => b.type === 'INPUT').map(b => [b.name, Number(b.value)])), result.inputs);
   playback.restore();
   assert.deepEqual(c, before);
 });
 
-test('a later after-tick failure retains each successful parent release in its replay', () => {
+test('a later completed-tick failure replays each parent SET and atomic tick with release', () => {
   const c = register(); c.blocks.x.inputMode = 'button';
-  const answers = zero('after_tick'); answers.reference.releaseButtons = ['x'];
+  const answers = zero('after_tick');
+  Object.assign(answers.reference, { observationMode:'visible', releaseButtons:['x'], step:()=>0, observe:()=>0 });
   const result = gradeCircuitSync(c, answers);
   assert.equal(result.observation, 'after_tick');
-  assert.deepEqual(result.trace.map(e => e.type), ['init', 'set', 'tick', 'expect', 'set', 'expect', 'set', 'tick', 'expect']);
-  assert.equal(result.trace[5].observation, 'after_release');
-  assert.equal(result.trace[4].inputs[0].value, 0);
+  assert.deepEqual(result.trace.map(e => e.type), ['init', 'expect', 'set', 'expect', 'tick', 'expect', 'set', 'expect', 'tick', 'expect']);
+  for (const event of result.trace.filter(e => e.type === 'tick')) {
+    assert.equal(event.tickMode, 'visible');
+    assert.deepEqual(event.releaseInputs, [{signal:'x', blockId:'x', value:0}]);
+  }
   const playback = createTracePlayback(c, result.trace); playback.start();
   let step;
   while ((step = playback.step())) if (step.event.type === 'expect') {
@@ -220,10 +223,52 @@ test('initial address-read failure replays without any tick', () => {
   }
   for (const bit of [0, 1]) c.wires[bit] = newWire({ id: String(bit), startBlockId: `D${bit}`, endBlockId: `Q${bit}`, path: [] });
   const result = gradeCircuitSync(c, { mode: 'sequential', referenceId: 'memory20:C5-02' });
-  assert.equal(result.observation, 'address_read');
-  assert.deepEqual(result.trace.map(e => e.type), ['init', 'set', 'expect']);
+  assert.equal(result.observation, 'after_set');
+  assert.deepEqual(result.trace.map(e => e.type), ['init', 'expect', 'set', 'expect']);
   const playback = createTracePlayback(c, result.trace); playback.start();
   while (playback.step()) assert.equal(getExecutionState(c).tick, 0);
   assert.ok(getTraceHighlight(c).blocks.some(b => !b.passed));
   playback.restore();
+});
+
+test('visible ticks never display or grade the hidden pre-release frame', () => {
+  const c = makeCircuit();
+  c.blocks.x = newBlock({id:'x', name:'x', type:'INPUT', inputMode:'button', pos:{r:0,c:0}});
+  c.blocks.o = newBlock({id:'o', name:'o', type:'OUTPUT', pos:{r:0,c:1}});
+  c.wires.w = newWire({id:'w', startBlockId:'x', endBlockId:'o', path:[]});
+  const answers = {mode:'sequential', reference:{inputs:['x'], outputs:['o'], initialState:0, stateCount:1,
+    observeAt:'after_tick', observationMode:'visible', releaseButtons:['x'], step:()=>0, observe:(_s,x)=>x}};
+  assert.equal(gradeCircuitSync(c, answers).status, 'pass', 'completed output is 0 although the hidden frame is 1');
+  let value = false; const displayed = [];
+  Object.defineProperty(c.blocks.o, 'value', {configurable:true, enumerable:true, get:()=>value, set:v=>{value=v;displayed.push(v);}});
+  applyTraceEvent(c, {type:'set', signal:'x', value:1}); displayed.length = 0;
+  applyTraceEvent(c, {type:'tick', tickMode:'visible', releaseInputs:[{signal:'x',value:0}]});
+  assert.equal(c.blocks.x.value, false); assert.equal(c.blocks.o.value, false);
+  assert.ok(displayed.length > 0); assert.ok(displayed.every(v=>v===false));
+  assert.equal(getExecutionState(c).tick, 1);
+  applyTraceEvent(c, {type:'set', signal:'x', value:1});
+  applyTraceEvent(c, {type:'tick'});
+  assert.equal(c.blocks.x.value, true); assert.equal(c.blocks.o.value, true, 'unmarked legacy tick retains sampled input');
+  const before = structuredClone(getExecutionState(c));
+  assert.throws(()=>applyTraceEvent(c,{type:'tick',tickMode:'visible',releaseInputs:[{signal:'missing'}]}), /port unavailable/);
+  assert.deepEqual(getExecutionState(c), before);
+});
+
+test('visible replay cancellation at every boundary restores inputs, Q, tick, lastTick and design', () => {
+  const c = registeredAddressMemory();
+  Object.values(c.blocks).filter(b=>b.type==='INPUT').forEach(b=>{b.value=true;}); tickCircuit(c); previewCircuit(c);
+  const before = structuredClone(c), state = structuredClone(getExecutionState(c));
+  const trace = gradeCircuitSync(c,{mode:'sequential',referenceId:'memory20:C5-02'}).trace;
+  const playback = createTracePlayback(c, trace);
+  for(let stop=1;stop<=trace.length;stop++) {
+    playback.start();
+    for(let i=0;i<stop;i++) {
+      const previous = structuredClone(getExecutionState(c)), {event} = playback.step();
+      if(event.type==='tick') {
+        assert.equal(getExecutionState(c).tick,previous.tick+1);
+        for(const signal of event.releaseInputs) assert.equal(c.blocks[signal.blockId].value,false);
+      } else if(event.type!=='init') assert.deepEqual(getExecutionState(c),previous);
+    }
+    playback.restore(); assert.deepEqual(c,before); assert.deepEqual(getExecutionState(c),state);
+  }
 });

@@ -58,12 +58,16 @@ for (const [label, newline] of [['LF', '\n'], ['CRLF', '\r\n']]) {
       }
       const expected = getMemory20Reference(referenceSlot);
       assert.ok(actual, `Missing Stage ${id} (${slot})`);
-      for (const key of ['inputs', 'outputs', 'initialState', 'stateCount', 'observeAt', 'releaseButtons']) {
+      for (const key of ['inputs', 'outputs', 'initialState', 'stateCount', 'observeAt', 'observationMode', 'releaseButtons']) {
         assert.deepEqual(actual[key], expected[key], `${slot}: ${key}`);
       }
       for (let state = 0; state < expected.stateCount; state++) {
         for (let input = 0; input < 2 ** expected.inputs.length; input++) {
           assert.deepEqual(actual.evaluate(state, input), expected.evaluate(state, input), `${slot}: ${state}/${input}`);
+          if (expected.observationMode === 'visible') {
+            assert.equal(actual.step(state, input), expected.step(state, input), `${slot}: step ${state}/${input}`);
+            assert.equal(actual.observe(state, input), expected.observe(state, input), `${slot}: observe ${state}/${input}`);
+          }
         }
       }
     }

@@ -2,7 +2,7 @@ import { compileCircuit } from '../canvas/evaluation.js';
 import { getReferenceFSM } from './referenceFSM.js';
 import { DIVIDER_INPUTS, DIVIDER_OUTPUTS, verifyDivider } from './dividerGrading.js';
 
-export const GRADING_VERSION = 4;
+export const GRADING_VERSION = 5;
 
 const DEFAULTS = Object.freeze({ maxStates: 250000, maxTransitions: 4000000, maxMilliseconds: 10000, chunkSize: 2048, denseLimit: 2 ** 20 });
 const diagnostic = (code, message) => ({ ok: false, status: 'invalid', diagnostics: [{ code, message }] });
@@ -21,25 +21,23 @@ function prepareReference(answers, limits) {
     // built-in spec; no source code from saved problems is evaluated.
     const ref = answers.referenceId ? getReferenceFSM(answers.referenceId) : answers.reference;
     if (!ref) return diagnostic('REFERENCE_REQUIRED', '순차 문제의 정답 FSM이 필요합니다.');
+    const visible = ref.observationMode === 'visible';
     if (ref.observeAt != null && !['before_tick', 'after_tick'].includes(ref.observeAt)) {
       return diagnostic('INVALID_OBSERVATION', '지원하지 않는 출력 관측 시점입니다.');
     }
     if (!namesValid(ref.inputs) || !namesValid(ref.outputs) || !ref.outputs.length ||
         !Number.isSafeInteger(ref.stateCount) || ref.stateCount < 1 ||
-        !Number.isInteger(ref.initialState) || ref.initialState < 0 || ref.initialState >= ref.stateCount || typeof ref.evaluate !== 'function') {
+        !Number.isInteger(ref.initialState) || ref.initialState < 0 || ref.initialState >= ref.stateCount ||
+        (visible ? typeof ref.step !== 'function' || typeof ref.observe !== 'function' : typeof ref.evaluate !== 'function')) {
       return diagnostic('INVALID_REFERENCE', '정답 FSM의 포트 또는 상태 정의가 올바르지 않습니다.');
     }
-    const probe = ref.readProbe;
-    if ((ref.releaseButtons != null && (!namesValid(ref.releaseButtons) || !ref.releaseButtons.length ||
-        ref.releaseButtons.some(name => !ref.inputs.includes(name)) || ref.observeAt !== 'after_tick')) ||
-        (probe != null && (!record(probe) || !namesValid(probe.vary) || !probe.vary.length ||
-        probe.vary.some(name => !ref.inputs.includes(name)) || !record(probe.fixed) ||
-        Object.entries(probe.fixed).some(([name, value]) => !ref.inputs.includes(name) || probe.vary.includes(name) || !isBit(value)) ||
-        typeof probe.observe !== 'function' || ref.observeAt !== 'after_tick'))) {
+    if ((ref.observationMode != null && !visible) || ref.readProbe != null ||
+        (ref.releaseButtons != null && (!visible || !namesValid(ref.releaseButtons) ||
+        ref.releaseButtons.some(name => !ref.inputs.includes(name)))) ||
+        (visible && (ref.observeAt !== 'after_tick' || ref.releaseButtons == null))) {
       return diagnostic('INVALID_OBSERVATION', '추가 출력 관측 정의가 올바르지 않습니다.');
     }
-    if (ref.inputs.length > 16 || ref.outputs.length > 30 || ref.stateCount * 2 ** ref.inputs.length > limits.maxTransitions ||
-        (probe && 2 ** (ref.inputs.length + probe.vary.length) > limits.maxTransitions)) {
+    if (ref.inputs.length > 16 || ref.outputs.length > 30 || ref.stateCount * 2 ** ref.inputs.length > limits.maxTransitions) {
       return incomplete('REFERENCE_LIMIT');
     }
     return { ok: true, sequential: true, ref };
@@ -99,32 +97,16 @@ function* verify(definition, answers, options) {
   const inputCount = 2 ** ref.inputs.length;
   const inputMasks = Uint32Array.from({ length: inputCount }, (_, x) => remap(x, ref.inputs, compiled.inputNames));
   const expected = new Uint32Array(ref.stateCount * inputCount), nextReference = new Uint32Array(expected.length);
+  const visible = ref.observationMode === 'visible';
   const releaseMask = (ref.releaseButtons || []).reduce((mask, name) => mask | (1 << ref.inputs.indexOf(name)), 0);
-  const probe = ref.readProbe;
-  const readExpected = probe ? new Uint32Array(expected.length) : null;
-  const probeInputs = probe ? Array.from({ length: inputCount }, (_, input) =>
-    Array.from({ length: 2 ** probe.vary.length }, (_, choice) => {
-      let mask = input;
-      for (const [name, value] of [...Object.entries(probe.fixed), ...probe.vary.map((name, i) => [name, (choice >>> i) & 1])]) {
-        const bit = 1 << ref.inputs.indexOf(name);
-        mask = (mask & ~bit) | (Number(value) ? bit : 0);
-      }
-      return mask;
-    })) : null;
   for (let state = 0; state < ref.stateCount; state++) for (let input = 0; input < inputCount; input++) {
-    const value = ref.evaluate(state, input), i = state * inputCount + input;
+    const value = visible ? { outputs: ref.observe(state, input), nextState: ref.step(state, input) } : ref.evaluate(state, input);
+    const i = state * inputCount + input;
     if (!value || !Number.isInteger(value.outputs) || value.outputs < 0 || value.outputs >= 2 ** ref.outputs.length ||
         !Number.isInteger(value.nextState) || value.nextState < 0 || value.nextState >= ref.stateCount) {
       return diagnostic('INVALID_REFERENCE_RESULT', '정답 FSM이 잘못된 출력 또는 다음 상태를 반환했습니다.');
     }
     expected[i] = remap(value.outputs, ref.outputs, compiled.outputNames); nextReference[i] = value.nextState;
-    if (probe) {
-      const output = probe.observe(state, input);
-      if (!Number.isInteger(output) || output < 0 || output >= 2 ** ref.outputs.length) {
-        return diagnostic('INVALID_REFERENCE_RESULT', '읽기 관측이 잘못된 출력을 반환했습니다.');
-      }
-      readExpected[i] = remap(output, ref.outputs, compiled.outputNames);
-    }
     if ((i + 1) % limits.chunkSize === 0) {
       if (timedOut()) return incomplete('TIME_LIMIT');
       yield { phase: 'reference', states: 0, transitions: 0 };
@@ -141,8 +123,8 @@ function* verify(definition, answers, options) {
   const queue = [ref.initialState * stateStride], parent = [-1], parentInput = [0], parentOutput = [0];
   mark(queue[0]);
   const evaluator = compiled.createEvaluator();
-  // Existing FSMs observe settled current outputs BEFORE committing memory.
-  // A new spec may explicitly opt into after_tick; the view never decides this.
+  // Legacy observation boundaries remain explicit. Current memory20 references
+  // inspect initial/SET outputs and the whole tick, including button release.
   const afterTick = sequential && ref.observeAt === 'after_tick';
   const setEvent = input => ({ type: 'set', inputs: ref.inputs.map((signal, i) => ({
     signal, blockId: compiled.inputIds[compiled.inputNames.indexOf(signal)], value: (input >>> i) & 1
@@ -158,29 +140,28 @@ function* verify(definition, answers, options) {
     trace.push(expectEvent(actual, expected));
     if (!afterTick && commit) trace.push({ type: 'tick' });
   }
-  function appendRelease(trace, input, actual, expected) {
-    trace.push(setEvent(input & ~releaseMask), expectEvent(actual, expected, 'after_release'));
+  const visibleTick = () => ({ type: 'tick', tickMode: 'visible', releaseInputs:
+    setEvent(0).inputs.filter(entry => ref.releaseButtons.includes(entry.signal)) });
+  function appendVisibleStep(trace, refState, input, actual, wanted) {
+    const before = expected[refState * inputCount + input];
+    trace.push(setEvent(input), expectEvent(before, before, 'after_set'), visibleTick(), expectEvent(actual, wanted, 'after_tick'));
   }
-  function appendReads(trace, refState, sampled, failedInput, failedActual) {
-    for (const input of probeInputs[sampled]) {
-      const expected = readExpected[refState * inputCount + input];
-      trace.push(setEvent(input), expectEvent(input === failedInput ? failedActual : expected, expected, 'address_read'));
-      if (input === failedInput) break;
-    }
-  }
-  function parentTrace(head) {
+  function parentTrace(head, includeInitial = true) {
     const nodes = [];
     for (let node = head; parent[node] !== -1; node = parent[node]) nodes.push(node);
     nodes.reverse();
-    const trace = sequential ? [{ type: 'init', memory: compiled.memoryIds.map((blockId, i) => ({
+    const trace = sequential ? [{ type: 'init', ...(visible ? { inputs: setEvent(0).inputs } : {}), memory: compiled.memoryIds.map((blockId, i) => ({
       blockId, signal: `D${i + 1}`, value: 0
     })) }] : [];
+    if (visible && includeInitial) {
+      const initial = expected[ref.initialState * inputCount];
+      trace.push(expectEvent(initial, initial, 'initial'));
+    }
     // Only the visited parent edges belong to this witness. Retain their
     // successful observations too, at the same boundary used by the search.
     for (const node of nodes) {
-      appendStep(trace, parentInput[node], parentOutput[node], parentOutput[node], true);
-      if (releaseMask) appendRelease(trace, parentInput[node], parentOutput[node], parentOutput[node]);
-      if (probe) appendReads(trace, Math.floor(queue[node] / stateStride), parentInput[node]);
+      if (visible) appendVisibleStep(trace, Math.floor(queue[parent[node]] / stateStride), parentInput[node], parentOutput[node], parentOutput[node]);
+      else appendStep(trace, parentInput[node], parentOutput[node], parentOutput[node], true);
     }
     return trace;
   }
@@ -200,17 +181,15 @@ function* verify(definition, answers, options) {
     return null;
   }
   function failure(head, sampled, input, actual, wanted, phase) {
-    const trace = parentTrace(head), path = [];
+    const trace = parentTrace(head, phase !== 'initial'), path = [];
     for (let node = head; parent[node] !== -1; node = parent[node]) path.push(parentInput[node]);
     path.reverse();
-    if (phase === observation) appendStep(trace, input, actual, wanted, false);
-    else if (sampled != null) {
-      const i = Math.floor(queue[head] / stateStride) * inputCount + sampled;
-      appendStep(trace, sampled, expected[i], expected[i], true);
-      if (releaseMask) appendRelease(trace, sampled, phase === 'after_release' ? actual : expected[i], expected[i]);
-      if (phase === 'address_read') appendReads(trace, nextReference[i], sampled, input, actual);
+    if (visible && phase === 'initial') trace.push(expectEvent(actual, wanted, phase));
+    else if (visible && sampled != null) {
+      appendVisibleStep(trace, Math.floor(queue[head] / stateStride), sampled, actual, wanted);
       path.push(sampled);
-    } else trace.push(setEvent(input), expectEvent(actual, wanted, phase));
+    } else if (visible) trace.push(setEvent(input), expectEvent(actual, wanted, phase));
+    else appendStep(trace, input, actual, wanted, false);
     return { ok: false, status: 'fail', reason: 'output_mismatch', ...(phase ? { observation: phase } : {}), sequential,
       states: queue.length, transitions, checks,
       inputs: bitsObject(ref.inputs, input), expected: bitsObject(compiled.outputNames, wanted),
@@ -218,39 +197,33 @@ function* verify(definition, answers, options) {
       ...(sampled != null ? { sampledInputs: bitsObject(ref.inputs, sampled) } : {}),
       counterexample: { ticks: path.map(x => bitsObject(ref.inputs, x)), observe: bitsObject(ref.inputs, input) } };
   }
-  // Initial reads cover both addresses and every retained data-switch setting.
-  // All probes share the same zero-memory state; no tentative nextState escapes.
-  if (probe) for (const input of new Set(probeInputs.flat())) {
-    const limit = yield* reserveCheck('address_read'); if (limit) return limit;
-    const actual = evaluator.evaluate(0, inputMasks[input]).outputs;
-    const wanted = readExpected[ref.initialState * inputCount + input];
-    if (actual !== wanted) return failure(0, null, input, actual, wanted, 'address_read');
+  if (visible) {
+    const limit = yield* reserveCheck('initial'); if (limit) return limit;
+    const actual = evaluator.evaluate(0, inputMasks[0]).outputs;
+    const wanted = expected[ref.initialState * inputCount];
+    if (actual !== wanted) return failure(0, null, 0, actual, wanted, 'initial');
   }
   for (let head = 0; head < queue.length; head++) {
     const key = queue[head], userState = key % stateStride, refState = Math.floor(key / stateStride);
     for (let input = 0; input < inputCount; input++) {
-      const limit = yield* reserveCheck('search'); if (limit) return limit;
+      const limit = yield* reserveCheck(visible ? 'after_set' : 'search'); if (limit) return limit;
       const actual = evaluator.evaluate(userState, inputMasks[input]);
       // Evaluator results are borrowed. Preserve the committed state before
       // any settled output/release/read evaluation reuses that result object.
       const nextState = actual.nextState;
-      const observed = afterTick ? evaluator.evaluate(nextState, inputMasks[input]).outputs : actual.outputs;
+      let observed = !visible && afterTick ? evaluator.evaluate(nextState, inputMasks[input]).outputs : actual.outputs;
       const i = refState * inputCount + input;
-      transitions++;
+      if (!visible) transitions++;
       if (observed !== expected[i]) {
-        return failure(head, null, input, observed, expected[i], observation);
+        return failure(head, null, input, observed, expected[i], visible ? 'after_set' : observation);
       }
-      if (releaseMask) {
-        const limit = yield* reserveCheck('after_release'); if (limit) return limit;
+      if (visible) {
+        const limit = yield* reserveCheck('after_tick'); if (limit) return limit;
+        transitions++;
         const released = input & ~releaseMask;
-        const output = evaluator.evaluate(nextState, inputMasks[released]).outputs;
-        if (output !== expected[i]) return failure(head, input, released, output, expected[i], 'after_release');
-      }
-      if (probe) for (const readInput of probeInputs[input]) {
-        const limit = yield* reserveCheck('address_read'); if (limit) return limit;
-        const output = evaluator.evaluate(nextState, inputMasks[readInput]).outputs;
-        const wanted = readExpected[nextReference[i] * inputCount + readInput];
-        if (output !== wanted) return failure(head, input, readInput, output, wanted, 'address_read');
+        observed = evaluator.evaluate(nextState, inputMasks[released]).outputs;
+        const wanted = expected[nextReference[i] * inputCount + released];
+        if (observed !== wanted) return failure(head, input, released, observed, wanted, 'after_tick');
       }
       const next = nextState + nextReference[i] * stateStride;
       if (!seen(next)) {

@@ -13,10 +13,10 @@ const fixture = (id, tier=3) => JSON.parse(fs.readFileSync(`tests/fixtures/demo/
 const memory = () => { const map = new Map(); return { getItem: k => map.get(k) ?? null, setItem: (k,v) => map.set(k,v) }; };
 const memoryFixture = id => JSON.parse(fs.readFileSync(`tests/fixtures/memory20/${id}.json`, 'utf8')).circuit;
 const doorShortcut = () => JSON.parse(fs.readFileSync('tests/fixtures/observations/30-shortcut.json', 'utf8')).circuit;
-const oldRecord = (circuit, id) => {
-  const rules = JSON.parse(stageRules(levels, id)); rules[0] = 3;
+const oldRecord = (circuit, id, version = 3) => {
+  const rules = JSON.parse(stageRules(levels, id)); rules[0] = version;
   const snapshot = snapshotCircuit(circuit);
-  return { stageId:id, gradingVersion:3, stageRules:JSON.stringify(rules), circuitVersion:3,
+  return { stageId:id, gradingVersion:version, stageRules:JSON.stringify(rules), circuitVersion:3,
     circuit:snapshot, ...getCircuitStats(snapshot), ...calculateCircuitCost(snapshot), stars:3 };
 };
 
@@ -130,9 +130,9 @@ test('online personal progress only restores matching verified stages and never 
   const records=await board.loadPersonal();assert.equal(records.length,1);assert.equal(records[0].totalCost,valid.totalCost);
 });
 
-test('AC-6: previous grading records retain designs, stars and clears without becoming current costs', () => {
-  assert.equal(GRADING_VERSION, 4);
-  const stale = oldRecord(doorShortcut(), 30), passingOld = oldRecord(memoryFixture(29), 29);
+for (const version of [3, 4]) test(`AC-6: v${version} grading records retain designs, stars and clears without becoming current costs`, () => {
+  assert.equal(GRADING_VERSION, 5);
+  const stale = oldRecord(doorShortcut(), 30, version), passingOld = oldRecord(memoryFixture(29), 29, version);
   const unrelated = makeCostRecord(fixture(1), 1, levels), storage = memory();
   const key = 'bitwiser:cost-progress:v1:history';
   storage.setItem(key, JSON.stringify({ stages: { 30:{best:stale,bestStars:stale}, 29:{best:passingOld,bestStars:passingOld}, 1:{best:unrelated} } }));

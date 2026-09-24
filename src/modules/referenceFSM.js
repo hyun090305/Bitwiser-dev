@@ -1,5 +1,6 @@
 import { getMemory20Reference, MEMORY20_IDS, memory20ReferenceId } from './memory20References.js';
-// Legacy/lab FSMs observe before a tick; memory20 references opt into after_tick.
+// Legacy/lab FSMs retain their tick boundary; current memory20 references also
+// expose pure visible observations separately from state transitions.
 const fsm = (inputs, outputs, stateCount, evaluate) => Object.freeze({
   inputs: Object.freeze(inputs), outputs: Object.freeze(outputs), stateCount, initialState: 0, evaluate
 });

@@ -128,15 +128,15 @@ test('corrupt local data is preserved; illegal wire geometry is rejected by shar
   const c=fixture(1); c.wires.w0.path=[c.blocks.a.pos,c.blocks.g.pos]; assert.throws(()=>validateCircuit(c,1,levels));
 });
 
-test('AC-6/7: old button-release failures preserve full demo history across save, reload and backup import', () => {
+for (const version of [3, 4]) test(`AC-6/7: v${version} records preserve full demo history across save, reload and backup import`, () => {
   const circuit = read('tests/fixtures/observations/30-shortcut.json').circuit;
   const record = (c, id) => {
-    const rules = JSON.parse(stageRules(levels, id)); rules[0] = 3;
-    return { circuitVersion:3, circuit:snapshotCircuit(c), gradingVersion:3, stageId:id,
+    const rules = JSON.parse(stageRules(levels, id)); rules[0] = version;
+    return { circuitVersion:3, circuit:snapshotCircuit(c), gradingVersion:version, stageId:id,
       stageRules:JSON.stringify(rules), ...getCircuitStats(c), ...calculateCircuitCost(c), stars:3 };
   };
   const old = record(circuit, 30), passingOld = record(fixture(29), 29), unrelated = makeRecord(fixture(1), 1, levels);
-  const raw = emptyProgress(); raw.gradingVersion = 3; raw.lastStageId = 30;
+  const raw = emptyProgress(); raw.gradingVersion = version; raw.lastStageId = 30;
   raw.unlockedStages = [29,30]; raw.unlockedChapters = ['chapter_2'];
   raw.stages = {30:{best:old,bestStars:structuredClone(old),draft:{circuitVersion:3,circuit:snapshotCircuit(fixture(30))}},
     29:{best:passingOld,bestStars:passingOld},1:{best:unrelated,bestStars:unrelated}};
@@ -147,7 +147,7 @@ test('AC-6/7: old button-release failures preserve full demo history across save
   let store = open();
   assert.equal(store.state.gradingVersion, GRADING_VERSION);
   assert.deepEqual(store.state.stages[30].best, old);
-  assert.equal(store.state.stages[30].bestStars.gradingVersion, 3);
+  assert.equal(store.state.stages[30].bestStars.gradingVersion, version);
   assert.equal(highestStars(store.state.stages[30], levels, 30), 3);
   assert.ok(store.cleared().includes(30)); assert.ok(store.isUnlocked(30));
   assert.equal(isCurrentCostRecord(store.state.stages[30].best, levels, 30), false);
@@ -169,7 +169,7 @@ test('AC-6/7: old button-release failures preserve full demo history across save
   assert.equal(store.replace(store.parseBackup(exported)), true);
   assert.equal(open().exportBackup(), exported);
   const falselyCurrent = JSON.parse(before);
-  falselyCurrent.gradingVersion = 3;
+  falselyCurrent.gradingVersion = version;
   falselyCurrent.stages[30].best.gradingVersion = GRADING_VERSION;
   falselyCurrent.stages[30].best.stageRules = stageRules(levels, 30);
   assert.throws(() => store.parseBackup(JSON.stringify(falselyCurrent)), /does not pass/);

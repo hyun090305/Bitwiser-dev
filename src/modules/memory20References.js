@@ -1,5 +1,5 @@
-// Independent behavioral machines. Outputs belong to the transition AFTER
-// the tick, not to a particular gate implementation or memory encoding.
+// Independent behavioral machines. A step advances time; observe reads the
+// visible state without another transition or a particular circuit encoding.
 export const MEMORY20_IDS = Object.freeze({
   'C4-01':25, 'C4-02':31, 'C4-03':28, 'C4-04':35, 'C4-05':30,
   'C4-06':32, 'C4-07':33, 'C4-08':36, 'C4-09':37, 'C4-10':34,
@@ -17,7 +17,8 @@ const releaseButtons = {
   'C5-02':['WRITE'], 'C5-03':['SAVE','UNDO'], 'C5-05':['RECEIVE'],
   'C5-07':['PUSH','POP'], 'C5-08':['PUSH','POP'], 'C5-09':['SEND','TAKE']
 };
-// Each definition: input names, output names, initial state, transition.
+// Each definition: inputs, outputs, initial memory, transition, initial output
+// mask (zero unless explicitly specified, e.g. EMPTY starts at one).
 // The build selects only demo definitions using these per-stage markers.
 const specs = {
   // stage:C4-01
@@ -58,9 +59,9 @@ const specs = {
   // stage:C5-06
   'C5-06': [['D0','D1','D2','D3','START','RESET'],['SERIAL','VALID','BUSY'],['',0],([p,s],x)=>{let valid=0;if(x.RESET){p='';s=0;}else if(p){s=Number(p[0]);p=p.slice(1);valid=1;}else if(x.START){s=x.D3;p=`${x.D2}${x.D1}${x.D0}`;valid=1;}return [[p,s],[s,valid,Number(p.length>0)]];}],
   // stage:C5-07
-  'C5-07': [['DATA','PUSH','POP'],['DATA_OUT','VALID','EMPTY','FULL'],[[],0],(s,x)=>bufferStep(s,x,false)],
+  'C5-07': [['DATA','PUSH','POP'],['DATA_OUT','VALID','EMPTY','FULL'],[[],0],(s,x)=>bufferStep(s,x,false),4],
   // stage:C5-08
-  'C5-08': [['DATA','PUSH','POP'],['DATA_OUT','VALID','EMPTY','FULL'],[[],0],(s,x)=>bufferStep(s,x,true)],
+  'C5-08': [['DATA','PUSH','POP'],['DATA_OUT','VALID','EMPTY','FULL'],[[],0],(s,x)=>bufferStep(s,x,true),4],
   // stage:C5-09
   'C5-09': [['DATA','SEND','TAKE'],['FULL','DATA_OUT','VALID','ACCEPTED'],[-1,0],([p,last],x)=>{let valid=0,accepted=0;if(x.TAKE&&p!==-1){last=p;p=-1;valid=1;}if(x.SEND&&p===-1){p=x.DATA;accepted=1;}return [[p,last],[Number(p!==-1),last,valid,accepted]];}],
   // stage:end
@@ -75,21 +76,28 @@ const cache = new Map();
 export function getMemory20Reference(slot) {
   if(cache.has(slot))return cache.get(slot);
   const spec=specs[slot];if(!spec)return undefined;
-  const [inputs,outputs,initial,step]=spec, states=[initial], known=new Map([[JSON.stringify(initial),0]]), table=[];
+  const [inputs,outputs,initial,transition,initialOutputs=0]=spec;
+  const visible=slot!=='C5-04'; // Preserve the archived staging reference.
+  const liveInputs=slot==='C4-07'||slot==='C5-02';
+  // Latched outputs are part of the state: GO=1 and initial GO=0 can share
+  // response memory, but must never collapse into the same observation state.
+  const states=[{memory:initial,output:initialOutputs}], known=new Map([[JSON.stringify(states[0]),0]]), table=[];
   for(let s=0;s<states.length;s++) {
     table[s]=[];
     for(let mask=0;mask<2**inputs.length;mask++) {
       const x=Object.fromEntries(inputs.map((name,i)=>[name,b(mask,i)]));
-      const [next,values]=step(states[s],x), key=JSON.stringify(next);
+      const [memory,values]=transition(states[s].memory,x), output=values.reduce((n,v,i)=>n|(v<<i),0);
+      const next={memory,output:visible&&!liveInputs?output:0}, key=JSON.stringify(next);
       if(!known.has(key)){known.set(key,states.length);states.push(next);}
-      table[s][mask]={nextState:known.get(key),outputs:values.reduce((n,v,i)=>n|(v<<i),0)};
+      table[s][mask]={nextState:known.get(key),outputs:output};
     }
   }
   const ref=Object.freeze({inputs:Object.freeze(inputs),outputs:Object.freeze(outputs),initialState:0,stateCount:states.length,
     observeAt:'after_tick',evaluate:(state,input)=>table[state][input],
-    ...(releaseButtons[slot] ? {releaseButtons:Object.freeze(releaseButtons[slot])} : {}),
-    // Read the stored words directly. Calling step here would invent a tick.
-    ...(slot==='C5-02' ? {readProbe:Object.freeze({vary:Object.freeze(['ADDR']),fixed:Object.freeze({WRITE:0}),
-      observe:(state,input)=>states[state][b(input,inputs.indexOf('ADDR'))]})} : {})});
+    ...(visible ? {observationMode:'visible',releaseButtons:Object.freeze(releaseButtons[slot]||[]),
+      step:(state,input)=>table[state][input].nextState,
+      observe:(state,input)=>slot==='C4-07' ? Number(states[state].memory < (input&3))
+        : slot==='C5-02' ? states[state].memory[b(input,inputs.indexOf('ADDR'))]
+        : states[state].output} : {})});
   cache.set(slot,ref);return ref;
 }

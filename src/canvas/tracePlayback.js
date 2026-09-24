@@ -23,6 +23,7 @@ export function applyTraceEvent(circuit, event) {
       const block = blockFor(circuit, entry, 'D');
       state.memory.set(block.id, Boolean(entry.value)); blocks.push({ blockId: block.id });
     }
+    for (const entry of event.inputs || []) blockFor(circuit, entry, 'INPUT').value = Boolean(entry.value);
     previewCircuit(circuit);
   } else if (event.type === 'set') {
     blocks = eventSignals(event).map(signal => {
@@ -32,11 +33,18 @@ export function applyTraceEvent(circuit, event) {
     });
     previewCircuit(circuit);
   } else if (event.type === 'tick') {
-    // Explicit sampled inputs retain button values until a SET says otherwise.
-    // Release and address probes are explicit SET events, never extra ticks.
-    // Snapshot/commit/settle are performed by the existing engine, not the UI.
-    const result = tickCircuit(circuit, getExecutionState(circuit), { inputs: inputSnapshot(circuit), display: true });
+    if (event.tickMode != null && event.tickMode !== 'visible') throw new Error(`Unsupported tick mode: ${event.tickMode}`);
+    const visible = event.tickMode === 'visible';
+    if (visible && !Array.isArray(event.releaseInputs)) throw new Error('Visible tick needs its release inputs');
+    // Resolve trusted release ports before committing. Old unmarked traces
+    // retain sampled buttons; a visible tick settles only after releasing them.
+    const released = visible ? event.releaseInputs.map(signal => blockFor(circuit, signal, 'INPUT')) : [];
+    const result = tickCircuit(circuit, getExecutionState(circuit), { inputs: inputSnapshot(circuit), display: !visible });
     if (!result.ok) throw new Error(result.diagnostics[0].message);
+    if (visible) {
+      for (const block of released) block.value = false;
+      previewCircuit(circuit);
+    }
     blocks = Object.values(circuit.blocks).filter(b => b.type === 'D').map(b => ({ blockId: b.id }));
   } else if (event.type === 'expect' || event.type === 'observe') {
     previewCircuit(circuit);

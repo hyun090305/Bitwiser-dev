@@ -3,7 +3,7 @@ import path from 'node:path';
 import { createServer } from 'node:http';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
-import { automaticDoorShortcut, registeredAddressMemory } from '../tests/helpers/sequential-observation-circuits.mjs';
+import { initialOutputShortcut, responseCheckShortcut, registeredAddressMemory } from '../tests/helpers/sequential-observation-circuits.mjs';
 
 const root = path.resolve('.');
 const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif', '.mp3': 'audio/mpeg' };
@@ -113,8 +113,9 @@ try {
   assert.equal(await page.evaluate(() => window.isGradingResultOpen), false);
   const definitions = JSON.parse(await fs.readFile('levels.json', 'utf8'));
   for (const language of ['ko', 'en']) for (const [stage, circuit, observation, phaseLabel] of [
-    [30, automaticDoorShortcut(), 'after_release', language === 'ko' ? '버튼 해제 후' : 'After button release'],
-    [38, registeredAddressMemory(), 'address_read', language === 'ko' ? '주소 읽기 (tick 없음)' : 'Address read (no tick)']
+    [25, initialOutputShortcut(), 'initial', language === 'ko' ? '초기 상태' : 'Initial state'],
+    [38, registeredAddressMemory(), 'after_set', language === 'ko' ? '입력 변경 후 (tick 없음)' : 'After input change (no tick)'],
+    [29, responseCheckShortcut(), 'after_tick', language === 'ko' ? 'tick 완료 후' : 'After completed tick']
   ]) {
     await page.setViewportSize(language === 'ko' ? { width: 1440, height: 980 } : { width: 420, height: 850 });
     await page.evaluate(async ({ stage, language }) => {
@@ -144,7 +145,7 @@ try {
       return (await import('/src/modules/circuitGrading.js')).gradeCircuitSync(c, answers);
     }, { circuit, answers: definitions.levelAnswers[stage] });
     assert.equal(expected.observation, observation);
-    assert.equal(expected.trace.at(-2).type, 'set');
+    assert.equal(expected.trace.at(-2).type, {initial:'init',after_set:'set',after_tick:'tick'}[observation]);
     assert.equal(expected.trace.at(-1).type, 'expect');
     await page.locator('#gradeButton').click();
     await page.locator('#gradingResultOverlay[data-state=failed]').waitFor();
@@ -153,6 +154,11 @@ try {
     assert.ok((await page.locator('.grading-result-message').innerText()).includes(phaseLabel));
     assert.deepEqual(await page.locator('.trace-event').evaluateAll(nodes => nodes.map(n => ({ type: n.dataset.eventType, observation: n.dataset.observation || null }))),
       expected.trace.map(e => ({ type: e.type, observation: e.observation || null })));
+    for (const [index, event] of expected.trace.entries()) if (event.type === 'tick') {
+      const hint = await page.locator(`.trace-event[data-event-index="${index}"] .trace-event__hint`).innerText();
+      assert.ok(hint.includes(language === 'en' ? 'TICK COMPLETE' : 'tick 완료'));
+      for (const signal of event.releaseInputs) assert.ok(hint.includes(`${signal.signal}=0`));
+    }
     const bounds = await page.locator('.grading-result-panel').boundingBox();
     assert.ok(bounds.x >= 0 && bounds.x + bounds.width <= (language === 'ko' ? 1440 : 420));
     await page.screenshot({ path: `test-results/result-trace/${observation}-${language}.png` });
@@ -161,9 +167,14 @@ try {
     for (let i = 0; i < expected.trace.length; i++) {
       await page.waitForFunction(index => document.querySelector('.trace-event[aria-current=step]')?.dataset.eventIndex === String(index), i);
       const current = await page.evaluate(() => window.phaseStep()), event = expected.trace[i];
-      if (event.type === 'tick') ticks++;
+      if (event.type === 'tick') {
+        ticks++;
+        assert.equal(event.tickMode, 'visible');
+        for (const signal of event.releaseInputs) assert.equal(current.inputs[signal.signal], 0);
+        for (const output of expected.trace[i+1].outputs) assert.equal(current.outputs[output.signal], output.actual, 'TICK already displays the fully released result');
+      }
       assert.equal(current.execution.tick, ticks);
-      if (previous && event.type !== 'tick') assert.deepEqual(current.execution, previous.execution, 'release/read/EXPECT must not advance execution state');
+      if (previous && event.type !== 'tick') assert.deepEqual(current.execution, previous.execution, 'SET/EXPECT must not advance execution state');
       if (event.type === 'set') assert.deepEqual(current.inputs, Object.fromEntries(event.inputs.map(s => [s.signal, s.value])));
       if (event.type === 'expect') {
         assert.equal(current.highlight.observation, event.observation);
@@ -191,5 +202,5 @@ try {
     assert.equal(await page.evaluate(() => window.phaseSnapshot() === window.phaseBefore), true);
   }
   assert.deepEqual(errors, []);
-  console.log('Full result browser passed: Stage 35 trace/replay, release/address failure phases in Korean/English and desktop/mobile, exact inputs/outputs and tick-free probes, visible output badge, toolbar/keyboard lock, focus/runtime restoration, invalid connections, combinational trace, navigation cleanup.');
+  console.log('Full result browser passed: Stage 35 trace/replay, initial/SET/completed-tick failure phases in Korean/English and desktop/mobile, exact inputs/outputs and released TICK frames, visible output badge, toolbar/keyboard lock, focus/runtime restoration, invalid connections, combinational trace, navigation cleanup.');
 } finally { await browser.close(); await new Promise(resolve => server.close(resolve)); }
