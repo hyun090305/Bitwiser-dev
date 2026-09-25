@@ -6,7 +6,6 @@ import { getTraceHighlight } from './tracePlayback.js';
 export const CELL_CORNER_RADIUS = 3;
 
 const PITCH = CELL + GAP;
-const SIMPLE_GRID_THRESHOLD = 12;
 const SIGNAL_BLOCK_BORDERS = {
   INPUT: '#54D6B2',
   OUTPUT: '#F2AD55',
@@ -25,11 +24,8 @@ const BASE_GRID_STYLE = {
     offsetX: 0,
     offsetY: 4
   },
-  gridFillA: null,
-  gridFillB: null,
   gridStroke: '#ddd',
   gridLineWidth: 1,
-  cellRadius: CELL_CORNER_RADIUS,
   borderColor: '#666',
   borderWidth: GAP
 };
@@ -44,9 +40,9 @@ const BASE_PANEL_STYLE = {
   itemTextColor: '#111827',
   itemShadow: {
     color: 'rgba(15, 23, 42, 0.1)',
-    blur: 12,
+    blur: 4,
     offsetX: 0,
-    offsetY: 4
+    offsetY: 1
   },
   itemBorderColor: 'rgba(148, 163, 184, 0.4)',
   itemBorderWidth: 1,
@@ -60,15 +56,15 @@ const BASE_BLOCK_STYLE = {
   radius: CELL_CORNER_RADIUS,
   shadow: {
     color: 'rgba(0,0,0,0.18)',
-    blur: 12,
+    blur: 4,
     offsetX: 0,
-    offsetY: 6
+    offsetY: 1
   },
   hoverShadow: {
     color: 'rgba(0,0,0,0.25)',
-    blur: 16,
+    blur: 6,
     offsetX: 0,
-    offsetY: 8
+    offsetY: 2
   },
   strokeColor: null,
   strokeWidth: 0,
@@ -82,9 +78,8 @@ const BASE_WIRE_STYLE = {
   color: '#111',
   width: 2,
   dashPattern: [20, 20],
-  nodeFill: '#ffe',
-  nodeShadow: null,
-  nodeRadius: CELL_CORNER_RADIUS
+  baseColor: '#64748b',
+  baseWidth: 1.2
 };
 
 function mergeShadow(base, override) {
@@ -203,7 +198,6 @@ function resolveGridStyle(options = {}) {
   const baseShadow = mergeShadow(BASE_GRID_STYLE.panelShadow, themeGrid.panelShadow);
   const resolvedShadow = mergeShadow(baseShadow, panelShadow);
   style.panelShadow = resolvedShadow;
-  style.cellRadius = CELL_CORNER_RADIUS;
   return style;
 }
 
@@ -239,8 +233,6 @@ function resolveWireStyle(options = {}) {
   const themeWire = theme?.wire || {};
   const base = { ...BASE_WIRE_STYLE, ...themeWire };
   const style = { ...base, ...overrides };
-  style.nodeShadow = mergeShadow(mergeShadow(BASE_WIRE_STYLE.nodeShadow, themeWire.nodeShadow), overrides.nodeShadow);
-  style.nodeRadius = CELL_CORNER_RADIUS;
   return style;
 }
 
@@ -434,7 +426,7 @@ function drawSimpleGridLines(ctx, config) {
 
   const strokeStyle = stroke || 'rgba(148, 163, 184, 0.4)';
   const baseLineWidth = Number.isFinite(lineWidth) ? lineWidth : 1;
-  const effectiveLineWidth = Math.max(baseLineWidth * scale, 0.5);
+  const effectiveLineWidth = Math.min(1, Math.max(baseLineWidth * scale, 0.5));
   let drewLine = false;
 
   ctx.beginPath();
@@ -480,11 +472,8 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
     background,
     panelFill,
     panelShadow,
-    gridFillA,
-    gridFillB,
     gridStroke,
-    gridLineWidth,
-    cellRadius
+    gridLineWidth
   } = gridStyle;
 
   const backgroundFill = createFillStyle(ctx, background, 0, 0, width, height) || background;
@@ -500,8 +489,6 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
     ctx.restore();
   }
 
-  const cellScaled = CELL * scale;
-
   const visibleWidth = (width - panelWidth) / scale;
   const visibleHeight = height / scale;
   const startWorldX = originX;
@@ -514,52 +501,23 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
   const startRow = Math.floor((startWorldY - GAP) / PITCH) - 1;
   const endRow = Math.ceil((endWorldY - GAP) / PITCH) + 1;
 
-  if (cellScaled <= SIMPLE_GRID_THRESHOLD) {
-    drawSimpleGridLines(ctx, {
-      panelWidth,
-      canvasWidth: width,
-      canvasHeight: height,
-      startCol,
-      endCol,
-      startRow,
-      endRow,
-      originX,
-      originY,
-      scale,
-      stroke: gridStroke,
-      lineWidth: gridLineWidth
-    });
-    return;
-  }
-
-  for (let r = startRow; r <= endRow; r++) {
-    for (let c = startCol; c <= endCol; c++) {
-      const topLeft = camera.cellToScreenCell({ r, c });
-      const { x, y } = topLeft;
-      if (x + cellScaled <= panelWidth) continue;
-      const hasChecker = gridFillA != null || gridFillB != null;
-      const fillSpec = hasChecker
-        ? gridFillA && gridFillB
-          ? (r + c) % 2 === 0
-            ? gridFillA
-            : gridFillB
-          : gridFillA || gridFillB
-        : null;
-      const scaledRadius = Math.max(0, cellRadius * scale);
-      roundRect(ctx, x, y, cellScaled, cellScaled, scaledRadius);
-      if (fillSpec) {
-        const fillStyle = createFillStyle(ctx, fillSpec, x, y, cellScaled, cellScaled) || fillSpec;
-        ctx.fillStyle = fillStyle;
-        ctx.fill();
-      }
-      ctx.strokeStyle = gridStroke;
-      ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
-      ctx.stroke();
-    }
-  }
+  drawSimpleGridLines(ctx, {
+    panelWidth,
+    canvasWidth: width,
+    canvasHeight: height,
+    startCol,
+    endCol,
+    startRow,
+    endRow,
+    originX,
+    originY,
+    scale,
+    stroke: gridStroke,
+    lineWidth: gridLineWidth
+  });
 }
 
-// Draw grid as individual tiles with gaps similar to GIF rendering
+// All views share continuous grid lines without changing cell placement geometry.
 export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = {}) {
   const { unbounded, ...styleOptions } = options || {};
   if (unbounded && camera) {
@@ -571,11 +529,8 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     background,
     panelFill,
     panelShadow,
-    gridFillA,
-    gridFillB,
     gridStroke,
     gridLineWidth,
-    cellRadius,
     borderColor,
     borderWidth
   } = gridStyle;
@@ -630,59 +585,29 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
     const endRow = Math.min(rows - 1, Math.ceil((paddedBounds.maxY - GAP) / PITCH));
 
     if (startCol <= endCol && startRow <= endRow) {
-      const scaledCell = CELL * scale;
-      if (scaledCell <= SIMPLE_GRID_THRESHOLD) {
-        const topLeft = camera.worldToScreen(GAP, GAP);
-        const bottomRight = camera.worldToScreen(
-          GAP + (cols - 1) * PITCH + CELL,
-          GAP + (rows - 1) * PITCH + CELL
-        );
-        drawSimpleGridLines(ctx, {
-          panelWidth,
-          canvasWidth: width,
-          canvasHeight: height,
-          minX: Math.max(panelWidth, Math.min(topLeft.x, bottomRight.x)),
-          maxX: Math.max(panelWidth, topLeft.x, bottomRight.x),
-          minY: Math.min(topLeft.y, bottomRight.y),
-          maxY: Math.max(topLeft.y, bottomRight.y),
-          startCol,
-          endCol,
-          startRow,
-          endRow,
-          originX,
-          originY,
-          scale,
-          stroke: gridStroke,
-          lineWidth: gridLineWidth
-        });
-      } else {
-        for (let r = startRow; r <= endRow; r++) {
-          for (let c = startCol; c <= endCol; c++) {
-            const topLeftCell = camera.cellToScreenCell({ r, c });
-            const { x, y } = topLeftCell;
-            if (x + scaledCell <= panelWidth) continue;
-            const hasChecker = gridFillA != null || gridFillB != null;
-            const fillSpec = hasChecker
-              ? gridFillA && gridFillB
-                ? (r + c) % 2 === 0
-                  ? gridFillA
-                  : gridFillB
-                : gridFillA || gridFillB
-              : null;
-            const scaledRadius = Math.max(0, cellRadius * scale);
-            roundRect(ctx, x, y, scaledCell, scaledCell, scaledRadius);
-            if (fillSpec) {
-              const fillStyle =
-                createFillStyle(ctx, fillSpec, x, y, scaledCell, scaledCell) || fillSpec;
-              ctx.fillStyle = fillStyle;
-              ctx.fill();
-            }
-            ctx.strokeStyle = gridStroke;
-            ctx.lineWidth = Math.max(gridLineWidth, gridLineWidth * scale);
-            ctx.stroke();
-          }
-        }
-      }
+      const topLeft = camera.worldToScreen(GAP, GAP);
+      const bottomRight = camera.worldToScreen(
+        GAP + (cols - 1) * PITCH + CELL,
+        GAP + (rows - 1) * PITCH + CELL
+      );
+      drawSimpleGridLines(ctx, {
+        panelWidth,
+        canvasWidth: width,
+        canvasHeight: height,
+        minX: Math.max(panelWidth, Math.min(topLeft.x, bottomRight.x)),
+        maxX: Math.max(panelWidth, topLeft.x, bottomRight.x),
+        minY: Math.min(topLeft.y, bottomRight.y),
+        maxY: Math.max(topLeft.y, bottomRight.y),
+        startCol,
+        endCol,
+        startRow,
+        endRow,
+        originX,
+        originY,
+        scale,
+        stroke: gridStroke,
+        lineWidth: gridLineWidth
+      });
     }
 
     if (borderColor && borderWidth > 0 && rows > 0 && cols > 0) {
@@ -711,48 +636,16 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   const bgFill = createFillStyle(ctx, background, offsetX, 0, width, height) || background;
   ctx.fillStyle = bgFill;
   ctx.fillRect(offsetX, 0, width, height);
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const x = offsetX + GAP + c * PITCH;
-      const y = GAP + r * PITCH;
-      const hasChecker = gridFillA != null || gridFillB != null;
-      const fillSpec = hasChecker
-        ? gridFillA && gridFillB
-          ? (r + c) % 2 === 0
-            ? gridFillA
-            : gridFillB
-          : gridFillA || gridFillB
-        : null;
-      roundRect(ctx, x, y, CELL, CELL, cellRadius);
-      if (fillSpec) {
-        const fillStyle = createFillStyle(ctx, fillSpec, x, y, CELL, CELL) || fillSpec;
-        ctx.fillStyle = fillStyle;
-        ctx.fill();
-      }
-      ctx.strokeStyle = gridStroke;
-      ctx.lineWidth = gridLineWidth;
-      ctx.stroke();
-    }
-  }
+  drawSimpleGridLines(ctx, {
+    panelWidth: offsetX, canvasWidth: offsetX + width, canvasHeight: height,
+    minX: offsetX + GAP, maxX: offsetX + width - GAP,
+    minY: GAP, maxY: height - GAP,
+    startCol: 0, endCol: cols - 1, startRow: 0, endRow: rows - 1,
+    originX: 0, originY: 0, scale: 1, stroke: gridStroke, lineWidth: gridLineWidth
+  });
   if (borderColor && borderWidth > 0) {
     const innerWidth = width - 2 * GAP;
     const innerHeight = height - 2 * GAP;
-    const edgeGlow = ctx.createLinearGradient(offsetX, 0, offsetX + width, height);
-    edgeGlow.addColorStop(0, 'rgba(56, 189, 248, 0.2)');
-    edgeGlow.addColorStop(0.5, 'rgba(14, 165, 233, 0.3)');
-    edgeGlow.addColorStop(1, 'rgba(56, 189, 248, 0.18)');
-    ctx.save();
-    ctx.strokeStyle = edgeGlow;
-    ctx.lineWidth = Math.max(borderWidth + 2, 2);
-    ctx.shadowColor = 'rgba(14, 165, 233, 0.35)';
-    ctx.shadowBlur = 14;
-    ctx.strokeRect(
-      offsetX + GAP - (borderWidth + 2) / 2,
-      GAP - (borderWidth + 2) / 2,
-      innerWidth + borderWidth + 2,
-      innerHeight + borderWidth + 2
-    );
-    ctx.restore();
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
     ctx.strokeRect(
@@ -800,7 +693,7 @@ export function drawBlock(
     if (isButton) {
       applyScaledShadow(ctx, hovered ? style.hoverShadow : style.shadow, scale);
     } else {
-      applyScaledShadow(ctx, { color: typeBorder, blur: 12, offsetX: 0, offsetY: 0 }, scale);
+      applyShadow(ctx, null);
     }
     ctx.fillStyle = isButton ? BUTTON_ACTIVE_MARGIN_FILL : SIGNAL_ACTIVE_FILL;
     roundRect(ctx, x, y, size, size, blockRadius);
@@ -895,7 +788,7 @@ export function drawBlock(
   ctx.restore();
 }
 
-// Draw a wire path with flowing dashed line
+// Keep the entire route visible between moving dashes, including short links.
 export function drawWire(
   ctx,
   wire,
@@ -908,40 +801,10 @@ export function drawWire(
   const style = resolveWireStyle(options);
   ctx.save();
   const scale = camera ? camera.getScale() : 1;
-  const lineWidth = Math.max((style.width || 2) * scale, 1);
-  ctx.strokeStyle = style.color || '#111';
-  ctx.lineWidth = lineWidth;
-  const pattern = Array.isArray(style.dashPattern)
-    ? style.dashPattern.map(v => v * scale)
-    : [];
-  if (pattern.length > 0) {
-    ctx.setLineDash(pattern);
-    const patternLength = getWireFlowPeriod(options) * scale || 1;
-    const offsetUnits = ((phase * scale) % patternLength + patternLength) % patternLength;
-    ctx.lineDashOffset = -offsetUnits;
-  } else {
-    ctx.setLineDash([]);
-  }
-
-  for (let i = 1; i < wire.path.length - 1; i++) {
-    const p = wire.path[i];
-    const point = camera
-      ? camera.cellToScreenCell(p)
-      : { x: offsetX + GAP + p.c * PITCH, y: GAP + p.r * PITCH };
-    const size = CELL * scale;
-    const radius = Math.max(0, (style.nodeRadius ?? CELL_CORNER_RADIUS) * scale);
-    ctx.save();
-    applyScaledShadow(ctx, style.nodeShadow, scale);
-    const nodeFill =
-      createFillStyle(ctx, style.nodeFill, point.x, point.y, size, size) ||
-      style.nodeFill ||
-      '#ffe';
-    ctx.fillStyle = nodeFill;
-    roundRect(ctx, point.x, point.y, size, size, radius);
-    ctx.fill();
-    ctx.restore();
-  }
-
+  applyShadow(ctx, null);
+  ctx.setLineDash([]);
+  ctx.lineDashOffset = 0;
+  ctx.lineJoin = 'round';
   ctx.beginPath();
   const start = wire.path[0];
   const startPos = camera
@@ -954,6 +817,20 @@ export function drawWire(
       ? camera.cellToScreenCell(p)
       : { x: offsetX + GAP + p.c * PITCH, y: GAP + p.r * PITCH };
     ctx.lineTo(pos.x + (CELL * scale) / 2, pos.y + (CELL * scale) / 2);
+  }
+  ctx.strokeStyle = style.baseColor;
+  ctx.lineWidth = Math.max(style.baseWidth * scale, 1);
+  ctx.stroke();
+  ctx.strokeStyle = style.color || '#111';
+  ctx.lineWidth = Math.max((style.width || 2) * scale, 1);
+  const pattern = Array.isArray(style.dashPattern)
+    ? style.dashPattern.map(v => v * scale)
+    : [];
+  ctx.setLineDash(pattern);
+  if (pattern.length > 0) {
+    const patternLength = getWireFlowPeriod(options) * scale || 1;
+    const offsetUnits = ((phase * scale) % patternLength + patternLength) % patternLength;
+    ctx.lineDashOffset = -offsetUnits;
   }
   ctx.stroke();
   ctx.restore();
@@ -973,6 +850,39 @@ function getCellScreenRect(pos, offsetX, camera) {
     size: CELL * scale,
     scale
   };
+}
+
+function drawMemoryPort(ctx, wire, block, offsetX, camera, options) {
+  const previous = wire.path?.at(-2);
+  const rect = getCellScreenRect(block.pos, offsetX, camera);
+  if (!previous || !rect) return;
+  const dx = Math.sign(previous.c - block.pos.c);
+  const dy = Math.sign(previous.r - block.pos.r);
+  if (Math.abs(dx) + Math.abs(dy) !== 1) return;
+  const style = resolveBlockStyle(options);
+  const { x, y, size, scale } = rect;
+  const centerX = x + size / 2;
+  const centerY = y + size / 2;
+  const edgeX = centerX + dx * size / 2;
+  const edgeY = centerY + dy * size / 2;
+  ctx.save();
+  applyShadow(ctx, null);
+  ctx.setLineDash([]);
+  ctx.strokeStyle = SIGNAL_BLOCK_BORDERS.D;
+  ctx.lineWidth = Math.max(scale * 1.5, 0.6);
+  ctx.beginPath();
+  ctx.moveTo(edgeX, edgeY);
+  ctx.lineTo(edgeX - dx * 5 * scale, edgeY - dy * 5 * scale);
+  ctx.stroke();
+  // Keep labels inside the receiving block, away from its central name and
+  // neighbouring blocks/wires, even for a one-cell connection or at low zoom.
+  ctx.fillStyle = block.value ? style.activeTextColor : style.textColor;
+  ctx.font = `600 ${Math.min(14, 9 * scale)}px sans-serif`;
+  ctx.textAlign = dx < 0 ? 'left' : dx > 0 ? 'right' : 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(wire.inputRole || '?', edgeX - dx * 6 * scale,
+    edgeY - dy * 10 * scale - (dx ? 9 * scale : 0), size * 0.26);
+  ctx.restore();
 }
 
 function drawTutorialHighlights(ctx, highlights, phase, offsetX, camera, theme) {
@@ -1145,19 +1055,10 @@ export function renderContent(
     drawTutorialWireGuides(ctx, tutorialWireGuides, phase, offsetX, camera, themeForTutorial);
   }
   blocks.forEach(b => drawBlock(ctx, b, offsetX, b.id === hoverId, camera, styleOptions));
-  // Labels sit on the incoming wire cell, independent of wire direction/color.
+  // Each role belongs to the receiving D port, not the preceding wire cell.
   wires.forEach(w => {
-    if (circuit.blocks[w.endBlockId]?.type !== 'D' || !w.path?.length) return;
-    const rect = getCellScreenRect(w.path.at(-2) || w.path.at(-1), offsetX, camera);
-    if (!rect) return;
-    ctx.save();
-    ctx.fillStyle = '#fff';
-    ctx.fillRect(rect.x + rect.size * .18, rect.y + rect.size * .08, rect.size * .64, rect.size * .34);
-    ctx.fillStyle = '#101827';
-    ctx.font = `bold ${Math.max(9, 13 * rect.scale)}px sans-serif`;
-    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(w.inputRole || '?', rect.x + rect.size / 2, rect.y + rect.size / 4);
-    ctx.restore();
+    const block = circuit.blocks[w.endBlockId];
+    if (block?.type === 'D') drawMemoryPort(ctx, w, block, offsetX, camera, styleOptions);
   });
   if (tutorialHighlights.length) {
     drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);

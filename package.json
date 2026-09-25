@@ -12,6 +12,7 @@
     "test:demo:browser": "node scripts/verify-demo-browser.mjs && node scripts/verify-demo-recovery.mjs && node scripts/verify-demo-features.mjs && node scripts/verify-chapter-access-browser.mjs",
     "test:full:web": "node scripts/verify-full-browser.mjs",
     "test:gif:browser": "npm run build:demo && node scripts/verify-gif-browser.mjs",
+    "test:visuals:browser": "npm run build:demo && node scripts/verify-circuit-visuals.mjs",
     "test:full:electron": "electron scripts/verify-full-electron.cjs",
     "test:saves:electron": "node scripts/verify-circuit-saves-electron.mjs",
     "test:memory:browser": "node scripts/verify-memory-browser.mjs",
