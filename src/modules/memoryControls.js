@@ -1,5 +1,6 @@
 import { createTickRunner } from '../canvas/tickRunner.js';
-import { getExecutionState } from '../canvas/evaluation.js';
+import { getExecutionState, getEvaluationResult } from '../canvas/evaluation.js';
+import { diagnosticMessage } from '../canvas/connections.js';
 
 export const D_HELP = 'D는 1비트를 저장합니다. 입력 1개: 매 tick 저장. 입력 2개: EN=1일 때 D를 저장, EN=0이면 유지. 두 입력이 있을 때 짧게 클릭/탭하면 D와 EN을 교환합니다.';
 
@@ -38,6 +39,11 @@ export function createMemoryControls(circuit, canvas) {
   const host = container?.parentElement;
   host?.classList.add('memory-playback-host');
   container?.insertAdjacentElement('afterend', bar);
+  const diagnostics = document.createElement('p');
+  diagnostics.className = 'circuit-diagnostics';
+  diagnostics.setAttribute('role', 'status');
+  diagnostics.hidden = true;
+  bar.insertAdjacentElement('afterend', diagnostics);
 
   let failure = null;
   let pulseTimer = null;
@@ -60,6 +66,13 @@ export function createMemoryControls(circuit, canvas) {
   });
 
   function refresh(tickCompleted = false) {
+    const result = getEvaluationResult(circuit);
+    // A repaired preview also clears a previous tick failure.
+    failure = result?.ok === false ? result : null;
+    const messages = (failure?.diagnostics || []).map(d => diagnosticMessage(d));
+    diagnostics.hidden = !messages.length;
+    diagnostics.textContent = messages.slice(0, 3).join(' · ');
+    diagnostics.title = messages.join('\n');
     const hasMemory = Object.values(circuit.blocks).some(block => block.type === 'D' || block.inputMode === 'button');
     const hiddenChanged = bar.hidden === hasMemory;
     bar.hidden = !hasMemory;
@@ -113,6 +126,7 @@ export function createMemoryControls(circuit, canvas) {
       runner.destroy();
       clearPulse();
       bar.remove();
+      diagnostics.remove();
       if (!host?.querySelector('.memory-playback-bar')) host?.classList.remove('memory-playback-host');
       document.removeEventListener('visibilitychange', pauseIfHidden);
       document.removeEventListener('bitwiser:scoring', scoringChanged);

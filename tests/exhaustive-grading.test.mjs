@@ -52,9 +52,10 @@ test('exhaustive truth tables reject missing, duplicate, conflicting rows and ma
   assert.equal(gradeCircuitSync(c,[table[0],{inputs:{x:0},expected:{o:1}}]).ok,false);
   assert.equal(gradeCircuitSync(c,[table[0],{inputs:{x:1},expected:{o:2}}]).diagnostics[0].code,'INVALID_TEST_ROW');
   c.blocks.extra = newBlock({id:'extra',type:'OUTPUT',name:'extra',pos:{r:0,c:0}});
+  c.wires.extra = newWire({id:'extra',startBlockId:'x',endBlockId:'extra',path:[]});
   assert.equal(gradeCircuitSync(c,table).diagnostics[0].code,'PORT_MISMATCH');
   c.blocks.extra.name='o'; assert.equal(gradeCircuitSync(c,table).diagnostics[0].code,'PORT_MISMATCH');
-  delete c.blocks.extra; c.blocks.x.name='wrong';
+  delete c.blocks.extra; delete c.wires.extra; c.blocks.x.name='wrong';
   assert.equal(gradeCircuitSync(c,table).diagnostics[0].code,'PORT_MISMATCH');
 });
 
@@ -90,7 +91,7 @@ test('equivalent circuits may use redundant and unrelated internal memory', () =
 });
 
 test('FIFO search returns the fewest ticks and ignores unreachable mismatches', () => {
-  const c=circuit({x:'INPUT',o:'OUTPUT'},[]);
+  const c=circuit({x:'INPUT',d:'D',o:'OUTPUT'},[['d','d'],['d','o']]);
   const branching=fsm((s,x)=>({outputs:Number(s>=2),nextState:s===0?(x?1:2):s===1?3:s}),4);
   assert.deepEqual(gradeCircuitSync(c,branching).counterexample,{ticks:[{x:0}],observe:{x:0}});
   const unreachable=fsm(s=>({outputs:s,nextState:s}));
@@ -117,7 +118,7 @@ test('budgets never award a pass or report an output mismatch', () => {
   }
   const malformed=fsm(()=>({outputs:0,nextState:2}));
   assert.equal(gradeCircuitSync(c,malformed).diagnostics[0].code,'INVALID_REFERENCE_RESULT');
-  const redundant=circuit({x:'INPUT',d:'D',n:'NOT',o:'OUTPUT'},[['d','n'],['n','d']]);
+  const redundant=circuit({x:'INPUT',d:'D',n:'NOT',zero:'D',o:'OUTPUT'},[['d','n'],['n','d'],['zero','zero'],['zero','o']]);
   assert.equal(gradeCircuitSync(redundant,zero,{maxTransitions:3}).reason,'TRANSITION_LIMIT');
 });
 
@@ -131,15 +132,15 @@ test('async search yields to real cancellation events and does not mutate editor
   assert.deepEqual(c,design);assert.deepEqual(getExecutionState(c),state);
 });
 
-test('compiled plans detach from edits and retain binary/empty/first-input gate semantics', () => {
-  const c=circuit({x:'INPUT',y:'INPUT',z:'INPUT',a:'AND',or:'OR',n:'NOT',empty:'AND',o:'OUTPUT'},
-    [['x','a'],['y','a'],['x','or'],['y','or'],['x','n'],['y','n'],['a','o']]);
+test('compiled plans detach from edits and agree with validated binary/unary gates', () => {
+  const c=circuit({x:'INPUT',y:'INPUT',z:'INPUT',a:'AND',or:'OR',n:'NOT',o:'OUTPUT'},
+    [['x','a'],['y','a'],['x','or'],['y','or'],['x','n'],['a','o']]);
   const compiled=compileCircuit(c).compiled, evaluator=compiled.createEvaluator();
   for(let input=0;input<8;input++) {
     const inputs=new Map(compiled.inputIds.map((id,i)=>[id,Boolean(input&(1<<i))]));
     const values=evaluateCombinational(c,{inputs}).values;
     assert.equal(values.get('a'),(input&3)===3);assert.equal(values.get('or'),(input&3)!==0);
-    assert.equal(values.get('n'),!(input&1));assert.equal(values.get('empty'),true);
+    assert.equal(values.get('n'),!(input&1));
     assert.equal(evaluator.evaluate(0,input).outputs,Number((input&3)===3));
   }
   c.blocks.a.type='OR';

@@ -28,6 +28,8 @@ Windows에서 현재 앱 이름 기준 기본 `userData`는 `%APPDATA%/bitwiser-
 
 ## 실행 환경과 기존 데이터
 
+채점 버전 6에서도 형식·참조·공간이 유효한 미완성/이전 논리 위반 설계를 그대로 열고 다시 저장한다. 자기 D/EN 연결은 같은 D 칸의 두 끝점을 보존한다. 입력 부족·방향 위반·역할 오류는 실행만 차단하며 로드 시 자동 수리하지 않는다. [연결 규칙](connection-rules.md)을 참고한다.
+
 일반 브라우저의 `index.html`은 계속 부팅됩니다. native bridge가 없으면 회로 파일 저장/목록/자동 저장 설정을 비활성화하고 데스크톱 앱 전용 안내를 표시합니다. 새 웹 저장 시스템이나 Drive fallback은 없습니다. GIF 내보내기는 번들 `gif.js`와 `gif.worker.js`를 사용합니다.
 
 웹 프리뷰/체험판은 기존 `bitwiser:web-demo:v1` localStorage 흐름을 그대로 사용합니다. 스테이지별 draft/best, 마지막 단계 재개, 백업/복구 형식은 바뀌지 않습니다. 회로 파일 목록이나 GIF를 localStorage에 넣지 않습니다. 공유 grading 모듈의 저장 기능은 체험판에서 호출하지 않습니다.

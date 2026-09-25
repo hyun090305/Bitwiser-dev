@@ -2,7 +2,7 @@ import { compileCircuit } from '../canvas/evaluation.js';
 import { getReferenceFSM } from './referenceFSM.js';
 import { DIVIDER_INPUTS, DIVIDER_OUTPUTS, verifyDivider } from './dividerGrading.js';
 
-export const GRADING_VERSION = 5;
+export const GRADING_VERSION = 6;
 
 const DEFAULTS = Object.freeze({ maxStates: 250000, maxTransitions: 4000000, maxMilliseconds: 10000, chunkSize: 2048, denseLimit: 2 ** 20 });
 const diagnostic = (code, message) => ({ ok: false, status: 'invalid', diagnostics: [{ code, message }] });
@@ -84,15 +84,6 @@ function* verify(definition, answers, options) {
   }
   if (!sequential && compiled.memoryIds.length) return diagnostic('MEMORY_NOT_ALLOWED', '조합논리 문제에서는 D를 사용할 수 없습니다.');
   if (compiled.memoryIds.length > 30) return incomplete('MEMORY_LIMIT');
-  if (answers.referenceId?.startsWith('memory20:')) {
-    // Final memory puzzles use binary gates, never implicit free constants.
-    const incoming = new Map();
-    for (const w of Object.values(definition.wires)) incoming.set(w.endBlockId, (incoming.get(w.endBlockId) || 0) + 1);
-    for (const block of Object.values(definition.blocks)) {
-      const arity = {INPUT:0, OUTPUT:1, JUNCTION:1, NOT:1, AND:2, OR:2}[block.type];
-      if (arity != null && (incoming.get(block.id) || 0) !== arity) return diagnostic('INVALID_PRIMITIVE_ARITY', `${block.type} ${block.name || block.id}: 입력은 ${arity}개여야 합니다.`);
-    }
-  }
   if (reference.divider) return yield* verifyDivider(compiled,{maxTransitions:limits.maxTransitions,timedOut});
   const inputCount = 2 ** ref.inputs.length;
   const inputMasks = Uint32Array.from({ length: inputCount }, (_, x) => remap(x, ref.inputs, compiled.inputNames));

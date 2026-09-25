@@ -51,7 +51,7 @@ export function validateSavedCircuitRecord(record) {
   const blockAt = p => positions.get(`${p?.r},${p?.c}`);
   for (const [id, wire] of Object.entries(raw.wires)) {
     check(validId(id) && plain(wire) && wire.id === id && validId(wire.startBlockId) && validId(wire.endBlockId));
-    check(Array.isArray(wire.path) && wire.path.length <= raw.rows * raw.cols && isValidWirePath(wire.path, {
+    check(Array.isArray(wire.path) && wire.path.length <= raw.rows * raw.cols + 1 && isValidWirePath(wire.path, {
       withinBounds, blockAt, cellHasWire: p => occupied.has(`${p.r},${p.c}`)
     }));
     check(blockAt(wire.path[0])?.id === wire.startBlockId && blockAt(wire.path.at(-1))?.id === wire.endBlockId);

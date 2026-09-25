@@ -84,6 +84,7 @@ test('bad grade cannot overwrite progress; one star still unlocks', () => {
   const bad=fixture(1); delete bad.wires.w0;
   const before=store.exportBackup(); assert.throws(()=>store.recordClear(1,bad)); assert.equal(store.exportBackup(),before);
   const one=fixture(1,2); one.blocks.extra={id:'extra',type:'NOT',pos:{r:5,c:0},value:false};
+  one.wires.extra={id:'extra',startBlockId:'a',endBlockId:'extra',path:[[1,1],[2,1],[3,1],[4,1],[5,1],[5,0]].map(([r,c])=>({r,c}))};
   assert.equal(store.recordClear(1,one).record.stars,1); assert.ok(store.isUnlocked(2));
 });
 test('best cost, historical stars, and draft remain independent', () => {
@@ -92,7 +93,9 @@ test('best cost, historical stars, and draft remain independent', () => {
   const prior = store.state.stages[2].best;
   store.state.stages[2].bestStars = {...prior, stars:3}; // historically earned
   store.state.stages[2].highestStars = 3;
-  const expensive=fixture(2); expensive.blocks.extra={id:'extra',type:'OR',pos:{r:5,c:5},value:false};
+  const expensive=fixture(2); expensive.blocks.extra={id:'extra',type:'OR',pos:{r:5,c:2},value:false};
+  expensive.wires.extraA={id:'extraA',startBlockId:'g',endBlockId:'extra',path:[[2,2],[3,2],[4,2],[5,2]].map(([r,c])=>({r,c}))};
+  expensive.wires.extraB={id:'extraB',startBlockId:'b',endBlockId:'extra',path:[[2,0],[3,0],[4,0],[5,0],[5,1],[5,2]].map(([r,c])=>({r,c}))};
   const result=store.recordClear(2,expensive);
   assert.equal(result.improved,false); assert.equal(result.record.stars,1);
   assert.equal(store.state.stages[2].best.totalCost,prior.totalCost);

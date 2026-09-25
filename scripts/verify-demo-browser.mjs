@@ -2,6 +2,7 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { observeMap, enterStage, goToMap, openSettings } from './demo-browser-helpers.mjs';
+import { drawFeedbackWire } from './feedback-ui-checks.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE_PATH || 'playwright');
 const base = process.env.DEMO_URL || 'http://127.0.0.1:8080';
@@ -92,7 +93,12 @@ try {
   await page.locator('#loadingStartBtn').click(); await page.locator('#startLevelBtn').click();
   assert.deepEqual(await page.evaluate(async()=>{const g=await import('./src/modules/grid.js');return Object.keys(g.getPlayCircuit().blocks);}),Object.keys(draftBefore.circuit.blocks));
   // A wrong circuit must not create a clear. Input test values must not leak.
-  await page.evaluate(async()=>{const g=await import('./src/modules/grid.js');const c=structuredClone(g.getPlayCircuit());c.wires={};g.getPlayController().restoreCircuit(c);});
+  await page.evaluate(async()=>{
+    const g=await import('./src/modules/grid.js'),c=structuredClone(g.getPlayCircuit());
+    c.wires.w1.startBlockId='a';
+    c.wires.w1.path=[[1,1],[2,1],[3,1],[4,1],[4,2],[4,3],[4,4]].map(([r,c])=>({r,c}));
+    g.getPlayController().restoreCircuit(c);
+  });
   await page.locator('#gradeButton').click();
   await page.locator('#gradingResultOverlay[data-state="failed"]').waitFor();
   assert.deepEqual(await page.locator('.trace-event').evaluateAll(nodes => nodes.map(n => n.dataset.eventType)), ['set', 'expect']);
@@ -109,6 +115,12 @@ try {
   // Preserve the better record while saving a later unfinished draft.
   await page.evaluate(async()=>{const g=await import('./src/modules/grid.js');const c=structuredClone(g.getPlayCircuit());c.wires={};g.getPlayController().restoreCircuit(c);});
   await page.waitForTimeout(550); assert.equal((await save()).stages[1].best.stars,3);
+  await page.locator('#gradeButton').click();
+  await page.locator('#gradingResultOverlay[data-state="failed"]').waitFor();
+  assert.equal(await page.locator('.trace-event').count(),0);
+  assert.match(await page.locator('#gradingResultOverlay').innerText(),/Incomplete/);
+  assert.equal((await save()).stages[1].best.stars,3);
+  await page.locator('#gradingResultEditBtn').click();
   await enter(2); await grade(2); await enter(3); await grade(3);
   await enter(6);
   await page.locator('#viewRankingBtn').click();
@@ -134,12 +146,29 @@ try {
   assert.ok((await save()).stages[23].draft);
   assert.equal('storySeen' in (await save()),false);
   const forbidden=await page.evaluate(async()=>{try {await (await import('./src/modules/levels.js')).startLevel(24);return false;}catch{return true;}}); assert.equal(forbidden,true);
+  for (const role of ['D','EN']) {
+    await enter(25);const c=await fixture(25);delete c.wires.w1;
+    if (role==='D') delete c.wires.w0;
+    c.wires.loop={id:'loop',startBlockId:'Q',endBlockId:'Q',inputRole:role,
+      path:[[2,2],[2,3],[2,4],[1,4],[0,4],[0,3],[0,2],[1,2],[2,2]].map(([r,c])=>({r,c}))};
+    const drawn=await drawFeedbackWire(page,c);
+    await page.waitForTimeout(550);assert.deepEqual((await save()).stages[25].draft.circuit,drawn);
+    const backup=await save();
+    await openSettings(page);
+    await page.locator('#demoBackupFile').setInputFiles({name:'feedback-backup.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(backup))});
+    await Promise.all([page.waitForEvent('load'),page.getByRole('button',{name:'Restore this backup',exact:true}).click()]);
+    await page.locator('#loadingStartBtn').click();await page.locator('#startLevelBtn').click();
+    assert.deepEqual(await page.evaluate(async()=>{
+      const grid=await import('./src/modules/grid.js'),data=await import('./src/canvas/circuitData.js');
+      return data.snapshotCircuit(grid.getPlayCircuit());
+    }),drawn);
+  }
   await goToMap(page); await page.screenshot({path:'test-results/demo-map.png'});
   await openSettings(page);
   await page.screenshot({path:'test-results/demo-settings.png'});
   await page.locator('#settingsCloseBtn').click();
   assert.deepEqual(external,[]); assert.deepEqual(errors,[]); assert.deepEqual(missing,[]);
-  console.log(JSON.stringify({result:'passed',gradedStages:16,priorityEntry:true,externalRequests:external,pageErrors:errors,missingAssets:missing},null,2));
+  console.log(JSON.stringify({result:'passed',gradedStages:16,priorityEntry:true,selfFeedbackBackup:true,externalRequests:external,pageErrors:errors,missingAssets:missing},null,2));
 } catch(error) {
   console.error('Browser check failed',error);
   console.error('Page errors:',errors,'Missing:',missing,'External:',external);

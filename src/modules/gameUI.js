@@ -118,7 +118,7 @@ export function setupKeyToggles() {
         e.stopImmediatePropagation();
         const active = !btn.classList.contains('active');
         bindings
-          .filter(([, k]) => k === key)
+          .filter(([b, k]) => b && k === key)
           .forEach(([b]) => b.classList.toggle('active', active));
         simulateKey(key, active ? 'keydown' : 'keyup');
       });

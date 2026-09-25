@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><title>Connection editing regression</title>
+<link rel="stylesheet" href="/style.css">
+<style>body{margin:0;display:block;overflow:auto;background:#e2e8f0}#tools{height:40px;display:flex;gap:8px}#surface{position:relative;width:1158px;height:626px}canvas{position:absolute;left:0;top:0}</style>
+<div id="tools"><button id="move">Move</button><button id="wire">Wire</button><button id="del">Delete</button><button id="select">Select</button><div><button id="copy">Copy</button><button id="paste">Paste</button></div><button id="undo">Undo</button><button id="redo">Redo</button></div>
+<div id="surface"><canvas id="bg"></canvas><canvas id="content"></canvas><canvas id="overlay"></canvas></div>
+<script type="module">
+import { createController } from '/src/canvas/controller.js';
+import { selfFeedbackCircuit } from '/tests/helpers/connection-circuits.mjs';
+import { snapshotCircuit } from '/src/canvas/circuitData.js';
+import { getExecutionState, getEvaluationResult } from '/src/canvas/evaluation.js';
+import { calculateCircuitCost } from '/src/modules/circuitCost.js';
+const el=id=>document.getElementById(id);
+window.testCircuit=selfFeedbackCircuit();
+window.testController=createController({bgCanvas:el('bg'),contentCanvas:el('content'),overlayCanvas:el('overlay')},testCircuit,{
+  wireMoveInfo:el('move'),wireStatusInfo:el('wire'),wireDeleteInfo:el('del'),wireSelectInfo:el('select'),copyButton:el('copy'),pasteButton:el('paste'),undoButton:el('undo'),redoButton:el('redo')
+},{panelWidth:220,palette:['INPUT','OUTPUT','AND','OR','NOT','JUNCTION','D'],enableCopyPaste:true});
+window.testRead=()=>({design:snapshotCircuit(testCircuit),memory:[...getExecutionState(testCircuit).memory],tick:getExecutionState(testCircuit).tick,
+  inputs:Object.values(testCircuit.blocks).filter(b=>b.type==='INPUT').map(b=>[b.id,b.value]),
+  cost:calculateCircuitCost(testCircuit).totalCost,undo:!el('undo').disabled,redo:!el('redo').disabled,diagnostics:getEvaluationResult(testCircuit)?.diagnostics});
+window.testReady=true;
+</script></html>

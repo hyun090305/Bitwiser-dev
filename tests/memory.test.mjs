@@ -38,14 +38,16 @@ test('unequal-depth AND/OR paths settle topologically for all inputs and storage
   }
 });
 
-test('binary gates, unconnected gates and first-input NOT remain defined', () => {
+test('incomplete gates and excess NOT inputs have no implicit signal value', () => {
   const c = build({ x: 'INPUT', y: 'INPUT', a: 'AND', r: 'OR', n: 'NOT', j: 'JUNCTION', o: 'OUTPUT' });
   evaluateCircuit(c);
-  assert.deepEqual(['a','r','n','j','o'].map(id => c.blocks[id].value), [true,false,true,false,false]);
+  assert.deepEqual(['a','r','n','j','o'].map(id => c.blocks[id].value), [null,null,null,null,null]);
+  assert.equal(getEvaluationResult(c).ok,false);
   for (const id of ['x','y']) { connect(c,id,'a'); connect(c,id,'r'); c.blocks[id].value = true; }
   connect(c,'x','n'); connect(c,'y','n'); c.blocks.y.value = false;
-  evaluateCircuit(c); assert.equal(c.blocks.a.value,false); assert.equal(c.blocks.r.value,true); assert.equal(c.blocks.n.value,false);
-  assert.equal(getEvaluationResult(c).ok,true);
+  evaluateCircuit(c);
+  assert.equal(getEvaluationResult(c).ok,false);
+  assert.ok(getEvaluationResult(c).diagnostics.some(d => d.code === 'TOO_MANY_INPUTS' && d.blockId === 'n'));
 });
 
 test('AND/OR allow two inputs, reject excess inputs in evaluation/grading, and recover after deletion', async () => {
@@ -55,8 +57,8 @@ test('AND/OR allow two inputs, reject excess inputs in evaluation/grading, and r
     connect(c,'x','g');
     for (const x of [false,true]) {
       c.blocks.x.value=x; evaluateCircuit(c);
-      assert.equal(getEvaluationResult(c).ok,true);
-      assert.equal(c.blocks.o.value,x);
+      assert.equal(getEvaluationResult(c).ok,false);
+      assert.equal(c.blocks.o.value,null);
     }
     assert.equal(canConnect(c,'y','g'),true);
     connect(c,'y','g');

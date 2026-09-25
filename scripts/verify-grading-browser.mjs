@@ -25,6 +25,7 @@ for(let i=0;i<depth;i++){block('d'+i,'D');wire(i?'d'+(i-1):'x','d'+i)}
 // Use a two-input AND tree: the full circuit still fails only after all D
 // stages become 1, and remains valid under the editor's gate input limit.
 if(mode.startsWith('fail')){let previous='d0';for(let i=1;i<depth;i++){const id='and'+i;block(id,'AND');wire(previous,id);wire('d'+i,id);previous=id}wire(previous,'o')}
+else {block('zero','D');wire('zero','zero');wire('zero','o')}
 const answers={mode:'sequential',reference:{inputs:['x'],outputs:['o'],stateCount:1,initialState:0,observeAt:mode==='failAfter'?'after_tick':'before_tick',evaluate:()=>({outputs:0,nextState:0})}};
 window.c=c;window.getExecutionState=getExecutionState;window.getTraceHighlight=getTraceHighlight;
 if(mode.startsWith('fail')) {
