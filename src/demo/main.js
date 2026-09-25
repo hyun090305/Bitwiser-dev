@@ -275,7 +275,7 @@ async function boot() {
       if (!['Escape', 'Tab'].includes(event.key)) event.stopImmediatePropagation();
       return;
     }
-    if (busy || activeStage === null || event.target.closest('input,textarea,select')) return;
+    if (busy || activeStage === null || event.target.closest?.('input,textarea,select')) return;
     const moves = { ArrowUp: [0,-1], ArrowDown: [0,1], ArrowLeft: [-1,0], ArrowRight: [1,0] };
     if (moves[event.key]) { event.preventDefault(); moveCircuit(...moves[event.key]); }
   }, true);

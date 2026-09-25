@@ -20,7 +20,7 @@ const outputs = c => Object.fromEntries(Object.values(c.blocks).filter(b=>b.type
 const vector = (ref,mask) => Object.fromEntries(ref.inputs.map((name,i)=>[name,(mask>>>i)&1]));
 
 test('all 19 visible references use trusted stage buttons; legacy contracts remain separate',()=>{
-  assert.equal(GRADING_VERSION,5);
+  assert.equal(GRADING_VERSION,6);
   for(const id of ids) {
     const ref=reference(id);assert.equal(ref.observationMode,'visible');assert.deepEqual(ref.releaseButtons,policies[id]||[]);
     assert.deepEqual([...ref.releaseButtons].sort(),levels.levelBlockSets[id].filter(b=>b.type==='INPUT'&&b.inputMode==='button').map(b=>b.name).sort());

@@ -34,18 +34,39 @@ export function snapshotCircuit(circuit) {
 // unit steps, and no intersections with blocks, other wires, or itself.
 export function isValidWirePath(trace, { withinBounds, blockAt, cellHasWire }, endpoints = true) {
   if (!Array.isArray(trace) || (endpoints && trace.length < 3)) return false;
+  if (trace.some(p => !p || !Number.isInteger(p.r) || !Number.isInteger(p.c))) return false;
+  const start = trace.length ? blockAt(trace[0]) : null;
+  const end = trace.length ? blockAt(trace.at(-1)) : null;
+  const selfFeedback = start?.type === 'D' && start.id === end?.id && trace.length >= 5;
   if (endpoints) {
-    const start = blockAt(trace[0]);
-    const end = blockAt(trace.at(-1));
-    if (!start || !end || start.id === end.id) return false;
+    if (!start || !end || (start.id === end.id && !selfFeedback)) return false;
   }
   const seen = new Set();
   return trace.every((p, i) => {
     if (!p || !Number.isInteger(p.r) || !Number.isInteger(p.c) || !withinBounds(p.r, p.c)) return false;
     const key = `${p.r},${p.c}`;
-    if (seen.has(key)) return false;
+    if (seen.has(key) && !(selfFeedback && i === trace.length - 1 && p.r === trace[0].r && p.c === trace[0].c)) return false;
     seen.add(key);
     if (i && Math.abs(p.r - trace[i - 1].r) + Math.abs(p.c - trace[i - 1].c) !== 1) return false;
     return !(i > 0 && i < trace.length - 1 && (blockAt(p) || cellHasWire(p)));
   });
+}
+
+// Validate a proposed editor transaction, including overlaps between new wires.
+// Logical completeness is deliberately separate so unfinished designs can move.
+export function hasValidWireLayout(circuit, withinBounds = (r, c) => r >= 0 && c >= 0 && r < circuit.rows && c < circuit.cols) {
+  const positions = new Map(), occupied = new Set();
+  for (const block of Object.values(circuit.blocks)) {
+    const { r, c } = block.pos;
+    const key = `${r},${c}`;
+    if (!Number.isInteger(r) || !Number.isInteger(c) || !withinBounds(r, c) || positions.has(key)) return false;
+    positions.set(key, block);
+  }
+  const blockAt = p => positions.get(`${p?.r},${p?.c}`);
+  for (const wire of Object.values(circuit.wires)) {
+    if (!isValidWirePath(wire.path, { withinBounds, blockAt, cellHasWire: p => occupied.has(`${p.r},${p.c}`) }) ||
+        blockAt(wire.path[0])?.id !== wire.startBlockId || blockAt(wire.path.at(-1))?.id !== wire.endBlockId) return false;
+    wire.path.slice(1, -1).forEach(p => occupied.add(`${p.r},${p.c}`));
+  }
+  return true;
 }

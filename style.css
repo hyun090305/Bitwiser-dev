@@ -4418,9 +4418,18 @@ body.lab-mode-active {
 
 
 /* Compact logical-clock controls live beside, never on top of, the canvas. */
+.memory-playback-host {
+  --circuit-status-height: 48px;
+  position: relative;
+  padding-top: calc(var(--circuit-status-height) + 16px);
+}
 .console-frame__core.memory-playback-host {
+  padding-top: calc(var(--circuit-status-height) + 16px);
   flex-direction: column;
   gap: 0.55rem;
+}
+.memory-playback-host .tutorial-mission-overlay {
+  top: calc(var(--circuit-status-height) + 18px);
 }
 .memory-playback-bar {
   position: relative;
@@ -4483,7 +4492,7 @@ body.lab-mode-active {
 }
 .memory-playback-bar button:disabled,
 .memory-playback-speed input:disabled { opacity: 0.5; cursor: default; }
-#labScreen.memory-playback-host #labCanvasContainer { height: calc(100vh - 62px); height: calc(100dvh - 62px); }
+#labScreen.memory-playback-host #labCanvasContainer { height: calc(100dvh - 62px - var(--circuit-status-height) - 16px); }
 #labScreen > .memory-playback-bar {
   position: fixed;
   left: 220px;
@@ -4683,4 +4692,61 @@ body.lab-mode-active {
   font: inherit;
   text-align: inherit;
   cursor: pointer;
+}
+.circuit-status-area {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  right: 12px;
+  height: var(--circuit-status-height);
+  display: grid;
+  grid-template-columns: minmax(150px, 1fr) minmax(0, 3fr) minmax(150px, 1fr);
+  align-items: start;
+  gap: 8px;
+  z-index: 6;
+  pointer-events: none;
+}
+.circuit-diagnostic-control { grid-column: 3; grid-row: 1; justify-self: end; pointer-events: auto; }
+.circuit-diagnostic-badge, .circuit-diagnostics, .circuit-edit-notice {
+  box-sizing: border-box;
+  color: #fef3c7;
+  background: #172238;
+  border: 1px solid #a88746;
+  border-radius: 8px;
+  font: 500 12px/1.4 'Noto Sans KR', system-ui, sans-serif;
+  padding: 5px 9px;
+}
+.circuit-diagnostic-badge { white-space: nowrap; cursor: pointer; }
+.circuit-diagnostic-badge:focus-visible { outline: 2px solid #7dd3fc; outline-offset: 2px; }
+.circuit-diagnostics {
+  position: absolute;
+  top: 32px;
+  right: 0;
+  width: min(360px, 100%);
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  box-shadow: 0 8px 20px #020617aa;
+  z-index: 2;
+}
+.circuit-edit-notice {
+  grid-column: 2;
+  grid-row: 1;
+  margin: 0;
+  justify-self: center;
+  max-width: 100%;
+  text-align: center;
+  max-height: 46px;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+.circuit-diagnostic-badge[hidden], .circuit-diagnostics[hidden], .circuit-edit-notice[hidden] { display: none !important; }
+@media (max-width: 900px) {
+  .memory-playback-host { --circuit-status-height: 82px; }
+  .circuit-status-area { grid-template-columns: 1fr; grid-template-rows: 28px 46px; gap: 6px; }
+  .circuit-diagnostic-control { grid-column: 1; }
+  .circuit-edit-notice { grid-column: 1; grid-row: 2; justify-self: center; max-width: 100%; }
+  .circuit-diagnostics { top: 32px; }
 }

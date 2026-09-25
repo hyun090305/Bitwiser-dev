@@ -43,9 +43,6 @@ export function prepareCircuit(circuit) {
       if (degrees.get(id) === 0) order.push(id);
     }
   }
-  if (order.length !== blocks.length) diagnostics.push({
-    code: 'COMBINATIONAL_CYCLE', message: '조합논리 순환이 있습니다. 모든 피드백 경로가 D를 통과해야 합니다.'
-  });
   const plan = { signature, incoming, wires, order, diagnostics };
   plans.set(circuit, plan);
   return plan;
@@ -59,7 +56,7 @@ export function computeBlock(block, values, incomingMap) {
   switch (block.type) {
     case 'AND': return inputs.every(Boolean);
     case 'OR': return inputs.some(Boolean);
-    // Legacy NOT: first connected input; no input = 1. Do not invent a new gate.
+    // prepareCircuit validates the exact arity before executing gates.
     case 'NOT': return !inputs[0];
     case 'OUTPUT': return inputs.some(Boolean);
     case 'JUNCTION': return Boolean(inputs[0]);

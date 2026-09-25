@@ -85,9 +85,10 @@ test('cancellation and repeated playback restore editor Q, held inputs and tick 
 
 test('truth-table trace has no invented tick or memory initialization', () => {
   const c = register(); delete c.blocks.a; delete c.blocks.b; c.wires = {};
-  const result = gradeCircuitSync(c, [0, 1].map(x => ({ inputs: { x }, expected: { o: x } })));
+  c.wires.direct = newWire({ id:'direct', startBlockId:'x', endBlockId:'o', path:[] });
+  const result = gradeCircuitSync(c, [0, 1].map(x => ({ inputs: { x }, expected: { o: 0 } })));
   assert.deepEqual(result.trace.map(e => e.type), ['set', 'expect']);
-  assert.deepEqual(result.trace[1].outputs[0], { signal: 'o', blockId: 'o', actual: 0, expected: 1, passed: false });
+  assert.deepEqual(result.trace[1].outputs[0], { signal: 'o', blockId: 'o', actual: 1, expected: 0, passed: false });
   assert.throws(() => applyTraceEvent(c, { type: 'unknown' }), /Unsupported trace event/);
 });
 

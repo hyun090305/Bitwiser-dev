@@ -34,7 +34,7 @@ export function validateStageCircuit(raw, id, levels) {
   const blockAt = p => positions.get(`${p?.r},${p?.c}`);
   for (const [key, w] of Object.entries(raw.wires)) {
     check(validId(key) && plain(w) && w.id === key && validId(w.startBlockId) && validId(w.endBlockId), 'Invalid wire');
-    check(Array.isArray(w.path) && w.path.length <= rows * cols && isValidWirePath(w.path, {
+    check(Array.isArray(w.path) && w.path.length <= rows * cols + 1 && isValidWirePath(w.path, {
       withinBounds, blockAt, cellHasWire: p => occupied.has(`${p.r},${p.c}`)
     }), 'Invalid wire path');
     check(blockAt(w.path[0])?.id === w.startBlockId && blockAt(w.path.at(-1))?.id === w.endBlockId, 'Invalid wire endpoints');

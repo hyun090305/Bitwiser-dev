@@ -103,7 +103,8 @@ let labThemeUnsub = null;
 function resizeLabViewport() {
   if (!labController?.resizeCanvas) return;
   const controlsHeight = labController.getPlaybackBarHeight?.() || 0;
-  const height = Math.max(1, window.innerHeight - controlsHeight - (controlsHeight ? 8 : 0));
+  const statusHeight = labController.getStatusBarHeight?.() || 0;
+  const height = Math.max(1, window.innerHeight - statusHeight - 16 - controlsHeight - (controlsHeight ? 8 : 0));
   const container = document.getElementById('labCanvasContainer');
   if (container) container.style.height = `${height}px`;
   labController.resizeCanvas(window.innerWidth, height);
@@ -247,6 +248,7 @@ function createLabController({ preserveCircuit = false, cameraOptions = null } =
     },
     {
       paletteGroups,
+      executionMode: 'sequential',
       panelWidth: 220,
       camera: labCamera,
       unboundedGrid: true,

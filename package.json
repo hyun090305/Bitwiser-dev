@@ -16,6 +16,7 @@
     "test:full:electron": "electron scripts/verify-full-electron.cjs",
     "test:saves:electron": "node scripts/verify-circuit-saves-electron.mjs",
     "test:memory:browser": "node scripts/verify-memory-browser.mjs",
+    "test:connections:browser": "node scripts/verify-connections-browser.mjs",
     "test:stages:browser": "node scripts/verify-stage-memory-browser.mjs",
     "test:map:browser": "node scripts/verify-stage-map-browser.mjs",
     "stages:generate": "node scripts/generate-memory-stages.mjs && node scripts/integrate-memory20.mjs && node scripts/restructure-stage-map.mjs",

@@ -112,6 +112,11 @@ try {
   assert.equal(await page.locator('#gradingResultOverlay').isVisible(), false);
   assert.equal(await page.evaluate(() => window.isGradingResultOpen), false);
   const definitions = JSON.parse(await fs.readFile('levels.json', 'utf8'));
+  // Autoplay may tick between loading a fixture and the actual Verify click.
+  // Compare restoration with the runtime at grading entry, not an earlier frame.
+  await page.evaluate(() => document.addEventListener('bitwiser:scoring', () => {
+    if (window.isScoring && window.phaseSnapshot) window.phaseBefore = window.phaseSnapshot();
+  }));
   for (const language of ['ko', 'en']) for (const [stage, circuit, observation, phaseLabel] of [
     [25, initialOutputShortcut(), 'initial', language === 'ko' ? '초기 상태' : 'Initial state'],
     [38, registeredAddressMemory(), 'after_set', language === 'ko' ? '입력 변경 후 (tick 없음)' : 'After input change (no tick)'],
@@ -190,7 +195,7 @@ try {
     assert.ok((await page.evaluate(() => window.phaseStep().highlight.blocks)).some(b => !b.passed));
     await page.screenshot({ path: `test-results/result-trace/${observation}-${language}-replay.png` });
     await page.locator('#gradingResultEditBtn').click();
-    assert.equal(await page.evaluate(() => window.phaseSnapshot() === window.phaseBefore), true);
+    assert.deepEqual(await page.evaluate(() => JSON.parse(window.phaseSnapshot())), await page.evaluate(() => JSON.parse(window.phaseBefore)));
     // Restart, then cancel through both Escape and stage navigation.
     await page.locator('#gradeButton').click();
     await page.locator('#gradingResultOverlay[data-state=failed]').waitFor();

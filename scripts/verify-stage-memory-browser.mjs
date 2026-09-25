@@ -29,6 +29,8 @@ try {
   const single=structuredClone(fixture);delete single.wires[Object.keys(single.wires).find(id=>single.wires[id].inputRole==='EN')];
   await page.evaluate(async c=>(await import('./src/modules/grid.js')).getPlayController().restoreCircuit(c),single);
   assert.equal(await page.locator('.memory-playback-bar:visible').count(),1);
+  await page.waitForFunction(async()=>(await import('./src/modules/grid.js')).getPlayController().tickRunner.isRunning());
+  await page.locator('[data-memory-action=play]').click(); // Pause to inspect exact manual-tick values.
   await clickBlock('DATA');await step();assert.equal((await read()).memory[memoryId],true);
   await clickBlock('DATA');assert.equal((await read()).memory[memoryId],true);
   await step();assert.equal((await read()).memory[memoryId],false);

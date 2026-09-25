@@ -36,7 +36,8 @@ const action=name=>page.locator(`[data-memory-action="${name}"]`);
 const step=()=>page.evaluate(()=>testController.tickRunner.step());
 const roles=s=>Object.fromEntries(Object.entries(s.design.wires).filter(([,w])=>w.endBlockId==='memory').map(([id,w])=>[id,w.inputRole]));
 try {
-  await page.goto(base+'/tests/memory-harness.html');await page.waitForFunction(()=>window.testReady);
+  await page.goto(base+'/tests/memory-harness.html');await page.waitForFunction(()=>window.testReady && testController.tickRunner.isRunning());
+  await action('play').click(); // Explicit pause for deterministic manual-tick checks.
   await click(2,0);assert.equal((await read()).memory.memory,false);
   await step();assert.equal((await read()).memory.memory,false);
   await click(0,4);await step();assert.equal((await read()).memory.memory,true);
@@ -165,7 +166,8 @@ try {
 
   await action('play').click();await page.waitForFunction(()=>testRead().tick>=3);
   await action('play').click();const stopped=(await read()).tick;await page.waitForTimeout(650);assert.equal((await read()).tick,stopped);
-  await action('play').click();await click(2,4);assert.equal((await read()).running,false);
+  await action('play').click();await click(2,4);await page.waitForFunction(()=>testRead().running);
+  await page.evaluate(()=>{window.isScoring=true;document.dispatchEvent(new Event('bitwiser:scoring'));});
   const beforeLock=await read();await page.evaluate(()=>{window.isScoring=true;document.dispatchEvent(new Event('bitwiser:scoring'));});
   await click(2,4);await click(2,0);assert.deepEqual(await read(),beforeLock);
   await page.evaluate(()=>{window.isScoring=false;document.dispatchEvent(new Event('bitwiser:scoring'));});

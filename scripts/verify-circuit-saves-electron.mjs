@@ -7,6 +7,7 @@ import { snapshotCircuit } from '../src/canvas/circuitData.js';
 import { getSavePaths } from '../electron/circuit-store.cjs';
 import { launchPackagedElectron } from './packaged-electron-test-launcher.mjs';
 import { verifyGameplayActions } from './gameplay-ui-checks.mjs';
+import { drawFeedbackWire } from './feedback-ui-checks.mjs';
 
 const root = path.resolve('.');
 const packaged = process.argv.includes('--packaged');
@@ -153,6 +154,31 @@ try {
     const state = e.getExecutionState(g.getPlayCircuit()); return { tick: state.tick, memory: [...state.memory.values()] };
   }), { tick: 0, memory: [false] });
   report.checks.push('Memory round-trip preserves roles/input modes and resets execution');
+  const feedbackSaves=[];
+  for (const role of ['D','EN']) {
+    const c=structuredClone(memoryFixture);
+    delete c.wires.w1;
+    if (role==='D') delete c.wires.w0;
+    c.wires.loop={id:'loop',startBlockId:'Q',endBlockId:'Q',inputRole:role,
+      path:[[2,2],[2,3],[2,4],[1,4],[0,4],[0,3],[0,2],[1,2],[2,2]].map(([r,c])=>({r,c}))};
+    await stage(25,memoryFixture);
+    const drawn=await drawFeedbackWire(page,c);
+    const id=await page.evaluate(async()=> (await import('./src/modules/circuitShare.js')).saveCircuit());
+    assert.ok(id);feedbackSaves.push({id,c:drawn});
+  }
+  await close();await launch();await stage(25,memoryFixture);
+  for (const {id,c} of feedbackSaves) {
+    assert.equal(await page.evaluate(async id=>(await import('./src/modules/circuitShare.js')).loadCircuit(id),id),true);
+    assert.deepEqual(await readCircuit(),snapshotCircuit(c));
+    const result=await page.evaluate(async()=>{
+      const g=await import('./src/modules/grid.js'),e=await import('./src/canvas/evaluation.js');
+      const circuit=g.getPlayCircuit();const tick=e.tickCircuit(circuit);
+      return {ok:tick.ok,tick:e.getExecutionState(circuit).tick,q:e.getExecutionState(circuit).memory.get('Q')};
+    });
+    assert.deepEqual(result,{ok:true,tick:1,q:false});
+  }
+  await page.screenshot({path:`test-results/${outputName}-self-feedback.png`});
+  report.checks.push('Own D/EN feedback drawn on real canvas with Undo/Redo, saved, restored after process restart and ticked from Q=0');
   await stage(1, fixture);
   await page.evaluate(async () => (await import('./src/modules/circuitShare.js')).openSavedModal());
   await page.locator('.saved-load').first().waitFor();

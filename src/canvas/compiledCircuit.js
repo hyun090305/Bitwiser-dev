@@ -50,9 +50,9 @@ export function compilePlan(circuit, plan) {
               for (let j = begin; j < end; j++) value |= values[edges[j]];
               values[i] = value; break;
             }
-            // Preserve legacy first-input NOT, including NOT() = 1.
-            case 4: values[i] = begin === end ? 1 : 1 - values[edges[begin]]; break;
-            case 6: values[i] = begin === end ? 0 : values[edges[begin]]; break;
+            // Only complete, validated plans reach this kernel.
+            case 4: values[i] = 1 - values[edges[begin]]; break;
+            case 6: values[i] = values[edges[begin]]; break;
           }
         }
       }

@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { verifyGameplayActions } from './gameplay-ui-checks.mjs';
+import { drawFeedbackWire } from './feedback-ui-checks.mjs';
 const root=path.resolve('.');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.gif':'image/gif','.mp3':'audio/mpeg','.wav':'audio/wav'};
 const server=createServer(async(req,res)=>{
@@ -113,8 +114,21 @@ try{
     assert.equal(await page.locator('#circuitManagement').isVisible(), true);
     await page.locator('#systemMenuBtn').click();
     await page.locator('#continueGameBtn').click();
+    await page.evaluate(async()=>{
+      const levels=await import('./src/modules/levels.js');
+      levels.configureLevelModule({progressProvider:()=>[6]});await levels.startLevel(25);
+      const nav=await import('./src/modules/navigation.js');nav.hideStageMapScreen();nav.showGameScreen();
+    });
+    await page.locator('#startLevelBtn').click();
+    for (const role of ['D','EN']) {
+      const c=JSON.parse(await fs.readFile('tests/fixtures/demo/25-3.json','utf8')).circuit;delete c.wires.w1;
+      if (role==='D') delete c.wires.w0;
+      c.wires.loop={id:'loop',startBlockId:'Q',endBlockId:'Q',inputRole:role,
+        path:[[2,2],[2,3],[2,4],[1,4],[0,4],[0,3],[0,2],[1,2],[2,2]].map(([r,c])=>({r,c}))};
+      await drawFeedbackWire(page,c);
+    }
   }
   assert.deepEqual(errors, []);
-  console.log(JSON.stringify({...result,nativeStorageDisabled:storageBoundary.disabled,errors}));
+  console.log(JSON.stringify({...result,nativeStorageDisabled:storageBoundary.disabled,selfFeedbackKoEn:true,errors}));
 }catch(error){console.error(error,errors);process.exitCode=1;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

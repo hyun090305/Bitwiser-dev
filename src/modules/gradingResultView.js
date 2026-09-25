@@ -1,4 +1,5 @@
 import { chapterForStage } from './stageCatalog.js';
+import { diagnosticMessage } from '../canvas/connections.js';
 import { createCounterexampleTrace, observationLabel } from './counterexampleTrace.js';
 import { createTracePlayback } from '../canvas/tracePlayback.js';
 
@@ -85,7 +86,7 @@ export function createGradingResultView({ getCircuit, getTraceView, onEdit, onCl
       } else if (!result.ok) {
         const message = result.status === 'incomplete'
           ? tr('탐색 한도에 도달했습니다. 회로를 단순화한 뒤 다시 검증하세요.', 'Search limit reached. Simplify the circuit and verify again.')
-          : result.diagnostics?.map(d => d.message).join(' · ');
+          : result.diagnostics?.map(d => diagnosticMessage(d)).join(' · ');
         if (message) panel.append(el('p', 'grading-result-message', message));
       }
       const footer = el('footer', 'grading-result-footer');

@@ -152,8 +152,8 @@ test('online personal progress only restores matching verified stages and never 
   const records=await board.loadPersonal();assert.equal(records.length,1);assert.equal(records[0].totalCost,valid.totalCost);
 });
 
-for (const version of [3, 4]) test(`AC-6: v${version} grading records retain designs, stars and clears without becoming current costs`, () => {
-  assert.equal(GRADING_VERSION, 5);
+for (const version of [3, 4, 5]) test(`AC-6: v${version} grading records retain designs, stars and clears without becoming current costs`, () => {
+  assert.equal(GRADING_VERSION, 6);
   const stale = oldRecord(doorShortcut(), 30, version), passingOld = oldRecord(memoryFixture(29), 29, version);
   const unrelated = makeCostRecord(fixture(1), 1, levels), storage = memory();
   const key = 'bitwiser:cost-progress:v1:history';
