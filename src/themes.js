@@ -116,7 +116,6 @@ const THEMES = [
     },
     wire: {
       color: '#4338ca',
-      baseColor: '#a5a0d6',
       width: 2.4,
       dashPattern: [20, 16]
     }
@@ -199,7 +198,6 @@ const THEMES = [
     },
     wire: {
       color: '#475569',
-      baseColor: '#94a3b8',
       width: 2.6,
       dashPattern: [18, 14]
     }
@@ -274,7 +272,6 @@ const THEMES = [
     },
     wire: {
       color: '#67e8f9',
-      baseColor: '#287985',
       width: 2.8,
       dashPattern: [16, 12]
     }
@@ -371,7 +368,6 @@ const THEMES = [
     },
     wire: {
       color: '#ea580c',
-      baseColor: '#c99b78',
       width: 2.6,
       dashPattern: [18, 14]
     }
@@ -468,7 +464,6 @@ const THEMES = [
     },
     wire: {
       color: '#0f766e',
-      baseColor: '#6aac9d',
       width: 2.6,
       dashPattern: [18, 14]
     }

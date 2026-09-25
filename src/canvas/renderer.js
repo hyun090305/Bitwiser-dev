@@ -6,6 +6,8 @@ import { getTraceHighlight } from './tracePlayback.js';
 export const CELL_CORNER_RADIUS = 3;
 
 const PITCH = CELL + GAP;
+// Grid boundaries bisect the gap without moving blocks or their hit regions.
+const GRID_ORIGIN = GAP / 2;
 const SIGNAL_BLOCK_BORDERS = {
   INPUT: '#54D6B2',
   OUTPUT: '#F2AD55',
@@ -77,9 +79,7 @@ const BASE_BLOCK_STYLE = {
 const BASE_WIRE_STYLE = {
   color: '#111',
   width: 2,
-  dashPattern: [20, 20],
-  baseColor: '#64748b',
-  baseWidth: 1.2
+  dashPattern: [20, 20]
 };
 
 function mergeShadow(base, override) {
@@ -429,9 +429,18 @@ function drawSimpleGridLines(ctx, config) {
   const effectiveLineWidth = Math.min(1, Math.max(baseLineWidth * scale, 0.5));
   let drewLine = false;
 
+  const clipLeft = Math.max(panelWidth, minX);
+  const clipTop = Math.max(0, minY);
+  const clipRight = Math.min(canvasWidth, maxX);
+  const clipBottom = Math.min(canvasHeight, maxY);
+  if (clipLeft >= clipRight || clipTop >= clipBottom) return;
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(clipLeft, clipTop, clipRight - clipLeft, clipBottom - clipTop);
+  ctx.clip();
   ctx.beginPath();
   for (let c = startCol; c <= endCol + 1; c++) {
-    const worldX = GAP + c * PITCH;
+    const worldX = GRID_ORIGIN + c * PITCH;
     const screenX = panelWidth + (worldX - originX) * scale;
     if (screenX < minX - 1 || screenX > maxX + 1) continue;
     ctx.moveTo(screenX, minY);
@@ -440,7 +449,7 @@ function drawSimpleGridLines(ctx, config) {
   }
 
   for (let r = startRow; r <= endRow + 1; r++) {
-    const worldY = GAP + r * PITCH;
+    const worldY = GRID_ORIGIN + r * PITCH;
     const screenY = (worldY - originY) * scale;
     if (screenY < minY - 1 || screenY > maxY + 1) continue;
     ctx.moveTo(minX, screenY);
@@ -455,6 +464,7 @@ function drawSimpleGridLines(ctx, config) {
   } else {
     ctx.closePath();
   }
+  ctx.restore();
 }
 
 function drawInfiniteGrid(ctx, camera, options = {}) {
@@ -496,10 +506,10 @@ function drawInfiniteGrid(ctx, camera, options = {}) {
   const startWorldY = originY;
   const endWorldY = originY + visibleHeight;
 
-  const startCol = Math.floor((startWorldX - GAP) / PITCH) - 1;
-  const endCol = Math.ceil((endWorldX - GAP) / PITCH) + 1;
-  const startRow = Math.floor((startWorldY - GAP) / PITCH) - 1;
-  const endRow = Math.ceil((endWorldY - GAP) / PITCH) + 1;
+  const startCol = Math.floor((startWorldX - GRID_ORIGIN) / PITCH) - 1;
+  const endCol = Math.ceil((endWorldX - GRID_ORIGIN) / PITCH) + 1;
+  const startRow = Math.floor((startWorldY - GRID_ORIGIN) / PITCH) - 1;
+  const endRow = Math.ceil((endWorldY - GRID_ORIGIN) / PITCH) + 1;
 
   drawSimpleGridLines(ctx, {
     panelWidth,
@@ -572,6 +582,16 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
       ctx.restore();
     }
 
+    // Keep grid strokes and the outer border out of the palette and outside
+    // the board, including when a thick border is partially offscreen.
+    ctx.beginPath();
+    ctx.rect(panelWidth, 0, Math.max(0, width - panelWidth), height);
+    ctx.clip();
+    const boardStart = camera.worldToScreen(0, 0);
+    ctx.beginPath();
+    ctx.rect(boardStart.x, boardStart.y, (cols * PITCH + GAP) * scale, (rows * PITCH + GAP) * scale);
+    ctx.clip();
+
     const effectiveBounds = bounds || {
       minX: originX,
       minY: originY,
@@ -579,16 +599,16 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
       maxY: originY + Math.max(0, height / Math.max(scale, 1e-6))
     };
     const paddedBounds = expandBounds(effectiveBounds, PITCH);
-    const startCol = Math.max(0, Math.floor((paddedBounds.minX - GAP) / PITCH));
-    const endCol = Math.min(cols - 1, Math.ceil((paddedBounds.maxX - GAP) / PITCH));
-    const startRow = Math.max(0, Math.floor((paddedBounds.minY - GAP) / PITCH));
-    const endRow = Math.min(rows - 1, Math.ceil((paddedBounds.maxY - GAP) / PITCH));
+    const startCol = Math.max(0, Math.floor((paddedBounds.minX - GRID_ORIGIN) / PITCH));
+    const endCol = Math.min(cols - 1, Math.ceil((paddedBounds.maxX - GRID_ORIGIN) / PITCH));
+    const startRow = Math.max(0, Math.floor((paddedBounds.minY - GRID_ORIGIN) / PITCH));
+    const endRow = Math.min(rows - 1, Math.ceil((paddedBounds.maxY - GRID_ORIGIN) / PITCH));
 
     if (startCol <= endCol && startRow <= endRow) {
-      const topLeft = camera.worldToScreen(GAP, GAP);
+      const topLeft = camera.worldToScreen(GRID_ORIGIN, GRID_ORIGIN);
       const bottomRight = camera.worldToScreen(
-        GAP + (cols - 1) * PITCH + CELL,
-        GAP + (rows - 1) * PITCH + CELL
+        GRID_ORIGIN + cols * PITCH,
+        GRID_ORIGIN + rows * PITCH
       );
       drawSimpleGridLines(ctx, {
         panelWidth,
@@ -612,18 +632,14 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
 
     if (borderColor && borderWidth > 0 && rows > 0 && cols > 0) {
       const scaledBorderWidth = Math.max(borderWidth, borderWidth * scale);
-      const topLeft = camera.worldToScreen(GAP, GAP);
+      const topLeft = camera.worldToScreen(GRID_ORIGIN, GRID_ORIGIN);
       const bottomRight = camera.worldToScreen(
-        GAP + (cols - 1) * PITCH + CELL,
-        GAP + (rows - 1) * PITCH + CELL
+        GRID_ORIGIN + cols * PITCH,
+        GRID_ORIGIN + rows * PITCH
       );
-      const rectX = topLeft.x - scaledBorderWidth / 2;
-      const rectY = topLeft.y - scaledBorderWidth / 2;
-      const rectWidth = bottomRight.x - topLeft.x + scaledBorderWidth;
-      const rectHeight = bottomRight.y - topLeft.y + scaledBorderWidth;
       ctx.strokeStyle = borderColor;
       ctx.lineWidth = scaledBorderWidth;
-      ctx.strokeRect(rectX, rectY, rectWidth, rectHeight);
+      ctx.strokeRect(topLeft.x, topLeft.y, bottomRight.x - topLeft.x, bottomRight.y - topLeft.y);
     }
 
     ctx.restore();
@@ -633,26 +649,27 @@ export function drawGrid(ctx, rows, cols, offsetX = 0, camera = null, options = 
   const width = cols * PITCH + GAP;
   const height = rows * PITCH + GAP;
   ctx.save();
+  ctx.beginPath();
+  ctx.rect(offsetX, 0, width, height);
+  ctx.clip();
   const bgFill = createFillStyle(ctx, background, offsetX, 0, width, height) || background;
   ctx.fillStyle = bgFill;
   ctx.fillRect(offsetX, 0, width, height);
   drawSimpleGridLines(ctx, {
     panelWidth: offsetX, canvasWidth: offsetX + width, canvasHeight: height,
-    minX: offsetX + GAP, maxX: offsetX + width - GAP,
-    minY: GAP, maxY: height - GAP,
+    minX: offsetX + GRID_ORIGIN, maxX: offsetX + width - GRID_ORIGIN,
+    minY: GRID_ORIGIN, maxY: height - GRID_ORIGIN,
     startCol: 0, endCol: cols - 1, startRow: 0, endRow: rows - 1,
     originX: 0, originY: 0, scale: 1, stroke: gridStroke, lineWidth: gridLineWidth
   });
   if (borderColor && borderWidth > 0) {
-    const innerWidth = width - 2 * GAP;
-    const innerHeight = height - 2 * GAP;
     ctx.strokeStyle = borderColor;
     ctx.lineWidth = borderWidth;
     ctx.strokeRect(
-      offsetX + GAP - borderWidth / 2,
-      GAP - borderWidth / 2,
-      innerWidth + borderWidth,
-      innerHeight + borderWidth
+      offsetX + GRID_ORIGIN,
+      GRID_ORIGIN,
+      cols * PITCH,
+      rows * PITCH
     );
   }
   ctx.restore();
@@ -788,7 +805,7 @@ export function drawBlock(
   ctx.restore();
 }
 
-// Keep the entire route visible between moving dashes, including short links.
+// Draw only moving dashes; gaps and the rest of each wire cell stay clear.
 export function drawWire(
   ctx,
   wire,
@@ -818,9 +835,6 @@ export function drawWire(
       : { x: offsetX + GAP + p.c * PITCH, y: GAP + p.r * PITCH };
     ctx.lineTo(pos.x + (CELL * scale) / 2, pos.y + (CELL * scale) / 2);
   }
-  ctx.strokeStyle = style.baseColor;
-  ctx.lineWidth = Math.max(style.baseWidth * scale, 1);
-  ctx.stroke();
   ctx.strokeStyle = style.color || '#111';
   ctx.lineWidth = Math.max((style.width || 2) * scale, 1);
   const pattern = Array.isArray(style.dashPattern)

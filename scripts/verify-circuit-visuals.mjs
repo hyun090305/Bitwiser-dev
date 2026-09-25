@@ -8,10 +8,10 @@ import { chromium } from 'playwright';
 // Optional baseline captures use the same app, circuits, camera and phase.
 // Only the two visual modules are served from the requested Git revision.
 const baseline = process.env.CIRCUIT_VISUAL_BASE;
-const output = `test-results/circuit-visuals/${baseline ? 'before' : 'after'}`;
+const output = `test-results/circuit-visuals/${process.env.CIRCUIT_VISUAL_LABEL || (baseline ? 'before' : 'after')}`;
 await fs.mkdir(output, { recursive: true });
 const root = path.resolve('.');
-const mime = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css',
+const mime = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css',
   '.json': 'application/json', '.svg': 'image/svg+xml', '.png': 'image/png', '.gif': 'image/gif' };
 const overrides = new Map(baseline ? ['src/canvas/renderer.js', 'src/themes.js'].map(file =>
   [file, execFileSync('git', ['show', `${baseline}:${file}`])]) : []);
@@ -48,8 +48,19 @@ try {
     localStorage.setItem('autoSaveCircuit', 'false');
   });
   await page.goto(`${base}/visuals.html`);
+  if (!baseline) {
+    for (const dpr of [1, 2]) {
+      const checkPage = await browser.newPage({ deviceScaleFactor: dpr });
+      await checkPage.goto(`${base}/visuals.html`);
+      report.checks.push(...await checkPage.evaluate(async () => {
+        const { checkGridAlignment, checkWireGaps } = await import('/scripts/check-circuit-rendering.mjs');
+        return [checkGridAlignment(), checkWireGaps()];
+      }));
+      await checkPage.close();
+    }
+  }
   const rendering = await page.evaluate(async baseline => {
-    const { drawGrid, renderContent, drawWire, setupCanvas } = await import('/src/canvas/renderer.js');
+    const { drawGrid, renderContent, setupCanvas } = await import('/src/canvas/renderer.js');
     const { createCamera } = await import('/src/canvas/camera.js');
     const { getAvailableThemes } = await import('/src/themes.js');
     const { getExecutionState, tickCircuit } = await import('/src/canvas/evaluation.js');
@@ -68,15 +79,15 @@ try {
     block('memory', 'D', 3, 4);
     block('fork', 'JUNCTION', 3, 7);
     block('out', 'OUTPUT', 3, 11);
-    block('not', 'NOT', 6, 7);
+    block('not', 'NOT', 6, 10);
     block('out2', 'OUTPUT', 6, 11);
     circuit.blocks.enable.name = 'IN2'; circuit.blocks.out2.name = 'OUT2';
     wire('dataWire', 'data', 'memory', [[3,0],[3,1],[3,2],[3,3],[3,4]], 'D');
     wire('enableWire', 'enable', 'memory', [[0,4],[1,4],[2,4],[3,4]], 'EN');
     wire('q', 'memory', 'fork', [[3,4],[3,5],[3,6],[3,7]]);
     wire('branch1', 'fork', 'out', [[3,7],[3,8],[3,9],[3,10],[3,11]]);
-    wire('branch2', 'fork', 'not', [[3,7],[4,7],[5,7],[6,7]]);
-    wire('inverted', 'not', 'out2', [[6,7],[6,8],[6,9],[6,10],[6,11]]);
+    wire('branch2', 'fork', 'not', [[3,7],[4,7],[5,7],[5,8],[5,9],[5,10],[6,10]]);
+    wire('inverted', 'not', 'out2', [[6,10],[6,11]]);
     check(tickCircuit(circuit).ok, 'memory scene must be valid');
     circuit.blocks.enable.value = true;
     window.visualCircuit = circuit;
@@ -139,16 +150,8 @@ try {
       const pixel = (x, y) => [...ctx.getImageData(x, y, 1, 1).data].join(',');
       const empty = pixel(10, 10);
       check(pixel(62, 10) === empty && pixel(10, 62) === empty, 'checkerboard remains');
-      check(pixel(54, 10) !== empty, 'grid boundary is missing');
-      // At every phase the same route is visible, with no paint elsewhere in its cells.
-      const wireCtx = canvas('wire', 314, 158);
-      const w = { path:[{r:1,c:0},{r:1,c:1},{r:1,c:2},{r:1,c:3},{r:1,c:4},{r:1,c:5}] };
-      for (let phase = 0; phase < 28; phase += 2) {
-        wireCtx.clearRect(0, 0, 314, 158); drawWire(wireCtx, w, phase);
-        for (let x = 28; x < 287; x++) check(wireCtx.getImageData(x,79,1,1).data[3] > 0, 'disconnected dash gap');
-        check(wireCtx.getImageData(70,65,1,1).data[3] === 0, 'wire cell fill/shadow remains');
-      }
-      checks.push('uniform empty cells, continuous wire at every sampled phase, no off-route cell fill');
+      check(pixel(53, 10) !== empty, 'grid boundary is missing');
+      checks.push('uniform empty cells and visible grid boundaries');
     }
     for (let phase = 0; phase < 120; phase++) renderContent(ctx, circuit, phase);
     check(snapshot() === before, 'rendering changed circuit or memory/tick state');
