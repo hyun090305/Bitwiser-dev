@@ -199,7 +199,8 @@ try {
   assert.equal(await page.locator('#demoDialog .cost-best-stars .earned').count(),3);
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.equal(await page.locator('#demoDialog .cost-goal').count(),0);
-  await page.locator('#demoDialog').getByRole('button',{name:'결과 공유',exact:true}).click();
+  await page.locator('#demoDialog .blueprint-share[data-state=ready]').waitFor();
+  assert.equal(await page.locator('#demoDialog .blueprint-copy').isEnabled(), true);
   await page.locator('#demoDialog').getByRole('button',{name:'닫기',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.isGradingResultOpen),false);
   assert.equal(await page.locator('#gradeButton').isVisible(),true);

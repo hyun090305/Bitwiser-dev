@@ -6,6 +6,7 @@ import { validateStageCircuit } from './stageCircuit.js';
 import { validateSavedCircuitRecord, matchesSaveContext } from './savedCircuitRecord.js';
 import { circuitStorage, isCircuitStorageAvailable, storageErrorMessage } from './circuitStorage.js';
 import { createCircuitGif } from '../canvas/gifExport.js';
+import { openBlueprintExport } from './blueprintShare.js';
 
 const CURRENT_CIRCUIT_VERSION = CIRCUIT_VERSION;
 
@@ -346,28 +347,11 @@ export async function handleGifShareClick() {
 }
 
 export function handleGIFExport() {
-  const loadingMessage = translate('gifLoadingText');
-  if (toastUI.showGifLoading) {
-    toastUI.showGifLoading(loadingMessage);
-  }
-  captureGIF(blob => {
-    if (toastUI.hideGifLoading) {
-      toastUI.hideGifLoading();
-    }
-    currentGifBlob = blob;
-    revokeGifUrl();
-    currentGifUrl = URL.createObjectURL(blob);
-    if (elements.gifPreview) {
-      elements.gifPreview.src = currentGifUrl;
-    }
-    if (elements.gifModal) {
-      elements.gifModal.style.display = 'flex';
-    }
-  }).catch(error => {
-    toastUI.hideGifLoading?.();
-    alertFn(translateText('gifExportFailed', 'GIF export failed. Please try again.'));
-    console.warn('GIF export failed', error);
-  });
+  const circuit = getActiveController()?.circuit || getActiveCircuit();
+  if (!circuit) return;
+  const lab = document.body.classList.contains('lab-mode-active');
+  const title = lab ? 'Lab' : getCustomProblem()?.title || (getCurrentLevel() != null ? getLevelTitle(getCurrentLevel()) : translate('problemUntitled'));
+  openBlueprintExport(circuit, title);
 }
 
 function getSaveContext() {

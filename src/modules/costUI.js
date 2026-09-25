@@ -1,5 +1,6 @@
 import { calculateCircuitCost, validateStarThresholds } from './circuitCost.js';
 import { createStarIcon } from './achievementStars.js';
+import { createBlueprintShare } from './blueprintShare.js';
 
 const words = {
   current: ['현재 회로 비용', 'Current circuit cost'], best: ['개인 최고 비용', 'Personal best cost'],
@@ -72,11 +73,44 @@ export function initializeCostBoard({ getCircuit, getStage, getBest, getThreshol
   update(); return update;
 }
 
-export function renderPerformance(parent, { id, result, thresholds, ranking, lang }) {
+const performances = new WeakMap();
+export function disposePerformance(parent) { performances.get(parent)?.(); performances.delete(parent); }
+
+export function renderPerformance(parent, { id, result, thresholds, ranking, lang, title = '' }) {
+  disposePerformance(parent);
+  lang ||= costLanguage();
   const tr = key => costText(key, lang), { record, best = record } = result;
   const layout = node('div', null, 'cost-result');
   const own = node('section', null, 'cost-performance'); layout.append(own); parent.append(layout);
   own.append(node('p', tr(id === 0 ? 'tutorial' : 'clear'), 'cost-clear'));
+  const header = node('header', null, 'blueprint-header');
+  header.append(node('h3', title, 'blueprint-title'));
+  const cost = node('div', null, 'blueprint-cost');
+  cost.append(node('span', tr('cost'), 'cost-label'), node('strong', format(record.totalCost), 'cost-result-total')); header.append(cost);
+  const view = createBlueprintShare(own, { circuit: record.circuit, title, totalCost: record.totalCost,
+    stars: id === 0 ? null : record.stars, tutorial: id === 0, lang }, { header });
+  let frame, observer;
+  const settle = () => { view.card.dataset.phase = 'settled'; };
+  view.root.addEventListener('change', settle);
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+  view.card.dataset.phase = id === 0 || reduced.matches ? 'settled' : 'awarding';
+  if (id !== 0 && !reduced.matches) {
+    frame = requestAnimationFrame(() => {
+      const scale = Math.min(1.65, Math.max(1, (view.card.clientWidth - 48) / 156));
+      view.card.style.setProperty('--reward-scale', scale);
+      view.card.style.setProperty('--reward-x', `${Math.max(0, (view.card.clientWidth - 48 - 156 * scale) / 2)}px`);
+      let width = view.card.clientWidth;
+      observer = new ResizeObserver(() => { if (view.card.clientWidth !== width) { width = view.card.clientWidth; settle(); } }); observer.observe(view.card);
+    });
+    view.card.addEventListener('animationend', event => { if (event.animationName === 'blueprint-reward-move') settle(); });
+  }
+  const motionChanged = () => { if (reduced.matches) settle(); }; reduced.addEventListener('change', motionChanged);
+  const leave = () => disposePerformance(parent);
+  document.addEventListener('bitwiser:editCircuit', leave); document.addEventListener('bitwiser:stageReady', leave);
+  performances.set(parent, () => {
+    cancelAnimationFrame(frame); observer?.disconnect(); reduced.removeEventListener('change', motionChanged);
+    document.removeEventListener('bitwiser:editCircuit', leave); document.removeEventListener('bitwiser:stageReady', leave); view.dispose();
+  });
   if (id !== 0) {
     const target = validateStarThresholds(thresholds);
     const stars = node('div', null, 'cost-stars'); stars.setAttribute('role', 'group'); stars.setAttribute('aria-label', tr('stars').replace('{n}', record.stars));
@@ -89,7 +123,7 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
         : `— ${tr(target.status === 'invalid' ? 'invalid' : 'pending')}`));
       stars.append(item);
     }
-    own.append(stars);
+    header.append(stars);
     if (result.highestStars > record.stars) {
       const historical = node('p', null, 'cost-best cost-best-stars');
       historical.append(node('span', tr('highest')), starBadge(result.highestStars, tr)); own.append(historical);
@@ -97,7 +131,7 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
     if (record.stars === 3) own.append(node('p', tr('all'), 'cost-goal'));
     else if (target.status === 'ready') own.append(node('p', tr('less').replace('{n}', format(record.totalCost - (record.stars === 1 ? target.two : target.three))), 'cost-goal'));
   }
-  own.append(node('span', tr('cost'), 'cost-label'), node('strong', format(record.totalCost), 'cost-result-total'));
+  if (id === 0) header.append(node('p', tr('tutorial'), 'blueprint-tutorial'));
   if (id !== 0) {
     own.append(node('p', `${tr('best')}  ${format(best.totalCost)}`, 'cost-best'));
     const status = result.first ? tr('first') : result.improved ? `${tr('improved')} · ${format(result.previousCost)} → ${format(record.totalCost)}`

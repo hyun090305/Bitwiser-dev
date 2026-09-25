@@ -89,9 +89,18 @@ try{
       const circuit = JSON.parse(await fs.readFile('tests/fixtures/demo/6-3.json', 'utf8')).circuit;
       await page.evaluate(async circuit => (await import('./src/modules/grid.js')).getPlayController().restoreCircuit(circuit), circuit);
       await page.locator('#exportGifBtn').click();
-      await page.locator('#gifModal').waitFor({ state: 'visible' });
-      assert.match(await page.locator('#gifPreview').getAttribute('src'), /^blob:/);
-      await page.locator('#closeGifModal').click();
+      await page.locator('.blueprint-export .blueprint-share[data-state=ready]').waitFor();
+      assert.equal(await page.locator('.blueprint-export .blueprint-preview canvas').count(),1);
+      assert.equal(await page.locator('.blueprint-export .achievement-star').count(),0);
+      assert.equal(await page.locator('.blueprint-export .blueprint-title').innerText(),await page.locator('#gameTitle').innerText());
+      const exportBefore = await page.evaluate(async()=>JSON.stringify((await import('./src/canvas/circuitData.js')).snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit())));
+      await page.locator('.blueprint-export .blueprint-copy').focus();
+      await page.keyboard.press('ArrowRight'); await page.keyboard.press('Control+z'); await page.keyboard.press('r');
+      assert.equal(await page.evaluate(async()=>JSON.stringify((await import('./src/canvas/circuitData.js')).snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit()))),exportBefore);
+      await page.locator('.blueprint-export .blueprint-preview').focus(); await page.keyboard.press('Enter');
+      await page.locator('.blueprint-zoom[open]').waitFor(); await page.keyboard.press('Escape');
+      assert.equal(await page.locator('.blueprint-export .blueprint-preview').evaluate(el=>el===document.activeElement),true);
+      await page.locator('.blueprint-export').getByRole('button',{name:'Close',exact:true}).click();
     }
     await page.locator('#systemMenuBtn').click();
     await page.locator('#backToLevelsBtn').click();

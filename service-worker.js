@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitgame-cache-v25-playback-status';
+const CACHE_NAME = 'bitgame-cache-v26-blueprint-sharing';
 const urlsToCache = [
   '/',
   '/index.html',
@@ -22,6 +22,8 @@ const urlsToCache = [
   '/src/modules/costRecords.js',
   '/src/modules/stageCircuit.js',
   '/src/modules/costUI.js',
+  '/src/modules/blueprintShare.js',
+  '/src/canvas/blueprintExport.js',
   '/src/modules/achievementStars.js',
   '/src/modules/costLeaderboard.js',
   '/src/modules/fullCostExperience.js',
