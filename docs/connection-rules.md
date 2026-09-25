@@ -16,7 +16,7 @@
 
 `connections.js`의 `validateConnections`가 방향·입력 수·D 역할·조합 순환을 검사한다. 편집은 `complete: false`로 입력 부족을 허용한다. `canEditConnections`는 이전 위반의 유지/감소를 허용하므로 기존 회로를 한 도선씩 고칠 수 있다. 새 위반이나 입력 초과 증가, 손상된 역할에 새 잘못된 도선을 더하는 작업은 거부한다.
 
-배선 확정, 블록 교체, 연결을 유지한 이동, 영역 이동, 붙여넣기는 최종 블록/도선을 검사한다. 붙여넣기의 IN/OUT→JUNCTION 변환과 기존 connector 병합 후에도 같은 검사를 적용한다. `hasValidWireLayout`은 최종 경로들의 상호 점유까지 확인한다. 거부/취소한 이동은 원본과 실행 상태를 복원하고 이력에 추가하지 않는다. Escape와 touchcancel도 진행 중인 편집을 취소한다.
+배선 확정, 블록 교체, 연결을 유지한 이동, 영역 이동, 붙여넣기는 최종 블록/도선을 검사한다. 붙여넣기의 IN/OUT→JUNCTION 변환과 기존 connector 병합 후에도 같은 검사를 적용한다. `hasValidWireLayout`은 최종 경로들의 상호 점유까지 확인한다. 거부/취소한 이동은 원본과 실행 상태를 복원하고 이력에 추가하지 않는다. Escape와 touchcancel도 진행 중인 편집을 취소한다. 배선·영역 선택을 캔버스 밖에서 놓거나 영역 선택 중 Escape를 누르면 임시 경로·선택 시작점·미리보기를 정리한다. 종료 자체는 설계·Q·tick·button·비용·이력을 바꾸지 않으며, 자동 재생은 재개하고 수동 일시정지는 유지한다.
 
 실행·동기/비동기 채점은 `prepareCircuit`/`compileCircuit`의 완전성 검사를 통과해야 한다. 조합·순차·memory20·Lab에 같은 기본 규칙을 적용한다. 실패하면 신호를 `?`로 표시하고 프레임 상단 우측의 `⚠ 미완성 · 개수` / `⚠ Incomplete · count` 배지로 안내한다. 다른 연결 위반은 `연결 오류` / `Invalid circuit`로 구분한다. hover·키보드 포커스·클릭/탭으로 블록/도선과 원인을 담은 팝오버를 연다. 채점은 `invalid`이며 정답 불일치 반례를 만들지 않는다. 반복 평가로 경고 창을 띄우지 않는다. 실패 tick은 메모리·tick·button 상태를 바꾸지 않으며 수리 후 다시 실행할 수 있다.
 
@@ -52,7 +52,7 @@ v2 읽기/v3 설계 저장을 유지한다. `savedCircuitRecord.js`와 `stageCir
 
 - `npm test`: 블록별 입력 수, 실행/동기·비동기 채점, 방향/순환, 단계적 수리, tick 원자성, v2/v3, 역할 보존, 비용/과거 성과 검사.
 - `npm run build:demo` 후 `npm run test:connections:browser`: 정식 모듈과 빌드된 체험판 모듈의 실제 컨트롤러에서 한영 자기 연결 그리기, 역할, 이동/영역 이동, 복사/붙여넣기, 삭제, Undo/Redo, 충돌/취소, 교체와 connector 병합을 검사한다. 전용 harness이며 실제 진입점 검사는 별도로 수행한다.
-- `node scripts/verify-playback-status.mjs` / `node scripts/verify-playback-status.mjs --electron`: 실제 정식 웹·빌드된 데모·별도 프로필 Electron에서 한영/넓고 좁은 화면의 보드·바 좌표와 크기, 배지/팝오버/토스트, 3초 유지/갱신, 문제 유형, 기본 재생/수동 정지, 편집/채점/화면 차단을 검사한다.
+- `node scripts/verify-playback-status.mjs` / `node scripts/verify-playback-status.mjs --electron`: 실제 정식 웹·빌드된 데모·별도 프로필 Electron에서 한영/넓고 좁은 화면의 보드·바 좌표와 크기, 배지/팝오버/토스트, 3초 유지/갱신, 문제 유형, 기본 재생/수동 정지, 편집/채점/화면 차단을 검사한다. 툴바 배선·영역 선택의 캔버스 밖 해제와 선택 중 Escape에서 실행 상태·이력 보존, 미리보기 제거, 자동 재개·수동 정지 유지를 확인한다.
 - `npm run test:full:web`, `npm run test:demo:browser`, `npm run test:saves:electron`: 실제 게임 캔버스에서 자기 D/EN을 그리고 Undo/Redo한다. 체험판은 백업 UI로 복원하고, Electron은 별도 프로필/외부 요청 차단 상태에서 저장·프로세스 재시작·복원·tick을 검사한다.
 - 기존 실행 경로 회귀 명령과 preview 전제는 [개발 흐름](development-workflow.md)의 검증 표를 따른다.
 

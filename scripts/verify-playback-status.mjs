@@ -3,6 +3,7 @@ import path from 'node:path';
 import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium, _electron } from 'playwright';
+import { verifyExternalEditCancellation } from './external-edit-checks.mjs';
 
 const root = path.resolve('.'), passed = [], errors = [], measurements = [];
 await fs.mkdir('test-results', { recursive: true });
@@ -118,6 +119,12 @@ try {
         await page.waitForTimeout(1100);
         assert.equal((await read()).running, false); assert.equal((await read()).tick, pausedInput.tick);
         await page.locator('[data-memory-action=play]').click();
+        if (!process.argv.includes('--input-only')) await verifyExternalEditCancellation(page);
+        if (process.argv.includes('--cancel-only')) {
+          passed.push(`${surface}/${lang}/${width}: outside wire/selection release and Escape preserve runtime/history, clear previews, and retain playback intent`);
+          console.log(passed.at(-1));
+          continue;
+        }
         if (process.argv.includes('--input-only')) {
           passed.push(`${surface}/${lang}/${width}: switch/button click and hold preserve automatic playback and manual pause without resetting ticks`);
           console.log(passed.at(-1));
@@ -252,7 +259,7 @@ try {
         assert.equal((await read()).tick, 0); assert.equal((await read()).running, false);
         assert.deepEqual(await box(), combo);
         console.log(`Verified ${surface}/${lang}/${width}`);
-        passed.push(`${surface}/${lang}/${width}: fixed geometry, no-D bar, badge/popover, 3s toast/reset, autoplay/manual intent, cancel/refusal and execution gates`);
+        passed.push(`${surface}/${lang}/${width}: fixed geometry, no-D bar, badge/popover, 3s toast/reset, autoplay/manual intent, outside wire/selection release, Escape, cancel/refusal and execution gates`);
       }
       assert.deepEqual(errors, []);
     } catch (e) {
@@ -262,6 +269,6 @@ try {
       if (server) await new Promise(resolve => server.close(resolve));
     }
   }
-  await fs.writeFile(`test-results/playback-status${surfaces[0] === 'electron' ? '-electron' : ''}${process.argv.includes('--input-only') ? '-input' : ''}.json`, JSON.stringify({ passed, errors, measurements }, null, 2));
+  await fs.writeFile(`test-results/playback-status${surfaces[0] === 'electron' ? '-electron' : ''}${process.argv.includes('--input-only') ? '-input' : process.argv.includes('--cancel-only') ? '-cancel' : ''}.json`, JSON.stringify({ passed, errors, measurements }, null, 2));
   console.log(JSON.stringify({ passed, errors }, null, 2));
 } finally { await browser?.close(); }

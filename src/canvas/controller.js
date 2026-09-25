@@ -1850,7 +1850,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           return;
         }
       }
-      if (key === 'escape' && (state.draggingBlock || state.wireTrace.length || state.selectionDrag || state.mode === 'pasting')) {
+      if (key === 'escape' && (state.draggingBlock || state.wireTrace.length || state.selecting || state.selectionDrag || state.mode === 'pasting')) {
         e.preventDefault();
         cancelInteraction();
         return;
@@ -2263,6 +2263,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return;
     }
     const { x, y } = getPointerPos(e);
+    // Touch release still targets the starting canvas after moving outside it.
+    if ((state.wireTrace.length || state.selecting) &&
+        (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight)) {
+      cancelInteraction();
+      return;
+    }
     if (state.panning) {
       state.panning = false;
       state.panLast = null;
@@ -2808,6 +2814,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.pointerDown = null;
     state.pointerMoved = false;
     state.selecting = false;
+    state.selectStart = null;
     state.panning = false;
     setMode('idle');
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
@@ -2844,6 +2851,12 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handleDocUp(e) {
     if (isLocked()) return false;
+    // Canvas releases have already finished in handlePointerUp. Any remaining
+    // trace/selection was released outside: discard the preview, not the design.
+    if (state.wireTrace.length || state.selecting) {
+      cancelInteraction();
+      return;
+    }
     const rect = overlayCanvas.getBoundingClientRect();
     const scale = parseFloat(overlayCanvas.dataset.scale || '1');
     const point = e.changedTouches?.[0] || e;
