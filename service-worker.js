@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitgame-cache-v24-playback-status';
+const CACHE_NAME = 'bitgame-cache-v25-playback-status';
 const urlsToCache = [
   '/',
   '/index.html',
