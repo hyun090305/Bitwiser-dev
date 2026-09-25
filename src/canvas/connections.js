@@ -12,15 +12,22 @@ export function maxInputs(type) {
 }
 
 export function canConnect(circuit, startId, endId) {
-  const start = circuit.blocks[startId];
-  const end = circuit.blocks[endId];
-  if (!start || !end || start.type === 'OUTPUT' || end.type === 'INPUT' ||
-      (startId === endId && start.type !== 'D') || incomingWires(circuit, endId).length >= maxInputs(end.type)) return false;
+  return connectionDiagnostics(circuit, startId, endId).length === 0;
+}
+
+export function wireStartDiagnostic(block) {
+  if (block?.type !== 'OUTPUT') return null;
+  return { code: 'OUTPUT_SOURCE', blockId: block.id,
+    message: `OUTPUT ${block.name || block.id}: 출력에서 도선을 시작할 수 없습니다.`,
+    messageEn: `OUTPUT ${block.name || block.id}: cannot start a wire here.` };
+}
+
+export function connectionDiagnostics(circuit, startId, endId) {
   let id = 'new-connection';
   while (circuit.wires[id]) id += '-';
   const wire = { id, startBlockId: startId, endBlockId: endId };
   assignNewInputRole(circuit, wire);
-  return canEditConnections(circuit, { ...circuit, wires: { ...circuit.wires, [id]: wire } });
+  return editConnectionDiagnostics(circuit, { ...circuit, wires: { ...circuit.wires, [id]: wire } });
 }
 
 // A role belongs to the connection itself, so changing endpoint IDs while
@@ -62,15 +69,19 @@ export function diagnosticMessage(diagnostic, language = globalThis.window?.curr
 // Existing invalid designs stay editable. An edit may retain or remove an old
 // violation, but may not introduce a new one or increase its input excess.
 export function canEditConnections(before, after) {
+  return editConnectionDiagnostics(before, after).length === 0;
+}
+
+export function editConnectionDiagnostics(before, after) {
   const key = d => JSON.stringify([d.code, d.blockId, d.wireId]);
   const previous = new Map(validateConnections(before, { complete: false }).diagnostics.map(d => [key(d), d]));
-  return validateConnections(after, { complete: false }).diagnostics.every(d => {
+  return validateConnections(after, { complete: false }).diagnostics.filter(d => {
     const old = previous.get(key(d));
     if (d.code === 'INVALID_D_ROLES' && old) {
       const original = incomingWires(before, d.blockId);
-      if (!incomingWires(after, d.blockId).every(w => original.some(p => p.id === w.id && p.inputRole === w.inputRole))) return false;
+      if (!incomingWires(after, d.blockId).every(w => original.some(p => p.id === w.id && p.inputRole === w.inputRole))) return true;
     }
-    return old && (d.excess || 0) <= (old.excess || 0);
+    return !old || (d.excess || 0) > (old.excess || 0);
   });
 }
 
@@ -84,7 +95,8 @@ export function validateConnections(circuit, { complete = true } = {}) {
       continue;
     }
     const start = circuit.blocks[wire.startBlockId], end = circuit.blocks[wire.endBlockId];
-    if (start.type === 'OUTPUT') fail('OUTPUT_SOURCE', start.id, `OUTPUT ${start.name || start.id}: 출력에서 도선을 시작할 수 없습니다.`, `OUTPUT ${start.name || start.id}: cannot start a wire here.`, { wireId: id });
+    const startDiagnostic = wireStartDiagnostic(start);
+    if (startDiagnostic) diagnostics.push({ ...startDiagnostic, wireId: id });
     if (end.type === 'INPUT') fail('INPUT_TARGET', end.id, `INPUT ${end.name || end.id}: 입력으로 도선을 연결할 수 없습니다.`, `INPUT ${end.name || end.id}: cannot receive a wire.`, { wireId: id });
     if (start.id === end.id && start.type !== 'D') fail('SELF_CONNECTION', start.id, `${start.type} ${start.name || start.id}: D만 자기 연결할 수 있습니다.`, `${start.type} ${start.name || start.id}: only D permits self-feedback.`, { wireId: id });
     if (!incoming.has(wire.endBlockId)) incoming.set(wire.endBlockId, []);

@@ -44,6 +44,23 @@ export function createMemoryControls(circuit, canvas) {
   diagnostics.setAttribute('role', 'status');
   diagnostics.hidden = true;
   bar.insertAdjacentElement('afterend', diagnostics);
+  // A rejected attempt is not a defect in the current design and must not
+  // disable playback or be overwritten by continuous evaluation refreshes.
+  const editNotice = document.createElement('p');
+  editNotice.className = 'circuit-edit-notice';
+  editNotice.setAttribute('role', 'status');
+  editNotice.hidden = true;
+  diagnostics.insertAdjacentElement('afterend', editNotice);
+  let editDiagnostics = [];
+  function refreshEditNotice() {
+    const messages = editDiagnostics.map(d => diagnosticMessage(d));
+    const text = messages.length ? tr('편집 거부: ', 'Edit rejected: ') + messages[0] : '';
+    const title = messages.join('\n');
+    // Keep the live region unchanged during frame/tick refreshes.
+    if (editNotice.hidden !== !messages.length) editNotice.hidden = !messages.length;
+    if (editNotice.textContent !== text) editNotice.textContent = text;
+    if (editNotice.title !== title) editNotice.title = title;
+  }
 
   let failure = null;
   let pulseTimer = null;
@@ -66,6 +83,7 @@ export function createMemoryControls(circuit, canvas) {
   });
 
   function refresh(tickCompleted = false) {
+    refreshEditNotice();
     const result = getEvaluationResult(circuit);
     // A repaired preview also clears a previous tick failure.
     failure = result?.ok === false ? result : null;
@@ -121,12 +139,15 @@ export function createMemoryControls(circuit, canvas) {
   return {
     runner,
     refresh,
+    showEditRejection(items) { editDiagnostics = items; refreshEditNotice(); },
+    clearEditRejection() { editDiagnostics = []; refreshEditNotice(); },
     getHeight: () => bar.hidden ? 0 : bar.getBoundingClientRect().height,
     destroy() {
       runner.destroy();
       clearPulse();
       bar.remove();
       diagnostics.remove();
+      editNotice.remove();
       if (!host?.querySelector('.memory-playback-bar')) host?.classList.remove('memory-playback-host');
       document.removeEventListener('visibilitychange', pauseIfHidden);
       document.removeEventListener('bitwiser:scoring', scoringChanged);

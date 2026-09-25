@@ -26,6 +26,13 @@ try {
     const base=`http://127.0.0.1:${server.address().port}`;
     await page.route('**/*',route=>route.request().url().startsWith(base)?route.continue():route.abort());
     const read=()=>page.evaluate(()=>testRead());
+    const rejected=async(before,pattern)=>{
+      assert.deepEqual(await read(),before);
+      assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
+      assert.match(await page.locator('.circuit-edit-notice').innerText(),pattern);
+      assert.equal(await page.locator('.circuit-diagnostics').isVisible(),before.diagnostics.length>0);
+      if (!before.diagnostics.length) assert.equal(await page.locator('[data-memory-action="play"]').isEnabled(),true);
+    };
     const load=c=>page.evaluate(c=>testController.restoreCircuit(c),c);
     const point=async(r,c)=>page.locator('#overlay').evaluate((canvas,{r,c})=>{
       const box=canvas.getBoundingClientRect();return {x:box.x+220+2+c*52+25,y:box.y+2+r*52+25};
@@ -63,6 +70,7 @@ try {
           await page.evaluate(()=>testController.tickRunner.step());assert.equal((await read()).tick,1);
           assert.equal((await read()).memory[0][1],false);
           const before=await read();await replace('NOT',[2,4]);assert.deepEqual(await read(),before);
+          await rejected(before,/D/);
           await page.locator('#move').click();await drag([2,4],[3,4]);
           let moved=await read();assert.deepEqual(moved.design.blocks.d.pos,{r:3,c:4});
           const movedLoop=Object.values(moved.design.wires).find(w=>w.startBlockId===w.endBlockId);
@@ -107,7 +115,17 @@ try {
         }
         await load(selfFeedbackCircuit());
         let before=await read();await draw([[2,4],[2,3],[2,2],[2,1],[2,0]]);assert.deepEqual(await read(),before);
+        await rejected(before,language==='en'?/INPUT.*cannot receive/:/INPUT.*연결할 수 없습니다/);
         await draw([[0,4],[0,3],[0,2],[0,1],[0,0],[1,0],[2,0]]);assert.deepEqual(await read(),before);
+        await rejected(before,language==='en'?/OUTPUT.*cannot start/:/OUTPUT.*시작할 수 없습니다/);
+        const notice=await page.locator('.circuit-edit-notice').innerText();
+        const repeatedNoticeUpdates=await page.evaluate(()=>new Promise(resolve=>{
+          let changes=0;const observer=new MutationObserver(records=>{changes+=records.length;});
+          observer.observe(document.querySelector('.circuit-edit-notice'),{childList:true,attributes:true,characterData:true,subtree:true});
+          requestAnimationFrame(()=>requestAnimationFrame(()=>{observer.disconnect();resolve(changes);}));
+        }));
+        assert.equal(repeatedNoticeUpdates,0);
+        assert.equal(await page.locator('.circuit-edit-notice').innerText(),notice);
         await draw([[2,4],[2,3],[2,4]]);assert.deepEqual(await read(),before);
         await replace('OUTPUT',[2,4]);assert.deepEqual(await read(),before);
         await replace('INPUT',[2,4]);assert.deepEqual(await read(),before);
@@ -134,15 +152,38 @@ try {
             target.wires.old={id:'old',startBlockId:'x',endBlockId:'b',path:[[8,2],[7,2],[6,2]].map(([r,c])=>({r,c}))};
           }
           await load(target);const prior=await read();await page.locator('#paste').click();await click(6,0);assert.deepEqual(await read(),prior,kind);
+          await rejected(prior,language==='en'?/Edit rejected:/:/편집 거부:/);
           await page.keyboard.press('Escape');assert.deepEqual(await read(),prior);
+          assert.equal(await page.locator('.circuit-edit-notice').isVisible(),false);
         }
         // Replacing two-input AND cannot silently drop inputs to fit NOT/IN/OUT.
         const binary=selfFeedbackCircuit('EN');binary.blocks.d.type='AND';delete binary.wires.loop;
         binary.blocks.y={id:'y',type:'INPUT',name:'y',pos:{r:2,c:8}};
         binary.wires.second={id:'second',startBlockId:'y',endBlockId:'d',path:[[2,8],[2,7],[2,6],[2,5],[2,4]].map(([r,c])=>({r,c}))};
+        binary.blocks.z={id:'z',type:'INPUT',name:'z',pos:{r:6,c:4}};
         await load(binary);const prior=await read();
-        for (const type of ['NOT','INPUT','OUTPUT']) {await replace(type,[2,4]);assert.deepEqual(await read(),prior);}
+        for (const type of ['NOT','INPUT','OUTPUT']) {
+          await replace(type,[2,4]);await rejected(prior,language==='en'?/Edit rejected:/:/편집 거부:/);
+        }
+        await draw([[6,4],[5,4],[4,4],[3,4],[2,4]]);
+        await rejected(prior,language==='en'?/AND.*at most 2/:/AND.*최대 2/);
+        // Replacing D in a valid D->NOT->D circuit must explain the new cycle.
+        const cycle=selfFeedbackCircuit();
+        cycle.blocks.n={id:'n',type:'NOT',pos:{r:2,c:8}};delete cycle.wires.loop;
+        cycle.wires.forward={id:'forward',startBlockId:'d',endBlockId:'n',path:[[2,4],[2,5],[2,6],[2,7],[2,8]].map(([r,c])=>({r,c}))};
+        cycle.wires.back={id:'back',startBlockId:'n',endBlockId:'d',inputRole:'D',path:[[2,8],[3,8],[4,8],[4,7],[4,6],[4,5],[4,4],[3,4],[2,4]].map(([r,c])=>({r,c}))};
+        await load(cycle);
+        await page.evaluate(async()=>{
+          const state=(await import('/src/canvas/evaluation.js')).getExecutionState(testCircuit);
+          state.memory.set('d',true);state.tick=3;testCircuit.blocks.x.value=true;
+        });
+        const cycleBefore=await read();await replace('JUNCTION',[2,4]);
+        await rejected(cycleBefore,language==='en'?/feedback path must pass through D/:/피드백 경로가 D를 통과/);
+        await page.screenshot({path:`test-results/rejected-edit-${surface}-${language}.png`});
+        await page.keyboard.press('Escape');
+        await load(selfFeedbackCircuit());assert.equal(await page.locator('.circuit-edit-notice').isVisible(),false);
         passed.push(`${surface}/${language}: connector merge rejects directions/cycle/excess; binary replacement preserves all inputs`);
+        passed.push(`${surface}/${language}: bilingual rejected-edit reasons, runtime/palette/history unchanged, separate evaluation state and notice cleanup`);
       }
     } finally {await page.close();await new Promise(resolve=>server.close(resolve));}
   }

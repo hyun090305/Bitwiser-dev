@@ -4684,7 +4684,7 @@ body.lab-mode-active {
   text-align: inherit;
   cursor: pointer;
 }
-.circuit-diagnostics {
+.circuit-diagnostics, .circuit-edit-notice {
   margin: 4px 8px;
   padding: 4px 8px;
   flex: 0 0 auto;
@@ -4698,5 +4698,7 @@ body.lab-mode-active {
   border-radius: 4px;
   overflow-wrap: anywhere;
 }
-.circuit-diagnostics[hidden] { display: none !important; }
+.circuit-edit-notice { color: #78350f; background: #fef3c7; }
+.circuit-diagnostics[hidden], .circuit-edit-notice[hidden] { display: none !important; }
 #labScreen > .circuit-diagnostics { position: fixed; left: 8px; bottom: 64px; z-index: 80; }
+#labScreen > .circuit-edit-notice { position: fixed; left: 8px; bottom: 24px; z-index: 80; }
