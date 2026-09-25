@@ -14,7 +14,7 @@ window.testCircuit = makeMemoryExample(MEMORY_EXAMPLES[1]);
 testCircuit.rows=12; testCircuit.cols=18;
 window.testController = createController({bgCanvas:el('bg'),contentCanvas:el('content'),overlayCanvas:el('overlay')},testCircuit,{
   wireMoveInfo:el('move'),wireStatusInfo:el('wire'),wireDeleteInfo:el('del'),wireSelectInfo:el('select'),copyButton:el('copy'),pasteButton:el('paste'),undoButton:el('undo'),redoButton:el('redo')
-},{panelWidth:220,palette:['INPUT','OUTPUT','AND','OR','NOT','JUNCTION','D'],enableCopyPaste:true});
+},{executionMode:'sequential',panelWidth:220,palette:['INPUT','OUTPUT','AND','OR','NOT','JUNCTION','D'],enableCopyPaste:true});
 window.testRead = () => ({ design:snapshotCircuit(testCircuit), tick:engine.getExecutionState(testCircuit).tick,
   memory:Object.fromEntries(engine.getExecutionState(testCircuit).memory),
   values:Object.fromEntries(Object.values(testCircuit.blocks).map(b=>[b.id,b.value])), running:testController.tickRunner.isRunning(),

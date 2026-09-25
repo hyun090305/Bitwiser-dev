@@ -32,10 +32,10 @@ export async function drawFeedbackWire(page, circuit) {
   const output=Object.values(circuit.blocks).find(b=>b.type==='OUTPUT');
   const out=await point(output.pos);await page.mouse.click(out.x,out.y);
   assert.match(await page.locator('.circuit-edit-notice').innerText(),/OUTPUT.*(cannot start|시작할 수 없습니다)/);
-  assert.equal(await page.locator('.circuit-diagnostics').isVisible(),false);
+  assert.equal(await page.locator('.circuit-diagnostic-badge').isVisible(),false);
   assert.equal(await page.locator('[data-memory-action="play"]').isEnabled(),true);
   assert.deepEqual(await read(),expected);
-  await page.locator('#undoBtn').click();assert.equal(await page.locator('.circuit-edit-notice').isVisible(),false);
+  await page.locator('#undoBtn').click();assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
   assert.deepEqual(await read(),snapshotCircuit(draft));
   await page.locator('#redoBtn').click();assert.deepEqual(await read(),expected);
   await page.locator('#wireMoveInfo').click();

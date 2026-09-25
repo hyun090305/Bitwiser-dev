@@ -172,7 +172,8 @@ export function adjustGridZoom(containerId = 'canvasContainer') {
     if (Number.isFinite(frameRect.height) && frameRect.height > 0) {
       const playbackBar = consoleFrame.querySelector('.memory-playback-bar:not([hidden])');
       const playbackHeight = playbackBar?.getBoundingClientRect().height || 0;
-      availableHeight = Math.max(1, Math.min(availableHeight, frameRect.height - margin * 2 - playbackHeight - (playbackHeight ? 9 : 0)));
+      const statusHeight = consoleFrame.querySelector('.circuit-status-area')?.getBoundingClientRect().height || 0;
+      availableHeight = Math.max(1, Math.min(availableHeight, frameRect.height - margin * 2 - statusHeight - playbackHeight - (playbackHeight ? 9 : 0)));
     }
   }
 

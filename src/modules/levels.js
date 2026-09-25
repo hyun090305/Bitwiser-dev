@@ -167,7 +167,9 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     createPaletteForLevel(level),
     {
       enableCopyPaste: dependencies.copyPasteEnabled ? dependencies.copyPasteEnabled(Number(level)) : level >= 7,
-      forceHideInOut: hasFixedIO
+      forceHideInOut: hasFixedIO,
+      executionMode: levelAnswers[level]?.mode === 'sequential' ? 'sequential' : 'combinational',
+      deferPlayback: true
     }
   );
 
@@ -178,6 +180,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
   await dependencies.onGridReady?.(Number(level), getPlayController());
   document.dispatchEvent(new Event('bitwiser:stageReady'));
   showLevelIntro(level, () => {
+    getPlayController()?.setPlaybackReady();
     if (typeof onIntroComplete === 'function') {
       onIntroComplete();
     }

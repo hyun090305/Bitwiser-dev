@@ -115,6 +115,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     paletteGroups = [],
     panelWidth = 180,
     forceHideInOut = false,
+    executionMode = 'combinational',
     onCircuitModified,
     camera: externalCamera = null,
     unboundedGrid = false,
@@ -293,12 +294,18 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const redoStack = [];
   let hasInitialSnapshot = false;
   let engineHandle = null;
-  const memoryControls = createMemoryControls(circuit, overlayCanvas);
+  const memoryControls = createMemoryControls(circuit, overlayCanvas, {
+    executionMode,
+    // INPUT press is a signal interaction until it actually moves to another
+    // cell. A mere drag candidate must not cancel/restart the playback timer.
+    isEditing: () => Boolean(state.draggingBlock ||
+      (state.dragCandidate && circuit.blocks[state.dragCandidate.id]?.type !== 'INPUT') || state.selectionDrag ||
+      state.wireTrace.length || state.selecting || state.mode === 'pasting')
+  });
   let lastEvaluation = null;
   function isLocked() { return Boolean(window.isScoring || window.isGradingResultOpen); }
   function beginEdit() {
-    memoryControls.clearEditRejection();
-    memoryControls.runner.pause();
+    memoryControls.beginEdit();
   }
 
   function rejectEdit(diagnostics, report = true) {
@@ -587,7 +594,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function setMode(nextMode) {
     if (isLocked()) return;
-    if (nextMode !== 'idle') beginEdit();
     const previousMode = state.mode;
     if (previousMode === nextMode) {
       updateButtons();
@@ -615,7 +621,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function snapshot(normalize = true) {
-    memoryControls.clearEditRejection();
     const previous = undoStack.length ? JSON.parse(undoStack.at(-1)) : null;
     if (normalize && previous) normalizeAfterEdit(circuit, previous);
     const next = JSON.stringify(snapshotCircuit(circuit));
@@ -685,6 +690,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       lastEvaluation = getEvaluationResult(circ);
       memoryControls.refresh();
     }
+    memoryControls.syncPlayback();
   });
 
   function redrawPanel() {
@@ -2789,7 +2795,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   };
 
   function cancelInteraction() {
-    memoryControls.clearEditRejection();
     if (state.pinch) endPinch();
     const before = state.draggingBlock?.before;
     if (before) {
@@ -2980,6 +2985,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   updateUsageCounts();
   snapshot(false);
+  if (!options.deferPlayback) memoryControls.setReady();
   function restoreDesign(data) {
     beginEdit();
     applyState(JSON.stringify(data));
@@ -2995,7 +3001,9 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state,
     circuit,
     tickRunner: memoryControls.runner,
+    setPlaybackReady: memoryControls.setReady,
     getPlaybackBarHeight: memoryControls.getHeight,
+    getStatusBarHeight: memoryControls.getStatusHeight,
     startBlockDrag,
     syncPaletteWithCircuit,
     setIOPaletteNames,

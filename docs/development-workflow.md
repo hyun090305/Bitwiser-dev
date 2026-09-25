@@ -63,6 +63,7 @@ git diff --check
 | JS·회로·데이터 동작 | `npm test` |
 | 공통 UI/모듈·카탈로그·체험판 | `npm run build:demo`; 별도 터미널에서 `npm run preview:demo`를 켜고 `npm run test:demo:browser` |
 | D·메모리·스테이지 데이터 | `npm run test:memory:browser`, `npm run test:stages:browser`; 메모리 20문제 변경은 `npm run test:memory20`, `npm run test:memory20:browser`도 선택 |
+| 안내 배치·재생 제어 | `npm run build:demo` 후 `node scripts/verify-playback-status.mjs` 및 `node scripts/verify-playback-status.mjs --electron` — 한영/화면 폭별 실제 진입점의 표시 시간·좌표·자동/수동 재생 검사 |
 | 채점·반례·결과 UI | `npm run test:grading:browser`, `npm run test:results:browser` |
 | 비용·별·랭킹 | `npm run test:cost:browser` |
 | 스테이지 맵·해금 | `npm run test:map:browser` |

@@ -30,7 +30,7 @@ try {
       assert.deepEqual(await read(),before);
       assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
       assert.match(await page.locator('.circuit-edit-notice').innerText(),pattern);
-      assert.equal(await page.locator('.circuit-diagnostics').isVisible(),before.diagnostics.length>0);
+      assert.equal(await page.locator('.circuit-diagnostic-badge').isVisible(),before.diagnostics.length>0);
       if (!before.diagnostics.length) assert.equal(await page.locator('[data-memory-action="play"]').isEnabled(),true);
     };
     const load=c=>page.evaluate(c=>testController.restoreCircuit(c),c);
@@ -56,13 +56,14 @@ try {
       const p=await point(...cell);await page.mouse.move(p.x,p.y,{steps:12});await page.mouse.up();
     };
     try {
-      await page.goto(base+'/tests/connection-harness.html');await page.waitForFunction(()=>window.testReady);
+      await page.goto(base+'/tests/connection-harness.html');await page.waitForFunction(()=>window.testReady && testController.tickRunner.isRunning());
+      await page.locator('[data-memory-action=play]').click(); // Keep runtime fixed during atomic edit assertions.
       for (const language of ['ko','en']) {
         await page.evaluate(language=>{window.currentLang=language;document.documentElement.lang=language;},language);
         for (const role of ['D','EN']) {
           const c=selfFeedbackCircuit(role), paths=Object.values(c.wires).sort((a,b)=>a.id==='data'?-1:b.id==='data'?1:0).map(w=>w.path.map(p=>[p.r,p.c]));
           c.wires={};await load(c);
-          assert.match(await page.locator('.circuit-diagnostics').innerText(),language==='en'?/Incomplete/:/미완성/);
+          assert.match(await page.locator('.circuit-diagnostics').textContent(),language==='en'?/Incomplete/:/미완성/);
           for (const route of paths) await draw(route);
           const built=await read();assert.deepEqual(built.diagnostics,[]);
           const loop=Object.values(built.design.wires).find(w=>w.startBlockId===w.endBlockId);
@@ -137,7 +138,7 @@ try {
         await page.locator('#del').click();await click(2,2);
         assert.equal((await read()).design.wires.loop.inputRole,'D');assert.equal((await read()).diagnostics.length,0);
         await page.locator('#undo').click();assert.equal((await read()).diagnostics[0].code,'INVALID_D_ROLES');
-        assert.match(await page.locator('.circuit-diagnostics').innerText(),language==='en'?/invalid D\/EN/:/역할 배정/);
+        assert.match(await page.locator('.circuit-diagnostics').textContent(),language==='en'?/invalid D\/EN/:/역할 배정/);
         await page.screenshot({path:`test-results/connections-${surface}-${language}.png`});
         passed.push(`${surface}/${language}: direction, same-face return, atomic failure, imported roles and repair diagnostics`);
         // Copy a real IN->OUT fragment, then validate after connector merging.
@@ -154,7 +155,7 @@ try {
           await load(target);const prior=await read();await page.locator('#paste').click();await click(6,0);assert.deepEqual(await read(),prior,kind);
           await rejected(prior,language==='en'?/Edit rejected:/:/편집 거부:/);
           await page.keyboard.press('Escape');assert.deepEqual(await read(),prior);
-          assert.equal(await page.locator('.circuit-edit-notice').isVisible(),false);
+          assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
         }
         // Replacing two-input AND cannot silently drop inputs to fit NOT/IN/OUT.
         const binary=selfFeedbackCircuit('EN');binary.blocks.d.type='AND';delete binary.wires.loop;
@@ -181,9 +182,9 @@ try {
         await rejected(cycleBefore,language==='en'?/feedback path must pass through D/:/피드백 경로가 D를 통과/);
         await page.screenshot({path:`test-results/rejected-edit-${surface}-${language}.png`});
         await page.keyboard.press('Escape');
-        await load(selfFeedbackCircuit());assert.equal(await page.locator('.circuit-edit-notice').isVisible(),false);
+        await load(selfFeedbackCircuit());assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
         passed.push(`${surface}/${language}: connector merge rejects directions/cycle/excess; binary replacement preserves all inputs`);
-        passed.push(`${surface}/${language}: bilingual rejected-edit reasons, runtime/palette/history unchanged, separate evaluation state and notice cleanup`);
+        passed.push(`${surface}/${language}: bilingual rejected-edit reasons, runtime/palette/history unchanged, separate evaluation state and notice retained across cancel/restore`);
       }
     } finally {await page.close();await new Promise(resolve=>server.close(resolve));}
   }
