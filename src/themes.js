@@ -40,8 +40,6 @@ const THEMES = [
     accentSoft: 'rgba(99, 102, 241, 0.25)',
     grid: {
       background: '#f8fafc',
-      gridFillA: '#ffffff',
-      gridFillB: '#eef2ff',
       gridStroke: '#c7d2fe',
       panelFill: '#e0e7ff',
       panelShadow: {
@@ -51,8 +49,7 @@ const THEMES = [
         offsetY: 10
       },
       borderColor: '#a5b4fc',
-      borderWidth: 3,
-      cellRadius: 8
+      borderWidth: 3
     },
     panel: {
       panelBackground: {
@@ -104,15 +101,15 @@ const THEMES = [
       radius: 12,
       shadow: {
         color: 'rgba(79, 70, 229, 0.18)',
-        blur: 18,
+        blur: 4,
         offsetX: 0,
-        offsetY: 6
+        offsetY: 1
       },
       hoverShadow: {
         color: 'rgba(79, 70, 229, 0.25)',
-        blur: 24,
+        blur: 6,
         offsetX: 0,
-        offsetY: 10
+        offsetY: 2
       },
       strokeColor: 'rgba(99, 102, 241, 0.4)',
       strokeWidth: 1.2
@@ -120,9 +117,7 @@ const THEMES = [
     wire: {
       color: '#4338ca',
       width: 2.4,
-      dashPattern: [20, 16],
-      nodeFill: '#eef2ff',
-      nodeShadow: 'rgba(79, 70, 229, 0.12)'
+      dashPattern: [20, 16]
     }
   },
   {
@@ -141,12 +136,9 @@ const THEMES = [
     accentSoft: 'rgba(71, 85, 105, 0.25)',
     grid: {
       background: '#f8fafc',
-      gridFillA: '#ffffff',
-      gridFillB: '#f1f5f9',
       gridStroke: '#d4dbe6',
       borderColor: '#94a3b8',
       borderWidth: 2,
-      cellRadius: 10,
       panelFill: '#e2e8f0',
       panelShadow: {
         color: 'rgba(15, 23, 42, 0.08)',
@@ -191,15 +183,15 @@ const THEMES = [
       radius: 12,
       shadow: {
         color: 'rgba(15, 23, 42, 0.18)',
-        blur: 16,
+        blur: 4,
         offsetX: 0,
-        offsetY: 8
+        offsetY: 1
       },
       hoverShadow: {
         color: 'rgba(15, 23, 42, 0.22)',
-        blur: 24,
+        blur: 6,
         offsetX: 0,
-        offsetY: 10
+        offsetY: 2
       },
       strokeColor: 'rgba(148, 163, 184, 0.75)',
       strokeWidth: 1.4
@@ -207,9 +199,7 @@ const THEMES = [
     wire: {
       color: '#475569',
       width: 2.6,
-      dashPattern: [18, 14],
-      nodeFill: '#e2e8f0',
-      nodeShadow: 'rgba(71, 85, 105, 0.12)'
+      dashPattern: [18, 14]
     }
   },
   {
@@ -228,19 +218,11 @@ const THEMES = [
     accentSoft: 'rgba(56, 189, 248, 0.3)',
     grid: {
       background: '#0f172a',
-      gridFillA: 'rgba(30, 41, 59, 0.92)',
-      gridFillB: 'rgba(15, 23, 42, 0.92)',
-      gridStroke: 'rgba(148, 163, 184, 0.2)',
-      borderColor: 'rgba(94, 234, 212, 0.6)',
+      gridStroke: '#233248',
+      borderColor: '#526780',
       borderWidth: 2,
-      cellRadius: 10,
       panelFill: '#111827',
-      panelShadow: {
-        color: 'rgba(56, 189, 248, 0.45)',
-        blur: 30,
-        offsetX: 0,
-        offsetY: 12
-      }
+      panelShadow: null
     },
     panel: {
       panelBackground: {
@@ -254,21 +236,14 @@ const THEMES = [
       background: 'rgba(15, 23, 42, 0.85)',
       border: 'rgba(56, 189, 248, 0.55)',
       labelColor: '#bae6fd',
-      itemFill: {
-        type: 'linear',
-        angle: 90,
-        stops: [
-          { offset: 0, color: 'rgba(14, 116, 144, 0.85)' },
-          { offset: 1, color: 'rgba(8, 145, 178, 0.85)' }
-        ]
-      },
+      itemFill: '#26384d',
       itemTextColor: '#f8fafc',
-      itemShadow: 'rgba(56, 189, 248, 0.35)',
-      itemBorderColor: 'rgba(6, 182, 212, 0.55)'
+      itemShadow: null,
+      itemBorderColor: '#526780'
     },
     block: {
-      fill: ['#29586e', '#2b6680'],
-      hoverFill: ['#367591', '#2e7594'],
+      fill: '#29394f',
+      hoverFill: '#354b65',
       textColor: '#f8fafc',
       activeFill: {
         type: 'linear',
@@ -290,27 +265,15 @@ const THEMES = [
       },
       activeTextColor: '#1f2937',
       radius: 12,
-      shadow: {
-        color: 'rgba(56, 189, 248, 0.35)',
-        blur: 22,
-        offsetX: 0,
-        offsetY: 12
-      },
-      hoverShadow: {
-        color: 'rgba(129, 230, 217, 0.45)',
-        blur: 28,
-        offsetX: 0,
-        offsetY: 14
-      },
-      strokeColor: 'rgba(94, 234, 212, 0.6)',
+      shadow: null,
+      hoverShadow: null,
+      strokeColor: '#61758e',
       strokeWidth: 1.6
     },
     wire: {
       color: '#67e8f9',
       width: 2.8,
-      dashPattern: [16, 12],
-      nodeFill: 'rgba(14, 116, 144, 0.55)',
-      nodeShadow: 'rgba(56, 189, 248, 0.3)'
+      dashPattern: [16, 12]
     }
   },
   {
@@ -329,12 +292,9 @@ const THEMES = [
     accentSoft: 'rgba(249, 115, 22, 0.28)',
     grid: {
       background: '#fff7ed',
-      gridFillA: '#fffdf7',
-      gridFillB: '#ffedd5',
       gridStroke: '#fed7aa',
       borderColor: '#f59e0b',
       borderWidth: 3,
-      cellRadius: 12,
       panelFill: '#ffe4c7',
       panelShadow: {
         color: 'rgba(249, 115, 22, 0.25)',
@@ -393,15 +353,15 @@ const THEMES = [
       radius: 14,
       shadow: {
         color: 'rgba(249, 115, 22, 0.35)',
-        blur: 22,
+        blur: 4,
         offsetX: 0,
-        offsetY: 10
+        offsetY: 1
       },
       hoverShadow: {
         color: 'rgba(251, 191, 36, 0.4)',
-        blur: 26,
+        blur: 6,
         offsetX: 0,
-        offsetY: 12
+        offsetY: 2
       },
       strokeColor: 'rgba(234, 88, 12, 0.45)',
       strokeWidth: 1.5
@@ -409,9 +369,7 @@ const THEMES = [
     wire: {
       color: '#ea580c',
       width: 2.6,
-      dashPattern: [18, 14],
-      nodeFill: 'rgba(253, 224, 171, 0.9)',
-      nodeShadow: 'rgba(249, 115, 22, 0.22)'
+      dashPattern: [18, 14]
     }
   },
   {
@@ -430,12 +388,9 @@ const THEMES = [
     accentSoft: 'rgba(20, 184, 166, 0.28)',
     grid: {
       background: '#ecfdf5',
-      gridFillA: '#ffffff',
-      gridFillB: '#d1fae5',
       gridStroke: '#a7f3d0',
       borderColor: '#34d399',
       borderWidth: 3,
-      cellRadius: 12,
       panelFill: '#d1fae5',
       panelShadow: {
         color: 'rgba(45, 212, 191, 0.25)',
@@ -494,15 +449,15 @@ const THEMES = [
       radius: 14,
       shadow: {
         color: 'rgba(16, 185, 129, 0.35)',
-        blur: 22,
+        blur: 4,
         offsetX: 0,
-        offsetY: 12
+        offsetY: 1
       },
       hoverShadow: {
         color: 'rgba(45, 212, 191, 0.4)',
-        blur: 26,
+        blur: 6,
         offsetX: 0,
-        offsetY: 14
+        offsetY: 2
       },
       strokeColor: 'rgba(5, 150, 105, 0.45)',
       strokeWidth: 1.5
@@ -510,9 +465,7 @@ const THEMES = [
     wire: {
       color: '#0f766e',
       width: 2.6,
-      dashPattern: [18, 14],
-      nodeFill: 'rgba(204, 251, 241, 0.9)',
-      nodeShadow: 'rgba(16, 185, 129, 0.25)'
+      dashPattern: [18, 14]
     }
   }
 ];
@@ -621,4 +574,3 @@ export function getThemeGridBackground(theme) {
   }
   return null;
 }
-
