@@ -59,6 +59,11 @@ try {
     await page.getByRole('button', { name: lang === 'ko' ? '스테이지 맵' : 'Stage map', exact: true }).click();
     await goToMap(page);
     assert.deepEqual(await cleared(), [6,30]);
+    assert.equal(await page.evaluate(async () => {
+      const levels = await import('./src/modules/levels.js');
+      if (Object.keys(levels.getLevelTitles()).length !== 17 || levels.getLevelTitle(47)) return false;
+      try { await levels.startLevel(47); return false; } catch { return true; }
+    }), true, 'Capacity Limit Check stays outside the demo even after the Chapter 3 gate');
     assert.equal((await save()).catalogVersion, 4);
     await enterStage(page, 25); // Ending remains optional and does not close play.
     assert.deepEqual(errors, []); assert.deepEqual(external, []);

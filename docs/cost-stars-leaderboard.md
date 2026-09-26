@@ -18,7 +18,7 @@
 
 가격이나 점유 규칙을 변경할 때는 같은 파일의 `COST_RULES.version`도 올려야 합니다. 현재 버전은 `cost-v1`입니다.
 
-별 컷라인은 **`levels.json`과 `levels_en.json`의 `levelStarThresholds`**에서 스테이지 ID별로 수정합니다. 두 언어의 같은 ID에는 같은 값을 넣으세요. Chapter 1·2의 16개 퍼즐에는 아래 기준을 적용하며, 나머지 30개 정식 퍼즐은 두 값 모두 `null`로 유지합니다. Tutorial ID 0에는 이 항목이 없습니다.
+별 컷라인은 **`levels.json`과 `levels_en.json`의 `levelStarThresholds`**에서 스테이지 ID별로 수정합니다. 두 언어의 같은 ID에는 같은 값을 넣으세요. Chapter 1·2의 16개 퍼즐에는 아래 기준을 적용하며, 나머지 31개 정식 퍼즐은 두 값 모두 `null`로 유지합니다. Tutorial ID 0에는 이 항목이 없습니다. 적재 한도 검사(ID 47)의 참조 회로 비용 175는 풀이 가능성의 근거이며, 최적 비용이나 확정된 3별 기준이 아닙니다.
 
 ```json
 "levelStarThresholds": {

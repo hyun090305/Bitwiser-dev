@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {CHAPTERS,STAGES,canPlayStage,playableStages} from '../src/modules/stageCatalog.js';
+import {CHAPTERS,STAGES,playableStages} from '../src/modules/stageCatalog.js';
 import { STAGE_MAP_EDGES } from '../src/modules/stageMapTopology.js';
 import {DEMO_IDS,DEMO_END_STAGE,isUnlocked} from '../src/demo/catalog.js';
 import {makeRecord,validateProgress,emptyProgress} from '../src/demo/records.js';
@@ -16,8 +16,9 @@ const fixture=id=>read(`tests/fixtures/${id>=32?'stages':'demo'}/${id}-3.json`).
 test('stable IDs, five chapters plus extras, complete catalog and no candidate progress',()=>{
   assert.deepEqual(CHAPTERS.map(c=>c.title),['Logic Core','Memory Link','Arithmetic Unit','Control Flow','System Integration']);
   assert.equal(new Set(STAGES.map(s=>s.nodeId)).size,STAGES.length);
-  assert.equal(new Set(STAGES.filter(s=>s.id!==null).map(s=>s.id)).size,47);
-  assert.deepEqual(playableStages().map(s=>s.id).sort((a,b)=>a-b),Array.from({length:47},(_,i)=>i));
+  assert.equal(new Set(STAGES.filter(s=>s.id!==null).map(s=>s.id)).size,48);
+  assert.deepEqual(playableStages().map(s=>s.id).sort((a,b)=>a-b),Array.from({length:48},(_,i)=>i));
+  assert.equal(STAGES.filter(s=>s.status==='candidate').length,0);
   assert.equal(map.nodes.filter(n=>n.nodeType==='stage').length,48);
   assert.equal(map.nodes.some(n=>n.nodeType==='rank'),false);
   assert.equal('rank' in map.nodeTypes,false);
@@ -34,7 +35,6 @@ test('stable IDs, five chapters plus extras, complete catalog and no candidate p
     const incoming=map.edges.filter(e=>e.to===s.nodeId).map(e=>STAGES.find(n=>n.nodeId===e.from)?.id).sort((a,b)=>a-b);
     assert.deepEqual(incoming,STAGE_MAP_EDGES.filter(e=>e.to===s.nodeId).map(e=>STAGES.find(n=>n.nodeId===e.from).id).sort((a,b)=>a-b));
     assert.equal(s.status==='playable',Boolean(levels.levelAnswers[s.id]));
-    if(s.status==='candidate')assert.equal(canPlayStage(s.id,Array.from({length:47},(_,i)=>i)),false);
   }
   assert.equal(map.edges.filter(e=>e.from==='fixed_xor'&&e.to==='crossroad').length,1);
   for(const edge of map.edges) {

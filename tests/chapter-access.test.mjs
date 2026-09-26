@@ -16,7 +16,7 @@ const read = name => JSON.parse(fs.readFileSync(path.join(root, name), 'utf8'));
 const chapters = [
   { id: 'chapter_1', gate: [], stages: [0,1,2,3,4,5,6] },
   { id: 'chapter_2', gate: [6], stages: [25,7,26,27,28,29,30,23,11,31] },
-  { id: 'chapter_3', gate: [30], stages: [9,8,10,14,17,13,16,24,15,18] },
+  { id: 'chapter_3', gate: [30], stages: [9,8,10,14,17,13,16,24,15,18,47] },
   { id: 'chapter_4', gate: [30], stages: [12,21,32,33,34,35,36,37,20,22,19] },
   { id: 'chapter_5', gate: [30,14,32], stages: [38,39,40,41,42,43,44,45,46] }
 ];
@@ -32,7 +32,7 @@ test('AC-1–5: every playable stage opens with only its exact chapter gate', ()
       for (const id of chapter.stages) assert.equal(canPlayStage(id, incomplete), false, `stage ${id} without ${missing}`);
     }
   }
-  for (const id of [null, undefined, -1, 47, '30', NaN]) assert.equal(canPlayStage(id, [], { unlockedChapters: chapters.map(c => c.id), unlockedStages: [id] }), false);
+  for (const id of [null, undefined, -1, 48, '30', NaN]) assert.equal(canPlayStage(id, [], { unlockedChapters: chapters.map(c => c.id), unlockedStages: [id] }), false);
   assert.equal(chapterAccess('unknown').unlocked, false);
 });
 

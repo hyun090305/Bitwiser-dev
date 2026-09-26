@@ -4,7 +4,7 @@
 
 ## 접근과 맵
 
-`src/modules/stageCatalog.js`의 `canPlayStage`는 공개 상태와 챕터 접근권만 검사합니다. 열린 챕터의 모든 playable 문제는 자유롭게 선택할 수 있습니다. 기존 47개 playable / 1개 candidate, stage ID, node ID, 챕터 소속은 유지합니다.
+`src/modules/stageCatalog.js`의 `canPlayStage`는 공개 상태와 챕터 접근권만 검사합니다. 열린 챕터의 모든 playable 문제는 자유롭게 선택할 수 있습니다. [Issue #486](https://github.com/hyun090305/Bitwiser-dev/issues/486)에서 Chapter 3 후보를 적재 한도 검사(ID 47)로 공개하여 현재 48개 playable / 0개 candidate입니다. 기존 ID 0~46, node ID, 챕터 소속과 맵 위치·화살표는 유지합니다.
 
 | 챕터 | 신규 진행의 해금 조건 |
 | --- | --- |
@@ -27,8 +27,8 @@
 
 ## 회귀 검증
 
-- `npm test`: 챕터별 최소 gate, candidate 차단, v1~v3 정식판 저장 및 체험판 백업, 반복 이전, 기준 맵 좌표·화살표와 재생성 결과를 검사합니다.
-- `npm run test:map:browser`: 챕터 gate만 충족한 상태에서 47개 문제를 실제 카드 클릭으로 열고 candidate 차단과 정식판 로컬 마이그레이션을 검사합니다.
+- `npm test`: 챕터별 최소 gate, 미등록 ID 차단, v1~v3 정식판 저장 및 체험판 백업, 반복 이전, 기준 맵 좌표·화살표와 재생성 결과를 검사합니다.
+- `npm run test:map:browser`: 챕터 gate만 충족한 상태에서 48개 문제를 실제 카드 클릭으로 열고 정식판 로컬 마이그레이션을 검사합니다.
 - `npm run build:demo`, `npm run preview:demo` 실행 후 `npm run test:demo:browser`: 기존 체험판 회귀 검사와 한국어/영어의 17개 카드 자유 선택, XOR만 클리어한 Chapter 2 접근, Automatic Door를 먼저 완료하는 ending 흐름을 검사합니다.
 - `npm run test:cost:browser`: 정식판·체험판 결과 버튼과 비용·랭킹 화면을 검사합니다. `npm run test:full:web`, `npm run test:full:electron`은 실제 진입점 검사입니다.
 - `npm run test:grading:browser`, `npm run test:results:browser`, `npm run test:memory20:browser`: 채점·결과 재생·기존 메모리 20문제의 동작을 검사합니다.

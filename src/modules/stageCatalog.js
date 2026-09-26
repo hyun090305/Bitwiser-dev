@@ -377,7 +377,7 @@ export const STAGES = [
   [24,'twos_complement',3],
   [15,'two_bit_subtractor',3],
   [18,'mod3_remainder',3],
-  [null,'overflow_detector',3,false,'candidate',"Overflow Detector"],
+  [47,'overflow_detector',3],
   [12,'mux_4to1',4],
   [21,'three_bit_shifter',4],
   [32,'up_down_counter',4],
