@@ -1,0 +1,653 @@
+{
+  "source": "https://github.com/hyun090305/Bitwiser-dev/issues/491",
+  "purpose": "8x8 optimized Crossroad solution, cost 152 / three stars",
+  "circuit": {
+    "rows": 8,
+    "cols": 8,
+    "blocks": {
+      "IN1": {
+        "id": "IN1",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 0,
+          "c": 0
+        },
+        "fixed": true,
+        "value": false
+      },
+      "b2": {
+        "id": "b2",
+        "type": "NOT",
+        "name": "b2",
+        "pos": {
+          "r": 0,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "O_OUT2": {
+        "id": "O_OUT2",
+        "type": "OUTPUT",
+        "name": "OUT2",
+        "pos": {
+          "r": 0,
+          "c": 7
+        },
+        "fixed": true,
+        "value": false
+      },
+      "b10": {
+        "id": "b10",
+        "type": "AND",
+        "name": "b10",
+        "pos": {
+          "r": 2,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b12": {
+        "id": "b12",
+        "type": "AND",
+        "name": "b12",
+        "pos": {
+          "r": 1,
+          "c": 5
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b14": {
+        "id": "b14",
+        "type": "OR",
+        "name": "b14",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b18": {
+        "id": "b18",
+        "type": "NOT",
+        "name": "b18",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b20": {
+        "id": "b20",
+        "type": "NOT",
+        "name": "b20",
+        "pos": {
+          "r": 2,
+          "c": 6
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b26": {
+        "id": "b26",
+        "type": "AND",
+        "name": "b26",
+        "pos": {
+          "r": 3,
+          "c": 5
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b28": {
+        "id": "b28",
+        "type": "NOT",
+        "name": "b28",
+        "pos": {
+          "r": 5,
+          "c": 0
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b32": {
+        "id": "b32",
+        "type": "AND",
+        "name": "b32",
+        "pos": {
+          "r": 4,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b36": {
+        "id": "b36",
+        "type": "AND",
+        "name": "b36",
+        "pos": {
+          "r": 6,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b38": {
+        "id": "b38",
+        "type": "NOT",
+        "name": "b38",
+        "pos": {
+          "r": 5,
+          "c": 3
+        },
+        "fixed": false,
+        "value": false
+      },
+      "b40": {
+        "id": "b40",
+        "type": "OR",
+        "name": "b40",
+        "pos": {
+          "r": 7,
+          "c": 5
+        },
+        "fixed": false,
+        "value": false
+      },
+      "IN2": {
+        "id": "IN2",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 7,
+          "c": 0
+        },
+        "fixed": true,
+        "value": false
+      },
+      "O_OUT1": {
+        "id": "O_OUT1",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 7,
+          "c": 7
+        },
+        "fixed": true,
+        "value": false
+      },
+      "J": {
+        "id": "J",
+        "type": "JUNCTION",
+        "name": "J",
+        "pos": {
+          "r": 4,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "IN1",
+        "endBlockId": "b2",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 1
+          },
+          {
+            "r": 0,
+            "c": 2
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "b12",
+        "endBlockId": "O_OUT2",
+        "path": [
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 0,
+            "c": 5
+          },
+          {
+            "r": 0,
+            "c": 6
+          },
+          {
+            "r": 0,
+            "c": 7
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "b2",
+        "endBlockId": "b10",
+        "path": [
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "b14",
+        "endBlockId": "b10",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "b18",
+        "endBlockId": "b12",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 5
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "b20",
+        "endBlockId": "b12",
+        "path": [
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 1,
+            "c": 6
+          },
+          {
+            "r": 1,
+            "c": 5
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "IN1",
+        "endBlockId": "b14",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 1,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 1
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "b28",
+        "endBlockId": "b14",
+        "path": [
+          {
+            "r": 5,
+            "c": 0
+          },
+          {
+            "r": 4,
+            "c": 0
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 1
+          }
+        ]
+      },
+      "w8": {
+        "id": "w8",
+        "startBlockId": "b10",
+        "endBlockId": "b18",
+        "path": [
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ]
+      },
+      "w9": {
+        "id": "w9",
+        "startBlockId": "b26",
+        "endBlockId": "b20",
+        "path": [
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 6
+          }
+        ]
+      },
+      "w10": {
+        "id": "w10",
+        "startBlockId": "b18",
+        "endBlockId": "b26",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      },
+      "w11": {
+        "id": "w11",
+        "startBlockId": "b32",
+        "endBlockId": "b26",
+        "path": [
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 5
+          }
+        ]
+      },
+      "w12": {
+        "id": "w12",
+        "startBlockId": "IN2",
+        "endBlockId": "b28",
+        "path": [
+          {
+            "r": 7,
+            "c": 0
+          },
+          {
+            "r": 6,
+            "c": 0
+          },
+          {
+            "r": 5,
+            "c": 0
+          }
+        ]
+      },
+      "w13": {
+        "id": "w13",
+        "startBlockId": "J",
+        "endBlockId": "b32",
+        "path": [
+          {
+            "r": 4,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      },
+      "w14": {
+        "id": "w14",
+        "startBlockId": "b38",
+        "endBlockId": "b32",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      },
+      "w15": {
+        "id": "w15",
+        "startBlockId": "J",
+        "endBlockId": "b36",
+        "path": [
+          {
+            "r": 4,
+            "c": 2
+          },
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 6,
+            "c": 2
+          }
+        ]
+      },
+      "w16": {
+        "id": "w16",
+        "startBlockId": "IN2",
+        "endBlockId": "b36",
+        "path": [
+          {
+            "r": 7,
+            "c": 0
+          },
+          {
+            "r": 7,
+            "c": 1
+          },
+          {
+            "r": 6,
+            "c": 1
+          },
+          {
+            "r": 6,
+            "c": 2
+          }
+        ]
+      },
+      "w17": {
+        "id": "w17",
+        "startBlockId": "b36",
+        "endBlockId": "b38",
+        "path": [
+          {
+            "r": 6,
+            "c": 2
+          },
+          {
+            "r": 6,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 3
+          }
+        ]
+      },
+      "w18": {
+        "id": "w18",
+        "startBlockId": "b26",
+        "endBlockId": "b40",
+        "path": [
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 5,
+            "c": 5
+          },
+          {
+            "r": 6,
+            "c": 5
+          },
+          {
+            "r": 7,
+            "c": 5
+          }
+        ]
+      },
+      "w19": {
+        "id": "w19",
+        "startBlockId": "b36",
+        "endBlockId": "b40",
+        "path": [
+          {
+            "r": 6,
+            "c": 2
+          },
+          {
+            "r": 7,
+            "c": 2
+          },
+          {
+            "r": 7,
+            "c": 3
+          },
+          {
+            "r": 7,
+            "c": 4
+          },
+          {
+            "r": 7,
+            "c": 5
+          }
+        ]
+      },
+      "w20": {
+        "id": "w20",
+        "startBlockId": "b40",
+        "endBlockId": "O_OUT1",
+        "path": [
+          {
+            "r": 7,
+            "c": 5
+          },
+          {
+            "r": 7,
+            "c": 6
+          },
+          {
+            "r": 7,
+            "c": 7
+          }
+        ]
+      },
+      "w21": {
+        "id": "w21",
+        "startBlockId": "b14",
+        "endBlockId": "J",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 4,
+            "c": 2
+          }
+        ]
+      }
+    }
+  }
+}

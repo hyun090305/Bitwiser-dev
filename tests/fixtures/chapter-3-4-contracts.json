@@ -1,0 +1,777 @@
+{
+  "base": "e156651082cfd9aaaa074cd5cc8bbf83734ba712",
+  "languages": {
+    "levels.json": {
+      "definitions": {
+        "19": {
+          "levelGridSizes": [
+            7,
+            7
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "IN1"
+            },
+            {
+              "type": "INPUT",
+              "name": "IN2"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "OUT1"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "OUT2"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": true,
+            "grid": [
+              {
+                "index": 0,
+                "type": "INPUT",
+                "name": "IN1"
+              },
+              {
+                "index": 42,
+                "type": "INPUT",
+                "name": "IN2"
+              },
+              {
+                "index": 6,
+                "type": "OUTPUT",
+                "name": "OUT2"
+              },
+              {
+                "index": 48,
+                "type": "OUTPUT",
+                "name": "OUT1"
+              }
+            ]
+          },
+          "levelAnswers": [
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1
+              }
+            }
+          ]
+        },
+        "24": {
+          "levelGridSizes": [
+            10,
+            10
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "A3"
+            },
+            {
+              "type": "INPUT",
+              "name": "A2"
+            },
+            {
+              "type": "INPUT",
+              "name": "A1"
+            },
+            {
+              "type": "INPUT",
+              "name": "A0"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C3"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C2"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C1"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C0"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelAnswers": [
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            }
+          ]
+        }
+      },
+      "unchangedHash": "969637695f19ac043e67e20984073d573f582c0494d05ba85c2d3bebbd030fff"
+    },
+    "levels_en.json": {
+      "definitions": {
+        "19": {
+          "levelGridSizes": [
+            7,
+            7
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "IN1"
+            },
+            {
+              "type": "INPUT",
+              "name": "IN2"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "OUT1"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "OUT2"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": true,
+            "grid": [
+              {
+                "index": 0,
+                "type": "INPUT",
+                "name": "IN1"
+              },
+              {
+                "index": 42,
+                "type": "INPUT",
+                "name": "IN2"
+              },
+              {
+                "index": 6,
+                "type": "OUTPUT",
+                "name": "OUT2"
+              },
+              {
+                "index": 48,
+                "type": "OUTPUT",
+                "name": "OUT1"
+              }
+            ]
+          },
+          "levelAnswers": [
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1
+              }
+            }
+          ]
+        },
+        "24": {
+          "levelGridSizes": [
+            10,
+            10
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "A3"
+            },
+            {
+              "type": "INPUT",
+              "name": "A2"
+            },
+            {
+              "type": "INPUT",
+              "name": "A1"
+            },
+            {
+              "type": "INPUT",
+              "name": "A0"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C3"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C2"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C1"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "C0"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelAnswers": [
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 0,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 0,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 0,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 1,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 0,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 1,
+                "OUT4": 0
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 0
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 1
+              }
+            },
+            {
+              "inputs": {
+                "IN1": 1,
+                "IN2": 1,
+                "IN3": 1,
+                "IN4": 1
+              },
+              "expected": {
+                "OUT1": 1,
+                "OUT2": 0,
+                "OUT3": 0,
+                "OUT4": 0
+              }
+            }
+          ]
+        }
+      },
+      "unchangedHash": "e0c8a39a1145bb417c54015fad5d01a52aeb8f668a586b65fcf9887d6e31a033"
+    }
+  }
+}

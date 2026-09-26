@@ -1,0 +1,796 @@
+{
+  "source": "https://github.com/hyun090305/Bitwiser-dev/issues/491",
+  "purpose": "8x8 XOR-based Crossroad solution, cost 178 / two stars",
+  "circuit": {
+    "rows": 8,
+    "cols": 8,
+    "blocks": {
+      "IN1": {
+        "id": "IN1",
+        "type": "INPUT",
+        "name": "IN1",
+        "pos": {
+          "r": 0,
+          "c": 0
+        },
+        "fixed": true,
+        "value": false
+      },
+      "IN2": {
+        "id": "IN2",
+        "type": "INPUT",
+        "name": "IN2",
+        "pos": {
+          "r": 7,
+          "c": 0
+        },
+        "fixed": true,
+        "value": false
+      },
+      "g1": {
+        "id": "g1",
+        "type": "AND",
+        "name": "g1",
+        "pos": {
+          "r": 2,
+          "c": 0
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g2": {
+        "id": "g2",
+        "type": "NOT",
+        "name": "g2",
+        "pos": {
+          "r": 3,
+          "c": 1
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g3": {
+        "id": "g3",
+        "type": "AND",
+        "name": "g3",
+        "pos": {
+          "r": 2,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g4": {
+        "id": "g4",
+        "type": "AND",
+        "name": "g4",
+        "pos": {
+          "r": 5,
+          "c": 1
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g5": {
+        "id": "g5",
+        "type": "NOT",
+        "name": "g5",
+        "pos": {
+          "r": 4,
+          "c": 6
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g7": {
+        "id": "g7",
+        "type": "NOT",
+        "name": "g7",
+        "pos": {
+          "r": 5,
+          "c": 3
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g8": {
+        "id": "g8",
+        "type": "AND",
+        "name": "g8",
+        "pos": {
+          "r": 7,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g9": {
+        "id": "g9",
+        "type": "AND",
+        "name": "g9",
+        "pos": {
+          "r": 5,
+          "c": 5
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g10": {
+        "id": "g10",
+        "type": "OR",
+        "name": "g10",
+        "pos": {
+          "r": 6,
+          "c": 6
+        },
+        "fixed": false,
+        "value": false
+      },
+      "O_OUT1": {
+        "id": "O_OUT1",
+        "type": "OUTPUT",
+        "name": "OUT1",
+        "pos": {
+          "r": 7,
+          "c": 7
+        },
+        "fixed": true,
+        "value": false
+      },
+      "g12": {
+        "id": "g12",
+        "type": "NOT",
+        "name": "g12",
+        "pos": {
+          "r": 2,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g13": {
+        "id": "g13",
+        "type": "AND",
+        "name": "g13",
+        "pos": {
+          "r": 0,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g14": {
+        "id": "g14",
+        "type": "AND",
+        "name": "g14",
+        "pos": {
+          "r": 2,
+          "c": 6
+        },
+        "fixed": false,
+        "value": false
+      },
+      "g15": {
+        "id": "g15",
+        "type": "OR",
+        "name": "g15",
+        "pos": {
+          "r": 1,
+          "c": 6
+        },
+        "fixed": false,
+        "value": false
+      },
+      "O_OUT2": {
+        "id": "O_OUT2",
+        "type": "OUTPUT",
+        "name": "OUT2",
+        "pos": {
+          "r": 0,
+          "c": 7
+        },
+        "fixed": true,
+        "value": false
+      },
+      "J_IN1": {
+        "id": "J_IN1",
+        "type": "JUNCTION",
+        "name": "J_IN1",
+        "pos": {
+          "r": 0,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "J_IN2": {
+        "id": "J_IN2",
+        "type": "JUNCTION",
+        "name": "J_IN2",
+        "pos": {
+          "r": 7,
+          "c": 2
+        },
+        "fixed": false,
+        "value": false
+      },
+      "parity_and": {
+        "id": "parity_and",
+        "type": "AND",
+        "name": "parity_and",
+        "pos": {
+          "r": 4,
+          "c": 4
+        },
+        "fixed": false,
+        "value": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "IN1",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 1,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 0
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "IN2",
+        "endBlockId": "g1",
+        "path": [
+          {
+            "r": 7,
+            "c": 0
+          },
+          {
+            "r": 6,
+            "c": 0
+          },
+          {
+            "r": 5,
+            "c": 0
+          },
+          {
+            "r": 4,
+            "c": 0
+          },
+          {
+            "r": 3,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 0
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "g1",
+        "endBlockId": "g2",
+        "path": [
+          {
+            "r": 2,
+            "c": 0
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 1
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "J_IN1",
+        "endBlockId": "g3",
+        "path": [
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "g2",
+        "endBlockId": "g3",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 2
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "J_IN2",
+        "endBlockId": "g4",
+        "path": [
+          {
+            "r": 7,
+            "c": 2
+          },
+          {
+            "r": 6,
+            "c": 2
+          },
+          {
+            "r": 6,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 1
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "g2",
+        "endBlockId": "g4",
+        "path": [
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 1
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "parity_and",
+        "endBlockId": "g5",
+        "path": [
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 6
+          }
+        ]
+      },
+      "w8": {
+        "id": "w8",
+        "startBlockId": "g4",
+        "endBlockId": "g7",
+        "path": [
+          {
+            "r": 5,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 5,
+            "c": 3
+          }
+        ]
+      },
+      "w9": {
+        "id": "w9",
+        "startBlockId": "J_IN2",
+        "endBlockId": "g8",
+        "path": [
+          {
+            "r": 7,
+            "c": 2
+          },
+          {
+            "r": 7,
+            "c": 3
+          },
+          {
+            "r": 7,
+            "c": 4
+          }
+        ]
+      },
+      "w10": {
+        "id": "w10",
+        "startBlockId": "g7",
+        "endBlockId": "g8",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 6,
+            "c": 3
+          },
+          {
+            "r": 6,
+            "c": 4
+          },
+          {
+            "r": 7,
+            "c": 4
+          }
+        ]
+      },
+      "w11": {
+        "id": "w11",
+        "startBlockId": "g5",
+        "endBlockId": "g9",
+        "path": [
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 5,
+            "c": 6
+          },
+          {
+            "r": 5,
+            "c": 5
+          }
+        ]
+      },
+      "w12": {
+        "id": "w12",
+        "startBlockId": "g7",
+        "endBlockId": "g9",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 4
+          },
+          {
+            "r": 5,
+            "c": 5
+          }
+        ]
+      },
+      "w13": {
+        "id": "w13",
+        "startBlockId": "g8",
+        "endBlockId": "g10",
+        "path": [
+          {
+            "r": 7,
+            "c": 4
+          },
+          {
+            "r": 7,
+            "c": 5
+          },
+          {
+            "r": 7,
+            "c": 6
+          },
+          {
+            "r": 6,
+            "c": 6
+          }
+        ]
+      },
+      "w14": {
+        "id": "w14",
+        "startBlockId": "g9",
+        "endBlockId": "g10",
+        "path": [
+          {
+            "r": 5,
+            "c": 5
+          },
+          {
+            "r": 6,
+            "c": 5
+          },
+          {
+            "r": 6,
+            "c": 6
+          }
+        ]
+      },
+      "w15": {
+        "id": "w15",
+        "startBlockId": "g10",
+        "endBlockId": "O_OUT1",
+        "path": [
+          {
+            "r": 6,
+            "c": 6
+          },
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 7
+          }
+        ]
+      },
+      "w16": {
+        "id": "w16",
+        "startBlockId": "g3",
+        "endBlockId": "g12",
+        "path": [
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 2,
+            "c": 4
+          }
+        ]
+      },
+      "w17": {
+        "id": "w17",
+        "startBlockId": "J_IN1",
+        "endBlockId": "g13",
+        "path": [
+          {
+            "r": 0,
+            "c": 2
+          },
+          {
+            "r": 0,
+            "c": 3
+          },
+          {
+            "r": 0,
+            "c": 4
+          }
+        ]
+      },
+      "w18": {
+        "id": "w18",
+        "startBlockId": "g12",
+        "endBlockId": "g13",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 0,
+            "c": 4
+          }
+        ]
+      },
+      "w19": {
+        "id": "w19",
+        "startBlockId": "g5",
+        "endBlockId": "g14",
+        "path": [
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 6
+          }
+        ]
+      },
+      "w20": {
+        "id": "w20",
+        "startBlockId": "g12",
+        "endBlockId": "g14",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 5
+          },
+          {
+            "r": 2,
+            "c": 6
+          }
+        ]
+      },
+      "w21": {
+        "id": "w21",
+        "startBlockId": "g13",
+        "endBlockId": "g15",
+        "path": [
+          {
+            "r": 0,
+            "c": 4
+          },
+          {
+            "r": 0,
+            "c": 5
+          },
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 1,
+            "c": 6
+          }
+        ]
+      },
+      "w22": {
+        "id": "w22",
+        "startBlockId": "g14",
+        "endBlockId": "g15",
+        "path": [
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 7
+          },
+          {
+            "r": 1,
+            "c": 7
+          },
+          {
+            "r": 1,
+            "c": 6
+          }
+        ]
+      },
+      "w23": {
+        "id": "w23",
+        "startBlockId": "g15",
+        "endBlockId": "O_OUT2",
+        "path": [
+          {
+            "r": 1,
+            "c": 6
+          },
+          {
+            "r": 0,
+            "c": 6
+          },
+          {
+            "r": 0,
+            "c": 7
+          }
+        ]
+      },
+      "w24": {
+        "id": "w24",
+        "startBlockId": "IN1",
+        "endBlockId": "J_IN1",
+        "path": [
+          {
+            "r": 0,
+            "c": 0
+          },
+          {
+            "r": 0,
+            "c": 1
+          },
+          {
+            "r": 0,
+            "c": 2
+          }
+        ]
+      },
+      "w25": {
+        "id": "w25",
+        "startBlockId": "IN2",
+        "endBlockId": "J_IN2",
+        "path": [
+          {
+            "r": 7,
+            "c": 0
+          },
+          {
+            "r": 7,
+            "c": 1
+          },
+          {
+            "r": 7,
+            "c": 2
+          }
+        ]
+      },
+      "w26": {
+        "id": "w26",
+        "startBlockId": "g7",
+        "endBlockId": "parity_and",
+        "path": [
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      },
+      "w27": {
+        "id": "w27",
+        "startBlockId": "g12",
+        "endBlockId": "parity_and",
+        "path": [
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 4,
+            "c": 4
+          }
+        ]
+      }
+    }
+  }
+}

@@ -19,7 +19,7 @@
     "16": "2-bit Max Selector",
     "17": "2-bit Multiplier",
     "18": "4-bit Mod 3 Remainder",
-    "19": "7 x 7 crossroad",
+    "19": "8 x 8 crossroad",
     "20": "Fixed XOR Gate",
     "21": "3-bit Shifter",
     "22": "Fixed 2-to-4 Decoder",
@@ -127,8 +127,8 @@
       15
     ],
     "19": [
-      7,
-      7
+      8,
+      8
     ],
     "20": [
       7,
@@ -1956,17 +1956,17 @@
           "name": "IN1"
         },
         {
-          "index": 42,
+          "index": 56,
           "type": "INPUT",
           "name": "IN2"
         },
         {
-          "index": 6,
+          "index": 7,
           "type": "OUTPUT",
           "name": "OUT2"
         },
         {
-          "index": 48,
+          "index": 63,
           "type": "OUTPUT",
           "name": "OUT1"
         }
@@ -5425,226 +5425,226 @@
     "24": [
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 0,
-          "IN3": 0,
-          "IN4": 0
+          "A0": 0,
+          "A1": 0,
+          "A2": 0,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 0,
-          "OUT3": 0,
-          "OUT4": 0
+          "C0": 0,
+          "C1": 0,
+          "C2": 0,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 0,
-          "IN3": 0,
-          "IN4": 1
+          "A0": 0,
+          "A1": 0,
+          "A2": 0,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 0,
-          "OUT3": 0,
-          "OUT4": 1
+          "C0": 0,
+          "C1": 0,
+          "C2": 0,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 0,
-          "IN3": 1,
-          "IN4": 0
+          "A0": 0,
+          "A1": 0,
+          "A2": 1,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 0,
-          "OUT3": 1,
-          "OUT4": 1
+          "C0": 0,
+          "C1": 0,
+          "C2": 1,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 0,
-          "IN3": 1,
-          "IN4": 1
+          "A0": 0,
+          "A1": 0,
+          "A2": 1,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 0,
-          "OUT3": 1,
-          "OUT4": 0
+          "C0": 0,
+          "C1": 0,
+          "C2": 1,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 1,
-          "IN3": 0,
-          "IN4": 0
+          "A0": 0,
+          "A1": 1,
+          "A2": 0,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 1,
-          "OUT3": 1,
-          "OUT4": 1
+          "C0": 0,
+          "C1": 1,
+          "C2": 1,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 1,
-          "IN3": 0,
-          "IN4": 1
+          "A0": 0,
+          "A1": 1,
+          "A2": 0,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 1,
-          "OUT3": 1,
-          "OUT4": 0
+          "C0": 0,
+          "C1": 1,
+          "C2": 1,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 1,
-          "IN3": 1,
-          "IN4": 0
+          "A0": 0,
+          "A1": 1,
+          "A2": 1,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 1,
-          "OUT3": 0,
-          "OUT4": 1
+          "C0": 0,
+          "C1": 1,
+          "C2": 0,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 0,
-          "IN2": 1,
-          "IN3": 1,
-          "IN4": 1
+          "A0": 0,
+          "A1": 1,
+          "A2": 1,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 0,
-          "OUT2": 1,
-          "OUT3": 0,
-          "OUT4": 0
+          "C0": 0,
+          "C1": 1,
+          "C2": 0,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 0,
-          "IN3": 0,
-          "IN4": 0
+          "A0": 1,
+          "A1": 0,
+          "A2": 0,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 1,
-          "OUT3": 1,
-          "OUT4": 1
+          "C0": 1,
+          "C1": 1,
+          "C2": 1,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 0,
-          "IN3": 0,
-          "IN4": 1
+          "A0": 1,
+          "A1": 0,
+          "A2": 0,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 1,
-          "OUT3": 1,
-          "OUT4": 0
+          "C0": 1,
+          "C1": 1,
+          "C2": 1,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 0,
-          "IN3": 1,
-          "IN4": 0
+          "A0": 1,
+          "A1": 0,
+          "A2": 1,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 1,
-          "OUT3": 0,
-          "OUT4": 1
+          "C0": 1,
+          "C1": 1,
+          "C2": 0,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 0,
-          "IN3": 1,
-          "IN4": 1
+          "A0": 1,
+          "A1": 0,
+          "A2": 1,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 1,
-          "OUT3": 0,
-          "OUT4": 0
+          "C0": 1,
+          "C1": 1,
+          "C2": 0,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 1,
-          "IN3": 0,
-          "IN4": 0
+          "A0": 1,
+          "A1": 1,
+          "A2": 0,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 0,
-          "OUT3": 1,
-          "OUT4": 1
+          "C0": 1,
+          "C1": 0,
+          "C2": 1,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 1,
-          "IN3": 0,
-          "IN4": 1
+          "A0": 1,
+          "A1": 1,
+          "A2": 0,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 0,
-          "OUT3": 1,
-          "OUT4": 0
+          "C0": 1,
+          "C1": 0,
+          "C2": 1,
+          "C3": 0
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 1,
-          "IN3": 1,
-          "IN4": 0
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "A3": 0
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 0,
-          "OUT3": 0,
-          "OUT4": 1
+          "C0": 1,
+          "C1": 0,
+          "C2": 0,
+          "C3": 1
         }
       },
       {
         "inputs": {
-          "IN1": 1,
-          "IN2": 1,
-          "IN3": 1,
-          "IN4": 1
+          "A0": 1,
+          "A1": 1,
+          "A2": 1,
+          "A3": 1
         },
         "expected": {
-          "OUT1": 1,
-          "OUT2": 0,
-          "OUT3": 0,
-          "OUT4": 0
+          "C0": 1,
+          "C1": 0,
+          "C2": 0,
+          "C3": 0
         }
       }
     ],
@@ -9473,72 +9473,72 @@
       "threeStarMaxCost": 54
     },
     "8": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 120,
+      "threeStarMaxCost": 105
     },
     "9": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 65,
+      "threeStarMaxCost": 54
     },
     "10": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 150,
+      "threeStarMaxCost": 125
     },
     "11": {
       "twoStarMaxCost": 95,
       "threeStarMaxCost": 82
     },
     "12": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 170,
+      "threeStarMaxCost": 145
     },
     "13": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 215,
+      "threeStarMaxCost": 180
     },
     "14": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 215,
+      "threeStarMaxCost": 185
     },
     "15": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 215,
+      "threeStarMaxCost": 180
     },
     "16": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 125,
+      "threeStarMaxCost": 105
     },
     "17": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 180,
+      "threeStarMaxCost": 155
     },
     "18": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 430,
+      "threeStarMaxCost": 375
     },
     "19": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 190,
+      "threeStarMaxCost": 165
     },
     "20": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 85,
+      "threeStarMaxCost": 70
     },
     "21": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 190,
+      "threeStarMaxCost": 160
     },
     "22": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 250,
+      "threeStarMaxCost": 215
     },
     "23": {
       "twoStarMaxCost": 135,
       "threeStarMaxCost": 120
     },
     "24": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 200,
+      "threeStarMaxCost": 170
     },
     "25": {
       "twoStarMaxCost": 28,
@@ -9569,28 +9569,28 @@
       "threeStarMaxCost": 68
     },
     "32": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 225,
+      "threeStarMaxCost": 185
     },
     "33": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 155,
+      "threeStarMaxCost": 135
     },
     "34": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 370,
+      "threeStarMaxCost": 315
     },
     "35": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 175,
+      "threeStarMaxCost": 145
     },
     "36": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 180,
+      "threeStarMaxCost": 150
     },
     "37": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 195,
+      "threeStarMaxCost": 165
     },
     "38": {
       "twoStarMaxCost": null,
@@ -9629,8 +9629,8 @@
       "threeStarMaxCost": null
     },
     "47": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 205,
+      "threeStarMaxCost": 175
     }
   },
   "levelLegacyDefinitions": {
@@ -10067,6 +10067,111 @@
     "47": "capacity-limit-2026-09-26"
   },
   "levelPreviousLayouts": {
+    "19": [
+      {
+        "levelGridSizes": [
+          7,
+          7
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "IN1"
+          },
+          {
+            "type": "INPUT",
+            "name": "IN2"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "OUT1"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "OUT2"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": true,
+          "grid": [
+            {
+              "index": 0,
+              "type": "INPUT",
+              "name": "IN1"
+            },
+            {
+              "index": 42,
+              "type": "INPUT",
+              "name": "IN2"
+            },
+            {
+              "index": 6,
+              "type": "OUTPUT",
+              "name": "OUT2"
+            },
+            {
+              "index": 48,
+              "type": "OUTPUT",
+              "name": "OUT1"
+            }
+          ]
+        },
+        "levelAnswers": [
+          {
+            "inputs": {
+              "IN1": 0,
+              "IN2": 0
+            },
+            "expected": {
+              "OUT1": 0,
+              "OUT2": 0
+            }
+          },
+          {
+            "inputs": {
+              "IN1": 0,
+              "IN2": 1
+            },
+            "expected": {
+              "OUT1": 0,
+              "OUT2": 1
+            }
+          },
+          {
+            "inputs": {
+              "IN1": 1,
+              "IN2": 0
+            },
+            "expected": {
+              "OUT1": 1,
+              "OUT2": 0
+            }
+          },
+          {
+            "inputs": {
+              "IN1": 1,
+              "IN2": 1
+            },
+            "expected": {
+              "OUT1": 1,
+              "OUT2": 1
+            }
+          }
+        ]
+      }
+    ],
     "25": [
       {
         "levelGridSizes": [
