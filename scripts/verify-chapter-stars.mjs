@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 import { chromium, _electron as electron } from 'playwright';
 import { snapshotCircuit } from '../src/canvas/circuitData.js';
 import { makeCostRecord } from '../src/modules/costRecords.js';
+import { validateSavedCircuitRecord } from '../src/modules/savedCircuitRecord.js';
 import { beforeChapterStars, chapterStarIds } from '../tests/helpers/chapter-stars.mjs';
 import { observeMap } from './demo-browser-helpers.mjs';
 
@@ -16,8 +17,9 @@ const prior=beforeChapterStars(levels), old47=makeCostRecord(circuits['47-3'],47
 const oldDefinition=levels.levelPreviousLayouts[19][0];
 const oldDesign={rows:7,cols:7,blocks:Object.fromEntries(oldDefinition.levelFixedIO.grid.map(b=>[b.name,{id:b.name,type:b.type,name:b.name,fixed:true,value:false,pos:{r:Math.floor(b.index/7),c:b.index%7}}])),wires:{}};
 // Keep a non-IO block and an actual wire at the old right edge when saving.
-oldDesign.blocks.edge={id:'edge',type:'NOT',name:'edge',fixed:false,value:false,pos:{r:5,c:6}};
-oldDesign.wires.edge={id:'edge',startBlockId:'edge',endBlockId:'OUT1',path:[{r:5,c:6},{r:6,c:6}]};
+oldDesign.blocks.edge={id:'edge',type:'NOT',name:'edge',fixed:false,value:false,pos:{r:4,c:6}};
+oldDesign.wires.edge={id:'edge',startBlockId:'edge',endBlockId:'OUT1',path:[{r:4,c:6},{r:5,c:6},{r:6,c:6}]};
+validateSavedCircuitRecord({version:2,stageId:19,circuit:oldDesign});
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.gif':'image/gif','.mp3':'audio/mpeg'};
 const server=createServer(async(req,res)=>{
   try {
@@ -125,7 +127,9 @@ async function verify(page,surface,lang) {
   }
   if(surface==='electron') {
     await enter(19);
-    const saved=await page.evaluate(async circuit=>(await window.bitwiserCircuitStore.save({version:2,stageId:19,circuit})).value,oldDesign);
+    const response=await page.evaluate(circuit=>window.bitwiserCircuitStore.save({version:2,stageId:19,circuit}),oldDesign);
+    assert.equal(response.ok,true,JSON.stringify(response));
+    const saved=response.value;
     assert.ok(saved.id);
     assert.equal(await page.evaluate(async id=>(await import('./src/modules/circuitShare.js')).loadCircuit(id),saved.id),true);
     assert.deepEqual(await design(),snapshotCircuit(oldDesign));
