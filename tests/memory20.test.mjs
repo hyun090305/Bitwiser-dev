@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { beforeChapterStars } from './helpers/chapter-stars.mjs';
 import fs from 'node:fs';
 import {createHash} from 'node:crypto';
 import {MEMORY20_IDS,memory20ReferenceId} from '../src/modules/memory20References.js';
@@ -169,8 +170,9 @@ test('changed boards archive all old designs and retain unrelated progress acros
 });
 
 test('unrelated stages including the combinational 2x2 multiplier retain their exact definitions',()=>{
+  const previous = beforeChapterStars(levels);
   for(const [id,hash] of Object.entries(read('tests/fixtures/legacy-memory/unchanged-hashes.json'))) {
-    const data=Object.fromEntries(Object.entries(levels).filter(([k])=>k!=='levelPreviousLayouts').map(([k,v])=>[k,v[k==='levelHints'?'stage'+id:id]]));
+    const data=Object.fromEntries(Object.entries(previous).filter(([k])=>k!=='levelPreviousLayouts').map(([k,v])=>[k,v[k==='levelHints'?'stage'+id:id]]));
     assert.equal(createHash('sha256').update(JSON.stringify(data)).digest('hex'),hash,`stage ${id}`);
   }
 });

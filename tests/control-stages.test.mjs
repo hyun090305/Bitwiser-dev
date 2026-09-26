@@ -13,6 +13,7 @@ import { emptyProgress, validateProgress } from '../src/demo/records.js';
 import { createDemoStore, SAVE_KEY } from '../src/demo/store.js';
 import { DEMO_IDS } from '../src/demo/catalog.js';
 import { stageById, canPlayStage } from '../src/modules/stageCatalog.js';
+import { beforeChapterStars } from './helpers/chapter-stars.mjs';
 
 const read = p => JSON.parse(fs.readFileSync(new URL('../' + p, import.meta.url), 'utf8'));
 const levels = read('levels.json'), en = read('levels_en.json');
@@ -60,7 +61,8 @@ test('AC-1/2/4/7/8/11: bilingual ports, revisions, physical solutions and unchan
     assert.equal(ref(id).observationMode, 'visible');
     assert.equal(levels.levelRevisions[id], 'control-stages-2026-09-26');
     assert.deepEqual(levels.levelFixedIO[id], {fixIO:false,grid:[]});
-    assert.deepEqual(levels.levelStarThresholds[id], {twoStarMaxCost:null,threeStarMaxCost:null});
+    const [threeStarMaxCost,twoStarMaxCost] = {32:[185,225],33:[135,155],34:[315,370]}[id];
+    assert.deepEqual(levels.levelStarThresholds[id], {twoStarMaxCost,threeStarMaxCost});
     for (const key of ['levelGridSizes','levelBlockSets','levelAnswers','levelRevisions','levelFixedIO','levelStarThresholds']) assert.deepEqual(levels[key][id], en[key][id]);
     assert.deepEqual(levels.levelDescriptions[id].table, en.levelDescriptions[id].table);
     for (const data of [levels,en]) {
@@ -219,7 +221,8 @@ const hash = value => createHash('sha256').update(canonical(value)).digest('hex'
 test('AC-9/10/11: old archives, every unrelated stage and map topology remain exact', () => {
   for(const [file,data] of [['levels.json',levels],['levels_en.json',en]]) {
     const expected=baseline.languages[file];
-    for(const [key,digest] of Object.entries(expected.unchanged))assert.equal(hash(Object.fromEntries(Object.entries(data[key]).filter(([id])=>!['32','33','34','stage32','stage33','stage34'].includes(id)))),digest,`${file}/${key}`);
+    const previous = beforeChapterStars(data, file);
+    for(const [key,digest] of Object.entries(expected.unchanged))assert.equal(hash(Object.fromEntries(Object.entries(previous[key]).filter(([id])=>!['32','33','34','stage32','stage33','stage34'].includes(id)))),digest,`${file}/${key}`);
     for(const id of [32,33,34]) {
       const original=expected.definitions[id],archive=Object.fromEntries(['levelGridSizes','levelBlockSets','levelFixedIO','levelAnswers'].map(k=>[k,original[k]]));
       assert.deepEqual(data.levelPreviousLayouts[id],[...original.levelPreviousLayouts,archive]);
@@ -229,5 +232,7 @@ test('AC-9/10/11: old archives, every unrelated stage and map topology remain ex
   const map=read('stage_map.json');
   assert.equal(map.nodes.find(n=>n.id==='pwm').label,'Light Timing');assert.equal(map.nodes.find(n=>n.id==='watchdog').label,'Delay Timer');
   for(const node of map.nodes)if(['pwm','watchdog'].includes(node.id))delete node.label;
+  // Issue #491 expands Crossroad; its display label follows the new board size.
+  map.nodes.find(n=>n.id==='crossroad').label='7 x 7 crossroad';
   assert.equal(hash(map),baseline.mapHash);
 });

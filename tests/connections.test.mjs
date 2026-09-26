@@ -171,7 +171,7 @@ test('482 AC-8/9: demo feedback drafts and old invalid achievements round-trip w
   assert.throws(()=>makeCostRecord(old,1,real)); assert.equal(GRADING_VERSION,6);
 });
 
-test('482 AC-10: all 82 shipped examples retain layout, grade and occupied-cell costs in both languages', () => {
+test('482 AC-10, 491 AC-4: all 84 shipped examples retain layout, grade and occupied-cell costs in both languages', () => {
   const levels=read('levels.json'), en=read('levels_en.json'); let count=0; const ids=new Set();
   for (const folder of ['demo','stages','memory20']) for (const name of fs.readdirSync(new URL(`./fixtures/${folder}/`,import.meta.url))) {
     if (!name.endsWith('.json')) continue;
@@ -184,5 +184,5 @@ test('482 AC-10: all 82 shipped examples retain layout, grade and occupied-cell 
     }
     count++; ids.add(id);
   }
-  assert.equal(count,82); assert.equal(ids.size,32);
+  assert.equal(count,84); assert.equal(ids.size,33);
 });

@@ -1,5 +1,5 @@
 {
-  "purpose": "Planar reference for issue #486; feasibility and cost-v1 175 only, not an optimal solution or a confirmed 3-star budget. The -3 suffix follows the fixture convention.",
+  "purpose": "Planar reference for issue #486, not an optimal solution proof. Cost-v1 175 earns three stars under the thresholds agreed in issue #491.",
   "circuit": {
     "version": 3,
     "rows": 9,

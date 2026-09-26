@@ -58,7 +58,7 @@ test('486 AC-2/4: all 64 distinct input tuples match an independent integer orac
   }
 });
 
-test('486 AC-3/4/6: bilingual ports, free grid, hints, revision and pending targets agree', () => {
+test('486 AC-3/4/6, 491 AC-1: bilingual ports, free grid, hints, revision and agreed targets match', () => {
   for (const key of ['levelAnswers','levelGridSizes','levelBlockSets','levelFixedIO','levelStarThresholds','levelRevisions']) {
     assert.deepEqual(ko[key][47], en[key][47], key);
   }
@@ -66,7 +66,7 @@ test('486 AC-3/4/6: bilingual ports, free grid, hints, revision and pending targ
   assert.deepEqual(ko.levelFixedIO[47], {fixIO:false,grid:[]});
   assert.deepEqual(ko.levelBlockSets[47], [...ports.inputs.map(name => ({type:'INPUT',name,inputMode:'switch'})),
     {type:'OUTPUT',name:'OVER'}, ...['AND','OR','NOT','JUNCTION'].map(type => ({type}))]);
-  assert.deepEqual(ko.levelStarThresholds[47], {twoStarMaxCost:null,threeStarMaxCost:null});
+  assert.deepEqual(ko.levelStarThresholds[47], {twoStarMaxCost:205,threeStarMaxCost:175});
   assert.equal(ko.levelRevisions[47], 'capacity-limit-2026-09-26');
   for (const [data,title] of [[ko,'적재 한도 검사'],[en,'Capacity Limit Check']]) {
     assert.equal(data.levelTitles[47], title);
@@ -84,7 +84,7 @@ test('486 AC-3/4/6: bilingual ports, free grid, hints, revision and pending targ
 test('486 AC-5: the issue reference is physically valid and grades 64/64 for cost-v1 175', () => {
   const circuit = fixture.circuit;
   assert.equal(circuit.version, 3);
-  assert.match(fixture.purpose, /not an optimal solution or a confirmed 3-star/);
+  assert.match(fixture.purpose, /not an optimal solution/);
   assert.equal(hasValidWireLayout(circuit), true);
   assert.deepEqual(validateConnections(circuit).diagnostics, []);
   for (const data of [ko,en]) {
@@ -100,23 +100,23 @@ test('486 AC-5: the issue reference is physically valid and grades 64/64 for cos
   assert.throws(() => makeCostRecord(failed,47,ko), /does not pass/);
 });
 
-test('486 AC-6/7/8: a clear persists one star and actual cost without disturbing old records', () => {
+test('486 AC-6/7/8, 491 AC-2: cost 175 earns three stars and 177 earns two without disturbing old records', () => {
   const old = makeCostRecord(read('tests/fixtures/demo/1-3.json').circuit,1,ko);
   const state = {stages:{1:{best:old,bestStars:old,highestStars:3,draft:{circuit:old.circuit}}}};
   const records = new Map([['bitwiser:cost-progress:v1:local',JSON.stringify(state)]]);
   const storage = {getItem:key => records.get(key) ?? null, setItem:(key,value) => records.set(key,value)};
   const store = createCostStore({storage,levels:ko});
   const result = store.recordClear(47,fixture.circuit);
-  assert.equal(result.saved, true); assert.equal(result.record.stars, 1); assert.equal(result.record.totalCost, 175);
+  assert.equal(result.saved, true); assert.equal(result.record.stars, 3); assert.equal(result.record.totalCost, 175);
   assert.deepEqual(store.state.stages[1], state.stages[1]);
   const restored = createCostStore({storage,levels:en});
-  assert.deepEqual(restored.cleared(), [1,47]); assert.equal(restored.stars(47),1);
+  assert.deepEqual(restored.cleared(), [1,47]); assert.equal(restored.stars(47),3);
   assert.deepEqual(restored.best(47).circuit, snapshotCircuit(fixture.circuit));
   assert.equal(gradeCircuitSync(restored.best(47).circuit,en.levelAnswers[47],{ports}).ok,true);
   // Cost is recorded, never used as a pass/fail limit, even above the reference.
   const moreExpensive = structuredClone(fixture.circuit);
   moreExpensive.wires.w3.path = [[1,6],[0,6],[0,5],[0,4],[1,4]].map(([r,c]) => ({r,c}));
   const record = makeCostRecord(moreExpensive,47,ko);
-  assert.equal(record.totalCost,177); assert.equal(record.stars,1);
+  assert.equal(record.totalCost,177); assert.equal(record.stars,2);
   assert.equal(evaluateCostStars(47,true,10000,ko.levelStarThresholds[47]),1);
 });

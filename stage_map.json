@@ -1070,7 +1070,7 @@
     },
     {
       "id": "crossroad",
-      "label": "7 x 7 crossroad",
+      "label": "8 x 8 crossroad",
       "nodeType": "stage",
       "category": "basic_logic",
       "chapterId": "chapter_4",
