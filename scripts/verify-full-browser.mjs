@@ -5,6 +5,7 @@ import { chromium } from 'playwright';
 import assert from 'node:assert/strict';
 import { verifyGameplayActions } from './gameplay-ui-checks.mjs';
 import { drawFeedbackWire } from './feedback-ui-checks.mjs';
+import { verifyBlueprintHeldKeys } from './blueprint-ui-checks.mjs';
 const root=path.resolve('.');
 const mime={'.html':'text/html','.js':'text/javascript','.css':'text/css','.json':'application/json','.svg':'image/svg+xml','.png':'image/png','.gif':'image/gif','.mp3':'audio/mpeg','.wav':'audio/wav'};
 const server=createServer(async(req,res)=>{
@@ -24,6 +25,14 @@ await page.route('**/*', route => route.request().url().startsWith(`http://127.0
 await page.route('**/src/main.js*', async route => {
   const response = await route.fetch();
   await route.fulfill({ response, body: `${await response.text()}\nwindow.testStartCustomProblem = startCustomProblem;\n` });
+});
+// Set the simulated platform before any UI/controller module reads it.
+// The Korean pass exercises macOS Meta; the English pass uses Windows Control.
+await page.addInitScript(() => {
+  if (localStorage.getItem('lang') === 'ko') {
+    Object.defineProperty(navigator, 'userAgentData', { configurable: true, value: undefined });
+    Object.defineProperty(navigator, 'platform', { configurable: true, value: 'MacIntel' });
+  }
 });
 try{
   await page.goto(`http://127.0.0.1:${server.address().port}`);
@@ -79,6 +88,7 @@ try{
     // signed-out identity boundary used by the unchanged hint policy.
     await page.evaluate(() => { window.firebase ??= { auth: () => ({ currentUser: null }) }; });
     await verifyGameplayActions(page, { screenshot: `test-results/full-actions-${lang}` });
+    await verifyBlueprintHeldKeys(page);
     await page.locator('#gameTitle').click();
     await page.locator('#levelIntroModal').waitFor({ state: 'visible' });
     await page.locator('#startLevelBtn').click();
@@ -89,9 +99,18 @@ try{
       const circuit = JSON.parse(await fs.readFile('tests/fixtures/demo/6-3.json', 'utf8')).circuit;
       await page.evaluate(async circuit => (await import('./src/modules/grid.js')).getPlayController().restoreCircuit(circuit), circuit);
       await page.locator('#exportGifBtn').click();
-      await page.locator('#gifModal').waitFor({ state: 'visible' });
-      assert.match(await page.locator('#gifPreview').getAttribute('src'), /^blob:/);
-      await page.locator('#closeGifModal').click();
+      await page.locator('.blueprint-export .blueprint-share[data-state=ready]').waitFor();
+      assert.equal(await page.locator('.blueprint-export .blueprint-preview canvas').count(),1);
+      assert.equal(await page.locator('.blueprint-export .achievement-star').count(),0);
+      assert.equal(await page.locator('.blueprint-export .blueprint-title').innerText(),await page.locator('#gameTitle').innerText());
+      const exportBefore = await page.evaluate(async()=>JSON.stringify((await import('./src/canvas/circuitData.js')).snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit())));
+      await page.locator('.blueprint-export .blueprint-copy').focus();
+      await page.keyboard.press('ArrowRight'); await page.keyboard.press('Control+z'); await page.keyboard.press('r');
+      assert.equal(await page.evaluate(async()=>JSON.stringify((await import('./src/canvas/circuitData.js')).snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit()))),exportBefore);
+      await page.locator('.blueprint-export .blueprint-preview').focus(); await page.keyboard.press('Enter');
+      await page.locator('.blueprint-zoom[open]').waitFor(); await page.keyboard.press('Escape');
+      assert.equal(await page.locator('.blueprint-export .blueprint-preview').evaluate(el=>el===document.activeElement),true);
+      await page.locator('.blueprint-export').getByRole('button',{name:'Close',exact:true}).click();
     }
     await page.locator('#systemMenuBtn').click();
     await page.locator('#backToLevelsBtn').click();
@@ -130,5 +149,8 @@ try{
   }
   assert.deepEqual(errors, []);
   console.log(JSON.stringify({...result,nativeStorageDisabled:storageBoundary.disabled,selfFeedbackKoEn:true,errors}));
-}catch(error){console.error(error,errors);process.exitCode=1;}
+}catch(error){
+  await page.screenshot({path:'test-results/full-browser-failure.png'});
+  console.error(error,errors);process.exitCode=1;
+}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

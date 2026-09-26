@@ -42,18 +42,19 @@ try {
   await p.reload(); await p.locator('#loadingStartBtn').click(); await p.locator('#startLevelBtn').click();
   assert.equal((await readSave(p)).lastStageId,1);
   assert.equal(await p.evaluate(async()=> (await import('./src/modules/grid.js')).getPlayCircuit().blocks.g.pos.c),4);
-  // A failed clipboard copy offers selectable text and a download.
+  // A failed clipboard copy offers a PNG download; GIF remains a separate option.
   await enterStage(p,6);
   await p.locator('#demoShareBtn').tap();
-  await p.evaluate(()=>Object.defineProperty(navigator,'clipboard',{value:{writeText:()=>Promise.reject(new Error('denied'))},configurable:true}));
-  await p.getByRole('button',{name:'텍스트 복사',exact:true}).click();await p.getByText('복사 권한이 없습니다.',{exact:false}).waitFor();
+  await p.locator('.blueprint-export [data-state=ready]').waitFor();
+  await p.evaluate(()=>Object.defineProperty(navigator,'clipboard',{value:{write:()=>Promise.reject(new Error('denied'))},configurable:true}));
+  await p.getByRole('button',{name:'이미지 복사',exact:true}).click();await p.getByText('이미지를 복사할 수 없습니다.',{exact:false}).waitFor();
   await p.evaluate(()=>{window.GIF=class { constructor(){throw new Error('Encoder unavailable');} };});
-  await p.getByRole('button',{name:'GIF 다운로드',exact:true}).click();
-  await p.getByText('GIF 생성에 실패했습니다.',{exact:false}).waitFor();
-  const textDownload=p.waitForEvent('download');
-  await p.getByRole('button',{name:'텍스트 다운로드',exact:true}).click();
-  await (await textDownload).saveAs('test-results/demo-share-fallback.txt');
-  assert.match(await fs.readFile('test-results/demo-share-fallback.txt','utf8'),/XOR/);
+  await p.getByRole('button',{name:'GIF 저장',exact:true}).click();
+  await p.getByText('GIF를 만들지 못했습니다.',{exact:false}).waitFor();
+  const imageDownload=p.waitForEvent('download');
+  await p.getByRole('button',{name:'이미지 저장',exact:true}).click();
+  await (await imageDownload).saveAs('test-results/demo-share-fallback.png');
+  assert.equal((await fs.readFile('test-results/demo-share-fallback.png')).subarray(1,4).toString(),'PNG');
   assert.equal(await p.evaluate(()=>window.isScoring),false);
   await mobile.ctx.close();
 

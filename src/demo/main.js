@@ -1,6 +1,6 @@
-import { initializeCostBoard, renderPerformance } from '../modules/costUI.js';
+import { initializeCostBoard, renderPerformance, disposePerformance } from '../modules/costUI.js';
+import { openBlueprintExport } from '../modules/blueprintShare.js';
 import { highestStars, isCurrentCostRecord } from '../modules/costRecords.js';
-import { calculateCircuitCost } from '../modules/circuitCost.js';
 import * as levels from '../modules/levels.js';
 import { getPlayCircuit, getPlayController, onCircuitModified, adjustGridZoom, moveCircuit } from '../modules/grid.js';
 import { createGradingController } from '../modules/grading.js';
@@ -13,9 +13,8 @@ import { initializeBgm } from '../modules/bgm.js';
 import { getAvailableThemes, getActiveThemeId, getThemeById, onThemeChange, lockTheme } from '../themes.js';
 import { initializeHintUI, openHintModal } from '../modules/hints.js';
 import { initializeLoadingDots, setLoadingMilestone, hideLoadingScreen } from '../modules/loadingScreen.js';
-import { captureGIF } from '../modules/circuitShare.js';
 import { createDemoStore } from './store.js';
-import { SETTING_KEYS, makeRecord } from './records.js';
+import { SETTING_KEYS } from './records.js';
 import { DEMO_END_STAGE } from './catalog.js';
 import { initializeFullVersion } from './fullVersion.js';
 
@@ -24,7 +23,7 @@ const lang = window.currentLang === 'ko' ? 'ko' : 'en';
 const words = {
   map: ['스테이지 맵', 'Stage map'], settings: ['설정', 'Settings'], fullVersion: ['정식판 살펴보기', 'Explore the full version'], ranking: ['랭킹', 'Rankings'],
   menu: ['시스템 메뉴', 'System menu'], mission: ['문제 설명', 'Mission'], hints: ['힌트', 'Hints'],
-  share: ['결과 공유', 'Share result'],
+  share: ['회로 내보내기', 'Export circuit'],
   close: ['닫기', 'Close'], retry: ['계속 최적화하기', 'Keep optimizing'], backToMap: ['맵으로 돌아가기', 'Back to map'],
   practice: ['다시 연습하기', 'Practice again'],
   cleared: ['회로 복구 완료', 'Circuit restored'], improved: ['개인 최고 기록 갱신!', 'New personal best!'],
@@ -47,6 +46,7 @@ let store, activeStage = null, pendingSave = null, restoring = false, busy = fal
 let mapController, grading, tutorial, fullVersion, pendingCelebration = null;
 const dialog = $('demoDialog');
 dialog.addEventListener('cancel', () => {
+  disposePerformance($('demoDialogBody'));
   if (window.isGradingResultOpen) levels.returnToEditScreen();
 });
 const showStatus = (message, failed = false) => {
@@ -65,6 +65,7 @@ function button(label, action, parent = $('demoDialogActions')) {
   }); parent.append(b); return b;
 }
 function openDialog(title) {
+  disposePerformance($('demoDialogBody'));
   dialog.classList.remove('cost-dialog');
   dialog.classList.remove('grading-result-panel', 'grading-result-panel--passed');
   dialog.querySelector('.grading-result-header')?.remove();
@@ -73,6 +74,7 @@ function openDialog(title) {
   if (!dialog.open) dialog.showModal();
 }
 function closeDialog() {
+  disposePerformance($('demoDialogBody'));
   dialog.close();
   if (window.isGradingResultOpen) levels.returnToEditScreen();
 }
@@ -137,11 +139,11 @@ function showResult(id, result, budgets) {
   openDialog(`${levels.getLevelTitle(id)} · ${text('cleared')}`);
   dialog.classList.add('cost-dialog');
   stylePassedResult(dialog, id);
-  renderPerformance($('demoDialogBody'), { id, result, thresholds: data.levelStarThresholds?.[id], ranking: { restricted: true }, lang });
+  renderPerformance($('demoDialogBody'), { id, result, title: levels.getLevelTitle(id), thresholds: data.levelStarThresholds?.[id], ranking: { restricted: true }, lang });
   button(text(id === 0 ? 'practice' : 'retry'), () => { closeDialog(); levels.returnToEditScreen(); });
   button(text('backToMap'), goMap).classList.add('demo-result-map');
   if (id === DEMO_END_STAGE) button(text('finish'), showEnding);
-  button(text('share'), showShare);
+  button(text('close'), closeDialog);
 }
 function download(blob, name) {
   const url = URL.createObjectURL(blob); const a = document.createElement('a');
@@ -149,30 +151,7 @@ function download(blob, name) {
 }
 async function showShare() {
   if (activeStage === null || busy) return;
-  flushDraft();
-  const circuit = getPlayCircuit();
-  let stars = text('ungraded');
-  try { const r = makeRecord(circuit, activeStage, data, starBudgets); stars = r.stars ? '★'.repeat(r.stars) + '☆'.repeat(3-r.stars) : text('complete'); } catch { /* share accurately labels unpassed drafts */ }
-  const caption = `${levels.getLevelTitle(activeStage)} · ${lang === 'ko' ? '회로 비용' : 'Circuit cost'} ${calculateCircuitCost(circuit).totalCost} · ${stars}`;
-  const shareText = `Bitwiser Web Demo\n${caption}`;
-  openDialog(text('share'));
-  const area = document.createElement('textarea'); area.readOnly = true; area.value = shareText; area.setAttribute('aria-label', text('share')); $('demoDialogBody').append(area);
-  button(text('copy'), async () => {
-    try { await navigator.clipboard.writeText(shareText); paragraph(text('copied')); }
-    catch { area.focus(); area.select(); paragraph(text('copyFailed')); }
-  });
-  button(text('downloadText'), () => download(new Blob([shareText], { type: 'text/plain;charset=utf-8' }), 'bitwiser-result.txt'));
-  button(text('gif'), async () => {
-    setBusy(true); window.isScoring = true; paragraph(text('gifWait'));
-    try { const blob = await captureGIF(null, { caption }); download(blob, 'bitwiser-result.gif'); }
-    catch (error) { console.warn(error); paragraph(text('gifFailed')); }
-    finally { window.isScoring = false; setBusy(false); }
-  });
-  if (navigator.share) button(text('share'), async () => {
-    try { await navigator.share({ title: 'Bitwiser', text: shareText }); }
-    catch (error) { if (error.name !== 'AbortError') paragraph(text('copyFailed')); }
-  });
-  button(text('close'), closeDialog);
+  openBlueprintExport(getPlayCircuit(), levels.getLevelTitle(activeStage), lang);
 }
 let data, starBudgets;
 async function boot() {

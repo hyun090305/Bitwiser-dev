@@ -4,6 +4,7 @@ import { chromium } from 'playwright';
 import { observeMap, goToMap, openSettings } from './demo-browser-helpers.mjs';
 import {DEMO_IDS} from '../src/demo/catalog.js';
 import { verifyGameplayActions } from './gameplay-ui-checks.mjs';
+import { verifyBlueprintHeldKeys } from './blueprint-ui-checks.mjs';
 
 const base = process.env.DEMO_URL || 'http://127.0.0.1:8080';
 const browser = await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge', headless: true });
@@ -50,6 +51,7 @@ try {
       await page.locator('#loadingStartBtn').click();
       await page.locator('#startLevelBtn').click();
       await verifyGameplayActions(page, { demo: true, screenshot: `test-results/demo-actions-${lang}` });
+      await verifyBlueprintHeldKeys(page, { demo: true });
       // Tutorial deliberately has no stage ranking entry point.
       assert.equal(await page.locator('#viewRankingBtn').isVisible(), false);
       await goToMap(page);

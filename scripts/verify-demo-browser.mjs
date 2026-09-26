@@ -135,8 +135,12 @@ try {
   assert.equal(completed.hints[6],2); assert.equal('storySeen' in completed,false);
   await enter(6); // A finished demo remains playable and shareable.
   await page.locator('#demoShareBtn').click();
-  assert.ok((await page.locator('#demoDialog textarea').inputValue()).includes(`Circuit cost ${completed.stages[6].best.totalCost}`));
-  const gifDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Download GIF',exact:true}).click();
+  assert.equal(Number(await page.locator('.blueprint-export .cost-result-total').innerText()),completed.stages[6].best.totalCost);
+  assert.equal(await page.locator('.blueprint-export .achievement-star').count(),0);
+  await page.locator('.blueprint-export [data-state=ready]').waitFor();
+  const pngDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Save image',exact:true}).click();
+  await (await pngDownload).saveAs('test-results/demo-result.png');
+  const gifDownload=page.waitForEvent('download'); await page.getByRole('button',{name:'Save GIF',exact:true}).click();
   const gif=await gifDownload; await gif.saveAs('test-results/demo-result.gif'); assert.ok((await fs.stat('test-results/demo-result.gif')).size>100);
   await page.getByRole('button',{name:'Close',exact:true}).click();
   await fs.writeFile('test-results/demo-progress.json', JSON.stringify(await save()));

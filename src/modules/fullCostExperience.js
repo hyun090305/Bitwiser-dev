@@ -4,7 +4,7 @@ import { getUsername } from './storage.js';
 import { ensureUsernameRegistered } from './authUI.js';
 import { createCostStore } from './costRecords.js';
 import { createCostLeaderboard } from './costLeaderboard.js';
-import { initializeCostBoard, renderPerformance, renderCostRanking, costText, costLanguage } from './costUI.js';
+import { initializeCostBoard, renderPerformance, disposePerformance, renderCostRanking, costText, costLanguage } from './costUI.js';
 import { configureOfficialCostRanking } from './rank.js';
 import { stylePassedResult } from './gradingResultView.js';
 
@@ -52,13 +52,13 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
       const title = document.getElementById('clearedTitle');
       const name = document.createElement('span'); name.id = 'clearedStageName'; name.textContent = levels.getLevelTitle(id);
       title.replaceChildren(name, document.createTextNode(` · ${costText(id === 0 ? 'tutorial' : 'clear')}`));
-      const body = document.getElementById('clearedRanking'); body.replaceChildren();
+      const body = document.getElementById('clearedRanking'); disposePerformance(body); body.replaceChildren();
       const online = leaderboard();
-      renderPerformance(body, { id, result, thresholds: levels.getLevelStarThresholds(id),
+      renderPerformance(body, { id, result, title: levels.getLevelTitle(id), thresholds: levels.getLevelStarThresholds(id),
         ranking: db?.ref ? { load: () => online.load(id), submit: () => online.submit(id, result.best.circuit) } : {} });
       const actions = modal.querySelector('.modal-buttons'); actions.replaceChildren();
       const ko = costLanguage() === 'ko';
-      const close = () => { modal.style.display = 'none'; levels.returnToEditScreen(); };
+      const close = () => { disposePerformance(body); modal.style.display = 'none'; levels.returnToEditScreen(); };
       const add = (label, action, id) => {
         const b = document.createElement('button'); b.type = 'button'; b.textContent = label; if (id) b.id = id;
         b.onclick = async () => { b.disabled = true; try { await action(); } finally { b.disabled = false; } }; actions.append(b);
@@ -66,6 +66,7 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
       add(ko ? '다시 설계하기' : 'Back to design', close);
       add(ko ? '맵으로 돌아가기' : 'Back to map', async () => { close(); await levels.returnToLevels(); }, 'clearedMapBtn');
       modal.querySelector('.closeBtn').onclick = close;
+      modal.onkeydown = event => { if (event.key === 'Escape') { event.preventDefault(); close(); } };
       modal.style.display = 'flex';
     }
   };
