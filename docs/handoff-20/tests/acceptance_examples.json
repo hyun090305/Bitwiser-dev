@@ -383,14 +383,13 @@
   },
   {
     "slot": "C4-06",
-    "source": "independent reference",
+    "label": "증가·감소 순환과 동시/무입력 유지",
     "trace": [
       {
         "tick": 1,
         "inputs": {
           "INC": 1,
-          "DEC": 0,
-          "RESET": 0
+          "DEC": 0
         },
         "outputs": {
           "BIT0": 1,
@@ -401,8 +400,7 @@
         "tick": 2,
         "inputs": {
           "INC": 1,
-          "DEC": 0,
-          "RESET": 0
+          "DEC": 0
         },
         "outputs": {
           "BIT0": 0,
@@ -413,23 +411,21 @@
         "tick": 3,
         "inputs": {
           "INC": 1,
-          "DEC": 1,
-          "RESET": 0
+          "DEC": 0
         },
         "outputs": {
-          "BIT0": 0,
+          "BIT0": 1,
           "BIT1": 1
         }
       },
       {
         "tick": 4,
         "inputs": {
-          "INC": 0,
-          "DEC": 1,
-          "RESET": 0
+          "INC": 1,
+          "DEC": 0
         },
         "outputs": {
-          "BIT0": 1,
+          "BIT0": 0,
           "BIT1": 0
         }
       },
@@ -437,20 +433,18 @@
         "tick": 5,
         "inputs": {
           "INC": 0,
-          "DEC": 1,
-          "RESET": 0
+          "DEC": 1
         },
         "outputs": {
-          "BIT0": 0,
-          "BIT1": 0
+          "BIT0": 1,
+          "BIT1": 1
         }
       },
       {
         "tick": 6,
         "inputs": {
-          "INC": 0,
-          "DEC": 1,
-          "RESET": 0
+          "INC": 1,
+          "DEC": 1
         },
         "outputs": {
           "BIT0": 1,
@@ -460,9 +454,41 @@
       {
         "tick": 7,
         "inputs": {
-          "INC": 1,
-          "DEC": 0,
-          "RESET": 1
+          "INC": 0,
+          "DEC": 0
+        },
+        "outputs": {
+          "BIT0": 1,
+          "BIT1": 1
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1
+        },
+        "outputs": {
+          "BIT0": 0,
+          "BIT1": 1
+        }
+      },
+      {
+        "tick": 9,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1
+        },
+        "outputs": {
+          "BIT0": 1,
+          "BIT1": 0
+        }
+      },
+      {
+        "tick": 10,
+        "inputs": {
+          "INC": 0,
+          "DEC": 1
         },
         "outputs": {
           "BIT0": 0,
@@ -473,83 +499,126 @@
   },
   {
     "slot": "C4-07",
-    "source": "independent reference",
+    "label": "두 번 반복되는 세 칸 점등과 즉시 설정 변경",
     "trace": [
       {
         "tick": 1,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 1
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 1
+          "LIGHT": 1
         }
       },
       {
         "tick": 2,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 1
+          "LIGHT": 1
         }
       },
       {
         "tick": 3,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 1
+          "LIGHT": 0
         }
       },
       {
         "tick": 4,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 0
+          "LIGHT": 1
         }
       },
       {
         "tick": 5,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 1
+          "LIGHT": 1
         }
       },
       {
         "tick": 6,
         "inputs": {
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 1
+          "LIGHT": 1
         }
       },
       {
         "tick": 7,
         "inputs": {
-          "DUTY0": 0,
-          "DUTY1": 0,
-          "RESET": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1
         },
         "outputs": {
-          "PWM": 0
+          "LIGHT": 0
+        }
+      },
+      {
+        "tick": 8,
+        "inputs": {
+          "LEVEL0": 1,
+          "LEVEL1": 1
+        },
+        "outputs": {
+          "LIGHT": 1
+        }
+      },
+      {
+        "tick": 9,
+        "inputs": {
+          "LEVEL0": 0,
+          "LEVEL1": 0
+        },
+        "outputs": {
+          "LIGHT": 0
+        }
+      },
+      {
+        "tick": 10,
+        "inputs": {
+          "LEVEL0": 0,
+          "LEVEL1": 1
+        },
+        "outputs": {
+          "LIGHT": 0
+        }
+      },
+      {
+        "tick": 11,
+        "inputs": {
+          "LEVEL0": 1,
+          "LEVEL1": 0
+        },
+        "outputs": {
+          "LIGHT": 0
+        }
+      },
+      {
+        "tick": 12,
+        "inputs": {
+          "LEVEL0": 1,
+          "LEVEL1": 1
+        },
+        "outputs": {
+          "LIGHT": 1
         }
       }
     ]
@@ -715,87 +784,481 @@
   },
   {
     "slot": "C4-10",
-    "source": "independent reference",
+    "label": "2 tick 예약 후 설정 변경, 완료와 재예약 우선",
     "trace": [
       {
         "tick": 1,
         "inputs": {
-          "KICK": 0
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 1
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 0
         }
       },
       {
         "tick": 2,
         "inputs": {
-          "KICK": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 0
         }
       },
       {
         "tick": 3,
         "inputs": {
-          "KICK": 1
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 1
         }
       },
       {
         "tick": 4,
         "inputs": {
-          "KICK": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 0
         }
       },
       {
         "tick": 5,
         "inputs": {
-          "KICK": 0
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 1
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 0
         }
       },
       {
         "tick": 6,
         "inputs": {
-          "KICK": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 1
         },
         "outputs": {
-          "TIMEOUT": 1
+          "DONE": 0
         }
       },
       {
         "tick": 7,
         "inputs": {
-          "KICK": 0
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 1
+          "DONE": 0
         }
       },
       {
         "tick": 8,
         "inputs": {
-          "KICK": 1
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 0
         }
       },
       {
         "tick": 9,
         "inputs": {
-          "KICK": 0
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
         },
         "outputs": {
-          "TIMEOUT": 0
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 10,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 11,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 12,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 13,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-10",
+    "label": "0 tick 단독 예약",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-10",
+    "label": "1 tick 단독 예약",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-10",
+    "label": "2 tick 단독 예약",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      }
+    ]
+  },
+  {
+    "slot": "C4-10",
+    "label": "3 tick 단독 예약",
+    "trace": [
+      {
+        "tick": 1,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 2,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 1
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 3,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 4,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 5,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 1
+        }
+      },
+      {
+        "tick": 6,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
+        }
+      },
+      {
+        "tick": 7,
+        "inputs": {
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0
+        },
+        "outputs": {
+          "DONE": 0
         }
       }
     ]

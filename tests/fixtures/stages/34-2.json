@@ -1,49 +1,73 @@
 {
   "purpose": "Verified final handoff reference; not a minimum or an authored star threshold",
   "circuit": {
-    "rows": 7,
-    "cols": 8,
+    "rows": 15,
+    "cols": 24,
     "blocks": {
-      "KICK": {
-        "id": "KICK",
+      "TIME0": {
+        "id": "TIME0",
         "type": "INPUT",
-        "name": "KICK",
+        "name": "TIME0",
         "pos": {
-          "r": 5,
-          "c": 1
+          "r": 4,
+          "c": 8
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "TIME1": {
+        "id": "TIME1",
+        "type": "INPUT",
+        "name": "TIME1",
+        "pos": {
+          "r": 2,
+          "c": 21
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "START": {
+        "id": "START",
+        "type": "INPUT",
+        "name": "START",
+        "pos": {
+          "r": 6,
+          "c": 2
         },
         "value": false,
         "fixed": false,
         "inputMode": "button"
       },
-      "SILENT0": {
-        "id": "SILENT0",
+      "R0": {
+        "id": "R0",
         "type": "D",
-        "name": "SILENT0",
+        "name": "R0",
         "pos": {
-          "r": 2,
-          "c": 2
+          "r": 7,
+          "c": 9
         },
         "value": false,
         "fixed": false
       },
-      "SILENT1": {
-        "id": "SILENT1",
+      "R1": {
+        "id": "R1",
         "type": "D",
-        "name": "SILENT1",
+        "name": "R1",
         "pos": {
-          "r": 1,
-          "c": 2
+          "r": 7,
+          "c": 19
         },
         "value": false,
         "fixed": false
       },
-      "SILENT2": {
-        "id": "SILENT2",
+      "ACTIVE": {
+        "id": "ACTIVE",
         "type": "D",
-        "name": "SILENT2",
+        "name": "ACTIVE",
         "pos": {
-          "r": 3,
+          "r": 9,
           "c": 5
         },
         "value": false,
@@ -54,8 +78,8 @@
         "type": "NOT",
         "name": "g1",
         "pos": {
-          "r": 5,
-          "c": 3
+          "r": 6,
+          "c": 11
         },
         "value": false,
         "fixed": false
@@ -65,30 +89,258 @@
         "type": "AND",
         "name": "g2",
         "pos": {
-          "r": 4,
-          "c": 2
+          "r": 5,
+          "c": 7
         },
         "value": false,
         "fixed": false
       },
       "g3": {
         "id": "g3",
-        "type": "AND",
+        "type": "NOT",
         "name": "g3",
         "pos": {
-          "r": 2,
+          "r": 3,
+          "c": 10
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g4": {
+        "id": "g4",
+        "type": "AND",
+        "name": "g4",
+        "pos": {
+          "r": 5,
+          "c": 10
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g5": {
+        "id": "g5",
+        "type": "OR",
+        "name": "g5",
+        "pos": {
+          "r": 6,
+          "c": 8
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g6": {
+        "id": "g6",
+        "type": "AND",
+        "name": "g6",
+        "pos": {
+          "r": 9,
+          "c": 12
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g7": {
+        "id": "g7",
+        "type": "NOT",
+        "name": "g7",
+        "pos": {
+          "r": 9,
+          "c": 14
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g8": {
+        "id": "g8",
+        "type": "AND",
+        "name": "g8",
+        "pos": {
+          "r": 9,
+          "c": 16
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g9": {
+        "id": "g9",
+        "type": "NOT",
+        "name": "g9",
+        "pos": {
+          "r": 7,
+          "c": 16
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g10": {
+        "id": "g10",
+        "type": "AND",
+        "name": "g10",
+        "pos": {
+          "r": 7,
+          "c": 14
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g11": {
+        "id": "g11",
+        "type": "NOT",
+        "name": "g11",
+        "pos": {
+          "r": 6,
+          "c": 15
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g12": {
+        "id": "g12",
+        "type": "AND",
+        "name": "g12",
+        "pos": {
+          "r": 6,
+          "c": 17
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g13": {
+        "id": "g13",
+        "type": "NOT",
+        "name": "g13",
+        "pos": {
+          "r": 5,
+          "c": 18
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g14": {
+        "id": "g14",
+        "type": "AND",
+        "name": "g14",
+        "pos": {
+          "r": 3,
+          "c": 20
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g15": {
+        "id": "g15",
+        "type": "AND",
+        "name": "g15",
+        "pos": {
+          "r": 4,
+          "c": 19
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g16": {
+        "id": "g16",
+        "type": "OR",
+        "name": "g16",
+        "pos": {
+          "r": 5,
+          "c": 20
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g17": {
+        "id": "g17",
+        "type": "OR",
+        "name": "g17",
+        "pos": {
+          "r": 10,
+          "c": 9
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g18": {
+        "id": "g18",
+        "type": "AND",
+        "name": "g18",
+        "pos": {
+          "r": 8,
           "c": 6
         },
         "value": false,
         "fixed": false
       },
-      "OUT_TIMEOUT": {
-        "id": "OUT_TIMEOUT",
+      "g19": {
+        "id": "g19",
+        "type": "OR",
+        "name": "g19",
+        "pos": {
+          "r": 7,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g20": {
+        "id": "g20",
+        "type": "NOT",
+        "name": "g20",
+        "pos": {
+          "r": 10,
+          "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "g21": {
+        "id": "g21",
+        "type": "AND",
+        "name": "g21",
+        "pos": {
+          "r": 10,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false
+      },
+      "OUT_DONE": {
+        "id": "OUT_DONE",
         "type": "OUTPUT",
-        "name": "TIMEOUT",
+        "name": "DONE",
+        "pos": {
+          "r": 11,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_2_0": {
+        "id": "branch_2_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 6,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_2_1": {
+        "id": "branch_2_1",
+        "type": "JUNCTION",
         "pos": {
           "r": 5,
           "c": 5
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_2_2": {
+        "id": "branch_2_2",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 3,
+          "c": 8
         },
         "value": false,
         "fixed": false
@@ -97,8 +349,8 @@
         "id": "branch_4_0",
         "type": "JUNCTION",
         "pos": {
-          "r": 2,
-          "c": 4
+          "r": 11,
+          "c": 10
         },
         "value": false,
         "fixed": false
@@ -107,8 +359,28 @@
         "id": "branch_4_1",
         "type": "JUNCTION",
         "pos": {
-          "r": 4,
-          "c": 4
+          "r": 11,
+          "c": 12
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_6_0": {
+        "id": "branch_6_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 7,
+          "c": 12
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_22_0": {
+        "id": "branch_22_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 10,
+          "c": 7
         },
         "value": false,
         "fixed": false
@@ -117,93 +389,81 @@
     "wires": {
       "w0": {
         "id": "w0",
-        "startBlockId": "KICK",
-        "endBlockId": "g1",
+        "startBlockId": "TIME0",
+        "endBlockId": "g2",
         "path": [
           {
-            "r": 5,
-            "c": 1
+            "r": 4,
+            "c": 8
           },
           {
-            "r": 6,
-            "c": 1
-          },
-          {
-            "r": 6,
-            "c": 2
+            "r": 4,
+            "c": 7
           },
           {
             "r": 5,
-            "c": 2
-          },
-          {
-            "r": 5,
-            "c": 3
+            "c": 7
           }
         ]
       },
       "w1": {
         "id": "w1",
-        "startBlockId": "SILENT0",
-        "endBlockId": "g2",
+        "startBlockId": "TIME1",
+        "endBlockId": "g14",
         "path": [
           {
             "r": 2,
-            "c": 2
+            "c": 21
+          },
+          {
+            "r": 2,
+            "c": 22
           },
           {
             "r": 3,
-            "c": 2
+            "c": 22
           },
           {
-            "r": 4,
-            "c": 2
+            "r": 3,
+            "c": 21
+          },
+          {
+            "r": 3,
+            "c": 20
           }
         ]
       },
       "w2": {
         "id": "w2",
-        "startBlockId": "SILENT1",
-        "endBlockId": "g3",
+        "startBlockId": "START",
+        "endBlockId": "branch_2_0",
         "path": [
           {
-            "r": 1,
+            "r": 6,
             "c": 2
           },
           {
-            "r": 1,
+            "r": 6,
             "c": 3
           },
           {
-            "r": 1,
+            "r": 6,
             "c": 4
-          },
-          {
-            "r": 1,
-            "c": 5
-          },
-          {
-            "r": 1,
-            "c": 6
-          },
-          {
-            "r": 2,
-            "c": 6
           }
         ]
       },
       "w3": {
         "id": "w3",
-        "startBlockId": "SILENT2",
-        "endBlockId": "OUT_TIMEOUT",
+        "startBlockId": "branch_2_0",
+        "endBlockId": "branch_2_1",
         "path": [
           {
-            "r": 3,
-            "c": 5
+            "r": 6,
+            "c": 4
           },
           {
-            "r": 4,
-            "c": 5
+            "r": 5,
+            "c": 4
           },
           {
             "r": 5,
@@ -213,151 +473,988 @@
       },
       "w4": {
         "id": "w4",
-        "startBlockId": "g1",
-        "endBlockId": "branch_4_1",
+        "startBlockId": "branch_2_0",
+        "endBlockId": "g19",
         "path": [
           {
-            "r": 5,
-            "c": 3
-          },
-          {
-            "r": 5,
+            "r": 6,
             "c": 4
           },
           {
-            "r": 4,
+            "r": 7,
             "c": 4
+          },
+          {
+            "r": 7,
+            "c": 5
           }
         ]
       },
       "w5": {
         "id": "w5",
-        "startBlockId": "branch_4_0",
-        "endBlockId": "SILENT0",
+        "startBlockId": "branch_2_1",
+        "endBlockId": "g2",
         "path": [
           {
-            "r": 2,
-            "c": 4
-          },
-          {
-            "r": 2,
-            "c": 3
-          },
-          {
-            "r": 2,
-            "c": 2
-          }
-        ],
-        "inputRole": "D"
-      },
-      "w6": {
-        "id": "w6",
-        "startBlockId": "branch_4_0",
-        "endBlockId": "g3",
-        "path": [
-          {
-            "r": 2,
-            "c": 4
-          },
-          {
-            "r": 2,
+            "r": 5,
             "c": 5
           },
           {
-            "r": 2,
+            "r": 5,
             "c": 6
+          },
+          {
+            "r": 5,
+            "c": 7
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "branch_2_1",
+        "endBlockId": "branch_2_2",
+        "path": [
+          {
+            "r": 5,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 5
+          },
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 7
+          },
+          {
+            "r": 3,
+            "c": 8
           }
         ]
       },
       "w7": {
         "id": "w7",
-        "startBlockId": "branch_4_1",
-        "endBlockId": "g2",
+        "startBlockId": "branch_2_2",
+        "endBlockId": "g3",
         "path": [
           {
-            "r": 4,
-            "c": 4
+            "r": 3,
+            "c": 8
           },
           {
-            "r": 4,
-            "c": 3
+            "r": 3,
+            "c": 9
           },
           {
-            "r": 4,
-            "c": 2
+            "r": 3,
+            "c": 10
           }
         ]
       },
       "w8": {
         "id": "w8",
-        "startBlockId": "branch_4_1",
-        "endBlockId": "branch_4_0",
+        "startBlockId": "branch_2_2",
+        "endBlockId": "g14",
         "path": [
           {
-            "r": 4,
-            "c": 4
-          },
-          {
             "r": 3,
-            "c": 4
+            "c": 8
           },
           {
             "r": 2,
-            "c": 4
+            "c": 8
+          },
+          {
+            "r": 2,
+            "c": 9
+          },
+          {
+            "r": 2,
+            "c": 10
+          },
+          {
+            "r": 2,
+            "c": 11
+          },
+          {
+            "r": 2,
+            "c": 12
+          },
+          {
+            "r": 2,
+            "c": 13
+          },
+          {
+            "r": 2,
+            "c": 14
+          },
+          {
+            "r": 2,
+            "c": 15
+          },
+          {
+            "r": 2,
+            "c": 16
+          },
+          {
+            "r": 2,
+            "c": 17
+          },
+          {
+            "r": 2,
+            "c": 18
+          },
+          {
+            "r": 2,
+            "c": 19
+          },
+          {
+            "r": 2,
+            "c": 20
+          },
+          {
+            "r": 3,
+            "c": 20
           }
         ]
       },
       "w9": {
         "id": "w9",
-        "startBlockId": "g2",
-        "endBlockId": "SILENT1",
+        "startBlockId": "R0",
+        "endBlockId": "g1",
         "path": [
           {
-            "r": 4,
-            "c": 2
+            "r": 7,
+            "c": 9
+          },
+          {
+            "r": 7,
+            "c": 10
+          },
+          {
+            "r": 7,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 11
+          }
+        ]
+      },
+      "w10": {
+        "id": "w10",
+        "startBlockId": "R0",
+        "endBlockId": "g17",
+        "path": [
+          {
+            "r": 7,
+            "c": 9
+          },
+          {
+            "r": 8,
+            "c": 9
+          },
+          {
+            "r": 9,
+            "c": 9
+          },
+          {
+            "r": 10,
+            "c": 9
+          }
+        ]
+      },
+      "w11": {
+        "id": "w11",
+        "startBlockId": "R1",
+        "endBlockId": "branch_4_0",
+        "path": [
+          {
+            "r": 7,
+            "c": 19
+          },
+          {
+            "r": 7,
+            "c": 18
+          },
+          {
+            "r": 8,
+            "c": 18
+          },
+          {
+            "r": 8,
+            "c": 17
+          },
+          {
+            "r": 9,
+            "c": 17
+          },
+          {
+            "r": 10,
+            "c": 17
+          },
+          {
+            "r": 11,
+            "c": 17
+          },
+          {
+            "r": 11,
+            "c": 16
+          },
+          {
+            "r": 11,
+            "c": 15
+          },
+          {
+            "r": 11,
+            "c": 14
+          },
+          {
+            "r": 12,
+            "c": 14
+          },
+          {
+            "r": 12,
+            "c": 13
+          },
+          {
+            "r": 12,
+            "c": 12
+          },
+          {
+            "r": 12,
+            "c": 11
+          },
+          {
+            "r": 12,
+            "c": 10
+          },
+          {
+            "r": 11,
+            "c": 10
+          }
+        ]
+      },
+      "w12": {
+        "id": "w12",
+        "startBlockId": "branch_4_0",
+        "endBlockId": "branch_4_1",
+        "path": [
+          {
+            "r": 11,
+            "c": 10
+          },
+          {
+            "r": 11,
+            "c": 11
+          },
+          {
+            "r": 11,
+            "c": 12
+          }
+        ]
+      },
+      "w13": {
+        "id": "w13",
+        "startBlockId": "branch_4_0",
+        "endBlockId": "g17",
+        "path": [
+          {
+            "r": 11,
+            "c": 10
+          },
+          {
+            "r": 10,
+            "c": 10
+          },
+          {
+            "r": 10,
+            "c": 9
+          }
+        ]
+      },
+      "w14": {
+        "id": "w14",
+        "startBlockId": "branch_4_1",
+        "endBlockId": "g6",
+        "path": [
+          {
+            "r": 11,
+            "c": 12
+          },
+          {
+            "r": 10,
+            "c": 12
+          },
+          {
+            "r": 9,
+            "c": 12
+          }
+        ]
+      },
+      "w15": {
+        "id": "w15",
+        "startBlockId": "branch_4_1",
+        "endBlockId": "g8",
+        "path": [
+          {
+            "r": 11,
+            "c": 12
+          },
+          {
+            "r": 11,
+            "c": 13
+          },
+          {
+            "r": 10,
+            "c": 13
+          },
+          {
+            "r": 10,
+            "c": 14
+          },
+          {
+            "r": 10,
+            "c": 15
+          },
+          {
+            "r": 10,
+            "c": 16
+          },
+          {
+            "r": 9,
+            "c": 16
+          }
+        ]
+      },
+      "w16": {
+        "id": "w16",
+        "startBlockId": "ACTIVE",
+        "endBlockId": "g18",
+        "path": [
+          {
+            "r": 9,
+            "c": 5
+          },
+          {
+            "r": 9,
+            "c": 6
+          },
+          {
+            "r": 8,
+            "c": 6
+          }
+        ]
+      },
+      "w17": {
+        "id": "w17",
+        "startBlockId": "ACTIVE",
+        "endBlockId": "g21",
+        "path": [
+          {
+            "r": 9,
+            "c": 5
+          },
+          {
+            "r": 9,
+            "c": 4
+          },
+          {
+            "r": 9,
+            "c": 3
+          },
+          {
+            "r": 10,
+            "c": 3
+          }
+        ]
+      },
+      "w18": {
+        "id": "w18",
+        "startBlockId": "g1",
+        "endBlockId": "g4",
+        "path": [
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 5,
+            "c": 11
+          },
+          {
+            "r": 5,
+            "c": 10
+          }
+        ]
+      },
+      "w19": {
+        "id": "w19",
+        "startBlockId": "g1",
+        "endBlockId": "branch_6_0",
+        "path": [
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 12
+          },
+          {
+            "r": 7,
+            "c": 12
+          }
+        ]
+      },
+      "w20": {
+        "id": "w20",
+        "startBlockId": "branch_6_0",
+        "endBlockId": "g6",
+        "path": [
+          {
+            "r": 7,
+            "c": 12
+          },
+          {
+            "r": 8,
+            "c": 12
+          },
+          {
+            "r": 9,
+            "c": 12
+          }
+        ]
+      },
+      "w21": {
+        "id": "w21",
+        "startBlockId": "branch_6_0",
+        "endBlockId": "g10",
+        "path": [
+          {
+            "r": 7,
+            "c": 12
+          },
+          {
+            "r": 7,
+            "c": 13
+          },
+          {
+            "r": 7,
+            "c": 14
+          }
+        ]
+      },
+      "w22": {
+        "id": "w22",
+        "startBlockId": "g2",
+        "endBlockId": "g5",
+        "path": [
+          {
+            "r": 5,
+            "c": 7
+          },
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 6,
+            "c": 8
+          }
+        ]
+      },
+      "w23": {
+        "id": "w23",
+        "startBlockId": "g3",
+        "endBlockId": "g4",
+        "path": [
+          {
+            "r": 3,
+            "c": 10
           },
           {
             "r": 4,
-            "c": 1
+            "c": 10
+          },
+          {
+            "r": 5,
+            "c": 10
+          }
+        ]
+      },
+      "w24": {
+        "id": "w24",
+        "startBlockId": "g3",
+        "endBlockId": "g15",
+        "path": [
+          {
+            "r": 3,
+            "c": 10
           },
           {
             "r": 3,
-            "c": 1
+            "c": 11
           },
           {
-            "r": 2,
-            "c": 1
+            "r": 3,
+            "c": 12
           },
           {
-            "r": 1,
-            "c": 1
+            "r": 3,
+            "c": 13
           },
           {
-            "r": 1,
-            "c": 2
+            "r": 3,
+            "c": 14
+          },
+          {
+            "r": 3,
+            "c": 15
+          },
+          {
+            "r": 3,
+            "c": 16
+          },
+          {
+            "r": 3,
+            "c": 17
+          },
+          {
+            "r": 3,
+            "c": 18
+          },
+          {
+            "r": 3,
+            "c": 19
+          },
+          {
+            "r": 4,
+            "c": 19
+          }
+        ]
+      },
+      "w25": {
+        "id": "w25",
+        "startBlockId": "g4",
+        "endBlockId": "g5",
+        "path": [
+          {
+            "r": 5,
+            "c": 10
+          },
+          {
+            "r": 6,
+            "c": 10
+          },
+          {
+            "r": 6,
+            "c": 9
+          },
+          {
+            "r": 6,
+            "c": 8
+          }
+        ]
+      },
+      "w26": {
+        "id": "w26",
+        "startBlockId": "g5",
+        "endBlockId": "R0",
+        "path": [
+          {
+            "r": 6,
+            "c": 8
+          },
+          {
+            "r": 7,
+            "c": 8
+          },
+          {
+            "r": 7,
+            "c": 9
           }
         ],
         "inputRole": "D"
       },
-      "w10": {
-        "id": "w10",
-        "startBlockId": "g3",
-        "endBlockId": "SILENT2",
+      "w27": {
+        "id": "w27",
+        "startBlockId": "g6",
+        "endBlockId": "g7",
         "path": [
           {
-            "r": 2,
+            "r": 9,
+            "c": 12
+          },
+          {
+            "r": 9,
+            "c": 13
+          },
+          {
+            "r": 9,
+            "c": 14
+          }
+        ]
+      },
+      "w28": {
+        "id": "w28",
+        "startBlockId": "g7",
+        "endBlockId": "g8",
+        "path": [
+          {
+            "r": 9,
+            "c": 14
+          },
+          {
+            "r": 9,
+            "c": 15
+          },
+          {
+            "r": 9,
+            "c": 16
+          }
+        ]
+      },
+      "w29": {
+        "id": "w29",
+        "startBlockId": "g7",
+        "endBlockId": "g10",
+        "path": [
+          {
+            "r": 9,
+            "c": 14
+          },
+          {
+            "r": 8,
+            "c": 14
+          },
+          {
+            "r": 7,
+            "c": 14
+          }
+        ]
+      },
+      "w30": {
+        "id": "w30",
+        "startBlockId": "g8",
+        "endBlockId": "g9",
+        "path": [
+          {
+            "r": 9,
+            "c": 16
+          },
+          {
+            "r": 8,
+            "c": 16
+          },
+          {
+            "r": 7,
+            "c": 16
+          }
+        ]
+      },
+      "w31": {
+        "id": "w31",
+        "startBlockId": "g9",
+        "endBlockId": "g12",
+        "path": [
+          {
+            "r": 7,
+            "c": 16
+          },
+          {
+            "r": 7,
+            "c": 17
+          },
+          {
+            "r": 6,
+            "c": 17
+          }
+        ]
+      },
+      "w32": {
+        "id": "w32",
+        "startBlockId": "g10",
+        "endBlockId": "g11",
+        "path": [
+          {
+            "r": 7,
+            "c": 14
+          },
+          {
+            "r": 6,
+            "c": 14
+          },
+          {
+            "r": 6,
+            "c": 15
+          }
+        ]
+      },
+      "w33": {
+        "id": "w33",
+        "startBlockId": "g11",
+        "endBlockId": "g12",
+        "path": [
+          {
+            "r": 6,
+            "c": 15
+          },
+          {
+            "r": 6,
+            "c": 16
+          },
+          {
+            "r": 6,
+            "c": 17
+          }
+        ]
+      },
+      "w34": {
+        "id": "w34",
+        "startBlockId": "g12",
+        "endBlockId": "g13",
+        "path": [
+          {
+            "r": 6,
+            "c": 17
+          },
+          {
+            "r": 5,
+            "c": 17
+          },
+          {
+            "r": 5,
+            "c": 18
+          }
+        ]
+      },
+      "w35": {
+        "id": "w35",
+        "startBlockId": "g13",
+        "endBlockId": "g15",
+        "path": [
+          {
+            "r": 5,
+            "c": 18
+          },
+          {
+            "r": 4,
+            "c": 18
+          },
+          {
+            "r": 4,
+            "c": 19
+          }
+        ]
+      },
+      "w36": {
+        "id": "w36",
+        "startBlockId": "g14",
+        "endBlockId": "g16",
+        "path": [
+          {
+            "r": 3,
+            "c": 20
+          },
+          {
+            "r": 4,
+            "c": 20
+          },
+          {
+            "r": 5,
+            "c": 20
+          }
+        ]
+      },
+      "w37": {
+        "id": "w37",
+        "startBlockId": "g15",
+        "endBlockId": "g16",
+        "path": [
+          {
+            "r": 4,
+            "c": 19
+          },
+          {
+            "r": 5,
+            "c": 19
+          },
+          {
+            "r": 5,
+            "c": 20
+          }
+        ]
+      },
+      "w38": {
+        "id": "w38",
+        "startBlockId": "g16",
+        "endBlockId": "R1",
+        "path": [
+          {
+            "r": 5,
+            "c": 20
+          },
+          {
+            "r": 6,
+            "c": 20
+          },
+          {
+            "r": 7,
+            "c": 20
+          },
+          {
+            "r": 7,
+            "c": 19
+          }
+        ],
+        "inputRole": "D"
+      },
+      "w39": {
+        "id": "w39",
+        "startBlockId": "g17",
+        "endBlockId": "branch_22_0",
+        "path": [
+          {
+            "r": 10,
+            "c": 9
+          },
+          {
+            "r": 10,
+            "c": 8
+          },
+          {
+            "r": 10,
+            "c": 7
+          }
+        ]
+      },
+      "w40": {
+        "id": "w40",
+        "startBlockId": "branch_22_0",
+        "endBlockId": "g18",
+        "path": [
+          {
+            "r": 10,
+            "c": 7
+          },
+          {
+            "r": 9,
+            "c": 7
+          },
+          {
+            "r": 8,
+            "c": 7
+          },
+          {
+            "r": 8,
+            "c": 6
+          }
+        ]
+      },
+      "w41": {
+        "id": "w41",
+        "startBlockId": "branch_22_0",
+        "endBlockId": "g20",
+        "path": [
+          {
+            "r": 10,
+            "c": 7
+          },
+          {
+            "r": 10,
             "c": 6
           },
           {
-            "r": 3,
+            "r": 10,
+            "c": 5
+          }
+        ]
+      },
+      "w42": {
+        "id": "w42",
+        "startBlockId": "g18",
+        "endBlockId": "g19",
+        "path": [
+          {
+            "r": 8,
             "c": 6
           },
           {
-            "r": 3,
+            "r": 7,
+            "c": 6
+          },
+          {
+            "r": 7,
+            "c": 5
+          }
+        ]
+      },
+      "w43": {
+        "id": "w43",
+        "startBlockId": "g19",
+        "endBlockId": "ACTIVE",
+        "path": [
+          {
+            "r": 7,
+            "c": 5
+          },
+          {
+            "r": 8,
+            "c": 5
+          },
+          {
+            "r": 9,
             "c": 5
           }
         ],
         "inputRole": "D"
+      },
+      "w44": {
+        "id": "w44",
+        "startBlockId": "g20",
+        "endBlockId": "g21",
+        "path": [
+          {
+            "r": 10,
+            "c": 5
+          },
+          {
+            "r": 10,
+            "c": 4
+          },
+          {
+            "r": 10,
+            "c": 3
+          }
+        ]
+      },
+      "w45": {
+        "id": "w45",
+        "startBlockId": "g21",
+        "endBlockId": "OUT_DONE",
+        "path": [
+          {
+            "r": 10,
+            "c": 3
+          },
+          {
+            "r": 10,
+            "c": 2
+          },
+          {
+            "r": 11,
+            "c": 2
+          }
+        ]
       }
     }
   }

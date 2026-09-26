@@ -2,28 +2,22 @@
   "id": "C4-07",
   "nodes": [
     {
-      "id": "DUTY0",
+      "id": "LEVEL0",
       "type": "INPUT",
       "inputs": [],
       "mode": "switch"
     },
     {
-      "id": "DUTY1",
+      "id": "LEVEL1",
       "type": "INPUT",
       "inputs": [],
       "mode": "switch"
-    },
-    {
-      "id": "RESET",
-      "type": "INPUT",
-      "inputs": [],
-      "mode": "button"
     },
     {
       "id": "GRAY0",
       "type": "D",
       "inputs": [
-        "g3"
+        "g1"
       ],
       "initial": 0
     },
@@ -31,7 +25,7 @@
       "id": "GRAY1",
       "type": "D",
       "inputs": [
-        "g4"
+        "GRAY0"
       ],
       "initial": 0
     },
@@ -40,29 +34,6 @@
       "type": "NOT",
       "inputs": [
         "GRAY1"
-      ]
-    },
-    {
-      "id": "g2",
-      "type": "NOT",
-      "inputs": [
-        "RESET"
-      ]
-    },
-    {
-      "id": "g3",
-      "type": "AND",
-      "inputs": [
-        "g1",
-        "g2"
-      ]
-    },
-    {
-      "id": "g4",
-      "type": "AND",
-      "inputs": [
-        "GRAY0",
-        "g2"
       ]
     },
     {
@@ -76,7 +47,7 @@
       "id": "g6",
       "type": "AND",
       "inputs": [
-        "DUTY0",
+        "LEVEL0",
         "g5"
       ]
     },
@@ -84,7 +55,7 @@
       "id": "g7",
       "type": "OR",
       "inputs": [
-        "DUTY1",
+        "LEVEL1",
         "g6"
       ]
     },
@@ -92,7 +63,7 @@
       "id": "g8",
       "type": "AND",
       "inputs": [
-        "DUTY0",
+        "LEVEL0",
         "GRAY0"
       ]
     },
@@ -113,17 +84,17 @@
       ]
     },
     {
-      "id": "OUT_PWM",
+      "id": "OUT_LIGHT",
       "type": "OUTPUT",
       "inputs": [
         "g10"
       ],
-      "name": "PWM"
+      "name": "LIGHT"
     }
   ],
   "solution": {
     "architecture": "gray-phase-comparator",
-    "note": "두 D의 Gray 위상 순환과 출력 비교식을 사용합니다. 외부에서 정의한 위상 0→1→2→3과 RESET 동작은 같습니다."
+    "note": "Gray 상태 00→10→11→01은 tick마다 진행합니다. 현재 LEVEL에 따른 출력은 조합 비교이며 입력 변경은 상태를 진행시키지 않습니다."
   },
-  "source_variant": "C4-07"
+  "source_variant": "light-timing"
 }

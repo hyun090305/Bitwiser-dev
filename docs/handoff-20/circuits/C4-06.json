@@ -14,17 +14,11 @@
       "mode": "button"
     },
     {
-      "id": "RESET",
-      "type": "INPUT",
-      "inputs": [],
-      "mode": "button"
-    },
-    {
       "id": "COUNT0",
       "type": "DE",
       "inputs": [
-        "g3",
-        "g12"
+        "g1",
+        "g11"
       ],
       "initial": 0
     },
@@ -32,8 +26,8 @@
       "id": "COUNT1",
       "type": "DE",
       "inputs": [
-        "g14",
-        "g25"
+        "g13",
+        "g24"
       ],
       "initial": 0
     },
@@ -42,21 +36,6 @@
       "type": "NOT",
       "inputs": [
         "COUNT0"
-      ]
-    },
-    {
-      "id": "g2",
-      "type": "NOT",
-      "inputs": [
-        "RESET"
-      ]
-    },
-    {
-      "id": "g3",
-      "type": "AND",
-      "inputs": [
-        "g1",
-        "g2"
       ]
     },
     {
@@ -120,26 +99,10 @@
       ]
     },
     {
-      "id": "g12",
-      "type": "OR",
-      "inputs": [
-        "RESET",
-        "g11"
-      ]
-    },
-    {
       "id": "g13",
       "type": "NOT",
       "inputs": [
         "COUNT1"
-      ]
-    },
-    {
-      "id": "g14",
-      "type": "AND",
-      "inputs": [
-        "g13",
-        "g2"
       ]
     },
     {
@@ -218,14 +181,6 @@
       ]
     },
     {
-      "id": "g25",
-      "type": "OR",
-      "inputs": [
-        "RESET",
-        "g24"
-      ]
-    },
-    {
       "id": "OUT_BIT0",
       "type": "OUTPUT",
       "inputs": [
@@ -244,7 +199,7 @@
   ],
   "solution": {
     "architecture": "enabled-d-factored-carry",
-    "note": "두 D+EN으로 비트별 반전 조건을 구현합니다. 같은 명세의 22블록 비평면 후보 대신 게이트 공유를 줄인 32블록 평면 회로를 채택합니다. RESET도 유지합니다."
+    "note": "두 D+EN의 반전 조건은 유지하고 RESET 데이터·허용 경로를 제거합니다."
   },
-  "source_variant": "C4-06"
+  "source_variant": "up-down-counter-no-reset"
 }

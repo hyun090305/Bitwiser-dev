@@ -84,19 +84,16 @@ OUT_DOOR = OUTPUT(g2)  # port: DOOR
 
 ## 6. 양방향 카운터 — C4-06
 
-32블록 · 내부 27 · D 0 · D+EN 2. 두 D+EN으로 비트별 반전 조건을 구현합니다. 같은 명세의 22블록 비평면 후보 대신 게이트 공유를 줄인 32블록 평면 회로를 채택합니다. RESET도 유지합니다.
+26블록. 두 D+EN의 반전 조건은 유지하고 RESET 데이터·허용 경로를 제거합니다.
 
-입력 `INC`, `DEC`, `RESET`. 출력 `BIT0`, `BIT1`. 전체 노드 수: 32.
+현재 실제 배치·채점: [명세](specs/C4-06.md), [게임 검증](../control-stages.md).
 
 ```text
 INC = INPUT
 DEC = INPUT
-RESET = INPUT
-COUNT0 <- DE(g3, g12)  # initial=0
-COUNT1 <- DE(g14, g25)  # initial=0
+COUNT0 <- DE(g1, g11)  # initial=0
+COUNT1 <- DE(g13, g24)  # initial=0
 g1 = NOT(COUNT0)
-g2 = NOT(RESET)
-g3 = AND(g1, g2)
 g4 = AND(DEC, INC)
 g5 = NOT(g4)
 g6 = AND(DEC, g5)
@@ -105,9 +102,7 @@ g8 = AND(INC, g5)
 g9 = NOT(g8)
 g10 = AND(g7, g9)
 g11 = NOT(g10)
-g12 = OR(RESET, g11)
 g13 = NOT(COUNT1)
-g14 = AND(g13, g2)
 g15 = AND(COUNT0, INC)
 g16 = NOT(g15)
 g17 = AND(COUNT0, g16)
@@ -118,34 +113,29 @@ g21 = AND(g18, g20)
 g22 = NOT(g21)
 g23 = NOT(g22)
 g24 = AND(g11, g23)
-g25 = OR(RESET, g24)
 OUT_BIT0 = OUTPUT(COUNT0)  # port: BIT0
 OUT_BIT1 = OUTPUT(COUNT1)  # port: BIT1
 ```
 
-## 7. 네 단계 밝기 — C4-07
+## 7. 점등 시간 조절 — C4-07
 
-16블록 · 내부 12 · D 2 · D+EN 0. 두 D의 Gray 위상 순환과 출력 비교식을 사용합니다. 외부에서 정의한 위상 0→1→2→3과 RESET 동작은 같습니다.
+12블록. Gray 상태 00→10→11→01은 tick마다 진행합니다. 현재 LEVEL에 따른 출력은 조합 비교이며 입력 변경은 상태를 진행시키지 않습니다.
 
-입력 `DUTY0`, `DUTY1`, `RESET`. 출력 `PWM`. 전체 노드 수: 16.
+현재 실제 배치·채점: [명세](specs/C4-07.md), [게임 검증](../control-stages.md).
 
 ```text
-DUTY0 = INPUT
-DUTY1 = INPUT
-RESET = INPUT
-GRAY0 <- D(g3)  # initial=0
-GRAY1 <- D(g4)  # initial=0
+LEVEL0 = INPUT
+LEVEL1 = INPUT
+GRAY0 <- D(g1)  # initial=0
+GRAY1 <- D(GRAY0)  # initial=0
 g1 = NOT(GRAY1)
-g2 = NOT(RESET)
-g3 = AND(g1, g2)
-g4 = AND(GRAY0, g2)
 g5 = NOT(GRAY0)
-g6 = AND(DUTY0, g5)
-g7 = OR(DUTY1, g6)
-g8 = AND(DUTY0, GRAY0)
+g6 = AND(LEVEL0, g5)
+g7 = OR(LEVEL1, g6)
+g8 = AND(LEVEL0, GRAY0)
 g9 = OR(g1, g8)
 g10 = AND(g7, g9)
-OUT_PWM = OUTPUT(g10)  # port: PWM
+OUT_LIGHT = OUTPUT(g10)  # port: LIGHT
 ```
 
 ## 8. 공평한 사용권 — C4-08
@@ -192,21 +182,41 @@ g6 = AND(SUBMIT, g5)
 OUT_UNLOCKED = OUTPUT(OPENED)  # port: UNLOCKED
 ```
 
-## 10. 응답 감시기 — C4-10
+## 10. 예약 타이머 — C4-10
 
-8블록 · 내부 6 · D 3 · D+EN 0. 세 D에 무응답 1·2·3 tick 이상을 나타내는 상태를 저장합니다. KICK는 유지합니다.
+28블록. START는 두 D에 TIME을 저장하고 ACTIVE를 켭니다. 카운터는 매 tick mod-4 감소합니다. ACTIVE는 남은 값이 0인 완료 tick까지 유지하고 다음 tick에 끕니다. DONE=ACTIVE AND NOT(R0 OR R1). 비활성 중 카운터 위상은 관측되지 않습니다.
 
-입력 `KICK`. 출력 `TIMEOUT`. 전체 노드 수: 8.
+현재 실제 배치·채점: [명세](specs/C4-10.md), [게임 검증](../control-stages.md).
 
 ```text
-KICK = INPUT
-SILENT0 <- D(g1)  # initial=0
-SILENT1 <- D(g2)  # initial=0
-SILENT2 <- D(g3)  # initial=0
-g1 = NOT(KICK)
-g2 = AND(SILENT0, g1)
-g3 = AND(SILENT1, g1)
-OUT_TIMEOUT = OUTPUT(SILENT2)  # port: TIMEOUT
+TIME0 = INPUT
+TIME1 = INPUT
+START = INPUT
+R0 <- D(g5)  # initial=0
+R1 <- D(g16)  # initial=0
+ACTIVE <- D(g19)  # initial=0
+g1 = NOT(R0)
+g2 = AND(START, TIME0)
+g3 = NOT(START)
+g4 = AND(g3, g1)
+g5 = OR(g2, g4)
+g6 = AND(R1, g1)
+g7 = NOT(g6)
+g8 = AND(R1, g7)
+g9 = NOT(g8)
+g10 = AND(g1, g7)
+g11 = NOT(g10)
+g12 = AND(g9, g11)
+g13 = NOT(g12)
+g14 = AND(START, TIME1)
+g15 = AND(g3, g13)
+g16 = OR(g14, g15)
+g17 = OR(R0, R1)
+g18 = AND(ACTIVE, g17)
+g19 = OR(START, g18)
+g20 = NOT(g17)
+g21 = AND(ACTIVE, g20)
+OUT_DONE = OUTPUT(g21)  # port: DONE
 ```
 
 ## 11. 누적 계산기 — C5-01

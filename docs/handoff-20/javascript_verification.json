@@ -1,6 +1,6 @@
 {
   "passed": true,
   "stages": 20,
-  "python_javascript_transition_comparisons": 5286,
+  "python_javascript_transition_comparisons": 5310,
   "scope": "Primitive interpreter from the delivered HTML vs independent Python results; no DOM or rendering dependency"
 }

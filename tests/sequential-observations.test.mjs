@@ -13,7 +13,7 @@ const levels = JSON.parse(fs.readFileSync(new URL('../levels.json', import.meta.
 const answer = id => levels.levelAnswers[id];
 const reference = id => getReferenceFSM(answer(id).referenceId);
 const ids = Object.values(MEMORY20_IDS).filter(id=>id!==46);
-const policies = {25:['LOAD'],28:['ACK'],29:['A','B'],30:['OPEN'],32:['INC','DEC','RESET'],33:['RESET'],34:['KICK'],37:['SUBMIT'],
+const policies = {25:['LOAD'],28:['ACK'],29:['A','B'],30:['OPEN'],32:['INC','DEC'],33:[],34:['START'],37:['SUBMIT'],
   38:['WRITE'],39:['SAVE','UNDO'],40:['SEND','TAKE'],41:['PUSH','POP'],42:['PUSH','POP'],43:['RECEIVE'],45:['ADD','RESET']};
 const set = (c, inputs) => { for(const b of Object.values(c.blocks))if(b.type==='INPUT'&&Object.hasOwn(inputs,b.name))b.value=Boolean(inputs[b.name]);previewCircuit(c); };
 const outputs = c => Object.fromEntries(Object.values(c.blocks).filter(b=>b.type==='OUTPUT').map(b=>[b.name,Number(b.value)]));
@@ -108,15 +108,15 @@ test('pulses survive every input vector until a real tick, with GO distinct from
   assert.equal(go.observe(go.step(raised,0),0),0);
 });
 
-test('DUTY changes immediately use the current phase without advancing time',()=>{
+test('LEVEL changes immediately use the current phase without advancing time',()=>{
   const c=memoryFixture(33),ref=reference(33);let state=ref.initialState;
   for(let phase=0;phase<4;phase++) {
     const snapshot=structuredClone(getExecutionState(c));
-    for(let input=0;input<8;input++){
-      set(c,vector(ref,input));assert.equal(outputs(c).PWM,Number(phase<(input&3)));
+    for(let input=0;input<4;input++){
+      set(c,vector(ref,input));assert.equal(outputs(c).LIGHT,Number(phase<(input&3)));
       assert.equal(ref.observe(state,input),Number(phase<(input&3)));assert.deepEqual(getExecutionState(c),snapshot);
     }
-    set(c,{RESET:0});tickCircuit(c);state=ref.step(state,3);
+    tickCircuit(c);state=ref.step(state,3);
   }
 });
 

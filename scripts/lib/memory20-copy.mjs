@@ -27,13 +27,13 @@ export const memory20Copy = {
   ],
   "C4-06": [
     "Up/Down Counter",
-    "Count from 0 to 3 using BIT1·BIT0. INC alone adds one; DEC alone subtracts one. Wrap between 3 and 0. Both on or both off leave the count unchanged. Start at 0; RESET overrides both requests and clears the count. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic INC·DEC·RESET button release completes the tick; switches keep their values.",
-    "Determine when each bit toggles. Use NOT(Q) as DATA and a bit-specific EN; RESET must clear both bits."
+    "Count from 0 to 3 using BIT1·BIT0. On a tick with only INC pressed, add one; with only DEC pressed, subtract one. Both pressed or neither pressed keeps the value. Increasing 3 wraps to 0; decreasing 0 wraps to 3. Start at 0. Changing inputs or automatically releasing buttons does not change the count.",
+    "Determine when each bit toggles. D enables can simplify holding the value."
   ],
   "C4-07": [
-    "Four Brightness Levels",
-    "Use DUTY1·DUTY0 to select brightness 0–3. A phase starts at 0 and advances through 1→2→3→0 each tick. Turn PWM on when the phase is below DUTY, giving 0%, 25%, 50% or 75% brightness. RESET returns the phase to 0; the same lighting rule still applies. Changing DUTY immediately updates PWM using the current phase, even before the first tick. RESET takes effect on the next tick. Automatic button release completes that tick without advancing the phase again.",
-    "Use two state bits for four phases. A Gray-code cycle can simplify the next-state logic; compare its phase with DUTY."
+    "Light Timing",
+    "Select 0–3 with LEVEL1·LEVEL0. LIGHT repeats a four-slot pattern, lighting the selected number of slots at the beginning of each cycle. The initial screen (tick 0) is the first slot; completing the first tick moves to the second slot. Each tick moves to the next slot, returning to the first after the fourth. Changing the setting immediately affects the current slot without restarting the cycle. Slots keep advancing even when 0 is selected. The examples below show LIGHT across the first → second → third → fourth slots.",
+    "Remember the four-slot cycle with two bits. Consider an order that changes only one bit at a time."
   ],
   "C4-08": [
     "Fair Access",
@@ -46,9 +46,9 @@ export const memory20Copy = {
     "Shift submitted letters using SUBMIT as EN. Detect the previous A,B,B and the new A; retain the unlocked state."
   ],
   "C4-10": [
-    "Watchdog",
-    "Turn TIMEOUT on after three consecutive ticks without KICK and keep it on. KICK immediately clears TIMEOUT and restarts the wait. TIMEOUT starts off. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic KICK button release completes the tick; switches keep their values.",
-    "Remember one, two and three-or-more silent ticks with D blocks. KICK clears the chain."
+    "Delay Timer",
+    "Select a delay of 0–3 ticks with TIME1·TIME0. The tick that samples START schedules the timer; DONE turns on for one tick after the selected number of further ticks. Later changes to TIME do not affect the running timer. START cancels any previous timer and schedules a new one with the current setting. A delay of 0 completes on that same actual tick. Initially no timer is scheduled. After completion, wait for a new START.\nA new START also takes priority on a previous timer’s due tick. START on consecutive ticks reschedules each time; repeatedly scheduling 0 may keep DONE at 1. Changing inputs or automatically releasing START does not change the output. DONE remains until the next actual tick.",
+    "Remember the captured setting and the remaining time. Keep completion visible until the next tick, and discard the old timer whenever START arrives."
   ],
   "C5-01": [
     "Accumulator",
