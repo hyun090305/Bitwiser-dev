@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bitgame-cache-v26-blueprint-sharing';
+const CACHE_NAME = 'bitgame-cache-v27-blueprint-sharing';
 const urlsToCache = [
   '/',
   '/index.html',

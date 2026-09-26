@@ -148,14 +148,20 @@ try {
       const c={rows:8,cols:12,blocks:{},wires:{}};
       const add=(id,type,r,col,name)=>c.blocks[id]={id,type,pos:{r,c:col},name};
       add('i','INPUT',2,1,'A');add('d','D',2,4);add('o','OUTPUT',5,4,'GO');
-      add('j','JUNCTION',5,1);add('or','OR',2,7);add('and','AND',5,7);add('not','NOT',5,10);add('button','INPUT',2,10,'FAULT');c.blocks.button.inputMode='button';
+      add('j','JUNCTION',5,1,'JUNC');add('or','OR',2,7);add('and','AND',5,7);add('not','NOT',5,10);add('button','INPUT',2,10,'FAULT');c.blocks.button.inputMode='button';
+      add('j2','JUNCTION',7,1,'JUNC');add('named','JUNCTION',7,4,'CLOCK');
       const wire=(id,startBlockId,endBlockId,inputRole,path)=>c.wires[id]={id,startBlockId,endBlockId,inputRole,path:path.map(([r,c])=>({r,c}))};
       wire('enable','i','d','EN',[[2,1],[2,2],[2,3],[2,4]]);
       wire('feedback','d','d','D',[[2,4],[1,4],[0,4],[0,5],[0,6],[1,6],[2,6],[2,5],[2,4]]);
       wire('out','d','o',undefined,[[2,4],[3,4],[4,4],[5,4]]);
-      const result=await png.createBlueprintPng({circuit:c,title:'Self feedback / 자기 피드백',totalCost:70,stars:2});
-      return Array.from(new Uint8Array(await result.blob.arrayBuffer()));
-    });await fs.writeFile(`${output}/feedback-card.png`,Buffer.from(feedback));
+      const labels=[], original=CanvasRenderingContext2D.prototype.fillText;
+      CanvasRenderingContext2D.prototype.fillText=function(text,...args){labels.push(text);return original.call(this,text,...args);};
+      try {
+        const result=await png.createBlueprintPng({circuit:c,title:'Self feedback / 자기 피드백',totalCost:70,stars:2});
+        return {bytes:Array.from(new Uint8Array(await result.blob.arrayBuffer())),labels};
+      } finally { CanvasRenderingContext2D.prototype.fillText=original; }
+    });await fs.writeFile(`${output}/feedback-card.png`,Buffer.from(feedback.bytes));
+    for (const label of ['J1','J2','CLOCK']) assert.ok(feedback.labels.includes(label), `Missing rendered junction label: ${label}`);
     const sizeFailure=await page.evaluate(async()=>{
       const c={rows:10000,cols:10000,blocks:{a:{id:'a',type:'INPUT',pos:{r:0,c:0}},b:{id:'b',type:'OUTPUT',pos:{r:9999,c:9999}}},wires:{}};
       let rejected=false;try{await png.createBlueprintPng({circuit:c,title:'Too large',totalCost:0});}catch{rejected=true;}

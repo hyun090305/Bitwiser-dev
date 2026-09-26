@@ -21,9 +21,10 @@ const button = (label, action, cls) => { const b = el('button', label, cls); b.t
 function shieldDialogKeys(dialog) {
   // Native dialog defaults still handle Tab/Enter/Space/Escape and scrolling.
   // Editor shortcuts are document listeners and must not consume those keys.
+  // Let keyup reach their cleanup handlers for keys held before opening.
   const shield = event => { if (dialog.open) event.stopPropagation(); };
-  for (const type of ['keydown','keyup']) window.addEventListener(type, shield, true);
-  return () => { for (const type of ['keydown','keyup']) window.removeEventListener(type, shield, true); };
+  window.addEventListener('keydown', shield, true);
+  return () => window.removeEventListener('keydown', shield, true);
 }
 
 export function createBlueprintShare(parent, options, { header, generate = createBlueprintPng, manual = false } = {}) {

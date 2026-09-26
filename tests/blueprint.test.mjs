@@ -30,3 +30,19 @@ test('empty blueprint fails explicitly; disconnected drafts still have a layout'
   const layout=blueprintLayout({rows:6,cols:6,blocks:{a:{id:'a',type:'OUTPUT',name:'GO',pos:{r:3,c:4}}},wires:{}});
   assert.equal(layout.width,264);assert.equal(layout.height,264);assert.equal(layout.aliases.a,'GO');
 });
+
+test('junction default names receive stable aliases while custom names are preserved', () => {
+  const circuit = { rows: 6, cols: 6, blocks: {
+    b: { id: 'b', type: 'JUNCTION', name: 'JUNC', pos: { r: 1, c: 3 } },
+    a: { id: 'a', type: 'JUNCTION', name: 'JUNC', pos: { r: 1, c: 1 } },
+    custom: { id: 'custom', type: 'JUNCTION', name: 'CLOCK', pos: { r: 2, c: 1 } },
+    typed: { id: 'typed', type: 'JUNCTION', name: 'JUNCTION', pos: { r: 3, c: 1 } },
+    unnamed: { id: 'unnamed', type: 'JUNCTION', pos: { r: 4, c: 1 } }
+  }, wires: {} };
+  const before = structuredClone(circuit);
+  const expected = { a: 'J1', b: 'J2', custom: 'CLOCK', typed: 'J4', unnamed: 'J5' };
+  assert.deepEqual(blueprintLayout(circuit).aliases, expected);
+  assert.deepEqual(circuit, before);
+  circuit.blocks = Object.fromEntries(Object.entries(circuit.blocks).reverse());
+  assert.deepEqual(blueprintLayout(circuit).aliases, expected);
+});
