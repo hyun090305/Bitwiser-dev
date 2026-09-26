@@ -48,7 +48,7 @@ app.on('browser-window-created', (_, win) => {
         })()`);
         fs.writeFileSync(path.join(root, 'test-results', 'electron-smoke.json'), JSON.stringify({ ...result, errors }, null, 2));
         console.log(JSON.stringify({ ...result, errors }));
-        app.exit(result.stages === 47 && result.startReady && result.hasGame && result.hasLegacyAccount && result.hasLegacyLabNode && result.blueprint && !errors.length ? 0 : 1);
+        app.exit(result.stages === 48 && result.startReady && result.hasGame && result.hasLegacyAccount && result.hasLegacyLabNode && result.blueprint && !errors.length ? 0 : 1);
       } catch (error) { console.error(error); app.exit(1); }
     }, 7000);
   });

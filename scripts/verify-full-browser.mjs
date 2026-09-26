@@ -39,7 +39,7 @@ try{
   await page.waitForFunction(()=>document.getElementById('loadingStartBtn')?.disabled===false,{},{timeout:25000});
   assert.equal(await page.locator('#storyHudBtn, #storyPlaybackOverlay, #storyModalOverlay').count(),0);
   const result=await page.evaluate(async()=>({stages:Object.keys((await import('./src/modules/levels.js')).getLevelTitles()).length,hasLegacyAccount:!!document.getElementById('googleLoginBtn'),hasLegacyLabNode:(await(await fetch('stage_map.json')).json()).nodes.some(n=>n.id==='lab')}));
-  assert.equal(result.stages,47);assert.ok(result.hasLegacyAccount);assert.ok(result.hasLegacyLabNode);assert.deepEqual(errors,[]);
+  assert.equal(result.stages,48);assert.ok(result.hasLegacyAccount);assert.ok(result.hasLegacyLabNode);assert.deepEqual(errors,[]);
   const storageBoundary=await page.evaluate(async()=>{
     const storage=await import('./src/modules/circuitStorage.js');
     let error;try{await storage.circuitStorage.list({stageId:1,problemKey:null});}catch(e){error=e.code;}

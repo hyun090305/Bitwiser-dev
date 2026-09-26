@@ -46,7 +46,8 @@
     "43": "Serial Receiver",
     "44": "Serial Transmitter",
     "45": "Accumulator",
-    "46": "Divide Over Time"
+    "46": "Divide Over Time",
+    "47": "Capacity Limit Check"
   },
   "levelGridSizes": {
     "0": [
@@ -236,6 +237,10 @@
     "46": [
       22,
       35
+    ],
+    "47": [
+      9,
+      15
     ]
   },
   "levelBlockSets": {
@@ -1891,6 +1896,54 @@
       {
         "type": "JUNCTION"
       }
+    ],
+    "47": [
+      {
+        "type": "INPUT",
+        "name": "A1",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "A0",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "B1",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "B0",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "L1",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "L0",
+        "inputMode": "switch"
+      },
+      {
+        "type": "OUTPUT",
+        "name": "OVER"
+      },
+      {
+        "type": "AND"
+      },
+      {
+        "type": "OR"
+      },
+      {
+        "type": "NOT"
+      },
+      {
+        "type": "JUNCTION"
+      }
     ]
   },
   "levelFixedIO": {
@@ -2140,6 +2193,10 @@
       "grid": []
     },
     "46": {
+      "fixIO": false,
+      "grid": []
+    },
+    "47": {
       "fixIO": false,
       "grid": []
     }
@@ -5756,7 +5813,841 @@
     "46": {
       "mode": "sequential",
       "referenceId": "memory20:C5-10"
-    }
+    },
+    "47": [
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 0
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 0,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 0,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 0
+        },
+        "expected": {
+          "OVER": 1
+        }
+      },
+      {
+        "inputs": {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1
+        },
+        "expected": {
+          "OVER": 1
+        }
+      }
+    ]
   },
   "levelDescriptions": {
     "0": {
@@ -8164,6 +9055,75 @@
           "COMPLETE": 1
         }
       ]
+    },
+    "47": {
+      "title": "Capacity Limit Check",
+      "desc": "Given cargo weights A and B and a capacity limit LIMIT, set OVER to 1 only when A + B exceeds LIMIT. Otherwise, set it to 0. A, B, and LIMIT each range from 0 to 3. A total equal to the limit is allowed.\nFor A1/A0, B1/B0, and L1/L0, bit 1 has a value of 2 and bit 0 has a value of 1. A = 2*A1 + A0, B = 2*B1 + B0, and LIMIT = 2*L1 + L0. Compare the actual sum from 0 to 6 without truncating it to two bits.",
+      "table": [
+        {
+          "A1": 0,
+          "A0": 0,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0,
+          "OVER": 0
+        },
+        {
+          "A1": 0,
+          "A0": 1,
+          "B1": 0,
+          "B0": 0,
+          "L1": 0,
+          "L0": 0,
+          "OVER": 1
+        },
+        {
+          "A1": 0,
+          "A0": 1,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1,
+          "OVER": 0
+        },
+        {
+          "A1": 1,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1,
+          "OVER": 1
+        },
+        {
+          "A1": 1,
+          "A0": 1,
+          "B1": 1,
+          "B0": 1,
+          "L1": 1,
+          "L0": 1,
+          "OVER": 1
+        },
+        {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 0,
+          "L0": 1,
+          "OVER": 1
+        },
+        {
+          "A1": 0,
+          "A0": 0,
+          "B1": 1,
+          "B0": 0,
+          "L1": 1,
+          "L0": 1,
+          "OVER": 0
+        }
+      ]
     }
   },
   "levelHints": {
@@ -8434,6 +9394,22 @@
           "content": "You can count units while accumulating quotient and remainder, then assert COMPLETE. The example solution finishes in A+1 ticks, but ANY correct first completion within 10 ticks is accepted."
         }
       ]
+    },
+    "stage47": {
+      "hints": [
+        {
+          "type": "Boundary examples",
+          "content": "When A=1, B=2, LIMIT=3, the total equals the limit, so OVER=0. When A=2, B=2, LIMIT=3, the actual sum is 4, so OVER=1. For A=0, B=2, LIMIT=1 gives OVER=1 while LIMIT=3 gives OVER=0."
+        },
+        {
+          "type": "Approach",
+          "content": "First compare the upper-bit sum A1+B1 with L1. If it is greater, OVER=1; if it is smaller, OVER=0. Only when they are equal, check whether the lower-bit sum A0+B0 exceeds L0. Call this lower-bit result C."
+        },
+        {
+          "type": "Logic equations",
+          "content": "Connect the following equations in order. Every AND/OR has two inputs, and C means A0+B0>L0. Use JUNCTIONs to branch B0 and C. Q is an intermediate signal name.\nNL0 = NOT(L0)\nG0 = AND(A0, B0)\nP0 = OR(A0, B0)\nH0 = AND(P0, NL0)\nC = OR(G0, H0)\n\nNL1 = NOT(L1)\nG1 = AND(A1, B1)\nP1 = OR(A1, B1)\nQ = OR(NL1, C)\nT = AND(NL1, C)\nU = AND(P1, Q)\nV = OR(G1, T)\nW = OR(V, U)\nOVER <- W"
+        }
+      ]
     }
   },
   "levelStarThresholds": {
@@ -8618,6 +9594,10 @@
       "threeStarMaxCost": null
     },
     "46": {
+      "twoStarMaxCost": null,
+      "threeStarMaxCost": null
+    },
+    "47": {
       "twoStarMaxCost": null,
       "threeStarMaxCost": null
     }
@@ -9052,7 +10032,8 @@
     "43": "memory20-free-compact-2026-09-18",
     "44": "memory20-free-compact-2026-09-18",
     "45": "memory20-free-compact-2026-09-18",
-    "46": "memory20-free-compact-2026-09-18"
+    "46": "memory20-free-compact-2026-09-18",
+    "47": "capacity-limit-2026-09-26"
   },
   "levelPreviousLayouts": {
     "25": [

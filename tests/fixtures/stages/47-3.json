@@ -1,0 +1,835 @@
+{
+  "purpose": "Planar reference for issue #486; feasibility and cost-v1 175 only, not an optimal solution or a confirmed 3-star budget. The -3 suffix follows the fixture convention.",
+  "circuit": {
+    "version": 3,
+    "rows": 9,
+    "cols": 15,
+    "blocks": {
+      "A1": {
+        "id": "A1",
+        "type": "INPUT",
+        "name": "A1",
+        "pos": {
+          "r": 2,
+          "c": 11
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "A0": {
+        "id": "A0",
+        "type": "INPUT",
+        "name": "A0",
+        "pos": {
+          "r": 1,
+          "c": 6
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "B1": {
+        "id": "B1",
+        "type": "INPUT",
+        "name": "B1",
+        "pos": {
+          "r": 1,
+          "c": 12
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "B0": {
+        "id": "B0",
+        "type": "INPUT",
+        "name": "B0",
+        "pos": {
+          "r": 4,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "L1": {
+        "id": "L1",
+        "type": "INPUT",
+        "name": "L1",
+        "pos": {
+          "r": 5,
+          "c": 10
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "L0": {
+        "id": "L0",
+        "type": "INPUT",
+        "name": "L0",
+        "pos": {
+          "r": 2,
+          "c": 3
+        },
+        "value": false,
+        "fixed": false,
+        "inputMode": "switch"
+      },
+      "NL0": {
+        "id": "NL0",
+        "type": "NOT",
+        "name": "NL0",
+        "pos": {
+          "r": 3,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "G0": {
+        "id": "G0",
+        "type": "AND",
+        "name": "G0",
+        "pos": {
+          "r": 3,
+          "c": 6
+        },
+        "value": false,
+        "fixed": false
+      },
+      "P0": {
+        "id": "P0",
+        "type": "OR",
+        "name": "P0",
+        "pos": {
+          "r": 1,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "H0": {
+        "id": "H0",
+        "type": "AND",
+        "name": "H0",
+        "pos": {
+          "r": 1,
+          "c": 2
+        },
+        "value": false,
+        "fixed": false
+      },
+      "C": {
+        "id": "C",
+        "type": "OR",
+        "name": "C",
+        "pos": {
+          "r": 5,
+          "c": 6
+        },
+        "value": false,
+        "fixed": false
+      },
+      "NL1": {
+        "id": "NL1",
+        "type": "NOT",
+        "name": "NL1",
+        "pos": {
+          "r": 6,
+          "c": 11
+        },
+        "value": false,
+        "fixed": false
+      },
+      "G1": {
+        "id": "G1",
+        "type": "AND",
+        "name": "G1",
+        "pos": {
+          "r": 1,
+          "c": 10
+        },
+        "value": false,
+        "fixed": false
+      },
+      "P1": {
+        "id": "P1",
+        "type": "OR",
+        "name": "P1",
+        "pos": {
+          "r": 2,
+          "c": 13
+        },
+        "value": false,
+        "fixed": false
+      },
+      "Q": {
+        "id": "Q",
+        "type": "OR",
+        "name": "Q",
+        "pos": {
+          "r": 6,
+          "c": 13
+        },
+        "value": false,
+        "fixed": false
+      },
+      "T": {
+        "id": "T",
+        "type": "AND",
+        "name": "T",
+        "pos": {
+          "r": 6,
+          "c": 9
+        },
+        "value": false,
+        "fixed": false
+      },
+      "U": {
+        "id": "U",
+        "type": "AND",
+        "name": "U",
+        "pos": {
+          "r": 4,
+          "c": 13
+        },
+        "value": false,
+        "fixed": false
+      },
+      "V": {
+        "id": "V",
+        "type": "OR",
+        "name": "V",
+        "pos": {
+          "r": 4,
+          "c": 9
+        },
+        "value": false,
+        "fixed": false
+      },
+      "W": {
+        "id": "W",
+        "type": "OR",
+        "name": "W",
+        "pos": {
+          "r": 4,
+          "c": 11
+        },
+        "value": false,
+        "fixed": false
+      },
+      "OVER": {
+        "id": "OVER",
+        "type": "OUTPUT",
+        "name": "OVER",
+        "pos": {
+          "r": 3,
+          "c": 10
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_3_0": {
+        "id": "branch_3_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 3,
+          "c": 4
+        },
+        "value": false,
+        "fixed": false
+      },
+      "branch_10_0": {
+        "id": "branch_10_0",
+        "type": "JUNCTION",
+        "pos": {
+          "r": 6,
+          "c": 7
+        },
+        "value": false,
+        "fixed": false
+      }
+    },
+    "wires": {
+      "w0": {
+        "id": "w0",
+        "startBlockId": "A1",
+        "endBlockId": "G1",
+        "path": [
+          {
+            "r": 2,
+            "c": 11
+          },
+          {
+            "r": 2,
+            "c": 10
+          },
+          {
+            "r": 1,
+            "c": 10
+          }
+        ]
+      },
+      "w1": {
+        "id": "w1",
+        "startBlockId": "A1",
+        "endBlockId": "P1",
+        "path": [
+          {
+            "r": 2,
+            "c": 11
+          },
+          {
+            "r": 2,
+            "c": 12
+          },
+          {
+            "r": 2,
+            "c": 13
+          }
+        ]
+      },
+      "w2": {
+        "id": "w2",
+        "startBlockId": "A0",
+        "endBlockId": "G0",
+        "path": [
+          {
+            "r": 1,
+            "c": 6
+          },
+          {
+            "r": 2,
+            "c": 6
+          },
+          {
+            "r": 3,
+            "c": 6
+          }
+        ]
+      },
+      "w3": {
+        "id": "w3",
+        "startBlockId": "A0",
+        "endBlockId": "P0",
+        "path": [
+          {
+            "r": 1,
+            "c": 6
+          },
+          {
+            "r": 1,
+            "c": 5
+          },
+          {
+            "r": 1,
+            "c": 4
+          }
+        ]
+      },
+      "w4": {
+        "id": "w4",
+        "startBlockId": "B1",
+        "endBlockId": "G1",
+        "path": [
+          {
+            "r": 1,
+            "c": 12
+          },
+          {
+            "r": 1,
+            "c": 11
+          },
+          {
+            "r": 1,
+            "c": 10
+          }
+        ]
+      },
+      "w5": {
+        "id": "w5",
+        "startBlockId": "B1",
+        "endBlockId": "P1",
+        "path": [
+          {
+            "r": 1,
+            "c": 12
+          },
+          {
+            "r": 1,
+            "c": 13
+          },
+          {
+            "r": 2,
+            "c": 13
+          }
+        ]
+      },
+      "w6": {
+        "id": "w6",
+        "startBlockId": "B0",
+        "endBlockId": "branch_3_0",
+        "path": [
+          {
+            "r": 4,
+            "c": 3
+          },
+          {
+            "r": 4,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 4
+          }
+        ]
+      },
+      "w7": {
+        "id": "w7",
+        "startBlockId": "branch_3_0",
+        "endBlockId": "G0",
+        "path": [
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 3,
+            "c": 5
+          },
+          {
+            "r": 3,
+            "c": 6
+          }
+        ]
+      },
+      "w8": {
+        "id": "w8",
+        "startBlockId": "branch_3_0",
+        "endBlockId": "P0",
+        "path": [
+          {
+            "r": 3,
+            "c": 4
+          },
+          {
+            "r": 2,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 4
+          }
+        ]
+      },
+      "w9": {
+        "id": "w9",
+        "startBlockId": "L1",
+        "endBlockId": "NL1",
+        "path": [
+          {
+            "r": 5,
+            "c": 10
+          },
+          {
+            "r": 5,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 11
+          }
+        ]
+      },
+      "w10": {
+        "id": "w10",
+        "startBlockId": "L0",
+        "endBlockId": "NL0",
+        "path": [
+          {
+            "r": 2,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 3
+          },
+          {
+            "r": 3,
+            "c": 2
+          }
+        ]
+      },
+      "w11": {
+        "id": "w11",
+        "startBlockId": "NL0",
+        "endBlockId": "H0",
+        "path": [
+          {
+            "r": 3,
+            "c": 2
+          },
+          {
+            "r": 2,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 2
+          }
+        ]
+      },
+      "w12": {
+        "id": "w12",
+        "startBlockId": "G0",
+        "endBlockId": "C",
+        "path": [
+          {
+            "r": 3,
+            "c": 6
+          },
+          {
+            "r": 4,
+            "c": 6
+          },
+          {
+            "r": 5,
+            "c": 6
+          }
+        ]
+      },
+      "w13": {
+        "id": "w13",
+        "startBlockId": "P0",
+        "endBlockId": "H0",
+        "path": [
+          {
+            "r": 1,
+            "c": 4
+          },
+          {
+            "r": 1,
+            "c": 3
+          },
+          {
+            "r": 1,
+            "c": 2
+          }
+        ]
+      },
+      "w14": {
+        "id": "w14",
+        "startBlockId": "H0",
+        "endBlockId": "C",
+        "path": [
+          {
+            "r": 1,
+            "c": 2
+          },
+          {
+            "r": 1,
+            "c": 1
+          },
+          {
+            "r": 2,
+            "c": 1
+          },
+          {
+            "r": 3,
+            "c": 1
+          },
+          {
+            "r": 4,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 1
+          },
+          {
+            "r": 5,
+            "c": 2
+          },
+          {
+            "r": 5,
+            "c": 3
+          },
+          {
+            "r": 5,
+            "c": 4
+          },
+          {
+            "r": 5,
+            "c": 5
+          },
+          {
+            "r": 5,
+            "c": 6
+          }
+        ]
+      },
+      "w15": {
+        "id": "w15",
+        "startBlockId": "C",
+        "endBlockId": "branch_10_0",
+        "path": [
+          {
+            "r": 5,
+            "c": 6
+          },
+          {
+            "r": 6,
+            "c": 6
+          },
+          {
+            "r": 6,
+            "c": 7
+          }
+        ]
+      },
+      "w16": {
+        "id": "w16",
+        "startBlockId": "branch_10_0",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 7
+          },
+          {
+            "r": 7,
+            "c": 8
+          },
+          {
+            "r": 7,
+            "c": 9
+          },
+          {
+            "r": 7,
+            "c": 10
+          },
+          {
+            "r": 7,
+            "c": 11
+          },
+          {
+            "r": 7,
+            "c": 12
+          },
+          {
+            "r": 7,
+            "c": 13
+          },
+          {
+            "r": 6,
+            "c": 13
+          }
+        ]
+      },
+      "w17": {
+        "id": "w17",
+        "startBlockId": "branch_10_0",
+        "endBlockId": "T",
+        "path": [
+          {
+            "r": 6,
+            "c": 7
+          },
+          {
+            "r": 6,
+            "c": 8
+          },
+          {
+            "r": 6,
+            "c": 9
+          }
+        ]
+      },
+      "w18": {
+        "id": "w18",
+        "startBlockId": "NL1",
+        "endBlockId": "Q",
+        "path": [
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 12
+          },
+          {
+            "r": 6,
+            "c": 13
+          }
+        ]
+      },
+      "w19": {
+        "id": "w19",
+        "startBlockId": "NL1",
+        "endBlockId": "T",
+        "path": [
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 6,
+            "c": 10
+          },
+          {
+            "r": 6,
+            "c": 9
+          }
+        ]
+      },
+      "w20": {
+        "id": "w20",
+        "startBlockId": "G1",
+        "endBlockId": "V",
+        "path": [
+          {
+            "r": 1,
+            "c": 10
+          },
+          {
+            "r": 1,
+            "c": 9
+          },
+          {
+            "r": 2,
+            "c": 9
+          },
+          {
+            "r": 3,
+            "c": 9
+          },
+          {
+            "r": 4,
+            "c": 9
+          }
+        ]
+      },
+      "w21": {
+        "id": "w21",
+        "startBlockId": "P1",
+        "endBlockId": "U",
+        "path": [
+          {
+            "r": 2,
+            "c": 13
+          },
+          {
+            "r": 3,
+            "c": 13
+          },
+          {
+            "r": 4,
+            "c": 13
+          }
+        ]
+      },
+      "w22": {
+        "id": "w22",
+        "startBlockId": "Q",
+        "endBlockId": "U",
+        "path": [
+          {
+            "r": 6,
+            "c": 13
+          },
+          {
+            "r": 5,
+            "c": 13
+          },
+          {
+            "r": 4,
+            "c": 13
+          }
+        ]
+      },
+      "w23": {
+        "id": "w23",
+        "startBlockId": "T",
+        "endBlockId": "V",
+        "path": [
+          {
+            "r": 6,
+            "c": 9
+          },
+          {
+            "r": 5,
+            "c": 9
+          },
+          {
+            "r": 4,
+            "c": 9
+          }
+        ]
+      },
+      "w24": {
+        "id": "w24",
+        "startBlockId": "U",
+        "endBlockId": "W",
+        "path": [
+          {
+            "r": 4,
+            "c": 13
+          },
+          {
+            "r": 4,
+            "c": 12
+          },
+          {
+            "r": 4,
+            "c": 11
+          }
+        ]
+      },
+      "w25": {
+        "id": "w25",
+        "startBlockId": "V",
+        "endBlockId": "W",
+        "path": [
+          {
+            "r": 4,
+            "c": 9
+          },
+          {
+            "r": 4,
+            "c": 10
+          },
+          {
+            "r": 4,
+            "c": 11
+          }
+        ]
+      },
+      "w26": {
+        "id": "w26",
+        "startBlockId": "W",
+        "endBlockId": "OVER",
+        "path": [
+          {
+            "r": 4,
+            "c": 11
+          },
+          {
+            "r": 3,
+            "c": 11
+          },
+          {
+            "r": 3,
+            "c": 10
+          }
+        ]
+      }
+    }
+  }
+}

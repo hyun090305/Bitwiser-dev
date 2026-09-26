@@ -77,11 +77,11 @@ test('all arrows have two border points, equal length, no intersections, and one
   }
 });
 
-test('chapter admission retains exact gates and candidate exclusion', () => {
+test('chapter admission retains exact gates and rejects unknown stages', () => {
   assert.deepEqual(CHAPTERS.map(ch=>ch.prerequisites),[[],[6],[30],[30],[30,14,32]]);
   for(const cleared of [[],[30],[30,14],[14,32]])assert.equal(chapterAccess('chapter_5',cleared).unlocked,false);
   assert.equal(chapterAccess('chapter_5',[30,14,32]).unlocked,true);
-  for(const stage of STAGES.filter(s=>s.status==='candidate'))assert.equal(canPlayStage(stage.id,Array.from({length:47},(_,i)=>i),{unlockedStages:[stage.id]}),false);
+  for(const id of [null,48])assert.equal(canPlayStage(id,STAGES.map(s=>s.id),{unlockedStages:[id]}),false);
 });
 
 test('legacy access migrates once without fabricating clears, and new progress cannot use old rules', () => {

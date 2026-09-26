@@ -834,7 +834,7 @@
     },
     {
       "id": "overflow_detector",
-      "label": "Overflow Detector",
+      "label": "Capacity Limit Check",
       "nodeType": "stage",
       "category": "arithmetic",
       "chapterId": "chapter_3",
@@ -847,7 +847,7 @@
         "h": 4
       },
       "optional": false,
-      "status": "candidate",
+      "status": "playable",
       "layoutKey": "c3_overflow",
       "gridPosition": {
         "column": 3,
