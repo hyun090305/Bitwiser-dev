@@ -4,10 +4,10 @@
     "rows": 12,
     "cols": 13,
     "blocks": {
-      "DUTY0": {
-        "id": "DUTY0",
+      "LEVEL0": {
+        "id": "LEVEL0",
         "type": "INPUT",
-        "name": "DUTY0",
+        "name": "LEVEL0",
         "pos": {
           "r": 8,
           "c": 5
@@ -16,10 +16,10 @@
         "fixed": false,
         "inputMode": "switch"
       },
-      "DUTY1": {
-        "id": "DUTY1",
+      "LEVEL1": {
+        "id": "LEVEL1",
         "type": "INPUT",
-        "name": "DUTY1",
+        "name": "LEVEL1",
         "pos": {
           "r": 9,
           "c": 2
@@ -27,18 +27,6 @@
         "value": false,
         "fixed": false,
         "inputMode": "switch"
-      },
-      "RESET": {
-        "id": "RESET",
-        "type": "INPUT",
-        "name": "RESET",
-        "pos": {
-          "r": 3,
-          "c": 7
-        },
-        "value": false,
-        "fixed": false,
-        "inputMode": "button"
       },
       "GRAY0": {
         "id": "GRAY0",
@@ -69,39 +57,6 @@
         "pos": {
           "r": 4,
           "c": 6
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g2": {
-        "id": "g2",
-        "type": "NOT",
-        "name": "g2",
-        "pos": {
-          "r": 4,
-          "c": 8
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g3": {
-        "id": "g3",
-        "type": "AND",
-        "name": "g3",
-        "pos": {
-          "r": 5,
-          "c": 7
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g4": {
-        "id": "g4",
-        "type": "AND",
-        "name": "g4",
-        "pos": {
-          "r": 3,
-          "c": 9
         },
         "value": false,
         "fixed": false
@@ -172,10 +127,10 @@
         "value": false,
         "fixed": false
       },
-      "OUT_PWM": {
-        "id": "OUT_PWM",
+      "OUT_LIGHT": {
+        "id": "OUT_LIGHT",
         "type": "OUTPUT",
-        "name": "PWM",
+        "name": "LIGHT",
         "pos": {
           "r": 7,
           "c": 2
@@ -197,7 +152,7 @@
     "wires": {
       "w0": {
         "id": "w0",
-        "startBlockId": "DUTY0",
+        "startBlockId": "LEVEL0",
         "endBlockId": "branch_0_0",
         "path": [
           {
@@ -254,7 +209,7 @@
       },
       "w3": {
         "id": "w3",
-        "startBlockId": "DUTY1",
+        "startBlockId": "LEVEL1",
         "endBlockId": "g7",
         "path": [
           {
@@ -268,56 +223,6 @@
           {
             "r": 9,
             "c": 4
-          }
-        ]
-      },
-      "w4": {
-        "id": "w4",
-        "startBlockId": "RESET",
-        "endBlockId": "g2",
-        "path": [
-          {
-            "r": 3,
-            "c": 7
-          },
-          {
-            "r": 3,
-            "c": 8
-          },
-          {
-            "r": 4,
-            "c": 8
-          }
-        ]
-      },
-      "w5": {
-        "id": "w5",
-        "startBlockId": "GRAY0",
-        "endBlockId": "g4",
-        "path": [
-          {
-            "r": 6,
-            "c": 9
-          },
-          {
-            "r": 6,
-            "c": 10
-          },
-          {
-            "r": 5,
-            "c": 10
-          },
-          {
-            "r": 4,
-            "c": 10
-          },
-          {
-            "r": 3,
-            "c": 10
-          },
-          {
-            "r": 3,
-            "c": 9
           }
         ]
       },
@@ -382,25 +287,6 @@
           }
         ]
       },
-      "w9": {
-        "id": "w9",
-        "startBlockId": "g1",
-        "endBlockId": "g3",
-        "path": [
-          {
-            "r": 4,
-            "c": 6
-          },
-          {
-            "r": 5,
-            "c": 6
-          },
-          {
-            "r": 5,
-            "c": 7
-          }
-        ]
-      },
       "w10": {
         "id": "w10",
         "startBlockId": "g1",
@@ -424,49 +310,19 @@
           }
         ]
       },
-      "w11": {
-        "id": "w11",
-        "startBlockId": "g2",
-        "endBlockId": "g3",
+      "w13": {
+        "id": "w13",
+        "startBlockId": "g1",
+        "endBlockId": "GRAY0",
         "path": [
           {
             "r": 4,
-            "c": 8
-          },
-          {
-            "r": 4,
-            "c": 7
+            "c": 6
           },
           {
             "r": 5,
-            "c": 7
-          }
-        ]
-      },
-      "w12": {
-        "id": "w12",
-        "startBlockId": "g2",
-        "endBlockId": "g4",
-        "path": [
-          {
-            "r": 4,
-            "c": 8
+            "c": 6
           },
-          {
-            "r": 4,
-            "c": 9
-          },
-          {
-            "r": 3,
-            "c": 9
-          }
-        ]
-      },
-      "w13": {
-        "id": "w13",
-        "startBlockId": "g3",
-        "endBlockId": "GRAY0",
-        "path": [
           {
             "r": 5,
             "c": 7
@@ -488,9 +344,29 @@
       },
       "w14": {
         "id": "w14",
-        "startBlockId": "g4",
+        "startBlockId": "GRAY0",
         "endBlockId": "GRAY1",
         "path": [
+          {
+            "r": 6,
+            "c": 9
+          },
+          {
+            "r": 6,
+            "c": 10
+          },
+          {
+            "r": 5,
+            "c": 10
+          },
+          {
+            "r": 4,
+            "c": 10
+          },
+          {
+            "r": 3,
+            "c": 10
+          },
           {
             "r": 3,
             "c": 9
@@ -624,7 +500,7 @@
       "w20": {
         "id": "w20",
         "startBlockId": "g10",
-        "endBlockId": "OUT_PWM",
+        "endBlockId": "OUT_LIGHT",
         "path": [
           {
             "r": 7,

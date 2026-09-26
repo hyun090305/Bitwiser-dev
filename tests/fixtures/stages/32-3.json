@@ -28,18 +28,6 @@
         "fixed": false,
         "inputMode": "button"
       },
-      "RESET": {
-        "id": "RESET",
-        "type": "INPUT",
-        "name": "RESET",
-        "pos": {
-          "r": 8,
-          "c": 13
-        },
-        "value": false,
-        "fixed": false,
-        "inputMode": "button"
-      },
       "COUNT0": {
         "id": "COUNT0",
         "type": "D",
@@ -68,28 +56,6 @@
         "name": "g1",
         "pos": {
           "r": 7,
-          "c": 16
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g2": {
-        "id": "g2",
-        "type": "NOT",
-        "name": "g2",
-        "pos": {
-          "r": 10,
-          "c": 15
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g3": {
-        "id": "g3",
-        "type": "AND",
-        "name": "g3",
-        "pos": {
-          "r": 9,
           "c": 16
         },
         "value": false,
@@ -183,34 +149,12 @@
         "value": false,
         "fixed": false
       },
-      "g12": {
-        "id": "g12",
-        "type": "OR",
-        "name": "g12",
-        "pos": {
-          "r": 5,
-          "c": 12
-        },
-        "value": false,
-        "fixed": false
-      },
       "g13": {
         "id": "g13",
         "type": "NOT",
         "name": "g13",
         "pos": {
           "r": 13,
-          "c": 16
-        },
-        "value": false,
-        "fixed": false
-      },
-      "g14": {
-        "id": "g14",
-        "type": "AND",
-        "name": "g14",
-        "pos": {
-          "r": 11,
           "c": 16
         },
         "value": false,
@@ -326,17 +270,6 @@
         "value": false,
         "fixed": false
       },
-      "g25": {
-        "id": "g25",
-        "type": "OR",
-        "name": "g25",
-        "pos": {
-          "r": 15,
-          "c": 13
-        },
-        "value": false,
-        "fixed": false
-      },
       "OUT_BIT0": {
         "id": "OUT_BIT0",
         "type": "OUTPUT",
@@ -407,16 +340,6 @@
         "pos": {
           "r": 2,
           "c": 19
-        },
-        "value": false,
-        "fixed": false
-      },
-      "branch_2_0": {
-        "id": "branch_2_0",
-        "type": "JUNCTION",
-        "pos": {
-          "r": 10,
-          "c": 13
         },
         "value": false,
         "fixed": false
@@ -674,102 +597,6 @@
           }
         ]
       },
-      "w9": {
-        "id": "w9",
-        "startBlockId": "RESET",
-        "endBlockId": "branch_2_0",
-        "path": [
-          {
-            "r": 8,
-            "c": 13
-          },
-          {
-            "r": 9,
-            "c": 13
-          },
-          {
-            "r": 10,
-            "c": 13
-          }
-        ]
-      },
-      "w10": {
-        "id": "w10",
-        "startBlockId": "RESET",
-        "endBlockId": "g12",
-        "path": [
-          {
-            "r": 8,
-            "c": 13
-          },
-          {
-            "r": 8,
-            "c": 12
-          },
-          {
-            "r": 7,
-            "c": 12
-          },
-          {
-            "r": 6,
-            "c": 12
-          },
-          {
-            "r": 5,
-            "c": 12
-          }
-        ]
-      },
-      "w11": {
-        "id": "w11",
-        "startBlockId": "branch_2_0",
-        "endBlockId": "g2",
-        "path": [
-          {
-            "r": 10,
-            "c": 13
-          },
-          {
-            "r": 10,
-            "c": 14
-          },
-          {
-            "r": 10,
-            "c": 15
-          }
-        ]
-      },
-      "w12": {
-        "id": "w12",
-        "startBlockId": "branch_2_0",
-        "endBlockId": "g25",
-        "path": [
-          {
-            "r": 10,
-            "c": 13
-          },
-          {
-            "r": 11,
-            "c": 13
-          },
-          {
-            "r": 12,
-            "c": 13
-          },
-          {
-            "r": 13,
-            "c": 13
-          },
-          {
-            "r": 14,
-            "c": 13
-          },
-          {
-            "r": 15,
-            "c": 13
-          }
-        ]
-      },
       "w13": {
         "id": "w13",
         "startBlockId": "COUNT0",
@@ -846,10 +673,10 @@
           }
         ]
       },
-      "w17": {
-        "id": "w17",
+      "w20": {
+        "id": "w20",
         "startBlockId": "g1",
-        "endBlockId": "g3",
+        "endBlockId": "COUNT0",
         "path": [
           {
             "r": 7,
@@ -859,55 +686,6 @@
             "r": 8,
             "c": 16
           },
-          {
-            "r": 9,
-            "c": 16
-          }
-        ]
-      },
-      "w18": {
-        "id": "w18",
-        "startBlockId": "g2",
-        "endBlockId": "g3",
-        "path": [
-          {
-            "r": 10,
-            "c": 15
-          },
-          {
-            "r": 9,
-            "c": 15
-          },
-          {
-            "r": 9,
-            "c": 16
-          }
-        ]
-      },
-      "w19": {
-        "id": "w19",
-        "startBlockId": "g2",
-        "endBlockId": "g14",
-        "path": [
-          {
-            "r": 10,
-            "c": 15
-          },
-          {
-            "r": 10,
-            "c": 16
-          },
-          {
-            "r": 11,
-            "c": 16
-          }
-        ]
-      },
-      "w20": {
-        "id": "w20",
-        "startBlockId": "g3",
-        "endBlockId": "COUNT0",
-        "path": [
           {
             "r": 9,
             "c": 16
@@ -1091,25 +869,6 @@
           }
         ]
       },
-      "w29": {
-        "id": "w29",
-        "startBlockId": "g11",
-        "endBlockId": "g12",
-        "path": [
-          {
-            "r": 6,
-            "c": 11
-          },
-          {
-            "r": 5,
-            "c": 11
-          },
-          {
-            "r": 5,
-            "c": 12
-          }
-        ]
-      },
       "w30": {
         "id": "w30",
         "startBlockId": "g11",
@@ -1167,9 +926,17 @@
       },
       "w31": {
         "id": "w31",
-        "startBlockId": "g12",
+        "startBlockId": "g11",
         "endBlockId": "COUNT0",
         "path": [
+          {
+            "r": 6,
+            "c": 11
+          },
+          {
+            "r": 5,
+            "c": 11
+          },
           {
             "r": 5,
             "c": 12
@@ -1201,10 +968,10 @@
         ],
         "inputRole": "EN"
       },
-      "w32": {
-        "id": "w32",
+      "w33": {
+        "id": "w33",
         "startBlockId": "g13",
-        "endBlockId": "g14",
+        "endBlockId": "COUNT1",
         "path": [
           {
             "r": 13,
@@ -1214,17 +981,6 @@
             "r": 12,
             "c": 16
           },
-          {
-            "r": 11,
-            "c": 16
-          }
-        ]
-      },
-      "w33": {
-        "id": "w33",
-        "startBlockId": "g14",
-        "endBlockId": "COUNT1",
-        "path": [
           {
             "r": 11,
             "c": 16
@@ -1522,10 +1278,10 @@
           }
         ]
       },
-      "w44": {
-        "id": "w44",
+      "w45": {
+        "id": "w45",
         "startBlockId": "g24",
-        "endBlockId": "g25",
+        "endBlockId": "COUNT1",
         "path": [
           {
             "r": 16,
@@ -1535,17 +1291,6 @@
             "r": 15,
             "c": 12
           },
-          {
-            "r": 15,
-            "c": 13
-          }
-        ]
-      },
-      "w45": {
-        "id": "w45",
-        "startBlockId": "g25",
-        "endBlockId": "COUNT1",
-        "path": [
           {
             "r": 15,
             "c": 13

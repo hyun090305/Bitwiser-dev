@@ -921,7 +921,7 @@
     },
     {
       "id": "pwm",
-      "label": "Four Brightness Levels",
+      "label": "Light Timing",
       "nodeType": "stage",
       "chapterId": "chapter_4",
       "optional": false,
@@ -942,7 +942,7 @@
     },
     {
       "id": "watchdog",
-      "label": "Watchdog",
+      "label": "Delay Timer",
       "nodeType": "stage",
       "chapterId": "chapter_4",
       "optional": false,

@@ -1,81 +1,260 @@
 {
   "status": "planar",
   "planar": true,
-  "node_count": 8,
-  "directed_edge_count": 9,
-  "simple_undirected_edge_count": 9,
+  "node_count": 28,
+  "directed_edge_count": 39,
+  "simple_undirected_edge_count": 39,
   "connected_components": 1,
   "scope": "underlying undirected graph; free terminals and free cyclic port order",
-  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
-  "networkx_version": "3.6.1",
+  "algorithm": "NetworkX planar embedding; independently checked with integer arithmetic",
   "rotation": {
-    "KICK": [
-      "g1"
-    ],
-    "SILENT0": [
-      "g1",
+    "TIME0": [
       "g2"
     ],
-    "SILENT1": [
-      "g2",
-      "g3"
+    "TIME1": [
+      "g14"
     ],
-    "SILENT2": [
+    "START": [
+      "g2",
       "g3",
-      "OUT_TIMEOUT"
+      "g14",
+      "g19"
     ],
-    "g1": [
-      "KICK",
-      "SILENT0",
-      "g2",
-      "g3"
-    ],
-    "g2": [
-      "SILENT0",
-      "SILENT1",
+    "R0": [
+      "g5",
+      "g17",
       "g1"
     ],
-    "g3": [
-      "SILENT1",
-      "g1",
-      "SILENT2"
+    "g5": [
+      "g4",
+      "g2",
+      "R0"
     ],
-    "OUT_TIMEOUT": [
-      "SILENT2"
+    "R1": [
+      "g6",
+      "g17",
+      "g16",
+      "g8"
+    ],
+    "g16": [
+      "R1",
+      "g14",
+      "g15"
+    ],
+    "ACTIVE": [
+      "g18",
+      "g19",
+      "g21"
+    ],
+    "g19": [
+      "ACTIVE",
+      "g18",
+      "START"
+    ],
+    "g1": [
+      "R0",
+      "g6",
+      "g10",
+      "g4"
+    ],
+    "g2": [
+      "TIME0",
+      "START",
+      "g5"
+    ],
+    "g3": [
+      "START",
+      "g4",
+      "g15"
+    ],
+    "g4": [
+      "g3",
+      "g5",
+      "g1"
+    ],
+    "g6": [
+      "g1",
+      "R1",
+      "g7"
+    ],
+    "g7": [
+      "g8",
+      "g10",
+      "g6"
+    ],
+    "g8": [
+      "g9",
+      "g7",
+      "R1"
+    ],
+    "g9": [
+      "g12",
+      "g8"
+    ],
+    "g10": [
+      "g7",
+      "g11",
+      "g1"
+    ],
+    "g11": [
+      "g10",
+      "g12"
+    ],
+    "g12": [
+      "g13",
+      "g11",
+      "g9"
+    ],
+    "g13": [
+      "g15",
+      "g12"
+    ],
+    "g14": [
+      "g16",
+      "START",
+      "TIME1"
+    ],
+    "g15": [
+      "g16",
+      "g3",
+      "g13"
+    ],
+    "g17": [
+      "R1",
+      "R0",
+      "g18",
+      "g20"
+    ],
+    "g18": [
+      "g17",
+      "g19",
+      "ACTIVE"
+    ],
+    "g20": [
+      "g21",
+      "g17"
+    ],
+    "g21": [
+      "ACTIVE",
+      "g20",
+      "OUT_DONE"
+    ],
+    "OUT_DONE": [
+      "g21"
     ]
   },
   "positions": {
-    "KICK": [
+    "START": [
       0,
       0
     ],
-    "SILENT0": [
-      1,
-      1
+    "g16": [
+      26,
+      26
     ],
-    "g2": [
-      2,
-      2
+    "R1": [
+      26,
+      25
     ],
-    "SILENT1": [
-      3,
-      3
-    ],
-    "g3": [
-      6,
-      6
-    ],
-    "SILENT2": [
-      6,
-      5
-    ],
-    "g1": [
-      12,
+    "g14": [
+      52,
       0
     ],
-    "OUT_TIMEOUT": [
-      7,
+    "g17": [
+      17,
+      15
+    ],
+    "g15": [
+      45,
+      6
+    ],
+    "g3": [
+      48,
+      2
+    ],
+    "TIME1": [
+      50,
+      1
+    ],
+    "g20": [
+      17,
+      14
+    ],
+    "R0": [
+      25,
+      7
+    ],
+    "g4": [
+      25,
       4
+    ],
+    "g6": [
+      26,
+      8
+    ],
+    "g7": [
+      27,
+      9
+    ],
+    "g8": [
+      32,
+      14
+    ],
+    "g9": [
+      33,
+      13
+    ],
+    "g12": [
+      34,
+      12
+    ],
+    "g11": [
+      34,
+      11
+    ],
+    "g13": [
+      36,
+      14
+    ],
+    "g1": [
+      42,
+      5
+    ],
+    "g10": [
+      34,
+      10
+    ],
+    "g21": [
+      16,
+      12
+    ],
+    "ACTIVE": [
+      20,
+      11
+    ],
+    "g19": [
+      20,
+      10
+    ],
+    "g18": [
+      22,
+      9
+    ],
+    "g2": [
+      20,
+      6
+    ],
+    "TIME0": [
+      18,
+      3
+    ],
+    "g5": [
+      21,
+      5
+    ],
+    "OUT_DONE": [
+      17,
+      13
     ]
   }
 }

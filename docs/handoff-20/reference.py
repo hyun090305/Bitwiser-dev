@@ -39,11 +39,11 @@ def step(stage, state, u):
         history = (u["OPEN"], state[0], state[1])
         return history, {"DOOR": int(any(history))}
     if stage == "C4-06":
-        q = 0 if u["RESET"] else (state + u["INC"] - u["DEC"]) % 4
+        q = (state + u["INC"] - u["DEC"]) % 4
         return q, bits(q, "BIT", 2)
     if stage == "C4-07":
-        phase = 0 if u["RESET"] else (state + 1) % 4
-        return phase, {"PWM": int(phase < number(u, "DUTY", 2))}
+        phase = (state + 1) % 4
+        return phase, {"LIGHT": int(phase < number(u, "LEVEL", 2))}
     if stage == "C4-08":
         a, b = u["REQ_A"], u["REQ_B"]
         if not (a or b):
@@ -58,8 +58,10 @@ def step(stage, state, u):
             history = current[-3:]
         return (history, opened), {"UNLOCKED": opened}
     if stage == "C4-10":
-        silence = 0 if u["KICK"] else min(state + 1, 3)
-        return silence, {"TIMEOUT": int(silence == 3)}
+        if u["START"]:
+            duration = number(u, "TIME", 2)
+            return duration, {"DONE": int(duration == 0)}
+        return max(state - 1, 0), {"DONE": int(state == 1)}
     if stage == "C5-01":
         q = 0 if u["RESET"] else (state + (number(u, "D", 2) if u["ADD"] else 0)) % 4
         return q, bits(q, "Q", 2)

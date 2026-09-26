@@ -1,72 +1,53 @@
 {
   "status": "planar",
   "planar": true,
-  "node_count": 16,
-  "directed_edge_count": 20,
-  "simple_undirected_edge_count": 20,
+  "node_count": 12,
+  "directed_edge_count": 15,
+  "simple_undirected_edge_count": 15,
   "connected_components": 1,
   "scope": "underlying undirected graph; free terminals and free cyclic port order",
-  "algorithm": "NetworkX check_planarity (Left-Right planarity test)",
-  "networkx_version": "3.6.1",
+  "algorithm": "NetworkX planar embedding, independently checked by exact_embedding_check",
   "rotation": {
-    "DUTY0": [
+    "LEVEL0": [
       "g6",
       "g8"
     ],
-    "DUTY1": [
+    "LEVEL1": [
       "g7"
-    ],
-    "RESET": [
-      "g2"
     ],
     "GRAY0": [
       "g5",
       "g8",
-      "g3",
-      "g4"
-    ],
-    "GRAY1": [
       "g1",
-      "g4"
+      "GRAY1"
     ],
     "g1": [
-      "g3",
+      "GRAY0",
       "g9",
       "GRAY1"
     ],
-    "g2": [
-      "g4",
-      "g3",
-      "RESET"
-    ],
-    "g3": [
-      "GRAY0",
+    "GRAY1": [
       "g1",
-      "g2"
-    ],
-    "g4": [
-      "GRAY1",
-      "GRAY0",
-      "g2"
+      "GRAY0"
     ],
     "g5": [
       "g6",
       "GRAY0"
     ],
     "g6": [
-      "DUTY0",
+      "LEVEL0",
       "g5",
       "g7"
     ],
     "g7": [
       "g10",
       "g6",
-      "DUTY1"
+      "LEVEL1"
     ],
     "g8": [
       "g9",
       "GRAY0",
-      "DUTY0"
+      "LEVEL0"
     ],
     "g9": [
       "g1",
@@ -76,76 +57,60 @@
     "g10": [
       "g9",
       "g7",
-      "OUT_PWM"
+      "OUT_LIGHT"
     ],
-    "OUT_PWM": [
+    "OUT_LIGHT": [
       "g10"
     ]
   },
   "positions": {
-    "DUTY1": [
+    "LEVEL1": [
       0,
       0
     ],
-    "OUT_PWM": [
-      1,
-      1
-    ],
-    "g10": [
-      2,
-      2
-    ],
-    "g9": [
-      4,
-      4
-    ],
-    "g1": [
-      7,
-      7
-    ],
-    "GRAY1": [
-      12,
-      12
-    ],
-    "RESET": [
-      12,
-      11
-    ],
-    "g4": [
-      14,
+    "g6": [
+      10,
       10
     ],
-    "GRAY0": [
-      18,
-      6
-    ],
-    "g8": [
-      18,
-      5
-    ],
     "g5": [
-      20,
-      8
-    ],
-    "DUTY0": [
-      22,
-      3
-    ],
-    "g6": [
-      24,
-      4
+      8,
+      7
     ],
     "g7": [
-      28,
+      20,
       0
     ],
-    "g3": [
+    "LEVEL0": [
       10,
-      8
-    ],
-    "g2": [
-      11,
       9
+    ],
+    "GRAY0": [
+      10,
+      6
+    ],
+    "GRAY1": [
+      10,
+      5
+    ],
+    "g8": [
+      11,
+      7
+    ],
+    "g9": [
+      15,
+      3
+    ],
+    "g10": [
+      16,
+      2
+    ],
+    "OUT_LIGHT": [
+      16,
+      1
+    ],
+    "g1": [
+      11,
+      4
     ]
   }
 }

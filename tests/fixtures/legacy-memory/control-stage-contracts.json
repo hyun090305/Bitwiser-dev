@@ -1,0 +1,896 @@
+{
+  "base": "41eb412b76a2afbcac6aa3b8a18bfc07e34a5e68",
+  "languages": {
+    "levels.json": {
+      "definitions": {
+        "32": {
+          "levelGridSizes": [
+            19,
+            25
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "INC",
+              "inputMode": "button"
+            },
+            {
+              "type": "INPUT",
+              "name": "DEC",
+              "inputMode": "button"
+            },
+            {
+              "type": "INPUT",
+              "name": "RESET",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "BIT0"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "BIT1"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-06"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                48,
+                66
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "INC",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "DEC",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "RESET",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "BIT0"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "BIT1"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 200,
+                    "type": "INPUT",
+                    "name": "INC",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 1402,
+                    "type": "INPUT",
+                    "name": "DEC",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 754,
+                    "type": "INPUT",
+                    "name": "RESET",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 898,
+                    "type": "OUTPUT",
+                    "name": "BIT0"
+                  },
+                  {
+                    "index": 1490,
+                    "type": "OUTPUT",
+                    "name": "BIT1"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-06"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": null,
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        },
+        "33": {
+          "levelGridSizes": [
+            12,
+            13
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "DUTY0",
+              "inputMode": "switch"
+            },
+            {
+              "type": "INPUT",
+              "name": "DUTY1",
+              "inputMode": "switch"
+            },
+            {
+              "type": "INPUT",
+              "name": "RESET",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "PWM"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-07"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                25,
+                26
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "DUTY0",
+                  "inputMode": "switch"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "DUTY1",
+                  "inputMode": "switch"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "RESET",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "PWM"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 226,
+                    "type": "INPUT",
+                    "name": "DUTY0",
+                    "inputMode": "switch"
+                  },
+                  {
+                    "index": 80,
+                    "type": "INPUT",
+                    "name": "DUTY1",
+                    "inputMode": "switch"
+                  },
+                  {
+                    "index": 264,
+                    "type": "INPUT",
+                    "name": "RESET",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 123,
+                    "type": "OUTPUT",
+                    "name": "PWM"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-07"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": null,
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        },
+        "34": {
+          "levelGridSizes": [
+            7,
+            8
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "KICK",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "TIMEOUT"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-10"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                15,
+                15
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "KICK",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "TIMEOUT"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 69,
+                    "type": "INPUT",
+                    "name": "KICK",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 111,
+                    "type": "OUTPUT",
+                    "name": "TIMEOUT"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-10"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": {
+            "levelGridSizes": [
+              14,
+              16
+            ],
+            "levelBlockSets": [
+              {
+                "type": "INPUT",
+                "name": "KICK",
+                "inputMode": "button"
+              },
+              {
+                "type": "OUTPUT",
+                "name": "TIMEOUT"
+              },
+              {
+                "type": "D"
+              },
+              {
+                "type": "NOT"
+              },
+              {
+                "type": "AND"
+              },
+              {
+                "type": "OR"
+              },
+              {
+                "type": "JUNCTION"
+              }
+            ],
+            "levelFixedIO": {
+              "fixIO": true,
+              "grid": [
+                {
+                  "index": 8,
+                  "type": "INPUT",
+                  "name": "KICK",
+                  "inputMode": "button"
+                },
+                {
+                  "index": 195,
+                  "type": "OUTPUT",
+                  "name": "TIMEOUT"
+                }
+              ]
+            },
+            "levelAnswers": {
+              "mode": "sequential",
+              "referenceId": "watchdog"
+            }
+          },
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        }
+      },
+      "unchanged": {
+        "levelTitles": "36f7aa538dddf0ef33b5dc86c27e007b284f6e58702fb2bc9027dda911c99291",
+        "levelGridSizes": "012aca7f5566cc606a84979a4ffc0f536be422640c7e6454cdcbbbf150f7bc00",
+        "levelBlockSets": "a3e28ba304320f77a41b8ccfc151272d66258ea9c71ac56a0096fb7348ff23ea",
+        "levelFixedIO": "726b670926f7dae83fbaf3e0f91c49a68f0b0158e65815b8189d99e5c28b2d28",
+        "levelAnswers": "8616d03332b8ed51c4fa73c7e549794cf28490f9dd7ffbce2c7a80f800e02c5e",
+        "levelDescriptions": "6af98b71a49983cdf8c9514d7462d2e24fc0c1b4e72611b5512f559cd2cf02d3",
+        "levelHints": "15d890fe64dc21a61851ad61d7370f167f1b9c093ddbb678dd67917da924eb65",
+        "levelStarThresholds": "df2c9d35aae37ed5e27bc3780eb8d704bb81e0a75d2be8631d06a543fe138697",
+        "levelLegacyDefinitions": "26db16e9450b1d7ad015cf279dc929b1c2b0cd2b4d351a7509bc47a7f8ba9487",
+        "levelRevisions": "a23e9b043674d5fba30efd9e0383f914213059d7d59acf59d70c62033bf4495f",
+        "levelPreviousLayouts": "3c86a46531efedee526bc81bad521d9ceb64041c88791d03929053db816d7b07"
+      }
+    },
+    "levels_en.json": {
+      "definitions": {
+        "32": {
+          "levelGridSizes": [
+            19,
+            25
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "INC",
+              "inputMode": "button"
+            },
+            {
+              "type": "INPUT",
+              "name": "DEC",
+              "inputMode": "button"
+            },
+            {
+              "type": "INPUT",
+              "name": "RESET",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "BIT0"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "BIT1"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-06"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                48,
+                66
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "INC",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "DEC",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "RESET",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "BIT0"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "BIT1"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 200,
+                    "type": "INPUT",
+                    "name": "INC",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 1402,
+                    "type": "INPUT",
+                    "name": "DEC",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 754,
+                    "type": "INPUT",
+                    "name": "RESET",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 898,
+                    "type": "OUTPUT",
+                    "name": "BIT0"
+                  },
+                  {
+                    "index": 1490,
+                    "type": "OUTPUT",
+                    "name": "BIT1"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-06"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": null,
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        },
+        "33": {
+          "levelGridSizes": [
+            12,
+            13
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "DUTY0",
+              "inputMode": "switch"
+            },
+            {
+              "type": "INPUT",
+              "name": "DUTY1",
+              "inputMode": "switch"
+            },
+            {
+              "type": "INPUT",
+              "name": "RESET",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "PWM"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-07"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                25,
+                26
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "DUTY0",
+                  "inputMode": "switch"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "DUTY1",
+                  "inputMode": "switch"
+                },
+                {
+                  "type": "INPUT",
+                  "name": "RESET",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "PWM"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 226,
+                    "type": "INPUT",
+                    "name": "DUTY0",
+                    "inputMode": "switch"
+                  },
+                  {
+                    "index": 80,
+                    "type": "INPUT",
+                    "name": "DUTY1",
+                    "inputMode": "switch"
+                  },
+                  {
+                    "index": 264,
+                    "type": "INPUT",
+                    "name": "RESET",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 123,
+                    "type": "OUTPUT",
+                    "name": "PWM"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-07"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": null,
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        },
+        "34": {
+          "levelGridSizes": [
+            7,
+            8
+          ],
+          "levelBlockSets": [
+            {
+              "type": "INPUT",
+              "name": "KICK",
+              "inputMode": "button"
+            },
+            {
+              "type": "OUTPUT",
+              "name": "TIMEOUT"
+            },
+            {
+              "type": "D"
+            },
+            {
+              "type": "NOT"
+            },
+            {
+              "type": "AND"
+            },
+            {
+              "type": "OR"
+            },
+            {
+              "type": "JUNCTION"
+            }
+          ],
+          "levelFixedIO": {
+            "fixIO": false,
+            "grid": []
+          },
+          "levelAnswers": {
+            "mode": "sequential",
+            "referenceId": "memory20:C4-10"
+          },
+          "levelRevisions": "memory20-free-compact-2026-09-18",
+          "levelPreviousLayouts": [
+            {
+              "levelGridSizes": [
+                15,
+                15
+              ],
+              "levelBlockSets": [
+                {
+                  "type": "INPUT",
+                  "name": "KICK",
+                  "inputMode": "button"
+                },
+                {
+                  "type": "OUTPUT",
+                  "name": "TIMEOUT"
+                },
+                {
+                  "type": "D"
+                },
+                {
+                  "type": "NOT"
+                },
+                {
+                  "type": "AND"
+                },
+                {
+                  "type": "OR"
+                },
+                {
+                  "type": "JUNCTION"
+                }
+              ],
+              "levelFixedIO": {
+                "fixIO": true,
+                "grid": [
+                  {
+                    "index": 69,
+                    "type": "INPUT",
+                    "name": "KICK",
+                    "inputMode": "button"
+                  },
+                  {
+                    "index": 111,
+                    "type": "OUTPUT",
+                    "name": "TIMEOUT"
+                  }
+                ]
+              },
+              "levelAnswers": {
+                "mode": "sequential",
+                "referenceId": "memory20:C4-10"
+              }
+            }
+          ],
+          "levelLegacyDefinitions": {
+            "levelGridSizes": [
+              14,
+              16
+            ],
+            "levelBlockSets": [
+              {
+                "type": "INPUT",
+                "name": "KICK",
+                "inputMode": "button"
+              },
+              {
+                "type": "OUTPUT",
+                "name": "TIMEOUT"
+              },
+              {
+                "type": "D"
+              },
+              {
+                "type": "NOT"
+              },
+              {
+                "type": "AND"
+              },
+              {
+                "type": "OR"
+              },
+              {
+                "type": "JUNCTION"
+              }
+            ],
+            "levelFixedIO": {
+              "fixIO": true,
+              "grid": [
+                {
+                  "index": 8,
+                  "type": "INPUT",
+                  "name": "KICK",
+                  "inputMode": "button"
+                },
+                {
+                  "index": 195,
+                  "type": "OUTPUT",
+                  "name": "TIMEOUT"
+                }
+              ]
+            },
+            "levelAnswers": {
+              "mode": "sequential",
+              "referenceId": "watchdog"
+            }
+          },
+          "levelStarThresholds": {
+            "twoStarMaxCost": null,
+            "threeStarMaxCost": null
+          }
+        }
+      },
+      "unchanged": {
+        "levelTitles": "de719e8649880efbcbb1df8ae6ab32363b49bcf7c32398a9cb9ef10c5642a7d6",
+        "levelGridSizes": "012aca7f5566cc606a84979a4ffc0f536be422640c7e6454cdcbbbf150f7bc00",
+        "levelBlockSets": "6f1194c315b5b94fef9cd2733a94c8d5e8176be6b9adc7a9ce6748ebf5ee266a",
+        "levelFixedIO": "c05f3cde7d409ad1ac4c397d69cfc79f7d16e145c527d68945ebd4f183b43299",
+        "levelAnswers": "8616d03332b8ed51c4fa73c7e549794cf28490f9dd7ffbce2c7a80f800e02c5e",
+        "levelDescriptions": "21404f21509da0a1fff5c732a40978bc30164d0de8bbea63562c6640a4368d4e",
+        "levelHints": "fbc67e8785ddf8103dcf03bf208da2ba50b2d7094e743207279c35d82bbbcd8c",
+        "levelStarThresholds": "df2c9d35aae37ed5e27bc3780eb8d704bb81e0a75d2be8631d06a543fe138697",
+        "levelLegacyDefinitions": "26db16e9450b1d7ad015cf279dc929b1c2b0cd2b4d351a7509bc47a7f8ba9487",
+        "levelRevisions": "a23e9b043674d5fba30efd9e0383f914213059d7d59acf59d70c62033bf4495f",
+        "levelPreviousLayouts": "3c86a46531efedee526bc81bad521d9ceb64041c88791d03929053db816d7b07"
+      }
+    }
+  },
+  "mapHash": "633a8a1122e9fec05b8fbb1b91f9b46b5044cc3ca227403046e6d4333e223092"
+}

@@ -1,5 +1,7 @@
 # Bitwiser 메모리 20문제 개편 — Codex 구현 인계서
 
+2026-09-26: 32/33/34는 [제어 스테이지 개편](../control-stages.md)에 따라 갱신했습니다. 아래 세 항목과 개별 spec/catalog/circuit/reference가 현재 규칙이며, 원본 HTML 뷰어는 2026-09-18 자료입니다.
+
 2026-09-18 · 최종 기능 보존판 + COMPLETE 나눗셈기
 
 ## 전달할 작업
@@ -26,11 +28,11 @@
 | 3 | `C4-03` | 고장 기록등 | `C4-03` | 5 | 문제 명세 유지 |
 | 4 | `C4-04` | 튀는 버튼 | `C4-04` | 11 | 문제 명세 유지 |
 | 5 | `C4-05` | 자동으로 닫히는 문 | `C4-05` | 7 | 문제 명세 유지 |
-| 6 | `C4-06` | 양방향 카운터 | `C4-06` | 32 | 문제 명세 유지 |
-| 7 | `C4-07` | 네 단계 밝기 | `C4-07` | 16 | 문제 명세 유지 |
+| 6 | `C4-06` | 양방향 카운터 | `up-down-counter-no-reset` | 26 | RESET 제거 |
+| 7 | `C4-07` | 점등 시간 조절 | `light-timing` | 12 | RESET 제거, LEVEL/LIGHT 포트와 네 칸 패턴 |
 | 8 | `C4-08` | 공평한 사용권 | `C4-08` | 13 | 문제 명세 유지 |
 | 9 | `C4-09` | ABBA 잠금장치 — 한 글자씩 제출 | `C4-09-planar-core` | 13 | 입력 방식·패턴 판정 재설계, RESET 제거 |
-| 10 | `C4-10` | 응답 감시기 | `C4-10` | 8 | 문제 명세 유지 |
+| 10 | `C4-10` | 예약 타이머 | `delay-timer` | 28 | 0~3 tick 예약·설정 기억·START 우선 재예약 |
 | 11 | `C5-01` | 누적 계산기 | `C5-01` | 22 | 문제 명세 유지 |
 | 12 | `C5-02` | 주소로 저장하고 읽기 — 핵심판 | `C5-02-core` | 19 | RESET만 제거, 원래 모든 출력 유지 |
 | 13 | `C5-03` | 한 번 되돌리기 — RESET만 제외 | `C5-03-noreset` | 20 | RESET만 제거, 원래 모든 출력 유지 |
@@ -65,7 +67,7 @@ JSON은 이 패키지의 중립적인 회로 포맷이다. 게임 고유의 저�
 ## 공통 엔진·채점 계약
 
 - 허용하는 최종 부품은 INPUT·OUTPUT·AND·OR·NOT·D·DE다. DE는 **D+EN 한 블록**의 데이터 표현이며 `inputs[0]=DATA`, `inputs[1]=EN`이다. 핀 순서를 바꾸면 다른 회로가 된다.
-- 모든 메모리 저장 비트는 새 실행과 각 독립 테스트에서 0이다. 초기 조합 출력까지 모두 0일 필요는 없다. 예를 들어 EMPTY는 처음부터 1이며 PWM은 현재 DUTY를 반영한다.
+- 모든 메모리 저장 비트는 새 실행과 각 독립 테스트에서 0이다. 초기 조합 출력까지 모두 0일 필요는 없다. 예를 들어 EMPTY는 처음부터 1이며 LIGHT는 현재 LEVEL을 반영한다.
 - AND·OR는 2입력, NOT은 1입력, D는 DATA 하나, DE는 DATA·EN 두 입력이다. 공짜 상수·T·C·XOR·MUX·교차 블록을 추가하지 않는다. 이름이 `Q0`인 메모리와 `OUT_Q0`인 OUTPUT 노드는 별개다.
 - **tick 처리 순서:** 그 tick의 입력 적용 → 이전 메모리 상태로 모든 DATA·EN 계산 → 모든 메모리 동시 갱신 → 같은 입력과 새 상태로 조합 출력을 다시 계산 → 채점. 배열 순서대로 메모리를 하나씩 갱신해서 뒤 메모리가 새 값을 읽게 하지 않는다.
 - 1~19번 입력은 매 tick 바뀔 수 있고 모든 동시 요청 조합을 허용한다. 버튼 1이 연속이면 매 tick 요청이다. 20번만 한 테스트 동안 A·B를 고정한다.
@@ -170,27 +172,23 @@ tick 0에서는 채점하지 않는다. tick 10의 올바른 완료는 통과하
 
 ### 6. 양방향 카운터 — `C4-06`
 
-**최초 원본 대비:** 문제 명세 유지.
+**변경:** RESET 제거.
 
-**입력:** `INC`, `DEC`, `RESET` → `INC`, `DEC`, `RESET`.
+**입력:** INC, DEC. **출력:** BIT0, BIT1.
 
-**출력:** `BIT0`, `BIT1` → `BIT0`, `BIT1`.
+**채택 회로:** `up-down-counter-no-reset`, 26블록. 두 D+EN의 반전 조건은 유지하고 RESET 데이터·허용 경로를 제거합니다.
 
-**채택 회로:** `C4-06`, 32블록. 두 D+EN으로 비트별 반전 조건을 구현합니다. 같은 명세의 22블록 비평면 후보 대신 게이트 공유를 줄인 32블록 평면 회로를 채택합니다. RESET도 유지합니다.
+**첨부:** [회로](circuits/C4-06.json) · [현재 명세](specs/C4-06.md) · [평면 인증](certificates/C4-06.json)
 
-**첨부:** [circuits/C4-06.json](circuits/C4-06.json) · [specs/C4-06.md](specs/C4-06.md) · [certificates/C4-06.json](certificates/C4-06.json)
+### 7. 점등 시간 조절 — `C4-07`
 
-### 7. 네 단계 밝기 — `C4-07`
+**변경:** RESET 제거, LEVEL/LIGHT 포트와 네 칸 패턴.
 
-**최초 원본 대비:** 문제 명세 유지.
+**입력:** LEVEL0, LEVEL1. **출력:** LIGHT.
 
-**입력:** `DUTY0`, `DUTY1`, `RESET` → `DUTY0`, `DUTY1`, `RESET`.
+**채택 회로:** `light-timing`, 12블록. Gray 상태 00→10→11→01은 tick마다 진행합니다. 현재 LEVEL에 따른 출력은 조합 비교이며 입력 변경은 상태를 진행시키지 않습니다.
 
-**출력:** `PWM` → `PWM`.
-
-**채택 회로:** `C4-07`, 16블록. 두 D의 Gray 위상 순환과 출력 비교식을 사용합니다. 외부에서 정의한 위상 0→1→2→3과 RESET 동작은 같습니다.
-
-**첨부:** [circuits/C4-07.json](circuits/C4-07.json) · [specs/C4-07.md](specs/C4-07.md) · [certificates/C4-07.json](certificates/C4-07.json)
+**첨부:** [회로](circuits/C4-07.json) · [현재 명세](specs/C4-07.md) · [평면 인증](certificates/C4-07.json)
 
 ### 8. 공평한 사용권 — `C4-08`
 
@@ -218,17 +216,15 @@ A=1·B=0인 SIGNAL과 SUBMIT으로 변경한다. SUBMIT=0의 대기와 열린 �
 
 **첨부:** [circuits/C4-09.json](circuits/C4-09.json) · [specs/C4-09.md](specs/C4-09.md) · [certificates/C4-09.json](certificates/C4-09.json)
 
-### 10. 응답 감시기 — `C4-10`
+### 10. 예약 타이머 — `C4-10`
 
-**최초 원본 대비:** 문제 명세 유지.
+**변경:** 0~3 tick 예약·설정 기억·START 우선 재예약.
 
-**입력:** `KICK` → `KICK`.
+**입력:** TIME0, TIME1, START. **출력:** DONE.
 
-**출력:** `TIMEOUT` → `TIMEOUT`.
+**채택 회로:** `delay-timer`, 28블록. START는 두 D에 TIME을 저장하고 ACTIVE를 켭니다. 카운터는 매 tick mod-4 감소합니다. ACTIVE는 남은 값이 0인 완료 tick까지 유지하고 다음 tick에 끕니다. DONE=ACTIVE AND NOT(R0 OR R1). 비활성 중 카운터 위상은 관측되지 않습니다.
 
-**채택 회로:** `C4-10`, 8블록. 세 D에 무응답 1·2·3 tick 이상을 나타내는 상태를 저장합니다. KICK는 유지합니다.
-
-**첨부:** [circuits/C4-10.json](circuits/C4-10.json) · [specs/C4-10.md](specs/C4-10.md) · [certificates/C4-10.json](certificates/C4-10.json)
+**첨부:** [회로](circuits/C4-10.json) · [현재 명세](specs/C4-10.md) · [평면 인증](certificates/C4-10.json)
 
 ### 11. 누적 계산기 — `C5-01`
 

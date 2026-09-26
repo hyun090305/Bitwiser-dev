@@ -26,7 +26,9 @@ test('20 supplied circuits have playable, bilingual, physically legal final defi
     const points=[...Object.values(c.blocks).map(b=>b.pos),...Object.values(c.wires).flatMap(w=>w.path)];
     assert.ok(points.every(p=>p.r>=1&&p.c>=1&&p.r<c.rows-1&&p.c<c.cols-1),'room around the solution');
     const previous=levels.levelPreviousLayouts[id][0].levelGridSizes;
-    assert.ok(c.rows*c.cols<previous[0]*previous[1],`smaller board ${entry.slot}`);
+    // Delay Timer replaces the old 7x8 watchdog; its verified board is 15x24.
+    if(id===34)assert.deepEqual([c.rows,c.cols],[15,24]);
+    else assert.ok(c.rows*c.cols<previous[0]*previous[1],`smaller board ${entry.slot}`);
     for(const key of ['levelAnswers','levelBlockSets','levelFixedIO','levelGridSizes','levelRevisions'])assert.deepEqual(levels[key][id],en[key][id]);
     for(const data of [levels,en]) {
       validateStageCircuit(c,id,data);
@@ -57,7 +59,7 @@ test('game tick engine agrees with all independently verified Python transitions
   }
   const summary=read('docs/handoff-20/verification_summary.json');
   assert.equal(comparisons,summary.stream_transitions+summary.divider_ticks);
-  assert.equal(comparisons,5286);
+  assert.equal(comparisons,5310);
 });
 
 test('acceptance sequences cover history, simultaneous requests, idle data holds and pulses',()=>{

@@ -2,32 +2,44 @@
   "id": "C4-10",
   "nodes": [
     {
-      "id": "KICK",
+      "id": "TIME0",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "TIME1",
+      "type": "INPUT",
+      "inputs": [],
+      "mode": "switch"
+    },
+    {
+      "id": "START",
       "type": "INPUT",
       "inputs": [],
       "mode": "button"
     },
     {
-      "id": "SILENT0",
+      "id": "R0",
       "type": "D",
       "inputs": [
-        "g1"
+        "g5"
       ],
       "initial": 0
     },
     {
-      "id": "SILENT1",
+      "id": "R1",
       "type": "D",
       "inputs": [
-        "g2"
+        "g16"
       ],
       "initial": 0
     },
     {
-      "id": "SILENT2",
+      "id": "ACTIVE",
       "type": "D",
       "inputs": [
-        "g3"
+        "g19"
       ],
       "initial": 0
     },
@@ -35,37 +47,175 @@
       "id": "g1",
       "type": "NOT",
       "inputs": [
-        "KICK"
+        "R0"
       ]
     },
     {
       "id": "g2",
       "type": "AND",
       "inputs": [
-        "SILENT0",
-        "g1"
+        "START",
+        "TIME0"
       ]
     },
     {
       "id": "g3",
+      "type": "NOT",
+      "inputs": [
+        "START"
+      ]
+    },
+    {
+      "id": "g4",
       "type": "AND",
       "inputs": [
-        "SILENT1",
+        "g3",
         "g1"
       ]
     },
     {
-      "id": "OUT_TIMEOUT",
+      "id": "g5",
+      "type": "OR",
+      "inputs": [
+        "g2",
+        "g4"
+      ]
+    },
+    {
+      "id": "g6",
+      "type": "AND",
+      "inputs": [
+        "R1",
+        "g1"
+      ]
+    },
+    {
+      "id": "g7",
+      "type": "NOT",
+      "inputs": [
+        "g6"
+      ]
+    },
+    {
+      "id": "g8",
+      "type": "AND",
+      "inputs": [
+        "R1",
+        "g7"
+      ]
+    },
+    {
+      "id": "g9",
+      "type": "NOT",
+      "inputs": [
+        "g8"
+      ]
+    },
+    {
+      "id": "g10",
+      "type": "AND",
+      "inputs": [
+        "g1",
+        "g7"
+      ]
+    },
+    {
+      "id": "g11",
+      "type": "NOT",
+      "inputs": [
+        "g10"
+      ]
+    },
+    {
+      "id": "g12",
+      "type": "AND",
+      "inputs": [
+        "g9",
+        "g11"
+      ]
+    },
+    {
+      "id": "g13",
+      "type": "NOT",
+      "inputs": [
+        "g12"
+      ]
+    },
+    {
+      "id": "g14",
+      "type": "AND",
+      "inputs": [
+        "START",
+        "TIME1"
+      ]
+    },
+    {
+      "id": "g15",
+      "type": "AND",
+      "inputs": [
+        "g3",
+        "g13"
+      ]
+    },
+    {
+      "id": "g16",
+      "type": "OR",
+      "inputs": [
+        "g14",
+        "g15"
+      ]
+    },
+    {
+      "id": "g17",
+      "type": "OR",
+      "inputs": [
+        "R0",
+        "R1"
+      ]
+    },
+    {
+      "id": "g18",
+      "type": "AND",
+      "inputs": [
+        "ACTIVE",
+        "g17"
+      ]
+    },
+    {
+      "id": "g19",
+      "type": "OR",
+      "inputs": [
+        "START",
+        "g18"
+      ]
+    },
+    {
+      "id": "g20",
+      "type": "NOT",
+      "inputs": [
+        "g17"
+      ]
+    },
+    {
+      "id": "g21",
+      "type": "AND",
+      "inputs": [
+        "ACTIVE",
+        "g20"
+      ]
+    },
+    {
+      "id": "OUT_DONE",
       "type": "OUTPUT",
       "inputs": [
-        "SILENT2"
+        "g21"
       ],
-      "name": "TIMEOUT"
+      "name": "DONE"
     }
   ],
+  "source_variant": "delay-timer",
   "solution": {
-    "architecture": "silent-prefix",
-    "note": "세 D에 무응답 1·2·3 tick 이상을 나타내는 상태를 저장합니다. KICK는 유지합니다."
-  },
-  "source_variant": "C4-10"
+    "architecture": "loadable-mod4-countdown-with-active-bit",
+    "note": "START는 두 D에 TIME을 저장하고 ACTIVE를 켭니다. 카운터는 매 tick mod-4 감소합니다. ACTIVE는 남은 값이 0인 완료 tick까지 유지하고 다음 tick에 끕니다. DONE=ACTIVE AND NOT(R0 OR R1). 비활성 중 카운터 위상은 관측되지 않습니다."
+  }
 }

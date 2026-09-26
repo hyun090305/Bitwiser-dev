@@ -7,10 +7,14 @@ export const MEMORY20_IDS = Object.freeze({
   'C5-06':44, 'C5-07':41, 'C5-08':42, 'C5-09':40, 'C5-10':46
 });
 // Keep published reference IDs stable when a slot is replaced.
-export const memory20ReferenceId = slot => `memory20:${slot === 'C5-04' ? 'response-check' : slot}`;
+export const memory20ReferenceId = slot => `memory20:${({
+  'C4-06':'up-down-counter-no-reset', 'C4-07':'light-timing',
+  'C4-10':'delay-timer', 'C5-04':'response-check'
+})[slot] || slot}`;
 const b = (n, i) => (n >>> i) & 1;
 // Trusted puzzle policy: submitted INPUT modes cannot disable these checks.
 const releaseButtons = {
+  'up-down-counter-no-reset':['INC','DEC'], 'light-timing':[], 'delay-timer':['START'],
   'C4-01':['LOAD'], 'C4-03':['ACK'], 'response-check':['A','B'],
   'C4-05':['OPEN'], 'C4-06':['INC','DEC','RESET'], 'C4-07':['RESET'],
   'C4-09':['SUBMIT'], 'C4-10':['KICK'], 'C5-01':['ADD','RESET'],
@@ -32,14 +36,24 @@ const specs = {
   // stage:C4-05
   'C4-05': [['OPEN'],['DOOR'],[0,0,0],([a,c],x)=>{const h=[x.OPEN,a,c];return [h,[Number(h.some(Boolean))]];}],
   // stage:C4-06
+  'up-down-counter-no-reset': [['INC','DEC'],['BIT0','BIT1'],0,(s,x)=>{const q=(s+x.INC-x.DEC+4)%4;return [q,[b(q,0),b(q,1)]];}],
+  // Archived RESET counter.
   'C4-06': [['INC','DEC','RESET'],['BIT0','BIT1'],0,(s,x)=>{const q=x.RESET?0:(s+x.INC-x.DEC+4)%4;return [q,[b(q,0),b(q,1)]];}],
   // stage:C4-07
+  'light-timing': [['LEVEL0','LEVEL1'],['LIGHT'],0,(s,x)=>{const q=(s+1)%4;return [q,[Number(q<x.LEVEL0+2*x.LEVEL1)]];}],
+  // Archived RESET brightness control, including its live input observation.
   'C4-07': [['DUTY0','DUTY1','RESET'],['PWM'],0,(s,x)=>{const q=x.RESET?0:(s+1)%4;return [q,[Number(q<x.DUTY0+2*x.DUTY1)]];}],
   // stage:C4-08
   'C4-08': [['REQ_A','REQ_B'],['A_OK','B_OK'],0,(s,x)=>{if(!x.REQ_A&&!x.REQ_B)return [s,[0,0]];const a=x.REQ_A&&x.REQ_B?1-s:x.REQ_A;return [a,[a,1-a]];}],
   // stage:C4-09
   'C4-09': [['SIGNAL','SUBMIT'],['UNLOCKED'],['',0],([h,o],x)=>{const t=x.SUBMIT?h+x.SIGNAL:h;const q=Number(o||t==='1001');return [[t.slice(-3),q],[q]];}],
   // stage:C4-10
+  'delay-timer': [['TIME0','TIME1','START'],['DONE'],0,(remaining,x)=>{
+    const duration=x.TIME0+2*x.TIME1;
+    return x.START ? [duration,[Number(duration===0)]]
+      : [Math.max(remaining-1,0),[Number(remaining===1)]];
+  }],
+  // Archived heartbeat watchdog; never reinterpret saved definitions.
   'C4-10': [['KICK'],['TIMEOUT'],0,(s,x)=>{const q=x.KICK?0:Math.min(s+1,3);return [q,[Number(q===3)]];}],
   // stage:C5-01
   'C5-01': [['D0','D1','ADD','RESET'],['Q0','Q1'],0,(s,x)=>{const q=x.RESET?0:(s+(x.ADD?x.D0+2*x.D1:0))%4;return [q,[b(q,0),b(q,1)]];}],
@@ -78,7 +92,8 @@ export function getMemory20Reference(slot) {
   const spec=specs[slot];if(!spec)return undefined;
   const [inputs,outputs,initial,transition,initialOutputs=0]=spec;
   const visible=slot!=='C5-04'; // Preserve the archived staging reference.
-  const liveInputs=slot==='C4-07'||slot==='C5-02';
+  const lightTiming=slot==='C4-07'||slot==='light-timing';
+  const liveInputs=lightTiming||slot==='C5-02';
   // Latched outputs are part of the state: GO=1 and initial GO=0 can share
   // response memory, but must never collapse into the same observation state.
   const states=[{memory:initial,output:initialOutputs}], known=new Map([[JSON.stringify(states[0]),0]]), table=[];
@@ -96,7 +111,7 @@ export function getMemory20Reference(slot) {
     observeAt:'after_tick',evaluate:(state,input)=>table[state][input],
     ...(visible ? {observationMode:'visible',releaseButtons:Object.freeze(releaseButtons[slot]||[]),
       step:(state,input)=>table[state][input].nextState,
-      observe:(state,input)=>slot==='C4-07' ? Number(states[state].memory < (input&3))
+      observe:(state,input)=>lightTiming ? Number(states[state].memory < (input&3))
         : slot==='C5-02' ? states[state].memory[b(input,inputs.indexOf('ADDR'))]
         : states[state].output} : {})});
   cache.set(slot,ref);return ref;

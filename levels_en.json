@@ -33,8 +33,8 @@
     "30": "Automatic Door",
     "31": "Rising Edge Detector",
     "32": "Up/Down Counter",
-    "33": "Four Brightness Levels",
-    "34": "Watchdog",
+    "33": "Light Timing",
+    "34": "Delay Timer",
     "35": "Bouncing Button",
     "36": "Fair Access",
     "37": "ABBA Lock",
@@ -187,8 +187,8 @@
       13
     ],
     "34": [
-      7,
-      8
+      15,
+      24
     ],
     "35": [
       10,
@@ -1260,11 +1260,6 @@
         "inputMode": "button"
       },
       {
-        "type": "INPUT",
-        "name": "RESET",
-        "inputMode": "button"
-      },
-      {
         "type": "OUTPUT",
         "name": "BIT0"
       },
@@ -1291,22 +1286,17 @@
     "33": [
       {
         "type": "INPUT",
-        "name": "DUTY0",
+        "name": "LEVEL0",
         "inputMode": "switch"
       },
       {
         "type": "INPUT",
-        "name": "DUTY1",
+        "name": "LEVEL1",
         "inputMode": "switch"
-      },
-      {
-        "type": "INPUT",
-        "name": "RESET",
-        "inputMode": "button"
       },
       {
         "type": "OUTPUT",
-        "name": "PWM"
+        "name": "LIGHT"
       },
       {
         "type": "D"
@@ -1327,12 +1317,22 @@
     "34": [
       {
         "type": "INPUT",
-        "name": "KICK",
+        "name": "TIME0",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "TIME1",
+        "inputMode": "switch"
+      },
+      {
+        "type": "INPUT",
+        "name": "START",
         "inputMode": "button"
       },
       {
         "type": "OUTPUT",
-        "name": "TIMEOUT"
+        "name": "DONE"
       },
       {
         "type": "D"
@@ -5756,15 +5756,15 @@
     },
     "32": {
       "mode": "sequential",
-      "referenceId": "memory20:C4-06"
+      "referenceId": "memory20:up-down-counter-no-reset"
     },
     "33": {
       "mode": "sequential",
-      "referenceId": "memory20:C4-07"
+      "referenceId": "memory20:light-timing"
     },
     "34": {
       "mode": "sequential",
-      "referenceId": "memory20:C4-10"
+      "referenceId": "memory20:delay-timer"
     },
     "35": {
       "mode": "sequential",
@@ -7989,14 +7989,13 @@
     },
     "32": {
       "title": "Up/Down Counter",
-      "desc": "Count from 0 to 3 using BIT1·BIT0. INC alone adds one; DEC alone subtracts one. Wrap between 3 and 0. Both on or both off leave the count unchanged. Start at 0; RESET overrides both requests and clears the count. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic INC·DEC·RESET button release completes the tick; switches keep their values.",
+      "desc": "Count from 0 to 3 using BIT1·BIT0. On a tick with only INC pressed, add one; with only DEC pressed, subtract one. Both pressed or neither pressed keeps the value. Increasing 3 wraps to 0; decreasing 0 wraps to 3. Start at 0. Changing inputs or automatically releasing buttons does not change the count.",
       "table": [
         {
           "tick": 1,
           "observation": "after",
           "INC": 1,
           "DEC": 0,
-          "RESET": 0,
           "BIT0": 1,
           "BIT1": 0
         },
@@ -8005,7 +8004,6 @@
           "observation": "after",
           "INC": 1,
           "DEC": 0,
-          "RESET": 0,
           "BIT0": 0,
           "BIT1": 1
         },
@@ -8013,18 +8011,16 @@
           "tick": 3,
           "observation": "after",
           "INC": 1,
-          "DEC": 1,
-          "RESET": 0,
-          "BIT0": 0,
+          "DEC": 0,
+          "BIT0": 1,
           "BIT1": 1
         },
         {
           "tick": 4,
           "observation": "after",
-          "INC": 0,
-          "DEC": 1,
-          "RESET": 0,
-          "BIT0": 1,
+          "INC": 1,
+          "DEC": 0,
+          "BIT0": 0,
           "BIT1": 0
         },
         {
@@ -8032,149 +8028,184 @@
           "observation": "after",
           "INC": 0,
           "DEC": 1,
-          "RESET": 0,
-          "BIT0": 0,
-          "BIT1": 0
+          "BIT0": 1,
+          "BIT1": 1
         },
         {
           "tick": 6,
           "observation": "after",
-          "INC": 0,
+          "INC": 1,
           "DEC": 1,
-          "RESET": 0,
           "BIT0": 1,
           "BIT1": 1
         },
         {
           "tick": 7,
           "observation": "after",
-          "INC": 1,
+          "INC": 0,
           "DEC": 0,
-          "RESET": 1,
+          "BIT0": 1,
+          "BIT1": 1
+        },
+        {
+          "tick": 8,
+          "observation": "after",
+          "INC": 0,
+          "DEC": 1,
+          "BIT0": 0,
+          "BIT1": 1
+        },
+        {
+          "tick": 9,
+          "observation": "after",
+          "INC": 0,
+          "DEC": 1,
+          "BIT0": 1,
+          "BIT1": 0
+        },
+        {
+          "tick": 10,
+          "observation": "after",
+          "INC": 0,
+          "DEC": 1,
           "BIT0": 0,
           "BIT1": 0
         }
       ]
     },
     "33": {
-      "title": "Four Brightness Levels",
-      "desc": "Use DUTY1·DUTY0 to select brightness 0–3. A phase starts at 0 and advances through 1→2→3→0 each tick. Turn PWM on when the phase is below DUTY, giving 0%, 25%, 50% or 75% brightness. RESET returns the phase to 0; the same lighting rule still applies. Changing DUTY immediately updates PWM using the current phase, even before the first tick. RESET takes effect on the next tick. Automatic button release completes that tick without advancing the phase again.",
+      "title": "Light Timing",
+      "desc": "Select 0–3 with LEVEL1·LEVEL0. LIGHT repeats a four-slot pattern, lighting the selected number of slots at the beginning of each cycle. The initial screen (tick 0) is the first slot; completing the first tick moves to the second slot. Each tick moves to the next slot, returning to the first after the fourth. Changing the setting immediately affects the current slot without restarting the cycle. Slots keep advancing even when 0 is selected. The examples below show LIGHT across the first → second → third → fourth slots.",
       "table": [
         {
-          "tick": 1,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 1,
-          "PWM": 1
+          "LEVEL0": 0,
+          "LEVEL1": 0,
+          "LIGHT": "0 0 0 0"
         },
         {
-          "tick": 2,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0,
-          "PWM": 1
+          "LEVEL0": 1,
+          "LEVEL1": 0,
+          "LIGHT": "1 0 0 0"
         },
         {
-          "tick": 3,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0,
-          "PWM": 1
+          "LEVEL0": 0,
+          "LEVEL1": 1,
+          "LIGHT": "1 1 0 0"
         },
         {
-          "tick": 4,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0,
-          "PWM": 0
-        },
-        {
-          "tick": 5,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0,
-          "PWM": 1
-        },
-        {
-          "tick": 6,
-          "observation": "after",
-          "DUTY0": 1,
-          "DUTY1": 1,
-          "RESET": 0,
-          "PWM": 1
-        },
-        {
-          "tick": 7,
-          "observation": "after",
-          "DUTY0": 0,
-          "DUTY1": 0,
-          "RESET": 0,
-          "PWM": 0
+          "LEVEL0": 1,
+          "LEVEL1": 1,
+          "LIGHT": "1 1 1 0"
         }
       ]
     },
     "34": {
-      "title": "Watchdog",
-      "desc": "Turn TIMEOUT on after three consecutive ticks without KICK and keep it on. KICK immediately clears TIMEOUT and restarts the wait. TIMEOUT starts off. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic KICK button release completes the tick; switches keep their values.",
+      "title": "Delay Timer",
+      "desc": "Select a delay of 0–3 ticks with TIME1·TIME0. The tick that samples START schedules the timer; DONE turns on for one tick after the selected number of further ticks. Later changes to TIME do not affect the running timer. START cancels any previous timer and schedules a new one with the current setting. A delay of 0 completes on that same actual tick. Initially no timer is scheduled. After completion, wait for a new START.\nA new START also takes priority on a previous timer’s due tick. START on consecutive ticks reschedules each time; repeatedly scheduling 0 may keep DONE at 1. Changing inputs or automatically releasing START does not change the output. DONE remains until the next actual tick.",
       "table": [
         {
           "tick": 1,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 0
+          "TIME0": 0,
+          "TIME1": 1,
+          "START": 1,
+          "DONE": 0
         },
         {
           "tick": 2,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0,
+          "DONE": 0
         },
         {
           "tick": 3,
           "observation": "after",
-          "KICK": 1,
-          "TIMEOUT": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0,
+          "DONE": 1
         },
         {
           "tick": 4,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 0
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 0,
+          "DONE": 0
         },
         {
           "tick": 5,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 0
+          "TIME0": 1,
+          "TIME1": 0,
+          "START": 1,
+          "DONE": 0
         },
         {
           "tick": 6,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 1
+          "TIME0": 1,
+          "TIME1": 1,
+          "START": 1,
+          "DONE": 0
         },
         {
           "tick": 7,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 1
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0,
+          "DONE": 0
         },
         {
           "tick": 8,
           "observation": "after",
-          "KICK": 1,
-          "TIMEOUT": 0
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0,
+          "DONE": 0
         },
         {
           "tick": 9,
           "observation": "after",
-          "KICK": 0,
-          "TIMEOUT": 0
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0,
+          "DONE": 1
+        },
+        {
+          "tick": 10,
+          "observation": "after",
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0,
+          "DONE": 0
+        },
+        {
+          "tick": 11,
+          "observation": "after",
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 1,
+          "DONE": 1
+        },
+        {
+          "tick": 12,
+          "observation": "after",
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 1,
+          "DONE": 1
+        },
+        {
+          "tick": 13,
+          "observation": "after",
+          "TIME0": 0,
+          "TIME1": 0,
+          "START": 0,
+          "DONE": 0
         }
       ]
     },
@@ -9279,7 +9310,7 @@
       "hints": [
         {
           "type": "Explanation",
-          "content": "Remember one, two and three-or-more silent ticks with D blocks. KICK clears the chain."
+          "content": "Remember the captured setting and the remaining time. Keep completion visible until the next tick, and discard the old timer whenever START arrives."
         }
       ]
     },
@@ -9295,7 +9326,7 @@
       "hints": [
         {
           "type": "Explanation",
-          "content": "Determine when each bit toggles. Use NOT(Q) as DATA and a bit-specific EN; RESET must clear both bits."
+          "content": "Determine when each bit toggles. D enables can simplify holding the value."
         }
       ]
     },
@@ -9303,7 +9334,7 @@
       "hints": [
         {
           "type": "Explanation",
-          "content": "Use two state bits for four phases. A Gray-code cycle can simplify the next-state logic; compare its phase with DUTY."
+          "content": "Remember the four-slot cycle with two bits. Consider an order that changes only one bit at a time."
         }
       ]
     },
@@ -10018,9 +10049,9 @@
     "29": "response-check-2026-09-24",
     "30": "memory20-free-compact-2026-09-18",
     "31": "memory20-free-compact-2026-09-18",
-    "32": "memory20-free-compact-2026-09-18",
-    "33": "memory20-free-compact-2026-09-18",
-    "34": "memory20-free-compact-2026-09-18",
+    "32": "control-stages-2026-09-26",
+    "33": "control-stages-2026-09-26",
+    "34": "control-stages-2026-09-26",
     "35": "memory20-free-compact-2026-09-18",
     "36": "memory20-free-compact-2026-09-18",
     "37": "memory20-free-compact-2026-09-18",
@@ -10573,6 +10604,60 @@
           "mode": "sequential",
           "referenceId": "memory20:C4-06"
         }
+      },
+      {
+        "levelGridSizes": [
+          19,
+          25
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "INC",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "DEC",
+            "inputMode": "button"
+          },
+          {
+            "type": "INPUT",
+            "name": "RESET",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "BIT0"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "BIT1"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:C4-06"
+        }
       }
     ],
     "33": [
@@ -10649,6 +10734,56 @@
           "mode": "sequential",
           "referenceId": "memory20:C4-07"
         }
+      },
+      {
+        "levelGridSizes": [
+          12,
+          13
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "DUTY0",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "DUTY1",
+            "inputMode": "switch"
+          },
+          {
+            "type": "INPUT",
+            "name": "RESET",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "PWM"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:C4-07"
+        }
       }
     ],
     "34": [
@@ -10698,6 +10833,46 @@
               "name": "TIMEOUT"
             }
           ]
+        },
+        "levelAnswers": {
+          "mode": "sequential",
+          "referenceId": "memory20:C4-10"
+        }
+      },
+      {
+        "levelGridSizes": [
+          7,
+          8
+        ],
+        "levelBlockSets": [
+          {
+            "type": "INPUT",
+            "name": "KICK",
+            "inputMode": "button"
+          },
+          {
+            "type": "OUTPUT",
+            "name": "TIMEOUT"
+          },
+          {
+            "type": "D"
+          },
+          {
+            "type": "NOT"
+          },
+          {
+            "type": "AND"
+          },
+          {
+            "type": "OR"
+          },
+          {
+            "type": "JUNCTION"
+          }
+        ],
+        "levelFixedIO": {
+          "fixIO": false,
+          "grid": []
         },
         "levelAnswers": {
           "mode": "sequential",

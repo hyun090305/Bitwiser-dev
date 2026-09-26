@@ -403,8 +403,8 @@
     "slot": "C4-06",
     "id": 32,
     "title": "양방향 카운터",
-    "logicalBlocks": 32,
-    "placedBlocks": 38,
+    "logicalBlocks": 26,
+    "placedBlocks": 31,
     "previousGrid": [
       48,
       66
@@ -416,47 +416,47 @@
     "fixedIO": false,
     "padding": 2,
     "pricingVersion": "cost-v1",
-    "totalCost": 412,
+    "totalCost": 354,
     "counts": {
-      "WIRE": 116,
-      "JUNCTION": 6,
-      "NOT": 12,
-      "AND": 11,
-      "OR": 2,
+      "WIRE": 109,
+      "JUNCTION": 5,
+      "NOT": 11,
+      "AND": 9,
+      "OR": 0,
       "D": 2,
-      "INPUT": 3,
+      "INPUT": 2,
       "OUTPUT": 2
     },
     "breakdown": [
       {
         "type": "WIRE",
-        "count": 116,
+        "count": 109,
         "unitCost": 1,
-        "subtotal": 116
+        "subtotal": 109
       },
       {
         "type": "JUNCTION",
-        "count": 6,
+        "count": 5,
         "unitCost": 1,
-        "subtotal": 6
+        "subtotal": 5
       },
       {
         "type": "NOT",
-        "count": 12,
-        "unitCost": 10,
-        "subtotal": 120
-      },
-      {
-        "type": "AND",
         "count": 11,
         "unitCost": 10,
         "subtotal": 110
       },
       {
-        "type": "OR",
-        "count": 2,
+        "type": "AND",
+        "count": 9,
         "unitCost": 10,
-        "subtotal": 20
+        "subtotal": 90
+      },
+      {
+        "type": "OR",
+        "count": 0,
+        "unitCost": 10,
+        "subtotal": 0
       },
       {
         "type": "D",
@@ -466,7 +466,7 @@
       },
       {
         "type": "INPUT",
-        "count": 3,
+        "count": 2,
         "unitCost": 0,
         "subtotal": 0
       },
@@ -477,14 +477,14 @@
         "subtotal": 0
       }
     ],
-    "transitions": 32
+    "transitions": 16
   },
   {
     "slot": "C4-07",
     "id": 33,
-    "title": "네 단계 밝기",
-    "logicalBlocks": 16,
-    "placedBlocks": 17,
+    "title": "점등 시간 조절",
+    "logicalBlocks": 12,
+    "placedBlocks": 13,
     "previousGrid": [
       25,
       26
@@ -496,23 +496,23 @@
     "fixedIO": false,
     "padding": 2,
     "pricingVersion": "cost-v1",
-    "totalCost": 173,
+    "totalCost": 142,
     "counts": {
-      "WIRE": 32,
+      "WIRE": 31,
       "JUNCTION": 1,
-      "NOT": 3,
-      "AND": 5,
+      "NOT": 2,
+      "AND": 3,
       "OR": 2,
       "D": 2,
-      "INPUT": 3,
+      "INPUT": 2,
       "OUTPUT": 1
     },
     "breakdown": [
       {
         "type": "WIRE",
-        "count": 32,
+        "count": 31,
         "unitCost": 1,
-        "subtotal": 32
+        "subtotal": 31
       },
       {
         "type": "JUNCTION",
@@ -522,15 +522,15 @@
       },
       {
         "type": "NOT",
-        "count": 3,
+        "count": 2,
         "unitCost": 10,
-        "subtotal": 30
+        "subtotal": 20
       },
       {
         "type": "AND",
-        "count": 5,
+        "count": 3,
         "unitCost": 10,
-        "subtotal": 50
+        "subtotal": 30
       },
       {
         "type": "OR",
@@ -546,7 +546,7 @@
       },
       {
         "type": "INPUT",
-        "count": 3,
+        "count": 2,
         "unitCost": 0,
         "subtotal": 0
       },
@@ -557,7 +557,7 @@
         "subtotal": 0
       }
     ],
-    "transitions": 32
+    "transitions": 16
   },
   {
     "slot": "C4-08",
@@ -722,61 +722,61 @@
   {
     "slot": "C4-10",
     "id": 34,
-    "title": "응답 감시기",
-    "logicalBlocks": 8,
-    "placedBlocks": 10,
+    "title": "예약 타이머",
+    "logicalBlocks": 28,
+    "placedBlocks": 35,
     "previousGrid": [
       15,
       15
     ],
     "grid": [
-      7,
-      8
+      15,
+      24
     ],
     "fixedIO": false,
-    "padding": 1,
+    "padding": 2,
     "pricingVersion": "cost-v1",
-    "totalCost": 109,
+    "totalCost": 369,
     "counts": {
-      "WIRE": 17,
-      "JUNCTION": 2,
-      "NOT": 1,
-      "AND": 2,
-      "OR": 0,
+      "WIRE": 92,
+      "JUNCTION": 7,
+      "NOT": 7,
+      "AND": 10,
+      "OR": 4,
       "D": 3,
-      "INPUT": 1,
+      "INPUT": 3,
       "OUTPUT": 1
     },
     "breakdown": [
       {
         "type": "WIRE",
-        "count": 17,
+        "count": 92,
         "unitCost": 1,
-        "subtotal": 17
+        "subtotal": 92
       },
       {
         "type": "JUNCTION",
-        "count": 2,
+        "count": 7,
         "unitCost": 1,
-        "subtotal": 2
+        "subtotal": 7
       },
       {
         "type": "NOT",
-        "count": 1,
+        "count": 7,
         "unitCost": 10,
-        "subtotal": 10
+        "subtotal": 70
       },
       {
         "type": "AND",
-        "count": 2,
+        "count": 10,
         "unitCost": 10,
-        "subtotal": 20
+        "subtotal": 100
       },
       {
         "type": "OR",
-        "count": 0,
+        "count": 4,
         "unitCost": 10,
-        "subtotal": 0
+        "subtotal": 40
       },
       {
         "type": "D",
@@ -786,7 +786,7 @@
       },
       {
         "type": "INPUT",
-        "count": 1,
+        "count": 3,
         "unitCost": 0,
         "subtotal": 0
       },
@@ -797,7 +797,7 @@
         "subtotal": 0
       }
     ],
-    "transitions": 8
+    "transitions": 64
   },
   {
     "slot": "C5-01",

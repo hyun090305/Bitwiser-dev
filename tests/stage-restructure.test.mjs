@@ -78,7 +78,7 @@ test('explicit timing contracts include retrigger, response consumption and post
   assert.deepEqual(run(31,[0,1,1,0,1,0].map(SIGNAL=>({SIGNAL}))),[[0],[1],[0],[0],[1],[0]]);
   assert.deepEqual(run(28,[{FAULT:1,ACK:1},{},{ACK:1}]),[[1],[1],[0]]);
   assert.deepEqual(run(26,[1,1,0,1].map(PRESS=>({PRESS}))),[[1],[0],[0],[1]]);
-  assert.deepEqual(run(34,[0,0,0,0,1,0,0,0].map(KICK=>({KICK}))),[[0],[0],[1],[1],[0],[0],[0],[1]]);
+  assert.deepEqual(run(34,[{},{},{TIME1:1,START:1},{TIME0:1,TIME1:1},{},{},{START:1},{}]),[[0],[0],[0],[0],[1],[0],[1],[0]]);
   assert.deepEqual(run(35,[1,0,1,1,1,0,1,0,0,0].map(RAW=>({RAW}))),[[0],[0],[0],[0],[1],[1],[1],[1],[1],[0]]);
   for(const id of [34,35]) {
     const c=fixture(id),positions=new Map(Object.values(c.blocks).map(b=>[`${b.pos.r},${b.pos.c}`,b])),occupied=new Set();

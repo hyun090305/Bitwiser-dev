@@ -98,7 +98,8 @@ def main():
         assert cert['planar'] is True
         drawing = exact_embedding_check(net, cert)
         result, js_cases = verify_divider(entry, net) if entry['slot'] == 'C5-10' else verify_stream(entry, net)
-        rows.append(dict(slot=entry['slot'], circuit_sha256=hashlib.sha256((ROOT / entry['circuit']).read_bytes()).hexdigest(),
+        # Hash Git's LF representation so Windows checkouts do not churn unrelated reports.
+        rows.append(dict(slot=entry['slot'], circuit_sha256=hashlib.sha256((ROOT / entry['circuit']).read_bytes().replace(b'\r\n', b'\n')).hexdigest(),
                          planar_drawing=drawing, **result))
         cases.append(js_cases)
         print(entry['slot'], result['status'], result.get('transitions', result.get('ticks_checked')), flush=True)
