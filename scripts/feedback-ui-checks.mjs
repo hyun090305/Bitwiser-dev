@@ -35,7 +35,10 @@ export async function drawFeedbackWire(page, circuit) {
   assert.equal(await page.locator('.circuit-diagnostic-badge').isVisible(),false);
   assert.equal(await page.locator('[data-memory-action="play"]').isEnabled(),true);
   assert.deepEqual(await read(),expected);
-  await page.locator('#undoBtn').click();assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
+  // Check Undo while the 3-second notice is still live. Pointer actionability
+  // can consume that window in a hidden Electron renderer; ordinary pointer
+  // Undo/Redo was already exercised above.
+  await page.locator('#undoBtn').dispatchEvent('click');assert.equal(await page.locator('.circuit-edit-notice').isVisible(),true);
   assert.deepEqual(await read(),snapshotCircuit(draft));
   await page.locator('#redoBtn').click();assert.deepEqual(await read(),expected);
   await page.locator('#wireMoveInfo').click();
