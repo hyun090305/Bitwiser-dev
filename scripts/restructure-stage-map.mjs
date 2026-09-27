@@ -8,7 +8,7 @@ const old = new Map(spec.nodes.map(node => [node.id, node]));
 const chapters = CHAPTERS.map((chapter, i) => {
   const anchor = { x: i * 30 + 2, y: 4 };
   return { id: chapter.id, label: chapter.title, subtitle: chapter.subtitle, order: chapter.order,
-    prerequisites: chapter.prerequisites, anchor, panel: { position: anchor, size: STAGE_PANEL },
+    requiredStars: chapter.requiredStars, anchor, panel: { position: anchor, size: STAGE_PANEL },
     title: { position: { x: anchor.x, y: 1 }, size: { w: STAGE_PANEL.w, h: 2.75 }, styleId: chapter.titleStyleId } };
 });
 const nodes = STAGES.map(stage => ({

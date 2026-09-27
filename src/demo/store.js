@@ -1,8 +1,8 @@
-import { mergeCostRecord } from '../modules/costRecords.js';
+import { mergeCostRecord, highestStars } from '../modules/costRecords.js';
 import { CIRCUIT_VERSION, snapshotCircuit } from '../canvas/circuitData.js';
 import { DEMO_IDS, isUnlocked } from './catalog.js';
 import { emptyProgress, validateProgress, makeRecord } from './records.js';
-import { preserveStageAccess } from '../modules/stageCatalog.js';
+import { preserveStageAccess, acknowledgeChapter } from '../modules/stageCatalog.js';
 
 export const SAVE_KEY = 'bitwiser:web-demo:v1';
 export function createDemoStore({ storage, levels, budgets, themeIds, onFailure = () => {} }) {
@@ -30,6 +30,7 @@ export function createDemoStore({ storage, levels, budgets, themeIds, onFailure 
   return {
     get state() { return state; }, cleared,
     isUnlocked: unlocked, persist,
+    acknowledgeChapter(id) { Object.assign(state, acknowledgeChapter(state, id)); persist(); },
     setDraft(id, circuit) {
       if (!unlocked(id)) return false;
       const entry = state.stages[id] ||= {};
@@ -42,7 +43,10 @@ export function createDemoStore({ storage, levels, budgets, themeIds, onFailure 
       const record = makeRecord(circuit, id, levels, budgets);
       const entry = state.stages[id] ||= {};
       const result = mergeCostRecord(entry, record, levels, id);
-      Object.assign(state, preserveStageAccess(cleared(), state, { allowedIds: DEMO_IDS }));
+      const before = new Set(state.unlockedChapters);
+      Object.assign(state, preserveStageAccess(cleared(), state, { allowedIds: DEMO_IDS,
+        stageStars: Object.fromEntries(DEMO_IDS.map(id => [id, highestStars(state.stages[id], levels, id)])) }));
+      result.unlockedChapters = state.unlockedChapters.filter(id => !before.has(id) && id !== 'chapter_1');
       entry.draft = { circuitVersion: CIRCUIT_VERSION, circuit: record.circuit };
       state.lastStageId = id;
       const saved = persist();

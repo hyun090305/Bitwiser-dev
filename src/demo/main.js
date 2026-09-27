@@ -29,7 +29,7 @@ const words = {
   cleared: ['회로 복구 완료', 'Circuit restored'], improved: ['개인 최고 기록 갱신!', 'New personal best!'],
   blocks: ['블록', 'Blocks'], wires: ['도선 점유 칸', 'Wire cells'], complete: ['완료 ✓', 'Complete ✓'], locked: ['잠김 🔒', 'Locked 🔒'], optional: ['선택', 'Optional'],
   finish: ['체험판 마무리', 'Finish demo'], ending: ['MEMORY LINK · 작은 복구를 마쳤습니다', 'MEMORY LINK · A small recovery complete'],
-  endingBody: ['지나간 신호를 기억하는 자동문을 복구했습니다. 아직 2D 안전 모드에 있지만, 다음 경로가 열렸습니다.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\n계산·제어·시스템의 복구는 병렬로 시작됩니다. 선택 문제와 더 높은 별에도 계속 도전할 수 있습니다.', 'The automatic door now remembers earlier signals. You are still in 2D safe mode, but the next paths are open.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\nCalculation, control and system recovery can begin in parallel. Keep exploring optional puzzles and improving your stars.'],
+  endingBody: ['Pulse Extender를 복구했습니다. 아직 안전 모드에 있지만, 지나간 신호를 기억할 수 있습니다.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\n정식판에서는 누적 별로 계산·제어·시스템 챕터를 열 수 있습니다. 체험판의 다른 문제와 더 높은 별에도 계속 도전할 수 있습니다.', 'You restored the Pulse Extender. Safe mode can now remember past signals.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\nIn the full version, total stars unlock the calculation, control and system chapters. Keep exploring other demo puzzles and improving your stars.'],
   exportBackup: ['진행 백업 저장','Export progress backup'], importBackup: ['진행 백업 열기','Import progress backup'],
   restoreBackup: ['이 백업으로 복원','Restore this backup'], backupReady: ['검증된 백업입니다. 현재 진행을 바꾸기 전 자동으로 복구용 백업을 내려받습니다.','Backup validated. Your current progress will be downloaded before replacement.'],
   backupInvalid: ['백업을 읽지 못했습니다. 현재 진행은 유지됩니다.','Could not read this backup. Current progress is unchanged.'],
@@ -43,7 +43,7 @@ const words = {
 };
 const text = key => words[key]?.[lang === 'ko' ? 0 : 1] || window.t(key);
 let store, activeStage = null, pendingSave = null, restoring = false, busy = false, launchBusy = false, lastSavedStructure = null;
-let mapController, grading, tutorial, fullVersion, pendingCelebration = null;
+let mapController, grading, tutorial, fullVersion, pendingCelebration = null, resultChapter = null;
 const dialog = $('demoDialog');
 dialog.addEventListener('cancel', () => {
   disposePerformance($('demoDialogBody'));
@@ -110,7 +110,9 @@ async function goMap() {
   if (busy || launchBusy) return;
   tutorial?.stop?.(); flushDraft(); closeDialog();
   await levels.returnToLevels(); activeStage = null; refreshProgress();
-  if (pendingCelebration !== null) {
+  if (resultChapter) {
+    mapController?.focusChapter(resultChapter); resultChapter = null; pendingCelebration = null;
+  } else if (pendingCelebration !== null) {
     mapController?.celebrateLevel(pendingCelebration);
     pendingCelebration = null;
   }
@@ -136,6 +138,7 @@ function showFullVersion(feature) {
   flushDraft(); fullVersion(feature);
 }
 function showResult(id, result, budgets) {
+  resultChapter = result.unlockedChapters?.[0] || null;
   openDialog(`${levels.getLevelTitle(id)} · ${text('cleared')}`);
   dialog.classList.add('cost-dialog');
   stylePassedResult(dialog, id);
@@ -212,7 +215,7 @@ async function boot() {
     if (context !== 'play' || restoring || busy) return;
     clearTimeout(pendingSave); pendingSave = setTimeout(flushDraft, 400);
   });
-  mapController = initializeStageMap({ getLevelTitle: levels.getLevelTitle, isLevelUnlocked: id => store.isUnlocked(id), getClearedLevels: store.cleared, getStageAccess: () => store.state, startLevel: launch, returnToEditScreen: levels.returnToEditScreen, onlineFeatures: false, onFeatureLocked: showFullVersion, getStageStars: id => highestStars(store.state.stages[id], data, id) });
+  mapController = initializeStageMap({ getLevelTitle: levels.getLevelTitle, isLevelUnlocked: id => store.isUnlocked(id), getClearedLevels: store.cleared, getStageAccess: () => store.state, acknowledgeChapter: id => store.acknowledgeChapter(id), startLevel: launch, returnToEditScreen: levels.returnToEditScreen, onlineFeatures: false, demoMode: true, onFeatureLocked: showFullVersion, getStageStars: id => highestStars(store.state.stages[id], data, id) });
   refreshProgress(); showStageMapScreen();
   $('gradeButton').addEventListener('click', () => grading.gradeCurrentSelection().catch(error => { console.error(error); showStatus(text('error'), true); }));
   $('backToLevelsBtn').addEventListener('click', goMap);

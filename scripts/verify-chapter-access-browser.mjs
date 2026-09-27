@@ -35,7 +35,7 @@ try {
     await page.goto(base);
     await page.locator('#loadingStartBtn').click(); await page.locator('#startLevelBtn').click();
     // Choose every Chapter 1 card backwards before completing even the tutorial.
-    for (const id of [5,4,3,2,1,0,6]) {
+    for (const id of [7,5,4,3,2,1,0,6]) {
       await enterStage(page, id);
       assert.equal(await page.evaluate(async () => (await import('./src/modules/levels.js')).getCurrentLevel()), id);
     }
@@ -46,28 +46,33 @@ try {
     await grade(6);
     await page.locator('.demo-result-map').click(); await goToMap(page);
     assert.deepEqual(await cleared(), [6]);
-    // All Chapter 2 cards, including Automatic Door, need only the XOR clear.
-    for (const id of [31,11,23,29,28,27,26,7,25,30]) {
+    // Earn the remaining C1 stars through the real grader; a lone XOR is insufficient.
+    for(const id of [1,2,3,4,5,7]) {
+      await enterStage(page,id); await grade(id); await page.locator('.demo-result-map').click(); await goToMap(page);
+    }
+    assert.ok((await save()).unlockedChapters.includes('chapter_2'));
+    // All nine Chapter 2 cards are freely available once the threshold is met.
+    for (const id of [31,11,23,29,28,27,26,25,30]) {
       await enterStage(page, id);
       assert.equal(await page.evaluate(async () => (await import('./src/modules/levels.js')).getCurrentLevel()), id);
     }
-    assert.deepEqual(await cleared(), [6]);
+    assert.deepEqual(await cleared(), [1,2,3,4,5,6,7]);
     await grade(30);
     await page.screenshot({ path: `test-results/chapter-access/demo-result-${lang}.png` });
     await page.getByRole('button', { name: lang === 'ko' ? '체험판 마무리' : 'Finish demo', exact: true }).click();
     await page.getByRole('heading', { name: /MEMORY LINK/ }).waitFor();
     await page.getByRole('button', { name: lang === 'ko' ? '스테이지 맵' : 'Stage map', exact: true }).click();
     await goToMap(page);
-    assert.deepEqual(await cleared(), [6,30]);
+    assert.deepEqual(await cleared(), [1,2,3,4,5,6,7,30]);
     assert.equal(await page.evaluate(async () => {
       const levels = await import('./src/modules/levels.js');
       if (Object.keys(levels.getLevelTitles()).length !== 17 || levels.getLevelTitle(47)) return false;
       try { await levels.startLevel(47); return false; } catch { return true; }
     }), true, 'Capacity Limit Check stays outside the demo even after the Chapter 3 gate');
-    assert.equal((await save()).catalogVersion, 4);
+    assert.equal((await save()).catalogVersion, 5);
     await enterStage(page, 25); // Ending remains optional and does not close play.
     assert.deepEqual(errors, []); assert.deepEqual(external, []);
     await context.close();
-    console.log(`Chapter access ${lang}: all 17 cards selected, only XOR gates Chapter 2, Automatic Door first-clear ending, map primary, no next suggestion.`);
+    console.log(`Chapter access ${lang}: all 17 cards selected, cumulative stars gate Chapter 2, Automatic Door first-clear ending, map primary, no next suggestion.`);
   }
 } finally { await browser.close(); }

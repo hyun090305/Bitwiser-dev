@@ -1,53 +1,53 @@
 {
   "levelTitles": {
-    "0": "Tutorial: First Circuit",
-    "1": "NOT gate",
-    "2": "OR gate",
-    "3": "AND gate",
-    "4": "NOR gate",
-    "5": "NAND gate",
-    "6": "XOR gate",
-    "7": "Majority gate",
-    "8": "Parity checker",
+    "0": "Tutorial",
+    "1": "NOT",
+    "2": "OR",
+    "3": "AND",
+    "4": "NOR",
+    "5": "NAND",
+    "6": "XOR",
+    "7": "Majority",
+    "8": "Parity",
     "9": "Half Adder",
     "10": "Full Adder",
     "11": "2-to-4 Decoder",
     "12": "4-to-1 MUX",
     "13": "2-bit Comparator",
     "14": "2-bit Adder",
-    "15": "2-bit Mod 4 Subtractor",
-    "16": "2-bit Max Selector",
+    "15": "2-bit Subtractor",
+    "16": "Max Selector",
     "17": "2-bit Multiplier",
-    "18": "4-bit Mod 3 Remainder",
-    "19": "8 x 8 crossroad",
-    "20": "Fixed XOR Gate",
-    "21": "3-bit Shifter",
+    "18": "Remainder",
+    "19": "Crossroad",
+    "20": "Fixed XOR",
+    "21": "Rotator",
     "22": "Fixed 2-to-4 Decoder",
-    "23": "Priority Gate",
-    "24": "2's complement",
-    "25": "Storage Switch",
-    "26": "Toggle Light",
-    "27": "2-to-1 Selector",
-    "28": "Fault Indicator",
+    "23": "Priority Selector",
+    "24": "2’s Complement",
+    "25": "Register",
+    "26": "Toggle",
+    "27": "2-to-1 MUX",
+    "28": "Fault Register",
     "29": "Response Check",
-    "30": "Automatic Door",
+    "30": "Pulse Extender",
     "31": "Rising Edge Detector",
     "32": "Up/Down Counter",
-    "33": "Light Timing",
+    "33": "PWM",
     "34": "Delay Timer",
-    "35": "Bouncing Button",
-    "36": "Fair Access",
-    "37": "ABBA Lock",
-    "38": "Addressed Storage",
-    "39": "Undo Once",
+    "35": "Debouncer",
+    "36": "Round-Robin Arbiter",
+    "37": "ABBA Detector",
+    "38": "Register Bank",
+    "39": "Undo Register",
     "40": "Mailbox",
-    "41": "Last In, First Out",
-    "42": "First In, First Out",
+    "41": "Stack",
+    "42": "Queue",
     "43": "Serial Receiver",
     "44": "Serial Transmitter",
     "45": "Accumulator",
-    "46": "Divide Over Time",
-    "47": "Capacity Limit Check"
+    "46": "Divider",
+    "47": "Capacity Check"
   },
   "levelGridSizes": {
     "0": [
@@ -6651,8 +6651,8 @@
   },
   "levelDescriptions": {
     "0": {
-      "title": "Stage 0: Tutorial - First Circuit",
-      "desc": "Recreate the basic circuit by following the instructed logic path. Invert input IN1, combine it with IN2 using AND, and output to OUT1.",
+      "title": "Tutorial",
+      "desc": "Invert IN1, AND it with IN2, and send the result to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6674,11 +6674,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "1": {
-      "title": "Stage 1: NOT Gate",
-      "desc": "Build a circuit that inverts the input signal. 0 must output 1, and 1 must output 0.",
+      "title": "NOT",
+      "desc": "Invert IN1 and send it to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6688,11 +6689,12 @@
           "IN1": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "2": {
-      "title": "Stage 2: OR Gate",
-      "desc": "Design logic that outputs 1 when at least one of the two inputs is 1.",
+      "title": "OR",
+      "desc": "Turn OUT1 on when either IN1 or IN2 is 1.",
       "table": [
         {
           "IN1": 0,
@@ -6714,11 +6716,12 @@
           "IN2": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "3": {
-      "title": "Stage 3: AND Gate",
-      "desc": "Build a circuit that outputs 1 only when both inputs are 1.",
+      "title": "AND",
+      "desc": "Turn OUT1 on only when IN1 and IN2 are both 1.",
       "table": [
         {
           "IN1": 0,
@@ -6740,11 +6743,12 @@
           "IN2": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "4": {
-      "title": "Stage 4: NOR Gate",
-      "desc": "Implement logic that inverts the result of an OR operation.",
+      "title": "NOR",
+      "desc": "Turn OUT1 on only when IN1 and IN2 are both 0.",
       "table": [
         {
           "IN1": 0,
@@ -6766,11 +6770,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "5": {
-      "title": "Stage 5: NAND Gate",
-      "desc": "Design a circuit that inverts the result of an AND operation.",
+      "title": "NAND",
+      "desc": "Turn OUT1 on when either IN1 or IN2 is 0.",
       "table": [
         {
           "IN1": 0,
@@ -6792,11 +6797,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "6": {
-      "title": "Stage 6: XOR Gate",
-      "desc": "Reconstruct a circuit that outputs 1 only when the two inputs are different.",
+      "title": "XOR",
+      "desc": "Turn OUT1 on only when IN1 and IN2 differ.",
       "table": [
         {
           "IN1": 0,
@@ -6818,11 +6824,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "7": {
-      "title": "Stage 7: Majority Gate",
-      "desc": "Output 1 only when at least two of the three inputs are 1.",
+      "title": "Majority",
+      "desc": "Turn OUT1 on when at least two of IN1, IN2 and IN3 are 1.",
       "table": [
         {
           "IN1": 0,
@@ -6872,11 +6879,12 @@
           "IN3": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "8": {
-      "title": "Stage 8: Parity Checker",
-      "desc": "Build a circuit that outputs 1 only when the number of 1s is odd.",
+      "title": "Parity",
+      "desc": "Turn OUT1 on only when an odd number of IN1, IN2 and IN3 are 1.",
       "table": [
         {
           "IN1": 0,
@@ -6926,11 +6934,12 @@
           "IN3": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "9": {
-      "title": "Stage 9: Half Adder",
-      "desc": "Compute the sum of two 1-bit inputs and output Sum (S) and Carry (C) separately.",
+      "title": "Half Adder",
+      "desc": "Add IN1 and IN2 and output OUT2 OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6956,11 +6965,17 @@
           "OUT1": 0,
           "OUT2": 1
         }
+      ],
+      "rules": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit."
+        ]
       ]
     },
     "10": {
-      "title": "Stage 10: Full Adder",
-      "desc": "Design a circuit that adds three 1-bit inputs and outputs Sum (S) and Carry (C).",
+      "title": "Full Adder",
+      "desc": "Add IN1, IN2 and IN3 and output OUT2 OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -7018,11 +7033,17 @@
           "OUT1": 1,
           "OUT2": 1
         }
+      ],
+      "rules": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit. The sum is 0–3."
+        ]
       ]
     },
     "11": {
-      "title": "Stage 11: 2-to-4 Decoder",
-      "desc": "Configure the circuit so that exactly one of four outputs becomes 1 for each 2-bit input combination.",
+      "title": "2-to-4 Decoder",
+      "desc": "Turn on only the output selected by IN1 and IN2.",
       "table": [
         {
           "IN1": 0,
@@ -7056,11 +7077,12 @@
           "OUT3": 0,
           "OUT4": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "12": {
-      "title": "Stage 12: 4-to-1 MUX",
-      "desc": "Pass one of four inputs directly to OUT according to select signals (S1 S0).",
+      "title": "4-to-1 MUX",
+      "desc": "Send the input selected by S1 S0 to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -7107,11 +7129,17 @@
           "S0": 1,
           "OUT1": 1
         }
+      ],
+      "rules": [
+        [
+          "Selection",
+          "S1 S0: 00→IN1, 01→IN2, 10→IN3, 11→IN4."
+        ]
       ]
     },
     "13": {
-      "title": "Stage 13: 2-bit Comparator",
-      "desc": "Compare 2-bit numbers A and B so that only one of A>B, A=B, or A<B is 1.",
+      "title": "2-bit Comparator",
+      "desc": "Compare A and B and turn on only the matching output: A>B, A=B or A<B.",
       "table": [
         {
           "A1": 0,
@@ -7158,11 +7186,17 @@
           "A=B": 1,
           "A<B": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each."
+        ]
       ]
     },
     "14": {
-      "title": "Stage 14: 2-bit Adder",
-      "desc": "Add 2-bit numbers A and B and output the 3-bit result (S2 S1 S0).",
+      "title": "2-bit Adder",
+      "desc": "Output A+B as S2 S1 S0.",
       "table": [
         {
           "A1": 0,
@@ -7209,11 +7243,17 @@
           "S1": 1,
           "S0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Output the full sum, 0–6, including carry."
+        ]
       ]
     },
     "15": {
-      "title": "Stage 15: mod 4 2-bit Subtractor",
-      "desc": "Compute A − B for two 2-bit numbers using mod 4 arithmetic and output the 2-bit result.",
+      "title": "2-bit Subtractor",
+      "desc": "Output A−B as R1 R0.",
       "table": [
         {
           "A1": 0,
@@ -7255,11 +7295,17 @@
           "S1": 1,
           "S0": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Add 4 to a negative result."
+        ]
       ]
     },
     "16": {
-      "title": "Stage 16: 2-bit Max Selector",
-      "desc": "Output the larger value between two 2-bit numbers A and B.",
+      "title": "Max Selector",
+      "desc": "Output the larger of A and B as M1 M0.",
       "table": [
         {
           "A1": 0,
@@ -7301,11 +7347,17 @@
           "M1": 0,
           "M0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. If equal, output that value."
+        ]
       ]
     },
     "17": {
-      "title": "Stage 17: 2-bit Multiplier",
-      "desc": "Compute the product of two 2-bit numbers and output the 4-bit result (P3 P2 P1 P0).",
+      "title": "2-bit Multiplier",
+      "desc": "Output A×B as P3 P2 P1 P0.",
       "table": [
         {
           "A1": 0,
@@ -7357,11 +7409,17 @@
           "P1": 0,
           "P0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. The product is 0–9."
+        ]
       ]
     },
     "18": {
-      "title": "Stage 18: Mod 3 Remainder",
-      "desc": "Output the remainder of dividing 4-bit input A by 3 as a 2-bit value (R1 R0).",
+      "title": "Remainder",
+      "desc": "Output the remainder of A divided by 3 as R1 R0.",
       "table": [
         {
           "A3": 0,
@@ -7403,11 +7461,17 @@
           "R1": 0,
           "R0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A3 A2 A1 A0: 0–15. The remainder is 0, 1 or 2."
+        ]
       ]
     },
     "19": {
       "title": "Crossroad",
-      "desc": "Design paths so two input signals are delivered to their own outputs accurately without interference.",
+      "desc": "Pass IN1 to OUT1 and IN2 to OUT2 unchanged.",
       "table": [
         {
           "IN1": 0,
@@ -7433,11 +7497,12 @@
           "OUT1": 1,
           "OUT2": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "20": {
       "title": "Fixed XOR",
-      "desc": "Implement XOR behavior exactly within the fixed input and output structure.",
+      "desc": "Turn OUT1 on only when IN1 and IN2 differ.",
       "table": [
         {
           "IN1": 0,
@@ -7459,11 +7524,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "21": {
-      "title": "3-bit Shifter",
-      "desc": "Design a circuit that cyclically shifts three signals based on control signal IN4.\nIN4 = 0 -> output as-is\nIN4 = 1 -> rotate by one position",
+      "title": "Rotator",
+      "desc": "Use IN4 to select the output positions of three signals.",
       "table": [
         {
           "IN4": 0,
@@ -7501,11 +7567,21 @@
           "OUT2": 0,
           "OUT3": 0
         }
+      ],
+      "rules": [
+        [
+          "Selection",
+          "IN4=0: OUT1/2/3=IN1/2/3. IN4=1: OUT1/2/3=IN3/1/2."
+        ],
+        [
+          "Response",
+          "Respond immediately to input changes; do not rotate repeatedly on ticks."
+        ]
       ]
     },
     "22": {
       "title": "Fixed 2-to-4 Decoder",
-      "desc": "Configure the circuit so exactly one output is activated for each input combination.",
+      "desc": "Turn on only the output selected by IN1 and IN2.",
       "table": [
         {
           "IN1": 0,
@@ -7539,11 +7615,12 @@
           "OUT3": 0,
           "OUT4": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "23": {
-      "title": "Priority Gate",
-      "desc": "Select and output only the single 1 with the highest priority among multiple inputs.",
+      "title": "Priority Selector",
+      "desc": "Turn on only the output for the highest-priority input that is 1.",
       "table": [
         {
           "IN1": 1,
@@ -7585,11 +7662,21 @@
           "OUT3": 0,
           "OUT4": 1
         }
+      ],
+      "rules": [
+        [
+          "Priority",
+          "IN1 > IN2 > IN3 > IN4. Each input selects the OUT with the same number."
+        ],
+        [
+          "No request",
+          "All inputs 0 → all outputs 0."
+        ]
       ]
     },
     "24": {
-      "title": "2's complement",
-      "desc": "Design a circuit that computes the 2's complement of a 4-bit binary number.",
+      "title": "2’s Complement",
+      "desc": "Find C so the lowest four bits of A+C are 0000.",
       "table": [
         {
           "A3": 0,
@@ -7631,11 +7718,21 @@
           "C1": 0,
           "C0": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A3 A2 A1 A0 and C3 C2 C1 C0: 0–15."
+        ],
+        [
+          "Calculation",
+          "If A=0, C=0. Otherwise, A+C=16."
+        ]
       ]
     },
     "25": {
-      "title": "Storage Switch",
-      "desc": "Store DATA in VALUE when LOAD is on. Otherwise keep the saved value, even if DATA changes. VALUE starts at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic LOAD button release completes the tick; switches keep their values.",
+      "title": "Register",
+      "desc": "Store DATA on ticks with LOAD=1 and output it at VALUE.",
       "table": [
         {
           "tick": 1,
@@ -7665,11 +7762,21 @@
           "LOAD": 1,
           "VALUE": 0
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "LOAD=0 retains VALUE."
+        ],
+        [
+          "Initial",
+          "VALUE=0."
+        ]
       ]
     },
     "26": {
-      "title": "Toggle Light",
-      "desc": "Invert LIGHT on every tick with PRESS=1; otherwise hold it. Presses on consecutive ticks each toggle the light. Initially LIGHT=0. Observe outputs after each tick.",
+      "title": "Toggle",
+      "desc": "Toggle LIGHT on every tick with PRESS=1.",
       "table": [
         {
           "tick": 1,
@@ -7701,11 +7808,21 @@
           "PRESS": 1,
           "LIGHT": 1
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "PRESS=0 retains LIGHT. Consecutive requests toggle it every tick."
+        ],
+        [
+          "Initial",
+          "LIGHT=0."
+        ]
       ]
     },
     "27": {
-      "title": "2-to-1 Selector",
-      "desc": "Build a combinational selector: OUT=A when SEL=0, otherwise OUT=B. No memory is needed.",
+      "title": "2-to-1 MUX",
+      "desc": "Pass A to OUT when SEL=0, or B when SEL=1.",
       "table": [
         {
           "A": 0,
@@ -7755,11 +7872,12 @@
           "SEL": 1,
           "OUT": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "28": {
-      "title": "Fault Indicator",
-      "desc": "FAULT turns ALARM on and keeps it on. ACK clears it, but FAULT wins if both arrive together. With no request, hold the value. ALARM starts off. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic ACK button release completes the tick; switches keep their values.",
+      "title": "Fault Register",
+      "desc": "Set ALARM on ticks with FAULT=1; clear it with ACK.",
       "table": [
         {
           "tick": 1,
@@ -7803,11 +7921,21 @@
           "ACK": 0,
           "ALARM": 0
         }
+      ],
+      "rules": [
+        [
+          "Priority",
+          "FAULT takes priority over ACK. Both 0 retains ALARM."
+        ],
+        [
+          "Initial",
+          "ALARM=0."
+        ]
       ]
     },
     "29": {
       "title": "Response Check",
-      "desc": "Check responses from both paths A and B. Remember the first response for as long as it takes the other to arrive. Set GO to 1 on the tick when both have arrived, then clear both records. Repeated responses from one path count only once. Simultaneous responses also count, and new responses can be received from the very next tick. If A and B arrive together every tick, GO stays 1 on those consecutive ticks. Otherwise, GO is 0 on ticks without a complete pair. Initially there are no records and GO is 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic A·B button release completes the tick; switches keep their values.",
+      "desc": "Set GO on the tick when responses from both A and B have arrived.",
       "table": [
         {
           "tick": 1,
@@ -7865,11 +7993,29 @@
           "B": 0,
           "GO": 1
         }
+      ],
+      "rules": [
+        [
+          "Memory",
+          "Remember A=1 and B=1 separately. Repeated responses from one side count once."
+        ],
+        [
+          "Confirmation",
+          "Once both arrive, set GO=1 and clear both records. Otherwise GO=0."
+        ],
+        [
+          "Together",
+          "Simultaneous responses count. Both on every tick keeps GO=1."
+        ],
+        [
+          "Initial",
+          "No responses recorded; GO=0."
+        ]
       ]
     },
     "30": {
-      "title": "Automatic Door",
-      "desc": "OPEN keeps DOOR on for three ticks, including the request tick. Another request restarts the timer. OPEN 1→0→0→0 should produce DOOR 1→1→1→0. The door starts closed. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic OPEN button release completes the tick; switches keep their values.",
+      "title": "Pulse Extender",
+      "desc": "Keep DOOR on for three ticks starting with a tick where OPEN=1.",
       "table": [
         {
           "tick": 1,
@@ -7937,11 +8083,25 @@
           "OPEN": 0,
           "DOOR": 0
         }
+      ],
+      "rules": [
+        [
+          "Timing",
+          "Include the request tick. A new OPEN restarts the three ticks from that tick."
+        ],
+        [
+          "End",
+          "Stay 1 through two ticks after the last request; become 0 on the following tick."
+        ],
+        [
+          "Initial",
+          "DOOR=0."
+        ]
       ]
     },
     "31": {
       "title": "Rising Edge Detector",
-      "desc": "Turn on RISE for the tick when SIGNAL changes from 0 to 1. Holding SIGNAL on must not trigger it again. Treat SIGNAL before the first tick as 0. RISE starts at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick.",
+      "desc": "Set RISE when SIGNAL changes from 0 at the previous tick to 1 at the current tick.",
       "table": [
         {
           "tick": 1,
@@ -7985,11 +8145,21 @@
           "SIGNAL": 0,
           "RISE": 0
         }
+      ],
+      "rules": [
+        [
+          "Sampling",
+          "Compare only values sampled at ticks. Otherwise RISE=0."
+        ],
+        [
+          "Initial",
+          "Previous SIGNAL=0; RISE=0."
+        ]
       ]
     },
     "32": {
       "title": "Up/Down Counter",
-      "desc": "Count from 0 to 3 using BIT1·BIT0. On a tick with only INC pressed, add one; with only DEC pressed, subtract one. Both pressed or neither pressed keeps the value. Increasing 3 wraps to 0; decreasing 0 wraps to 3. Start at 0. Changing inputs or automatically releasing buttons does not change the count.",
+      "desc": "Count from 0 to 3 with INC and DEC; output BIT1 BIT0.",
       "table": [
         {
           "tick": 1,
@@ -8071,11 +8241,25 @@
           "BIT0": 0,
           "BIT1": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "INC alone adds 1; DEC alone subtracts 1. Equal inputs retain the value."
+        ],
+        [
+          "Wrap",
+          "Incrementing 3 gives 0; decrementing 0 gives 3."
+        ],
+        [
+          "Initial",
+          "BIT1 BIT0=00."
+        ]
       ]
     },
     "33": {
-      "title": "Light Timing",
-      "desc": "Select 0–3 with LEVEL1·LEVEL0. LIGHT repeats a four-slot pattern, lighting the selected number of slots at the beginning of each cycle. The initial screen (tick 0) is the first slot; completing the first tick moves to the second slot. Each tick moves to the next slot, returning to the first after the fourth. Changing the setting immediately affects the current slot without restarting the cycle. Slots keep advancing even when 0 is selected. The examples below show LIGHT across the first → second → third → fourth slots.",
+      "title": "PWM",
+      "desc": "Cycle through four positions; turn LIGHT on in the first LEVEL positions.",
       "table": [
         {
           "LEVEL0": 0,
@@ -8097,11 +8281,25 @@
           "LEVEL1": 1,
           "LIGHT": "1 1 1 0"
         }
+      ],
+      "rules": [
+        [
+          "Advance",
+          "Start at the first position. Advance on each tick, wrapping after the fourth."
+        ],
+        [
+          "Setting",
+          "LEVEL1 LEVEL0=0–3. Changes apply immediately to the current position without moving it."
+        ],
+        [
+          "LEVEL=0",
+          "LIGHT=0, but the position keeps advancing."
+        ]
       ]
     },
     "34": {
       "title": "Delay Timer",
-      "desc": "Select a delay of 0–3 ticks with TIME1·TIME0. The tick that samples START schedules the timer; DONE turns on for one tick after the selected number of further ticks. Later changes to TIME do not affect the running timer. START cancels any previous timer and schedules a new one with the current setting. A delay of 0 completes on that same actual tick. Initially no timer is scheduled. After completion, wait for a new START.\nA new START also takes priority on a previous timer’s due tick. START on consecutive ticks reschedules each time; repeatedly scheduling 0 may keep DONE at 1. Changing inputs or automatically releasing START does not change the output. DONE remains until the next actual tick.",
+      "desc": "Store TIME on a tick with START=1; set DONE when that delay elapses.",
       "table": [
         {
           "tick": 1,
@@ -8207,11 +8405,29 @@
           "START": 0,
           "DONE": 0
         }
+      ],
+      "rules": [
+        [
+          "Timing",
+          "TIME1 TIME0=0–3. Count from the tick after START; TIME=0 completes on START."
+        ],
+        [
+          "Restart",
+          "New START takes priority over completion. Ignore TIME changes while waiting."
+        ],
+        [
+          "Output",
+          "DONE=1 only on completion ticks. Consecutive START with TIME=0 keeps it 1."
+        ],
+        [
+          "Initial",
+          "No active timer; DONE=0."
+        ]
       ]
     },
     "35": {
-      "title": "Bouncing Button",
-      "desc": "Change CLEAN only when RAW has stayed the same for three ticks, on the third tick. Ignore shorter glitches in either direction. CLEAN and the previous samples start at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick.",
+      "title": "Debouncer",
+      "desc": "After RAW has the same value for three ticks, set CLEAN to it on the third tick.",
       "table": [
         {
           "tick": 1,
@@ -8273,11 +8489,21 @@
           "RAW": 0,
           "CLEAN": 0
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "Apply the rule to both 0 and 1. Retain CLEAN until then."
+        ],
+        [
+          "Initial",
+          "Previous input history=0; CLEAN=0."
+        ]
       ]
     },
     "36": {
-      "title": "Fair Access",
-      "desc": "Grant A_OK or B_OK to the side requesting access. If both request, choose the opposite of the last winner; the first tie goes to A. Single grants also update the turn. With no request, turn both outputs off and remember the turn. A_OK and B_OK start at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick.",
+      "title": "Round-Robin Arbiter",
+      "desc": "Grant the requesting side access; if both request, choose the opposite of the last user.",
       "table": [
         {
           "tick": 1,
@@ -8335,11 +8561,25 @@
           "A_OK": 0,
           "B_OK": 1
         }
+      ],
+      "rules": [
+        [
+          "Output",
+          "REQ_A→A_OK; REQ_B→B_OK. Only the selected side is 1; no requests gives both 0."
+        ],
+        [
+          "Memory",
+          "A lone request also updates the last user. No requests retains that memory."
+        ],
+        [
+          "Initial",
+          "No last user; A_OK=B_OK=0. The first simultaneous request chooses A."
+        ]
       ]
     },
     "37": {
-      "title": "ABBA Lock",
-      "desc": "SIGNAL means A when 1 and B when 0. Accept a letter only when SUBMIT is on. Turn UNLOCKED on when the latest four submitted letters are ABBA, including within AABBA. Waiting preserves the letters; once unlocked, stay unlocked. Start with no letters. UNLOCKED starts at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic SUBMIT button release completes the tick; switches keep their values.",
+      "title": "ABBA Detector",
+      "desc": "Set UNLOCKED when the last four received letters are ABBA.",
       "table": [
         {
           "tick": 1,
@@ -8390,11 +8630,25 @@
           "SUBMIT": 1,
           "UNLOCKED": 1
         }
+      ],
+      "rules": [
+        [
+          "Input",
+          "Receive only on ticks with SUBMIT=1. SIGNAL=1 means A; 0 means B."
+        ],
+        [
+          "Memory",
+          "SUBMIT=0 retains history. Earlier letters do not matter; once set, stay at 1."
+        ],
+        [
+          "Initial",
+          "No letters recorded; UNLOCKED=0."
+        ]
       ]
     },
     "38": {
-      "title": "Addressed Storage",
-      "desc": "Build two two-bit storage slots, both starting at 00. WRITE saves D1·D0 to the slot selected by ADDR. Q1·Q0 always reads the selected slot: with WRITE either on or off, changing ADDR to 0 or 1 changes the readout immediately without a tick, and a write tick shows the new value. Changing DATA or WRITE before a tick does not write memory. Automatic WRITE release completes the tick; ADDR and DATA switches keep their values.",
+      "title": "Register Bank",
+      "desc": "Store at the address selected by ADDR and output its value at Q1 Q0.",
       "table": [
         {
           "tick": 1,
@@ -8446,11 +8700,29 @@
           "Q0": 0,
           "Q1": 1
         }
+      ],
+      "rules": [
+        [
+          "Write",
+          "Addresses 0 and 1 hold two bits each. On WRITE=1 ticks, store D1 D0 at the selected address."
+        ],
+        [
+          "Read",
+          "ADDR changes apply immediately without a tick, regardless of WRITE. A write tick outputs the new value."
+        ],
+        [
+          "Hold",
+          "WRITE=0 retains both values. Input changes alone do not alter storage."
+        ],
+        [
+          "Initial",
+          "Both addresses contain 00."
+        ]
       ]
     },
     "39": {
-      "title": "Undo Once",
-      "desc": "SAVE stores D1·D0 and keeps the previous value for one UNDO. Undoing clears UNDO_AVAILABLE until the next SAVE. Even saving the same value enables undo. SAVE wins when both are requested. Current and previous values start at 00, with undo unavailable. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic SAVE·UNDO button release completes the tick; switches keep their values.",
+      "title": "Undo Register",
+      "desc": "SAVE stores D1 D0; UNDO returns once to the previous value.",
       "table": [
         {
           "tick": 1,
@@ -8518,11 +8790,29 @@
           "Q1": 0,
           "UNDO_AVAILABLE": 0
         }
+      ],
+      "rules": [
+        [
+          "Save",
+          "On SAVE ticks, back up Q1 Q0, store the new value, and set UNDO_AVAILABLE=1."
+        ],
+        [
+          "Undo",
+          "If available, restore the backup to Q and set UNDO_AVAILABLE=0. Otherwise retain values."
+        ],
+        [
+          "Priority",
+          "SAVE takes priority over UNDO. Saving the same value also enables undo."
+        ],
+        [
+          "Initial",
+          "Current and backup=00; UNDO_AVAILABLE=0."
+        ]
       ]
     },
     "40": {
       "title": "Mailbox",
-      "desc": "SEND puts DATA into a one-bit mailbox; TAKE retrieves it into DATA_OUT. Pulse ACCEPTED for a successful send and VALID for a successful take.\nTogether, take first, then send. If empty, only send; if full without a take, reject the send. Hold DATA_OUT unless a take succeeds. FULL shows the resulting state. Start empty with all outputs at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic SEND·TAKE button release completes the tick; switches keep their values.",
+      "desc": "Use SEND to store one DATA bit and TAKE to remove it.",
       "table": [
         {
           "tick": 1,
@@ -8590,11 +8880,29 @@
           "VALID": 1,
           "ACCEPTED": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, TAKE before SEND. Ignore TAKE if empty; ignore SEND if still full."
+        ],
+        [
+          "Output",
+          "Output the taken value at DATA_OUT. VALID=1 only for successful TAKE; ACCEPTED=1 only for successful SEND. Otherwise 0."
+        ],
+        [
+          "Hold",
+          "Without a take, retain DATA_OUT. FULL=1 if occupied after processing."
+        ],
+        [
+          "Initial",
+          "Empty; DATA_OUT, VALID, ACCEPTED and FULL=0."
+        ]
       ]
     },
     "41": {
-      "title": "Last In, First Out",
-      "desc": "PUSH stores DATA in a stack of up to two bits. POP retrieves the newest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic PUSH·POP button release completes the tick; switches keep their values.",
+      "title": "Stack",
+      "desc": "Store two DATA bits and remove the most recently pushed bit first.",
       "table": [
         {
           "tick": 1,
@@ -8684,11 +8992,29 @@
           "EMPTY": 0,
           "FULL": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
       ]
     },
     "42": {
-      "title": "First In, First Out",
-      "desc": "PUSH stores DATA in a queue of up to two bits. POP retrieves the oldest bit into DATA_OUT and pulses VALID. Otherwise hold DATA_OUT and clear VALID.\nTogether, pop first, then push. If empty, only push; if full without a pop, ignore the push. EMPTY and FULL show the resulting state. Start empty with DATA_OUT and VALID at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic PUSH·POP button release completes the tick; switches keep their values.",
+      "title": "Queue",
+      "desc": "Store two DATA bits and remove the earliest pushed bit first.",
       "table": [
         {
           "tick": 1,
@@ -8778,11 +9104,29 @@
           "EMPTY": 0,
           "FULL": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
       ]
     },
     "43": {
       "title": "Serial Receiver",
-      "desc": "Accept one DATA bit whenever RECEIVE is on, highest bit first. On the fourth bit, update Q3·Q2·Q1·Q0 together and pulse DONE for that tick. Otherwise hold Q and clear DONE. Waiting preserves progress; each four bits forms a new word. Q starts at 0000. DONE starts at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic RECEIVE button release completes the tick; switches keep their values.",
+      "desc": "Receive DATA on ticks with RECEIVE=1; update Q when four bits have arrived.",
       "table": [
         {
           "tick": 1,
@@ -8861,11 +9205,29 @@
           "Q3": 1,
           "DONE": 0
         }
+      ],
+      "rules": [
+        [
+          "Order",
+          "Q3→Q2→Q1→Q0. RECEIVE=0 retains received bits."
+        ],
+        [
+          "Complete",
+          "Only the fourth receive tick updates all of Q and sets DONE=1. Otherwise retain Q and set DONE=0."
+        ],
+        [
+          "Next group",
+          "Start a new group after four bits."
+        ],
+        [
+          "Initial",
+          "No bits received; Q3 Q2 Q1 Q0=0000; DONE=0."
+        ]
       ]
     },
     "44": {
       "title": "Serial Transmitter",
-      "desc": "While idle, START captures D3·D2·D1·D0. Send D3 immediately, then D2, D1 and D0 on the next three ticks. Ignore input changes and START through the last bit; a new word can start on the following tick.\nVALID is on for each bit; BUSY is on while more bits remain. The last bit has VALID=1, BUSY=0. Idle holds SERIAL and clears both flags. RESET overrides START, cancels transmission and clears all outputs. All outputs start at 0. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick.",
+      "desc": "When idle, START accepts D3 D2 D1 D0 to send in order at SERIAL.",
       "table": [
         {
           "tick": 1,
@@ -8958,11 +9320,33 @@
           "VALID": 0,
           "BUSY": 0
         }
+      ],
+      "rules": [
+        [
+          "Send",
+          "Send D3 on the start tick, then D2→D1→D0 on the next three ticks. Ignore START and data changes meanwhile."
+        ],
+        [
+          "Output",
+          "VALID=1 on send ticks. BUSY=1 if more bits remain; BUSY=0 on the last bit."
+        ],
+        [
+          "Idle",
+          "Restart from the tick after the last bit. While idle, retain SERIAL; VALID=BUSY=0."
+        ],
+        [
+          "Reset",
+          "RESET takes priority, cancels transmission and clears SERIAL, VALID and BUSY to 0."
+        ],
+        [
+          "Initial",
+          "Idle; SERIAL, VALID and BUSY=0."
+        ]
       ]
     },
     "45": {
       "title": "Accumulator",
-      "desc": "When ADD is on, add D1·D0 to Q1·Q0. Wrap the two-bit sum after 3. Otherwise hold the sum. Start at 0; RESET overrides ADD and clears the sum. From the initial state onward, changing inputs alone leaves all outputs unchanged. Pulses also remain until the next actual tick. Automatic ADD·RESET button release completes the tick; switches keep their values.",
+      "desc": "On ticks with ADD=1, add D1 D0 to the sum and output Q1 Q0.",
       "table": [
         {
           "tick": 1,
@@ -9014,11 +9398,25 @@
           "Q0": 0,
           "Q1": 0
         }
+      ],
+      "rules": [
+        [
+          "Calculation",
+          "Subtract 4 if the sum reaches 4 or more. ADD=0 retains the sum."
+        ],
+        [
+          "Priority",
+          "RESET=1 takes priority over ADD and clears the sum to 0."
+        ],
+        [
+          "Initial",
+          "Q1 Q0=00."
+        ]
       ]
     },
     "46": {
-      "title": "Divide Over Time",
-      "desc": "Divide A (0–7) by B (1–3) to produce quotient Q and remainder R. Inputs stay fixed during each calculation; bit 0 is the lowest bit.\nTurn on COMPLETE when ready. Q and R must be correct at the first completion on ticks 1–10. Earlier values do not matter; missing the deadline fails. Each calculation starts with all memory at 0.",
+      "title": "Divider",
+      "desc": "Divide A by B to produce quotient Q and remainder R; signal completion with COMPLETE.",
       "table": [
         {
           "A0": 0,
@@ -9085,11 +9483,29 @@
           "R1": 0,
           "COMPLETE": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A2 A1 A0=0–7; B1 B0=1–3. Inputs stay fixed during calculation."
+        ],
+        [
+          "Check",
+          "Q2 Q1 Q0 and R1 R0 must be correct at the first COMPLETE=1 on ticks 1–10."
+        ],
+        [
+          "Deadline",
+          "Earlier Q and R are unrestricted. Failure to complete by tick 10 fails."
+        ],
+        [
+          "Initial",
+          "Each calculation starts with all D=0."
+        ]
       ]
     },
     "47": {
-      "title": "Capacity Limit Check",
-      "desc": "Given cargo weights A and B and a capacity limit LIMIT, set OVER to 1 only when A + B exceeds LIMIT. Otherwise, set it to 0. A, B, and LIMIT each range from 0 to 3. A total equal to the limit is allowed.\nFor A1/A0, B1/B0, and L1/L0, bit 1 has a value of 2 and bit 0 has a value of 1. A = 2*A1 + A0, B = 2*B1 + B0, and LIMIT = 2*L1 + L0. Compare the actual sum from 0 to 6 without truncating it to two bits.",
+      "title": "Capacity Check",
+      "desc": "Set OVER only when A+B is greater than LIMIT.",
       "table": [
         {
           "A1": 0,
@@ -9154,6 +9570,16 @@
           "L0": 1,
           "OVER": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0, B1 B0 and L1 L0: 0–3 each. L1 L0 is LIMIT."
+        ],
+        [
+          "Compare",
+          "Compare the full sum, 0–6, without truncation. Equality gives OVER=0."
+        ]
       ]
     }
   },
@@ -9593,40 +10019,40 @@
       "threeStarMaxCost": 165
     },
     "38": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 270,
+      "threeStarMaxCost": 230
     },
     "39": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 285,
+      "threeStarMaxCost": 245
     },
     "40": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 210,
+      "threeStarMaxCost": 180
     },
     "41": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 450,
+      "threeStarMaxCost": 390
     },
     "42": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 425,
+      "threeStarMaxCost": 370
     },
     "43": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 365,
+      "threeStarMaxCost": 315
     },
     "44": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 580,
+      "threeStarMaxCost": 500
     },
     "45": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 270,
+      "threeStarMaxCost": 230
     },
     "46": {
-      "twoStarMaxCost": null,
-      "threeStarMaxCost": null
+      "twoStarMaxCost": 650,
+      "threeStarMaxCost": 550
     },
     "47": {
       "twoStarMaxCost": 205,

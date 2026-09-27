@@ -57,6 +57,7 @@ export function createCostStore({ storage, owner = 'local', levels, onFailure = 
       if (!parsed?.stages || typeof parsed.stages !== 'object') throw new Error('Invalid cost progress');
       state = parsed;
       for (const [id, entry] of Object.entries(state.stages)) {
+        if (!entry || typeof entry !== 'object') continue;
         if (!isCurrentCostRecord(entry.best, levels, id)) continue;
         const earnedStars = Math.max(entry.best.stars || 0, entry.bestStars?.stars || 0, entry.highestStars || 0);
         try {
@@ -83,7 +84,7 @@ export function createCostStore({ storage, owner = 'local', levels, onFailure = 
   };
   return {
     get state() { return state; },
-    cleared: () => Object.keys(state.stages).filter(id => state.stages[id].best || state.stages[id].historicalClear).map(Number),
+    cleared: () => Object.keys(state.stages).filter(id => state.stages[id]?.best || state.stages[id]?.historicalClear).map(Number),
     best: id => isCurrentCostRecord(state.stages[id]?.best, levels, id) ? state.stages[id].best : null,
     stars: id => {
       const entry = state.stages[id], stars = highestStars(entry, levels, id);

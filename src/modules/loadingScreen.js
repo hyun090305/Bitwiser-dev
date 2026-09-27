@@ -157,7 +157,10 @@ export function hideLoadingScreen({ onStart, startLabel, startAriaLabel } = {}) 
   startBtn.disabled = false;
   startBtn.addEventListener('click', () => {
     initializeBgm();
-    dissolve().then(() => onStart?.());
+    dissolve().then(async () => {
+      await onStart?.();
+      document.dispatchEvent(new Event('bitwiser:loadingComplete'));
+    });
   }, { once: true });
 }
 

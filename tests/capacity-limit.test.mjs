@@ -18,16 +18,16 @@ const values = inputs => ['A','B','L'].map(p => 2 * inputs[p + '1'] + inputs[p +
 
 test('486 AC-1/7/8: the existing map slot opens with Chapter 3 access, outside the demo', () => {
   assert.deepEqual(stageById(47), { id:47, nodeId:'overflow_detector', chapterId:'chapter_3',
-    layoutKey:'c3_overflow', gridPosition:{column:3,row:1}, optional:false, status:'playable' });
+    layoutKey:'c3_overflow', gridPosition:{column:4,row:1}, optional:false, status:'playable' });
   assert.deepEqual(STAGES.map(s => s.id).sort((a,b) => a-b), Array.from({length:48}, (_,i) => i));
   const node = map.nodes.find(n => n.id === 'overflow_detector');
-  assert.equal(node.label, 'Capacity Limit Check');
+  assert.equal(node.label, 'Capacity Check');
   assert.equal(node.status, 'playable');
   assert.deepEqual(map.edges.filter(e => e.to === node.id), [
-    { from:'full_adder', to:'overflow_detector', style:'straight', edgeType:'progression' }
+    { from:'two_bit_adder', to:'overflow_detector', style:'straight', edgeType:'progression' }
   ]);
   assert.equal(canPlayStage(47, []), false);
-  assert.equal(canPlayStage(47, [30]), true);
+  assert.equal(canPlayStage(47, [30]), false);
   for (const previous of [{unlockedChapters:['chapter_3']}, {unlockedStages:[13]}]) {
     const access = preserveStageAccess([], {catalogVersion:4, ...previous});
     assert.equal(canPlayStage(47, [], access), true);
@@ -68,10 +68,11 @@ test('486 AC-3/4/6, 491 AC-1: bilingual ports, free grid, hints, revision and ag
     {type:'OUTPUT',name:'OVER'}, ...['AND','OR','NOT','JUNCTION'].map(type => ({type}))]);
   assert.deepEqual(ko.levelStarThresholds[47], {twoStarMaxCost:205,threeStarMaxCost:175});
   assert.equal(ko.levelRevisions[47], 'capacity-limit-2026-09-26');
-  for (const [data,title] of [[ko,'적재 한도 검사'],[en,'Capacity Limit Check']]) {
+  for (const [data,title] of [[ko,'Capacity Check'],[en,'Capacity Check']]) {
     assert.equal(data.levelTitles[47], title);
     assert.equal(data.levelDescriptions[47].title, title);
-    assert.match(data.levelDescriptions[47].desc, /LIMIT = 2\*L1 \+ L0/);
+    const guide = data.levelDescriptions[47];
+    assert.match([guide.desc, ...guide.rules.flat()].join(' '), /L1 L0/);
     const hints = data.levelHints.stage47.hints;
     assert.equal(hints.length, 3);
     assert.ok(hints.every(h => h.type && h.content));

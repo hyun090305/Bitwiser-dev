@@ -14,26 +14,26 @@ import { getStageAccessRecord, setStageAccessRecord } from '../src/modules/stora
 const root = fileURLToPath(new URL('../', import.meta.url));
 const read = name => JSON.parse(fs.readFileSync(path.join(root, name), 'utf8'));
 const chapters = [
-  { id: 'chapter_1', gate: [], stages: [0,1,2,3,4,5,6] },
-  { id: 'chapter_2', gate: [6], stages: [25,7,26,27,28,29,30,23,11,31] },
+  { id: 'chapter_1', gate: [], stages: [0,1,2,3,4,5,6,7] },
+  { id: 'chapter_2', gate: [6], stages: [25,26,27,28,29,30,23,11,31] },
   { id: 'chapter_3', gate: [30], stages: [9,8,10,14,17,13,16,24,15,18,47] },
   { id: 'chapter_4', gate: [30], stages: [12,21,32,33,34,35,36,37,20,22,19] },
   { id: 'chapter_5', gate: [30,14,32], stages: [38,39,40,41,42,43,44,45,46] }
 ];
 
-test('AC-1–5: every playable stage opens with only its exact chapter gate', () => {
-  for (const chapter of chapters) {
-    assert.deepEqual(STAGES.filter(s => s.chapterId === chapter.id && s.status === 'playable').map(s => s.id).sort((a,b) => a-b), [...chapter.stages].sort((a,b) => a-b));
-    assert.equal(chapterAccess(chapter.id, chapter.gate).unlocked, true);
-    for (const id of chapter.stages) assert.equal(canPlayStage(id, chapter.gate), true, `stage ${id}`);
-    for (const missing of chapter.gate) {
-      const incomplete = chapter.gate.filter(id => id !== missing);
-      assert.equal(chapterAccess(chapter.id, incomplete).unlocked, false);
-      for (const id of chapter.stages) assert.equal(canPlayStage(id, incomplete), false, `stage ${id} without ${missing}`);
+test('495 AC-9/10: every playable stage opens with its chapter star boundary', () => {
+  const thresholds = [0,18,36,50,84];
+  for (const [i, chapter] of chapters.entries()) {
+    assert.deepEqual(STAGES.filter(s => s.chapterId === chapter.id).map(s=>s.id).sort((a,b)=>a-b), [...chapter.stages].sort((a,b)=>a-b));
+    for (const total of [Math.max(0,thresholds[i]-1),thresholds[i]]) {
+      const stageStars = Object.fromEntries(Array.from({length:47},(_,n)=>[n+1,Math.min(3,Math.max(0,total-n*3))]));
+      const access = {stageStars};
+      assert.equal(chapterAccess(chapter.id, [], access).unlocked,total>=thresholds[i]);
+      for (const id of chapter.stages) assert.equal(canPlayStage(id,[],access),total>=thresholds[i]);
     }
   }
-  for (const id of [null, undefined, -1, 48, '30', NaN]) assert.equal(canPlayStage(id, [], { unlockedChapters: chapters.map(c => c.id), unlockedStages: [id] }), false);
-  assert.equal(chapterAccess('unknown').unlocked, false);
+  for (const id of [null,undefined,-1,48,'30',NaN]) assert.equal(canPlayStage(id,[],{unlockedChapters:chapters.map(c=>c.id)}),false);
+  assert.equal(chapterAccess('unknown').unlocked,false);
 });
 
 test('AC-10: legacy stage access and cleared replays grant their entire chapter', () => {
@@ -87,7 +87,7 @@ test('AC-9–10: demo v1–v3 backup migration preserves records and chapter acc
     const raw = { ...emptyProgress(), catalogVersion, unlockedStages: [31], unlockedChapters: ['chapter_2'],
       stages: { 6: { best, bestStars: best }, 31: { draft } }, lastStageId: 31, hints: { 6: 2, 31: 1 }, settings: { lang: 'ko' } };
     const before = structuredClone(raw), migrated = validateProgress(raw, levels, {}, []);
-    assert.equal(migrated.catalogVersion, 4);
+    assert.equal(migrated.catalogVersion, 5);
     for (const id of DEMO_IDS) assert.equal(isUnlocked(id, [6], migrated), true);
     for (const key of ['stages','lastStageId','hints','settings','archivedStages','archivedHints']) assert.deepEqual(migrated[key], raw[key]);
     assert.deepEqual(validateProgress(migrated, levels, {}, []), migrated);

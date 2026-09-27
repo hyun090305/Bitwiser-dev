@@ -758,6 +758,12 @@
       <ul id="controlsList"></ul>
       <p id="controlsClipboard">복사/붙여넣기는 해당 기능을 사용할 수 있는 스테이지에서 선택 영역과 클립보드가 있을 때 사용합니다.</p>
       <p id="controlsCamera">휠: 확대/축소 · 가운데 드래그 또는 Space + 왼쪽 드래그: 화면 이동 · 방향키: 회로 이동</p>
+      <h3 id="controlsBasicsTitle">신호와 tick</h3>
+      <p id="controlsSignals"></p>
+      <p id="controlsConnections"></p>
+      <p id="controlsTicks"></p>
+      <p id="controlsInputs"></p>
+      <p id="controlsOutputs"></p>
       <button id="controlsCloseBtn" type="button">닫기</button>
     </dialog>
     <script>
@@ -849,6 +855,8 @@
         <p id="introStageCode" class="level-intro-screen__code">STAGE 00</p>
         <h2 id="introTitle" class="level-intro-screen__title"></h2>
         <p id="introDesc" class="level-intro-screen__mission"></p>
+        <span id="introFixedIO" class="level-intro-fixed-io" hidden></span>
+        <table id="introRules" class="level-intro-rules" hidden></table>
         <div id="truthTableContainer" class="level-intro-screen__logic">
           <p id="introLogicDataLabel" class="level-intro-screen__logic-label">LOGIC DATA</p>
           <div id="truthTable" class="level-intro-screen__grid" aria-live="polite"></div>

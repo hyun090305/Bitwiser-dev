@@ -1,21 +1,24 @@
-import { CHAPTERS, playableStages, stageById, preserveStageAccess } from '../modules/stageCatalog.js';
+import { CHAPTERS, playableStages, stageById, preserveStageAccess, acknowledgeChapter } from '../modules/stageCatalog.js';
 import { makeCostRecord, mergeCostRecord, isCurrentCostRecord } from '../modules/costRecords.js';
 
 export const DEV_PROGRESS_KEY = 'bitwiser:dev-progress:v1';
 const empty = () => ({ version: 1, stages: {}, access: preserveStageAccess([]), chapterOverrides: {} });
 const clone = value => JSON.parse(JSON.stringify(value));
 const cleared = state => Object.keys(state.stages).filter(id => state.stages[id].cleared).map(Number);
+const stageStarValues = state => Object.fromEntries(Object.entries(state.stages).map(([id, entry]) => [id, entry.stars]));
 
 export function presetProgress(preset) {
   const state = empty();
   const stages = playableStages();
   const ids = preset === 'fresh' ? []
     : preset === 'before-ch2' ? stages.filter(s => s.chapterId === 'chapter_1' && s.id !== 6)
-    : preset === 'before-ch34' ? stages.filter(s => ['chapter_1', 'chapter_2'].includes(s.chapterId) && s.id !== 30)
+    : preset === 'before-ch34' ? stages.filter(s => ['chapter_1', 'chapter_2'].includes(s.chapterId)).slice(0, 13)
     : preset === 'complete' ? stages : null;
   if (!ids) throw new Error('Unknown preset');
   for (const { id } of ids) state.stages[id] = { cleared: true, stars: id === 0 ? 0 : 3 };
-  state.access = preserveStageAccess(cleared(state));
+  if (preset === 'before-ch2') state.stages[7].stars = 2;
+  if (preset === 'before-ch34') state.stages[ids.at(-1).id].stars = 2;
+  state.access = preserveStageAccess(cleared(state), {}, { stageStars: stageStarValues(state) });
   return state;
 }
 
@@ -32,7 +35,7 @@ function readState(raw) {
     const mode = data.chapterOverrides?.[ch.id];
     if (mode === 'locked' || mode === 'unlocked') state.chapterOverrides[ch.id] = mode;
   }
-  state.access = preserveStageAccess(cleared(state), data.access || {}, { legacy: false });
+  state.access = preserveStageAccess(cleared(state), data.access || {}, { legacy: false, stageStars: stageStarValues(state) });
   return state;
 }
 
@@ -72,6 +75,7 @@ export function createDevProgress({ storage, getLevels, onFailure = () => {} }) 
     cleared: () => cleared(state),
     stars: id => state.stages[id]?.stars || 0,
     access: () => ({ ...clone(state.access), chapterOverrides: { ...state.chapterOverrides } }),
+    acknowledgeChapter(id) { state.access = acknowledgeChapter(state.access, id); return persist(); },
     best: id => {
       const data = getLevels();
       return data && isCurrentCostRecord(state.stages[id]?.best, data, id) ? state.stages[id].best : null;
@@ -92,7 +96,7 @@ export function createDevProgress({ storage, getLevels, onFailure = () => {} }) 
       if (stars !== null && (!Number.isInteger(stars) || stars < 1 || stars > 3)) throw new Error('Invalid stars');
       if (stars === null) delete state.stages[id];
       else state.stages[id] = { cleared: true, stars: id === 0 ? 0 : stars };
-      state.access = preserveStageAccess(cleared(state), state.access);
+      state.access = preserveStageAccess(cleared(state), { ...state.access, stageStars: {} }, { stageStars: stageStarValues(state) });
       return persist();
     },
     applyPreset(preset) { return update(presetProgress(preset)); },
@@ -105,7 +109,7 @@ export function createDevProgress({ storage, getLevels, onFailure = () => {} }) 
       const result = mergeCostRecord(entry, record, data, id);
       entry.cleared = true;
       entry.stars = id === 0 ? 0 : Math.max(entry.stars || 0, result.highestStars);
-      state.access = preserveStageAccess(cleared(state), state.access);
+      state.access = preserveStageAccess(cleared(state), state.access, { stageStars: stageStarValues(state) });
       result.saved = persist();
       return result;
     }

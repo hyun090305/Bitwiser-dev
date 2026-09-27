@@ -1,7 +1,7 @@
 {
   "schema": "bitwiser-stage-map-handoff-v1",
   "warning": "Reference layout, not a runtime map schema. Map layoutKey to actual IDs after inspecting current code.",
-  "source": "Approved Chapter 2–5 layout v6; Chapter 1 preserves the six directed edges in the supplied original map.",
+  "source": "Issue #495: 48 stable IDs, 43 visual edges, cumulative star chapter access.",
   "coordinateSystem": {
     "origin": "panel top-left",
     "nodeAnchor": "center",
@@ -12,8 +12,8 @@
       17
     ],
     "nodeSize": [
-      3,
-      3
+      4,
+      4
     ],
     "gridSize": {
       "columns": 5,
@@ -32,239 +32,182 @@
       13.5
     ],
     "gridPosition": "1-based column, 1-based row (A=1, B=2, C=3)",
-    "edgeRouting": "One horizontal or vertical segment between side midpoints of adjacent grid slots. Exactly two points, exactly 2 panel units long.",
-    "progression": "All entries at B1. Every edge connects adjacent slots and has target.column >= source.column. Chapter 1 occupies only B/C of the common 5x3 canvas."
+    "edgeRouting": "One horizontal or vertical segment between adjacent card borders. Exactly two points, exactly 1 panel unit long.",
+    "progression": "Entry at B1; all edges join adjacent slots. Arrows show function relationships only."
   },
   "chapters": [
     {
       "chapter": 1,
       "title": "LOGIC CORE",
       "subtitle": "신호에 의미를 부여하다",
-      "entrance": "처음부터 시작 가능",
+      "entrance": "0 stars",
       "accent": "#d8c98c",
-      "description": "Tutorial→NOT→OR→AND→XOR를 가운데 줄에 유지합니다. OR 아래 NOR, AND 아래 NAND는 선택 문제입니다. 실제 배치는 5열×2행이며 공통 5×3 패널의 B·C행을 사용합니다.",
       "nodes": [
         {
           "layoutKey": "c1_tutorial",
           "sourceLabel": "Tutorial",
+          "knownLegacyNodeId": "tutorial",
+          "gridPosition": {
+            "column": 1,
+            "row": 2
+          },
           "center": [
             2.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Tutorial"
-          ],
-          "tag": "입구",
-          "knownLegacyNodeId": "tutorial",
-          "sourceSnapshotComingSoon": null,
-          "entry": true,
           "optional": false,
-          "unlock": {
-            "allOf": [],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.01",
-          "gridPosition": {
-            "column": 1,
-            "row": 2
-          }
+          "visualParents": []
         },
         {
           "layoutKey": "c1_not",
           "sourceLabel": "NOT",
+          "knownLegacyNodeId": "not",
+          "gridPosition": {
+            "column": 2,
+            "row": 2
+          },
           "center": [
             7.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "NOT"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "not",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c1_tutorial"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.02",
-          "gridPosition": {
-            "column": 2,
-            "row": 2
-          }
+          "visualParents": [
+            "c1_tutorial"
+          ]
         },
         {
           "layoutKey": "c1_or",
           "sourceLabel": "OR",
+          "knownLegacyNodeId": "or",
+          "gridPosition": {
+            "column": 3,
+            "row": 2
+          },
           "center": [
             12.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "OR"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "or",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c1_not"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.03",
-          "gridPosition": {
-            "column": 3,
-            "row": 2
-          }
+          "visualParents": [
+            "c1_not"
+          ]
         },
         {
           "layoutKey": "c1_and",
           "sourceLabel": "AND",
+          "knownLegacyNodeId": "and",
+          "gridPosition": {
+            "column": 4,
+            "row": 2
+          },
           "center": [
             17.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "AND"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "and",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c1_or"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.04",
-          "gridPosition": {
-            "column": 4,
-            "row": 2
-          }
+          "visualParents": [
+            "c1_or"
+          ]
         },
         {
           "layoutKey": "c1_xor",
           "sourceLabel": "XOR",
+          "knownLegacyNodeId": "xor",
+          "gridPosition": {
+            "column": 5,
+            "row": 2
+          },
           "center": [
             22.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "XOR"
-          ],
-          "tag": "마무리",
-          "knownLegacyNodeId": "xor",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c1_and"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.05",
-          "gridPosition": {
-            "column": 5,
-            "row": 2
-          }
+          "visualParents": [
+            "c1_and"
+          ]
         },
         {
           "layoutKey": "c1_nor",
           "sourceLabel": "NOR",
+          "knownLegacyNodeId": "nor",
+          "gridPosition": {
+            "column": 3,
+            "row": 3
+          },
           "center": [
             12.5,
             13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "NOR"
-          ],
-          "tag": "선택",
-          "knownLegacyNodeId": "nor",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": true,
-          "unlock": {
-            "allOf": [
-              "c1_or"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.06",
-          "gridPosition": {
-            "column": 3,
-            "row": 3
-          }
+          "visualParents": [
+            "c1_or"
+          ]
         },
         {
           "layoutKey": "c1_nand",
           "sourceLabel": "NAND",
+          "knownLegacyNodeId": "nand",
+          "gridPosition": {
+            "column": 4,
+            "row": 3
+          },
           "center": [
             17.5,
             13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "NAND"
-          ],
-          "tag": "선택",
-          "knownLegacyNodeId": "nand",
-          "sourceSnapshotComingSoon": null,
-          "entry": false,
           "optional": true,
-          "unlock": {
-            "allOf": [
-              "c1_and"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "1.07",
+          "visualParents": [
+            "c1_and"
+          ]
+        },
+        {
+          "layoutKey": "c2_majority",
+          "sourceLabel": "Majority",
+          "knownLegacyNodeId": "majority_gate",
           "gridPosition": {
             "column": 4,
-            "row": 3
-          }
+            "row": 1
+          },
+          "center": [
+            17.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": true,
+          "visualParents": [
+            "c1_and"
+          ]
         }
       ],
       "edges": [
@@ -273,11 +216,11 @@
           "target": "c1_not",
           "points": [
             [
-              4.0,
+              4.5,
               8.5
             ],
             [
-              6.0,
+              5.5,
               8.5
             ]
           ]
@@ -287,11 +230,11 @@
           "target": "c1_or",
           "points": [
             [
-              9.0,
+              9.5,
               8.5
             ],
             [
-              11.0,
+              10.5,
               8.5
             ]
           ]
@@ -301,11 +244,11 @@
           "target": "c1_and",
           "points": [
             [
-              14.0,
+              14.5,
               8.5
             ],
             [
-              16.0,
+              15.5,
               8.5
             ]
           ]
@@ -315,11 +258,11 @@
           "target": "c1_xor",
           "points": [
             [
-              19.0,
+              19.5,
               8.5
             ],
             [
-              21.0,
+              20.5,
               8.5
             ]
           ]
@@ -330,11 +273,11 @@
           "points": [
             [
               12.5,
-              10.0
+              10.5
             ],
             [
               12.5,
-              12.0
+              11.5
             ]
           ]
         },
@@ -344,20 +287,34 @@
           "points": [
             [
               17.5,
-              10.0
+              10.5
             ],
             [
               17.5,
-              12.0
+              11.5
+            ]
+          ]
+        },
+        {
+          "source": "c1_and",
+          "target": "c2_majority",
+          "points": [
+            [
+              17.5,
+              6.5
+            ],
+            [
+              17.5,
+              5.5
             ]
           ]
         }
       ],
       "chapterUnlock": {
-        "allOf": []
+        "requiredStars": 0
       },
       "expectedCycleRank": 0,
-      "expectedEdges": 6,
+      "expectedEdges": 7,
       "gridSize": {
         "columns": 5,
         "rows": 3
@@ -365,413 +322,215 @@
       "occupiedRows": [
         2,
         3
-      ],
-      "mainPath": [
-        "c1_tutorial",
-        "c1_not",
-        "c1_or",
-        "c1_and",
-        "c1_xor"
       ]
     },
     {
       "chapter": 2,
       "title": "MEMORY LINK",
-      "subtitle": "두 분기의 합류, 한 칸씩 이어지는 흐름",
-      "entrance": "Chapter 1 · XOR 완료",
+      "subtitle": "지나간 신호를 기억하다",
+      "entrance": "18 stars",
       "accent": "#6bc8df",
-      "description": "저장 스위치에서 Majority→Selector와 토글 조명→고장 기록등으로 나뉘어 준비 후 반영에서 합류합니다. 자동문에서 체험판 기본 경로를 마치고, 오른쪽 변화 감지기는 선택 도전으로 이어집니다.",
       "nodes": [
         {
           "layoutKey": "c2_save",
-          "sourceLabel": "저장 스위치",
+          "sourceLabel": "Register",
+          "knownLegacyNodeId": "enabled_register",
+          "gridPosition": {
+            "column": 1,
+            "row": 2
+          },
           "center": [
             2.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "저장 스위치"
-          ],
-          "tag": "입구",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": true,
           "optional": false,
-          "unlock": {
-            "allOf": [],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.01",
-          "gridPosition": {
-            "column": 1,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c2_majority",
-          "sourceLabel": "Majority",
-          "center": [
-            7.5,
-            8.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Majority"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "majority_gate",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_save"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.02",
-          "gridPosition": {
-            "column": 2,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c2_selector",
-          "sourceLabel": "2-to-1 Selector",
-          "center": [
-            12.5,
-            8.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "2-to-1",
-            "Selector"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_majority"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.04",
-          "gridPosition": {
-            "column": 3,
-            "row": 2
-          }
+          "visualParents": []
         },
         {
           "layoutKey": "c2_toggle",
-          "sourceLabel": "토글 조명",
-          "center": [
-            2.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "토글 조명"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_save"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.03",
-          "gridPosition": {
-            "column": 1,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c2_fault",
-          "sourceLabel": "고장 기록등",
-          "center": [
-            7.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "고장 기록등"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_toggle"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.05",
+          "sourceLabel": "Toggle",
+          "knownLegacyNodeId": "toggle_light",
           "gridPosition": {
             "column": 2,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c2_buffer",
-          "sourceLabel": "준비 후 반영",
-          "center": [
-            12.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "준비 후 반영"
-          ],
-          "tag": "두 갈래 합류",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_selector",
-              "c2_fault"
-            ],
-            "minChapterClears": 0
+            "row": 2
           },
-          "prototypeAvailable": true,
-          "displayNumber": "2.06",
-          "gridPosition": {
-            "column": 3,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c2_door",
-          "sourceLabel": "자동으로 닫히는 문",
-          "center": [
-            17.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "자동문"
-          ],
-          "tag": "마무리",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c2_buffer"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.07",
-          "gridPosition": {
-            "column": 4,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c2_priority",
-          "sourceLabel": "Priority",
           "center": [
             7.5,
+            8.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c2_save"
+          ]
+        },
+        {
+          "layoutKey": "c2_selector",
+          "sourceLabel": "2-to-1 MUX",
+          "knownLegacyNodeId": "selector_2to1",
+          "gridPosition": {
+            "column": 1,
+            "row": 1
+          },
+          "center": [
+            2.5,
             3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Priority"
-          ],
-          "tag": "선택",
-          "knownLegacyNodeId": "priority_gate",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": true,
-          "unlock": {
-            "allOf": [
-              "c2_majority"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.08",
+          "optional": false,
+          "visualParents": [
+            "c2_save"
+          ]
+        },
+        {
+          "layoutKey": "c2_fault",
+          "sourceLabel": "Fault Register",
+          "knownLegacyNodeId": "sticky_fault",
           "gridPosition": {
-            "column": 2,
+            "column": 3,
+            "row": 2
+          },
+          "center": [
+            12.5,
+            8.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c2_toggle"
+          ]
+        },
+        {
+          "layoutKey": "c2_buffer",
+          "sourceLabel": "Response Check",
+          "knownLegacyNodeId": "staging_register",
+          "gridPosition": {
+            "column": 4,
+            "row": 2
+          },
+          "center": [
+            17.5,
+            8.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c2_fault"
+          ]
+        },
+        {
+          "layoutKey": "c2_door",
+          "sourceLabel": "Pulse Extender",
+          "knownLegacyNodeId": "automatic_door",
+          "gridPosition": {
+            "column": 5,
+            "row": 2
+          },
+          "center": [
+            22.5,
+            8.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c2_buffer"
+          ]
+        },
+        {
+          "layoutKey": "c2_priority",
+          "sourceLabel": "Priority Selector",
+          "knownLegacyNodeId": "priority_gate",
+          "gridPosition": {
+            "column": 3,
             "row": 1
-          }
+          },
+          "center": [
+            12.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": true,
+          "visualParents": [
+            "c2_fault"
+          ]
         },
         {
           "layoutKey": "c2_decoder",
           "sourceLabel": "2-to-4 Decoder",
+          "knownLegacyNodeId": "decoder_2to4",
+          "gridPosition": {
+            "column": 2,
+            "row": 1
+          },
           "center": [
-            12.5,
+            7.5,
             3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "2-to-4",
-            "Decoder"
-          ],
-          "tag": "선택",
-          "knownLegacyNodeId": "decoder_2to4",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": true,
-          "unlock": {
-            "allOf": [
-              "c2_selector"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.09",
-          "gridPosition": {
-            "column": 3,
-            "row": 1
-          }
+          "visualParents": [
+            "c2_selector"
+          ]
         },
         {
           "layoutKey": "c2_rise",
-          "sourceLabel": "변화 감지기",
+          "sourceLabel": "Rising Edge Detector",
+          "knownLegacyNodeId": "rising_edge",
+          "gridPosition": {
+            "column": 2,
+            "row": 3
+          },
           "center": [
-            22.5,
+            7.5,
             13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "변화 감지기"
-          ],
-          "tag": "선택",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": true,
-          "unlock": {
-            "allOf": [
-              "c2_door"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "2.10",
-          "gridPosition": {
-            "column": 5,
-            "row": 3
-          }
+          "visualParents": [
+            "c2_toggle"
+          ]
         }
       ],
       "edges": [
         {
           "source": "c2_save",
-          "target": "c2_majority",
-          "points": [
-            [
-              4.0,
-              8.5
-            ],
-            [
-              6.0,
-              8.5
-            ]
-          ]
-        },
-        {
-          "source": "c2_save",
           "target": "c2_toggle",
           "points": [
             [
-              2.5,
-              10.0
-            ],
-            [
-              2.5,
-              12.0
-            ]
-          ]
-        },
-        {
-          "source": "c2_majority",
-          "target": "c2_selector",
-          "points": [
-            [
-              9.0,
+              4.5,
               8.5
             ],
             [
-              11.0,
+              5.5,
               8.5
-            ]
-          ]
-        },
-        {
-          "source": "c2_majority",
-          "target": "c2_priority",
-          "points": [
-            [
-              7.5,
-              7.0
-            ],
-            [
-              7.5,
-              5.0
-            ]
-          ]
-        },
-        {
-          "source": "c2_selector",
-          "target": "c2_decoder",
-          "points": [
-            [
-              12.5,
-              7.0
-            ],
-            [
-              12.5,
-              5.0
             ]
           ]
         },
@@ -780,26 +539,12 @@
           "target": "c2_fault",
           "points": [
             [
-              4.0,
-              13.5
+              9.5,
+              8.5
             ],
             [
-              6.0,
-              13.5
-            ]
-          ]
-        },
-        {
-          "source": "c2_selector",
-          "target": "c2_buffer",
-          "points": [
-            [
-              12.5,
-              10.0
-            ],
-            [
-              12.5,
-              12.0
+              10.5,
+              8.5
             ]
           ]
         },
@@ -808,12 +553,12 @@
           "target": "c2_buffer",
           "points": [
             [
-              9.0,
-              13.5
+              14.5,
+              8.5
             ],
             [
-              11.0,
-              13.5
+              15.5,
+              8.5
             ]
           ]
         },
@@ -822,431 +567,345 @@
           "target": "c2_door",
           "points": [
             [
-              14.0,
-              13.5
+              19.5,
+              8.5
             ],
             [
-              16.0,
-              13.5
+              20.5,
+              8.5
             ]
           ]
         },
         {
-          "source": "c2_door",
+          "source": "c2_save",
+          "target": "c2_selector",
+          "points": [
+            [
+              2.5,
+              6.5
+            ],
+            [
+              2.5,
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c2_selector",
+          "target": "c2_decoder",
+          "points": [
+            [
+              4.5,
+              3.5
+            ],
+            [
+              5.5,
+              3.5
+            ]
+          ]
+        },
+        {
+          "source": "c2_fault",
+          "target": "c2_priority",
+          "points": [
+            [
+              12.5,
+              6.5
+            ],
+            [
+              12.5,
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c2_toggle",
           "target": "c2_rise",
           "points": [
             [
-              19.0,
-              13.5
+              7.5,
+              10.5
             ],
             [
-              21.0,
-              13.5
+              7.5,
+              11.5
             ]
           ]
         }
       ],
       "labels": [],
       "chapterUnlock": {
-        "allOf": [
-          {
-            "chapter": 1,
-            "layoutKey": "c1_xor",
-            "sourceLabel": "XOR",
-            "knownLegacyNodeId": "xor"
-          }
-        ]
+        "requiredStars": 18
       },
-      "expectedEdges": 10,
-      "expectedCycleRank": 1,
+      "expectedEdges": 8,
+      "expectedCycleRank": 0,
       "gridSize": {
         "columns": 5,
         "rows": 3
-      },
-      "mainPath": [
-        "c2_save",
-        "c2_majority",
-        "c2_selector",
-        "c2_buffer",
-        "c2_door"
-      ]
+      }
     },
     {
       "chapter": 3,
       "title": "ARITHMETIC UNIT",
-      "subtitle": "Half Adder → Parity → Full Adder",
-      "entrance": "Chapter 2 · 자동문 완료",
+      "subtitle": "신호를 값으로 계산하다",
+      "entrance": "36 stars",
       "accent": "#e0c97c",
-      "description": "중복 직결을 제거하고 가운데 줄을 산술의 주 경로로 씁니다. 비교는 아래로, Overflow와 보수·뺄셈은 위로 나뉩니다.",
       "nodes": [
         {
           "layoutKey": "c3_half",
           "sourceLabel": "Half Adder",
+          "knownLegacyNodeId": "half_adder",
+          "gridPosition": {
+            "column": 1,
+            "row": 2
+          },
           "center": [
             2.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Half",
-            "Adder"
-          ],
-          "tag": "입구",
-          "knownLegacyNodeId": "half_adder",
-          "sourceSnapshotComingSoon": false,
-          "entry": true,
           "optional": false,
-          "unlock": {
-            "allOf": [],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.01",
-          "gridPosition": {
-            "column": 1,
-            "row": 2
-          }
+          "visualParents": []
         },
         {
           "layoutKey": "c3_parity",
           "sourceLabel": "Parity",
+          "knownLegacyNodeId": "parity_checker",
+          "gridPosition": {
+            "column": 2,
+            "row": 2
+          },
           "center": [
             7.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Parity"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "parity_checker",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_half"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.02",
-          "gridPosition": {
-            "column": 2,
-            "row": 2
-          }
+          "visualParents": [
+            "c3_half"
+          ]
         },
         {
           "layoutKey": "c3_full",
           "sourceLabel": "Full Adder",
+          "knownLegacyNodeId": "full_adder",
+          "gridPosition": {
+            "column": 3,
+            "row": 2
+          },
           "center": [
             12.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Full",
-            "Adder"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "full_adder",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_parity"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.03",
-          "gridPosition": {
-            "column": 3,
-            "row": 2
-          }
+          "visualParents": [
+            "c3_parity"
+          ]
         },
         {
           "layoutKey": "c3_adder",
-          "sourceLabel": "Adder",
+          "sourceLabel": "2-bit Adder",
+          "knownLegacyNodeId": "two_bit_adder",
+          "gridPosition": {
+            "column": 4,
+            "row": 2
+          },
           "center": [
             17.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Adder"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "two_bit_adder",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_full"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.04",
-          "gridPosition": {
-            "column": 4,
-            "row": 2
-          }
+          "visualParents": [
+            "c3_full"
+          ]
         },
         {
           "layoutKey": "c3_multiplier",
-          "sourceLabel": "Multiplier",
+          "sourceLabel": "2-bit Multiplier",
+          "knownLegacyNodeId": "two_bit_multiplier",
+          "gridPosition": {
+            "column": 5,
+            "row": 2
+          },
           "center": [
             22.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Multiplier"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "two_bit_multiplier",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_adder"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.05",
-          "gridPosition": {
-            "column": 5,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c3_remainder",
-          "sourceLabel": "Remainder",
-          "center": [
-            22.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Remainder"
-          ],
-          "tag": "심화",
-          "knownLegacyNodeId": "mod3_remainder",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_multiplier"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.06",
-          "gridPosition": {
-            "column": 5,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c3_overflow",
-          "sourceLabel": "Overflow Detector",
-          "center": [
-            12.5,
-            3.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Overflow",
-            "Detector"
-          ],
-          "tag": "예정",
-          "knownLegacyNodeId": "overflow_detector",
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_full"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": false,
-          "displayNumber": "3.11",
-          "gridPosition": {
-            "column": 3,
-            "row": 1
-          }
-        },
-        {
-          "layoutKey": "c3_twos",
-          "sourceLabel": "2’s complement",
-          "center": [
-            17.5,
-            3.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "2’s",
-            "complement"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "twos_complement",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_adder"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.09",
-          "gridPosition": {
-            "column": 4,
-            "row": 1
-          }
-        },
-        {
-          "layoutKey": "c3_subtractor",
-          "sourceLabel": "Mod 4 Subtractor",
-          "center": [
-            22.5,
-            3.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Mod 4",
-            "Subtractor"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "two_bit_subtractor",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_twos"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.10",
-          "gridPosition": {
-            "column": 5,
-            "row": 1
-          }
+          "visualParents": [
+            "c3_adder"
+          ]
         },
         {
           "layoutKey": "c3_comparator",
-          "sourceLabel": "Comparator",
-          "center": [
-            7.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Comparator"
-          ],
-          "tag": "",
+          "sourceLabel": "2-bit Comparator",
           "knownLegacyNodeId": "two_bit_comparator",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_parity"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.07",
           "gridPosition": {
             "column": 2,
-            "row": 3
-          }
+            "row": 1
+          },
+          "center": [
+            7.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c3_parity"
+          ]
         },
         {
           "layoutKey": "c3_max",
           "sourceLabel": "Max Selector",
+          "knownLegacyNodeId": "two_bit_max_selector",
+          "gridPosition": {
+            "column": 3,
+            "row": 1
+          },
           "center": [
             12.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c3_comparator"
+          ]
+        },
+        {
+          "layoutKey": "c3_twos",
+          "sourceLabel": "2’s Complement",
+          "knownLegacyNodeId": "twos_complement",
+          "gridPosition": {
+            "column": 4,
+            "row": 3
+          },
+          "center": [
+            17.5,
             13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Max",
-            "Selector"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "two_bit_max_selector",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c3_comparator"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "3.08",
+          "visualParents": [
+            "c3_adder"
+          ]
+        },
+        {
+          "layoutKey": "c3_subtractor",
+          "sourceLabel": "2-bit Subtractor",
+          "knownLegacyNodeId": "two_bit_subtractor",
           "gridPosition": {
-            "column": 3,
+            "column": 5,
             "row": 3
-          }
+          },
+          "center": [
+            22.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c3_twos"
+          ]
+        },
+        {
+          "layoutKey": "c3_remainder",
+          "sourceLabel": "Remainder",
+          "knownLegacyNodeId": "mod3_remainder",
+          "gridPosition": {
+            "column": 5,
+            "row": 1
+          },
+          "center": [
+            22.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c3_multiplier"
+          ]
+        },
+        {
+          "layoutKey": "c3_overflow",
+          "sourceLabel": "Capacity Check",
+          "knownLegacyNodeId": "overflow_detector",
+          "gridPosition": {
+            "column": 4,
+            "row": 1
+          },
+          "center": [
+            17.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c3_adder"
+          ]
         }
       ],
       "edges": [
+        {
+          "source": "c3_half",
+          "target": "c3_parity",
+          "points": [
+            [
+              4.5,
+              8.5
+            ],
+            [
+              5.5,
+              8.5
+            ]
+          ]
+        },
         {
           "source": "c3_parity",
           "target": "c3_full",
           "points": [
             [
-              9.0,
+              9.5,
               8.5
             ],
             [
-              11.0,
+              10.5,
               8.5
             ]
           ]
@@ -1256,26 +915,12 @@
           "target": "c3_adder",
           "points": [
             [
-              14.0,
+              14.5,
               8.5
             ],
             [
-              16.0,
+              15.5,
               8.5
-            ]
-          ]
-        },
-        {
-          "source": "c3_full",
-          "target": "c3_overflow",
-          "points": [
-            [
-              12.5,
-              7.0
-            ],
-            [
-              12.5,
-              5.0
             ]
           ]
         },
@@ -1284,81 +929,11 @@
           "target": "c3_multiplier",
           "points": [
             [
-              19.0,
+              19.5,
               8.5
             ],
             [
-              21.0,
-              8.5
-            ]
-          ]
-        },
-        {
-          "source": "c3_adder",
-          "target": "c3_twos",
-          "points": [
-            [
-              17.5,
-              7.0
-            ],
-            [
-              17.5,
-              5.0
-            ]
-          ]
-        },
-        {
-          "source": "c3_multiplier",
-          "target": "c3_remainder",
-          "points": [
-            [
-              22.5,
-              10.0
-            ],
-            [
-              22.5,
-              12.0
-            ]
-          ]
-        },
-        {
-          "source": "c3_twos",
-          "target": "c3_subtractor",
-          "points": [
-            [
-              19.0,
-              3.5
-            ],
-            [
-              21.0,
-              3.5
-            ]
-          ]
-        },
-        {
-          "source": "c3_comparator",
-          "target": "c3_max",
-          "points": [
-            [
-              9.0,
-              13.5
-            ],
-            [
-              11.0,
-              13.5
-            ]
-          ]
-        },
-        {
-          "source": "c3_half",
-          "target": "c3_parity",
-          "points": [
-            [
-              4.0,
-              8.5
-            ],
-            [
-              6.0,
+              20.5,
               8.5
             ]
           ]
@@ -1369,403 +944,331 @@
           "points": [
             [
               7.5,
-              10.0
+              6.5
             ],
             [
               7.5,
-              12.0
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c3_comparator",
+          "target": "c3_max",
+          "points": [
+            [
+              9.5,
+              3.5
+            ],
+            [
+              10.5,
+              3.5
+            ]
+          ]
+        },
+        {
+          "source": "c3_adder",
+          "target": "c3_overflow",
+          "points": [
+            [
+              17.5,
+              6.5
+            ],
+            [
+              17.5,
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c3_adder",
+          "target": "c3_twos",
+          "points": [
+            [
+              17.5,
+              10.5
+            ],
+            [
+              17.5,
+              11.5
+            ]
+          ]
+        },
+        {
+          "source": "c3_twos",
+          "target": "c3_subtractor",
+          "points": [
+            [
+              19.5,
+              13.5
+            ],
+            [
+              20.5,
+              13.5
+            ]
+          ]
+        },
+        {
+          "source": "c3_multiplier",
+          "target": "c3_remainder",
+          "points": [
+            [
+              22.5,
+              6.5
+            ],
+            [
+              22.5,
+              5.5
             ]
           ]
         }
       ],
       "labels": [],
       "chapterUnlock": {
-        "allOf": [
-          {
-            "chapter": 2,
-            "layoutKey": "c2_door",
-            "sourceLabel": "자동문"
-          }
-        ]
+        "requiredStars": 36
       },
       "expectedEdges": 10,
       "expectedCycleRank": 0,
       "gridSize": {
         "columns": 5,
         "rows": 3
-      },
-      "mainPath": [
-        "c3_half",
-        "c3_parity",
-        "c3_full",
-        "c3_adder",
-        "c3_multiplier"
-      ]
+      }
     },
     {
       "chapter": 4,
       "title": "CONTROL FLOW",
-      "subtitle": "왼쪽 입구에서 오른쪽 배선 도전까지",
-      "entrance": "Chapter 2 · 자동문 완료",
+      "subtitle": "신호의 경로와 반응을 조율하다",
+      "entrance": "50 stars",
       "accent": "#b9a0eb",
-      "description": "가운데 줄은 흔들림 제거기→Round Robin→MUX→Fixed XOR→Crossroad입니다. 위쪽에는 Counter→PWM→응답 감시기, 아래쪽에는 각 문제의 짧은 가지를 둡니다.",
       "nodes": [
+        {
+          "layoutKey": "c4_mux",
+          "sourceLabel": "4-to-1 MUX",
+          "knownLegacyNodeId": "mux_4to1",
+          "gridPosition": {
+            "column": 2,
+            "row": 3
+          },
+          "center": [
+            7.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c4_fixedxor"
+          ]
+        },
+        {
+          "layoutKey": "c4_shifter",
+          "sourceLabel": "Rotator",
+          "knownLegacyNodeId": "three_bit_shifter",
+          "gridPosition": {
+            "column": 3,
+            "row": 3
+          },
+          "center": [
+            12.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c4_mux"
+          ]
+        },
         {
           "layoutKey": "c4_counter",
           "sourceLabel": "Up/Down Counter",
+          "knownLegacyNodeId": "up_down_counter",
+          "gridPosition": {
+            "column": 1,
+            "row": 1
+          },
           "center": [
             2.5,
             3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Up/Down",
-            "Counter"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_debounce"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.02",
-          "gridPosition": {
-            "column": 1,
-            "row": 1
-          }
+          "visualParents": [
+            "c4_debounce"
+          ]
         },
         {
           "layoutKey": "c4_pwm",
           "sourceLabel": "PWM",
+          "knownLegacyNodeId": "pwm",
+          "gridPosition": {
+            "column": 2,
+            "row": 1
+          },
           "center": [
             7.5,
             3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "PWM"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_counter"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.03",
-          "gridPosition": {
-            "column": 2,
-            "row": 1
-          }
+          "visualParents": [
+            "c4_counter"
+          ]
         },
         {
           "layoutKey": "c4_watchdog",
-          "sourceLabel": "응답 감시기",
+          "sourceLabel": "Delay Timer",
+          "knownLegacyNodeId": "watchdog",
+          "gridPosition": {
+            "column": 3,
+            "row": 1
+          },
           "center": [
             12.5,
             3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "응답 감시기"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_pwm"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.04",
-          "gridPosition": {
-            "column": 3,
-            "row": 1
-          }
+          "visualParents": [
+            "c4_pwm"
+          ]
         },
         {
           "layoutKey": "c4_debounce",
-          "sourceLabel": "흔들림 제거기",
+          "sourceLabel": "Debouncer",
+          "knownLegacyNodeId": "debouncer",
+          "gridPosition": {
+            "column": 1,
+            "row": 2
+          },
           "center": [
             2.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "흔들림 제거기"
-          ],
-          "tag": "입구",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": false,
-          "entry": true,
           "optional": false,
-          "unlock": {
-            "allOf": [],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.01",
-          "gridPosition": {
-            "column": 1,
-            "row": 2
-          }
+          "visualParents": []
         },
         {
           "layoutKey": "c4_round",
-          "sourceLabel": "Round Robin",
+          "sourceLabel": "Round-Robin Arbiter",
+          "knownLegacyNodeId": "round_robin",
+          "gridPosition": {
+            "column": 2,
+            "row": 2
+          },
           "center": [
             7.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Round",
-            "Robin"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_debounce"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.05",
-          "gridPosition": {
-            "column": 2,
-            "row": 2
-          }
+          "visualParents": [
+            "c4_debounce"
+          ]
         },
         {
           "layoutKey": "c4_abba",
-          "sourceLabel": "ABBA Lock",
-          "center": [
-            7.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "ABBA",
-            "Lock"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_round"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.06",
+          "sourceLabel": "ABBA Detector",
+          "knownLegacyNodeId": "abba_lock",
           "gridPosition": {
-            "column": 2,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c4_mux",
-          "sourceLabel": "4-to-1 MUX",
+            "column": 3,
+            "row": 2
+          },
           "center": [
             12.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "4-to-1",
-            "MUX"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "mux_4to1",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_round"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.07",
-          "gridPosition": {
-            "column": 3,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c4_shifter",
-          "sourceLabel": "3-bit Shifter",
-          "center": [
-            12.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "3-bit",
-            "Shifter"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "three_bit_shifter",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_mux"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.08",
-          "gridPosition": {
-            "column": 3,
-            "row": 3
-          }
+          "visualParents": [
+            "c4_round"
+          ]
         },
         {
           "layoutKey": "c4_fixedxor",
           "sourceLabel": "Fixed XOR",
-          "center": [
-            17.5,
-            8.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Fixed",
-            "XOR"
-          ],
-          "tag": "",
           "knownLegacyNodeId": "fixed_xor",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_mux"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.09",
           "gridPosition": {
-            "column": 4,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c4_cross",
-          "sourceLabel": "Crossroad",
+            "column": 1,
+            "row": 3
+          },
           "center": [
-            22.5,
-            8.5
+            2.5,
+            13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Crossroad"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "crossroad",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_fixedxor"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.11",
-          "gridPosition": {
-            "column": 5,
-            "row": 2
-          }
+          "visualParents": [
+            "c4_debounce"
+          ]
         },
         {
           "layoutKey": "c4_fixeddecoder",
           "sourceLabel": "Fixed 2-to-4 Decoder",
+          "knownLegacyNodeId": "fixed_decoder_2to4",
+          "gridPosition": {
+            "column": 4,
+            "row": 3
+          },
           "center": [
             17.5,
             13.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Fixed 2-to-4",
-            "Decoder"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": "fixed_decoder_2to4",
-          "sourceSnapshotComingSoon": false,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c4_fixedxor"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "4.10",
+          "visualParents": [
+            "c4_shifter"
+          ]
+        },
+        {
+          "layoutKey": "c4_cross",
+          "sourceLabel": "Crossroad",
+          "knownLegacyNodeId": "crossroad",
           "gridPosition": {
-            "column": 4,
+            "column": 5,
             "row": 3
-          }
+          },
+          "center": [
+            22.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c4_fixeddecoder"
+          ]
         }
       ],
       "edges": [
@@ -1775,25 +1278,11 @@
           "points": [
             [
               2.5,
-              7.0
+              6.5
             ],
             [
               2.5,
-              5.0
-            ]
-          ]
-        },
-        {
-          "source": "c4_debounce",
-          "target": "c4_round",
-          "points": [
-            [
-              4.0,
-              8.5
-            ],
-            [
-              6.0,
-              8.5
+              5.5
             ]
           ]
         },
@@ -1802,11 +1291,11 @@
           "target": "c4_pwm",
           "points": [
             [
-              4.0,
+              4.5,
               3.5
             ],
             [
-              6.0,
+              5.5,
               3.5
             ]
           ]
@@ -1816,12 +1305,26 @@
           "target": "c4_watchdog",
           "points": [
             [
-              9.0,
+              9.5,
               3.5
             ],
             [
-              11.0,
+              10.5,
               3.5
+            ]
+          ]
+        },
+        {
+          "source": "c4_debounce",
+          "target": "c4_round",
+          "points": [
+            [
+              4.5,
+              8.5
+            ],
+            [
+              5.5,
+              8.5
             ]
           ]
         },
@@ -1830,26 +1333,40 @@
           "target": "c4_abba",
           "points": [
             [
-              7.5,
-              10.0
+              9.5,
+              8.5
             ],
             [
-              7.5,
-              12.0
+              10.5,
+              8.5
             ]
           ]
         },
         {
-          "source": "c4_round",
+          "source": "c4_debounce",
+          "target": "c4_fixedxor",
+          "points": [
+            [
+              2.5,
+              10.5
+            ],
+            [
+              2.5,
+              11.5
+            ]
+          ]
+        },
+        {
+          "source": "c4_fixedxor",
           "target": "c4_mux",
           "points": [
             [
-              9.0,
-              8.5
+              4.5,
+              13.5
             ],
             [
-              11.0,
-              8.5
+              5.5,
+              13.5
             ]
           ]
         },
@@ -1858,393 +1375,331 @@
           "target": "c4_shifter",
           "points": [
             [
-              12.5,
-              10.0
+              9.5,
+              13.5
             ],
             [
-              12.5,
-              12.0
+              10.5,
+              13.5
             ]
           ]
         },
         {
-          "source": "c4_mux",
-          "target": "c4_fixedxor",
-          "points": [
-            [
-              14.0,
-              8.5
-            ],
-            [
-              16.0,
-              8.5
-            ]
-          ]
-        },
-        {
-          "source": "c4_fixedxor",
+          "source": "c4_shifter",
           "target": "c4_fixeddecoder",
           "points": [
             [
-              17.5,
-              10.0
+              14.5,
+              13.5
             ],
             [
-              17.5,
-              12.0
+              15.5,
+              13.5
             ]
           ]
         },
         {
-          "source": "c4_fixedxor",
+          "source": "c4_fixeddecoder",
           "target": "c4_cross",
           "points": [
             [
-              19.0,
-              8.5
+              19.5,
+              13.5
             ],
             [
-              21.0,
-              8.5
+              20.5,
+              13.5
             ]
           ]
         }
       ],
       "labels": [],
       "chapterUnlock": {
-        "allOf": [
-          {
-            "chapter": 2,
-            "layoutKey": "c2_door",
-            "sourceLabel": "자동문"
-          }
-        ]
+        "requiredStars": 50
       },
       "expectedEdges": 10,
       "expectedCycleRank": 0,
       "gridSize": {
         "columns": 5,
         "rows": 3
-      },
-      "mainPath": [
-        "c4_debounce",
-        "c4_round",
-        "c4_mux",
-        "c4_fixedxor",
-        "c4_cross"
-      ]
+      }
     },
     {
       "chapter": 5,
       "title": "SYSTEM INTEGRATION",
-      "subtitle": "저장·전달·복원에서 누적·반복 계산으로",
-      "entrance": "Chapter 2 자동문 + Chapter 3 Adder + Chapter 4 Up/Down Counter 완료",
+      "subtitle": "기억과 계산을 하나로 연결하다",
+      "entrance": "84 stars",
       "accent": "#70c9a6",
-      "description": "가운데 줄은 Register Bank→Mailbox→Undo→Accumulator→Iterative Multiplier입니다. Mailbox 위아래에 Stack·Queue를 두고, 수신은 Register Bank 위쪽, 전송은 Undo 아래쪽에서 갈라집니다.",
       "nodes": [
         {
           "layoutKey": "c5_register",
           "sourceLabel": "Register Bank",
+          "knownLegacyNodeId": "register_bank",
+          "gridPosition": {
+            "column": 1,
+            "row": 2
+          },
           "center": [
             2.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Register",
-            "Bank"
-          ],
-          "tag": "입구",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": true,
           "optional": false,
-          "unlock": {
-            "allOf": [],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.01",
-          "gridPosition": {
-            "column": 1,
-            "row": 2
-          }
+          "visualParents": []
         },
         {
           "layoutKey": "c5_undo",
           "sourceLabel": "Undo Register",
+          "knownLegacyNodeId": "undo_register",
+          "gridPosition": {
+            "column": 2,
+            "row": 2
+          },
           "center": [
-            12.5,
+            7.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Undo",
-            "Register"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_mail"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.02",
-          "gridPosition": {
-            "column": 3,
-            "row": 2
-          }
-        },
-        {
-          "layoutKey": "c5_rx",
-          "sourceLabel": "Serial Receiver",
-          "center": [
-            2.5,
-            3.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Serial",
-            "Receiver"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_register"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.03",
-          "gridPosition": {
-            "column": 1,
-            "row": 1
-          }
-        },
-        {
-          "layoutKey": "c5_tx",
-          "sourceLabel": "Serial Transmitter",
-          "center": [
-            12.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Serial",
-            "Transmitter"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_undo"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.07",
-          "gridPosition": {
-            "column": 3,
-            "row": 3
-          }
+          "visualParents": [
+            "c5_register"
+          ]
         },
         {
           "layoutKey": "c5_mail",
           "sourceLabel": "Mailbox",
+          "knownLegacyNodeId": "mailbox",
+          "gridPosition": {
+            "column": 3,
+            "row": 2
+          },
           "center": [
-            7.5,
+            12.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Mailbox"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_register"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.04",
-          "gridPosition": {
-            "column": 2,
-            "row": 2
-          }
+          "visualParents": [
+            "c5_undo"
+          ]
         },
         {
           "layoutKey": "c5_stack",
           "sourceLabel": "Stack",
-          "center": [
-            7.5,
-            3.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Stack"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_mail"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.05",
+          "knownLegacyNodeId": "stack",
           "gridPosition": {
-            "column": 2,
-            "row": 1
-          }
-        },
-        {
-          "layoutKey": "c5_queue",
-          "sourceLabel": "Queue",
-          "center": [
-            7.5,
-            13.5
-          ],
-          "size": [
-            3,
-            3
-          ],
-          "displayLines": [
-            "Queue"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
-          "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_mail"
-            ],
-            "minChapterClears": 0
+            "column": 4,
+            "row": 2
           },
-          "prototypeAvailable": true,
-          "displayNumber": "5.06",
-          "gridPosition": {
-            "column": 2,
-            "row": 3
-          }
-        },
-        {
-          "layoutKey": "c5_accum",
-          "sourceLabel": "Accumulator",
           "center": [
             17.5,
             8.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Accumulator"
-          ],
-          "tag": "",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_undo"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.08",
+          "visualParents": [
+            "c5_mail"
+          ]
+        },
+        {
+          "layoutKey": "c5_queue",
+          "sourceLabel": "Queue",
+          "knownLegacyNodeId": "queue",
           "gridPosition": {
-            "column": 4,
-            "row": 2
-          }
+            "column": 3,
+            "row": 1
+          },
+          "center": [
+            12.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c5_mail"
+          ]
+        },
+        {
+          "layoutKey": "c5_rx",
+          "sourceLabel": "Serial Receiver",
+          "knownLegacyNodeId": "serial_receiver",
+          "gridPosition": {
+            "column": 1,
+            "row": 3
+          },
+          "center": [
+            2.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c5_register"
+          ]
+        },
+        {
+          "layoutKey": "c5_tx",
+          "sourceLabel": "Serial Transmitter",
+          "knownLegacyNodeId": "serial_transmitter",
+          "gridPosition": {
+            "column": 2,
+            "row": 3
+          },
+          "center": [
+            7.5,
+            13.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c5_rx"
+          ]
+        },
+        {
+          "layoutKey": "c5_accum",
+          "sourceLabel": "Accumulator",
+          "knownLegacyNodeId": "accumulator",
+          "gridPosition": {
+            "column": 1,
+            "row": 1
+          },
+          "center": [
+            2.5,
+            3.5
+          ],
+          "size": [
+            4,
+            4
+          ],
+          "optional": false,
+          "visualParents": [
+            "c5_register"
+          ]
         },
         {
           "layoutKey": "c5_iter",
-          "sourceLabel": "Iterative Multiplier",
+          "sourceLabel": "Divider",
+          "knownLegacyNodeId": "iterative_multiplier",
+          "gridPosition": {
+            "column": 2,
+            "row": 1
+          },
           "center": [
-            22.5,
-            8.5
+            7.5,
+            3.5
           ],
           "size": [
-            3,
-            3
+            4,
+            4
           ],
-          "displayLines": [
-            "Iterative",
-            "Multiplier"
-          ],
-          "tag": "심화",
-          "knownLegacyNodeId": null,
-          "sourceSnapshotComingSoon": true,
-          "entry": false,
           "optional": false,
-          "unlock": {
-            "allOf": [
-              "c5_accum"
-            ],
-            "minChapterClears": 0
-          },
-          "prototypeAvailable": true,
-          "displayNumber": "5.09",
-          "gridPosition": {
-            "column": 5,
-            "row": 2
-          }
+          "visualParents": [
+            "c5_accum"
+          ]
         }
       ],
       "edges": [
         {
-          "source": "c5_mail",
+          "source": "c5_register",
+          "target": "c5_accum",
+          "points": [
+            [
+              2.5,
+              6.5
+            ],
+            [
+              2.5,
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c5_accum",
+          "target": "c5_iter",
+          "points": [
+            [
+              4.5,
+              3.5
+            ],
+            [
+              5.5,
+              3.5
+            ]
+          ]
+        },
+        {
+          "source": "c5_register",
           "target": "c5_undo",
           "points": [
             [
-              9.0,
+              4.5,
               8.5
             ],
             [
-              11.0,
+              5.5,
+              8.5
+            ]
+          ]
+        },
+        {
+          "source": "c5_undo",
+          "target": "c5_mail",
+          "points": [
+            [
+              9.5,
+              8.5
+            ],
+            [
+              10.5,
+              8.5
+            ]
+          ]
+        },
+        {
+          "source": "c5_mail",
+          "target": "c5_queue",
+          "points": [
+            [
+              12.5,
+              6.5
+            ],
+            [
+              12.5,
+              5.5
+            ]
+          ]
+        },
+        {
+          "source": "c5_mail",
+          "target": "c5_stack",
+          "points": [
+            [
+              14.5,
+              8.5
+            ],
+            [
+              15.5,
               8.5
             ]
           ]
@@ -2255,139 +1710,46 @@
           "points": [
             [
               2.5,
-              7.0
+              10.5
             ],
             [
               2.5,
-              5.0
+              11.5
             ]
           ]
         },
         {
-          "source": "c5_undo",
+          "source": "c5_rx",
           "target": "c5_tx",
           "points": [
             [
-              12.5,
-              10.0
+              4.5,
+              13.5
             ],
             [
-              12.5,
-              12.0
-            ]
-          ]
-        },
-        {
-          "source": "c5_register",
-          "target": "c5_mail",
-          "points": [
-            [
-              4.0,
-              8.5
-            ],
-            [
-              6.0,
-              8.5
-            ]
-          ]
-        },
-        {
-          "source": "c5_undo",
-          "target": "c5_accum",
-          "points": [
-            [
-              14.0,
-              8.5
-            ],
-            [
-              16.0,
-              8.5
-            ]
-          ]
-        },
-        {
-          "source": "c5_mail",
-          "target": "c5_stack",
-          "points": [
-            [
-              7.5,
-              7.0
-            ],
-            [
-              7.5,
-              5.0
-            ]
-          ]
-        },
-        {
-          "source": "c5_mail",
-          "target": "c5_queue",
-          "points": [
-            [
-              7.5,
-              10.0
-            ],
-            [
-              7.5,
-              12.0
-            ]
-          ]
-        },
-        {
-          "source": "c5_accum",
-          "target": "c5_iter",
-          "points": [
-            [
-              19.0,
-              8.5
-            ],
-            [
-              21.0,
-              8.5
+              5.5,
+              13.5
             ]
           ]
         }
       ],
       "labels": [],
       "chapterUnlock": {
-        "allOf": [
-          {
-            "chapter": 2,
-            "layoutKey": "c2_door",
-            "sourceLabel": "자동문"
-          },
-          {
-            "chapter": 3,
-            "layoutKey": "c3_adder",
-            "sourceLabel": "Adder"
-          },
-          {
-            "chapter": 4,
-            "layoutKey": "c4_counter",
-            "sourceLabel": "Up/Down Counter"
-          }
-        ]
+        "requiredStars": 84
       },
       "expectedEdges": 8,
       "expectedCycleRank": 0,
       "gridSize": {
         "columns": 5,
         "rows": 3
-      },
-      "mainPath": [
-        "c5_register",
-        "c5_mail",
-        "c5_undo",
-        "c5_accum",
-        "c5_iter"
-      ]
+      }
     }
   ],
-  "edgeMeaning": "Directed progression edge: source precedes target. The underlying undirected graph has cycle rank 0 or 1. Directed cycles are prohibited.",
+  "edgeMeaning": "Directed functional relationship only; arrows never determine admission. Each chapter is a connected directed acyclic graph.",
   "unlockPolicy": {
-    "chapter": "chapterUnlock.allOf; retain edition and publication restrictions",
-    "node": "entry OR all incoming source nodes cleared",
-    "count": "No chapter-local clear-count gates. Only the Chapter 2 merge uses AND."
+    "chapter": "chapterUnlock.requiredStars from highest earned official stage stars; retain existing access and edition restrictions",
+    "node": "Every playable stage in an open chapter is available",
+    "count": "Tutorial, Lab and user problems contribute no stars."
   },
-  "runtimeStatusNotice": "Reference and preview only. Preserve actual content availability, entitlements and IDs. prototypeAvailable and sourceSnapshotComingSoon never authorize publishing a stage."
+  "runtimeStatusNotice": "Reference only. Preserve actual content availability, edition restrictions and stable IDs."
 }

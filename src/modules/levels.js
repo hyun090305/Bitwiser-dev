@@ -4,7 +4,7 @@ import { getUsername, setLastAccessedLevel, getStageAccessRecord, setStageAccess
 
 import { showStageMapScreen, hideGameScreen } from './navigation.js';
 import { playStageIntroSound, setBgmMode } from './bgm.js';
-import { canPlayStage, chapterForStage, preserveStageAccess } from './stageCatalog.js';
+import { canPlayStage, chapterForStage, preserveStageAccess, playableStages, acknowledgeChapter } from './stageCatalog.js';
 
 const translate =
   typeof window !== 'undefined' && typeof window.t === 'function'
@@ -218,6 +218,8 @@ export function markLevelCleared(level) {
       clearedCount: clearedLevelsFromDb.filter(id => id !== 0).length
     };
   }
+  updateStageAccess();
+  refreshClearedUI();
   return {
     wasNew: false,
     clearedCount: clearedLevelsFromDb.filter(id => id !== 0).length
@@ -292,15 +294,20 @@ export function loadClearedLevelsFromDb() {
     return Promise.resolve(clearedLevelsFromDb.slice());
   }
   const nickname = getUsername() || '익명';
+  const knownAccess = stageAccessOwner === nickname ? stageAccess : getStageAccessRecord();
+  const knownCleared = stageAccessOwner === nickname ? clearedLevelsFromDb : [];
+  const savedCleared = Object.keys(knownAccess?.stageStars || {}).filter(id => knownAccess.stageStars[id] > 0).map(Number);
   return Promise.allSettled([fetchClearedLevels(nickname), dependencies.remoteProgressProvider?.()]).then(([legacy, costs]) => {
+    if (nickname !== (getUsername() || '익명')) return clearedLevelsFromDb.slice();
     if (legacy.status === 'rejected') console.warn('Online progress unavailable; retaining known progress', legacy.reason);
     if (costs.status === 'rejected') console.warn('Online cost records unavailable; retaining local results', costs.reason);
-    const online = legacy.status === 'fulfilled' ? legacy.value : clearedLevelsFromDb;
-    clearedLevelsFromDb = [...new Set([...online, ...(dependencies.localProgressProvider?.() || [])])];
+    const online = legacy.status === 'fulfilled' ? legacy.value : knownCleared;
+    clearedLevelsFromDb = [...new Set([...knownCleared, ...savedCleared, ...online, ...(dependencies.localProgressProvider?.() || [])])];
     updateStageAccess();
     refreshClearedUI();
     return clearedLevelsFromDb.slice();
   }).catch(error => {
+    if (nickname !== (getUsername() || '익명')) return clearedLevelsFromDb.slice();
     console.warn('Online progress unavailable; retaining known progress', error);
     clearedLevelsFromDb = [...new Set([...clearedLevelsFromDb, ...(dependencies.localProgressProvider?.() || [])])];
     updateStageAccess(); refreshClearedUI(); return clearedLevelsFromDb.slice();
@@ -337,11 +344,19 @@ export function getStageAccess() {
   return dependencies.accessProvider?.() || (dependencies.progressProvider ? {} : stageAccess);
 }
 
+export function acknowledgeChapterUnlock(chapterId) {
+  if (dependencies.acknowledgeChapter) return dependencies.acknowledgeChapter(chapterId);
+  stageAccess = acknowledgeChapter(stageAccess, chapterId);
+  setStageAccessRecord(stageAccess);
+}
+
 function updateStageAccess() {
   if (dependencies.progressProvider) return;
   const owner = getUsername() || '익명';
   const previous = stageAccessOwner === owner ? stageAccess : getStageAccessRecord();
-  stageAccess = preserveStageAccess(clearedLevelsFromDb, previous || {}, { legacy: !previous || (previous.catalogVersion || 1) < 3 });
+  if (!loadedStageData) return;
+  const stageStars = Object.fromEntries(playableStages().map(({ id }) => [id, dependencies.starsProvider?.(id) || 0]));
+  stageAccess = preserveStageAccess(clearedLevelsFromDb, previous || {}, { legacy: !previous || (previous.catalogVersion || 1) < 3, stageStars });
   stageAccessOwner = owner;
   setStageAccessRecord(stageAccess);
 }
@@ -351,15 +366,6 @@ function getStageCode(level) {
     return `STAGE ${String(level).padStart(2, '0')}`;
   }
   return 'STAGE --';
-}
-
-function buildMissionBrief(title, desc) {
-  const safeTitle = (title || 'UNKNOWN').toString().trim() || 'UNKNOWN';
-  const source = (desc || '').toString().trim();
-  if (source) {
-    return source;
-  }
-  return `LOGIC NODE: ${safeTitle}의 출력 패턴을 복구하십시오.`;
 }
 
 function formatSignalLabel(signalName) {
@@ -375,6 +381,12 @@ function getSignalGroupKey(signalLabel) {
 
 function parseLogicRows(level, dataTable = []) {
   if (!Array.isArray(dataTable) || !dataTable.length) return [];
+  // Legacy Subtractor examples call the result S1/S0; its actual ports are R1/R0.
+  // Normalize display labels only, keeping the stored examples and grading data intact.
+  if (Number(level) === 15) {
+    dataTable = dataTable.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) =>
+      [key === 'S1' ? 'R1' : key === 'S0' ? 'R0' : key, value])));
+  }
   const firstRow = dataTable[0];
   const rowKeys = Object.keys(firstRow);
   if (!rowKeys.length) return [];
@@ -490,9 +502,21 @@ function prepareIntroScreen(level, data) {
   const startBtn = document.getElementById('startLevelBtn');
   if (!modal || !title || !desc || !stageCode || !table || !startBtn) return null;
 
-  const nodeTitle = `LOGIC NODE: ${(data.title || '').toString().trim()}`;
-  title.textContent = nodeTitle;
-  desc.textContent = buildMissionBrief(data.title, data.desc);
+  title.textContent = (data.title || '').toString().trim();
+  desc.textContent = (data.desc || '').toString().trim();
+  const fixedIO = document.getElementById('introFixedIO');
+  fixedIO.hidden = !levelFixedIO[level]?.fixIO;
+  fixedIO.textContent = window.currentLang === 'en' ? 'Fixed I/O' : '고정 I/O';
+  const rules = document.getElementById('introRules');
+  rules.replaceChildren();
+  rules.hidden = !data.rules?.length;
+  const body = document.createElement('tbody');
+  for (const [label, text] of data.rules || []) {
+    const row = document.createElement('tr'), heading = document.createElement('th'), cell = document.createElement('td');
+    heading.scope = 'row'; heading.textContent = label; cell.textContent = text;
+    row.append(heading, cell); body.append(row);
+  }
+  rules.append(body);
   const chapter = chapterForStage(Number(level));
   stageCode.textContent = `${chapter ? chapter.title.toUpperCase() + ' · ' : ''}${getStageCode(level)}`;
   if (logicDataLabel) {

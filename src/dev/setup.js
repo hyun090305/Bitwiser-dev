@@ -7,7 +7,7 @@ let storage;
 try { storage = localStorage; } catch { /* panel reports session-only changes */ }
 export const devProgress = createDevProgress({ storage, getLevels: levels.getLoadedStageData,
   onFailure: error => console.warn('Developer progress was not saved', error) });
-levels.configureLevelModule({ progressProvider: devProgress.cleared, accessProvider: devProgress.access });
+levels.configureLevelModule({ progressProvider: devProgress.cleared, accessProvider: devProgress.access, acknowledgeChapter: devProgress.acknowledgeChapter });
 configureFullCostExperience({ storeProvider: () => devProgress });
 devProgress.subscribe(() => {
   levels.loadClearedLevelsFromDb();

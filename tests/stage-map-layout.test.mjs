@@ -14,7 +14,7 @@ test('Extras precedes Chapter 1 without dependencies or changes to demo feature 
   const extras = map.chapters[0], chapterOne = map.chapters[1];
   assert.equal(extras.numbered, false);assert.equal(extras.label, 'Auxiliary Systems');
   assert.ok(extras.anchor.x < chapterOne.anchor.x);
-  assert.deepEqual(chapterOne.prerequisites, []);
+  assert.equal(chapterOne.requiredStars, 0);
   const cards = map.nodes.filter(n => n.chapterId === 'extras');
   assert.deepEqual(cards.map(n => n.id), ['lab','user_created_stages']);
   assert.deepEqual(cards[0].size, cards[1].size);assert.equal(cards[0].position.y, cards[1].position.y);
@@ -27,8 +27,8 @@ test('Extras precedes Chapter 1 without dependencies or changes to demo feature 
 });
 
 test('48 stable nodes match every approved slot, optional tag, parent and chapter gate', () => {
-  assert.equal(STAGES.length, 48); assert.equal(map.edges.length, 44);
-  assert.deepEqual(CHAPTERS.map(ch => ch.prerequisites), [[],[6],[30],[30],[30,14,32]]);
+  assert.equal(STAGES.length, 48); assert.equal(map.edges.length, 43);
+  assert.deepEqual(CHAPTERS.map(ch => ch.requiredStars), [0,18,36,50,84]);
   for (const chapter of reference.chapters) for (const expected of chapter.nodes) {
     const stage = byKey.get(expected.layoutKey), node = map.nodes.find(n => n.id === stage.nodeId);
     assert.deepEqual(stage.gridPosition, expected.gridPosition);
@@ -37,13 +37,26 @@ test('48 stable nodes match every approved slot, optional tag, parent and chapte
     assert.equal(stage.chapterId, `chapter_${chapter.chapter}`);
     if (expected.knownLegacyNodeId) assert.equal(stage.nodeId, expected.knownLegacyNodeId);
     assert.equal('prerequisites' in stage, false);
-    assert.deepEqual(map.edges.filter(e=>e.to===stage.nodeId).map(e=>e.from), expected.unlock.allOf.map(key => byKey.get(key).nodeId));
+    assert.deepEqual(map.edges.filter(e=>e.to===stage.nodeId).map(e=>e.from), expected.visualParents.map(key => byKey.get(key).nodeId));
     const anchor = map.chapters.find(ch => ch.id === stage.chapterId).anchor;
     assert.deepEqual([node.position.x-anchor.x+node.size.w/2,node.position.y-anchor.y+node.size.h/2], expected.center);
   }
 });
 
 test('all arrows have two border points, equal length, no intersections, and one connected DAG per chapter', () => {
+  for (const chapter of reference.chapters) {
+    assert.equal(chapter.chapterUnlock.requiredStars, CHAPTERS[chapter.chapter-1].requiredStars);
+    const nodes = new Map(chapter.nodes.map(node => [node.layoutKey, node]));
+    assert.equal(chapter.expectedEdges, chapter.edges.length);
+    assert.deepEqual(chapter.edges.map(edge => [byKey.get(edge.source).nodeId, byKey.get(edge.target).nodeId]),
+      map.edges.filter(edge => byKey.get(chapter.nodes[0].layoutKey).chapterId === STAGES.find(s => s.nodeId === edge.from).chapterId).map(edge => [edge.from, edge.to]));
+    for (const edge of chapter.edges) {
+      const a = nodes.get(edge.source), b = nodes.get(edge.target);
+      const dx = Math.sign(b.center[0]-a.center[0]), dy = Math.sign(b.center[1]-a.center[1]);
+      assert.deepEqual(edge.points, [[a.center[0]+dx*a.size[0]/2,a.center[1]+dy*a.size[1]/2],
+        [b.center[0]-dx*b.size[0]/2,b.center[1]-dy*b.size[1]/2]]);
+    }
+  }
   const nodeById = new Map(map.nodes.filter(n => n.gridPosition).map(n => {
     const rect = stageWorldRect(n.position, n.size);
     return [n.id, {...n, rect, center:{x:rect.x+rect.w/2,y:rect.y+rect.h/2}}];
@@ -66,8 +79,8 @@ test('all arrows have two border points, equal length, no intersections, and one
   }
   for (const [i,ch] of CHAPTERS.entries()) {
     const nodes=STAGES.filter(s=>s.chapterId===ch.id), edges=map.edges.filter(e=>nodeById.get(e.from).chapterId===ch.id);
-    assert.equal(nodes.length,[7,10,11,11,9][i]);assert.equal(edges.length,[6,10,10,10,8][i]);
-    assert.equal(edges.length-nodes.length+1,i===1?1:0);
+    assert.equal(nodes.length,[8,9,11,11,9][i]);assert.equal(edges.length,[7,8,10,10,8][i]);
+    assert.equal(edges.length-nodes.length+1,0);
     const entry=nodes.find(s=>!edges.some(e=>e.to===s.nodeId));assert.deepEqual(entry.gridPosition,{column:1,row:2});
     const reached=new Set(), visit=(id,path=[])=>{
       assert.ok(!path.includes(id),'directed cycle');reached.add(id);
@@ -78,9 +91,9 @@ test('all arrows have two border points, equal length, no intersections, and one
 });
 
 test('chapter admission retains exact gates and rejects unknown stages', () => {
-  assert.deepEqual(CHAPTERS.map(ch=>ch.prerequisites),[[],[6],[30],[30],[30,14,32]]);
+  assert.deepEqual(CHAPTERS.map(ch=>ch.requiredStars),[0,18,36,50,84]);
   for(const cleared of [[],[30],[30,14],[14,32]])assert.equal(chapterAccess('chapter_5',cleared).unlocked,false);
-  assert.equal(chapterAccess('chapter_5',[30,14,32]).unlocked,true);
+  assert.equal(chapterAccess('chapter_5',[30,14,32]).unlocked,false);
   for(const id of [null,48])assert.equal(canPlayStage(id,STAGES.map(s=>s.id),{unlockedStages:[id]}),false);
 });
 
@@ -89,7 +102,7 @@ test('legacy access migrates once without fabricating clears, and new progress c
   const legacy=preserveStageAccess(cleared,{}, {legacy:true});
   assert.equal(canPlayStage(12,cleared,legacy),true);assert.equal(chapterAccess('chapter_5',cleared,legacy).unlocked,true);
   assert.deepEqual(preserveStageAccess(cleared,legacy),legacy);assert.deepEqual(cleared,copy);
-  const fresh=preserveStageAccess(cleared);assert.equal(canPlayStage(12,cleared,fresh),true);
+  const fresh=preserveStageAccess(cleared);assert.equal(canPlayStage(12,cleared,fresh),false);
   assert.equal(chapterAccess('chapter_5',cleared,fresh).unlocked,false);
   assert.equal(canPlayStage(12,[12]),true);
   assert.equal(canPlayStage(34,[],{unlockedStages:[34]}),true);
@@ -102,7 +115,7 @@ test('version 2 demo draft, best records, hints and unlocked rising edge survive
   raw.stages[31]={draft:{circuitVersion:2,circuit:read('tests/fixtures/demo/31-3.json').circuit}};
   raw.lastStageId=31;raw.hints[31]=1;
   const next=validateProgress(raw,levels,{},[]);
-  assert.equal(next.catalogVersion,4);assert.equal(next.lastStageId,31);assert.equal(next.hints[31],1);
+  assert.equal(next.catalogVersion,5);assert.equal(next.lastStageId,31);assert.equal(next.hints[31],1);
   assert.equal(isUnlocked(31,[29],next),true);assert.equal(isUnlocked(31,[29]),true);
   assert.deepEqual(next.stages[29],raw.stages[29]);assert.equal(next.stages[30],undefined);
   assert.deepEqual(validateProgress(next,levels,{},[]),next);

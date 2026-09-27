@@ -75,8 +75,8 @@ try {
     await grade(6);
     state = await inspect(); assert.equal(state.unlocked[2], true); assert.equal(state.mapLocked[1], false);
     await open(); await preset('before-ch34'); await close(); await enterStage(page, 30); await grade(30);
-    state = await inspect(); assert.equal(state.unlocked[4], true); assert.equal(state.unlocked[5], true);
-    assert.equal(state.mapLocked[2], false); assert.equal(state.mapLocked[3], false); assert.equal(state.mapLocked[4], true);
+    state = await inspect(); assert.equal(state.unlocked[4], true); assert.equal(state.unlocked[5], false);
+    assert.equal(state.mapLocked[2], false); assert.equal(state.mapLocked[3], true); assert.equal(state.mapLocked[4], true);
     await open(); await page.locator('#dev-chapter_4').selectOption('locked');
     const persisted = (await inspect()).snapshot;
     await page.reload(); await page.locator('#devProgressToggle').waitFor();

@@ -44,7 +44,7 @@ test('star placeholders, invalid pairs, zero/equal limits, failed verification a
   assert.equal(evaluateCostStars(1,true,0,t),3); assert.equal(evaluateCostStars(1,false,0,t),0); assert.equal(evaluateCostStars(0,true,0,t),0);
 });
 
-test('491 AC-1/2: 38 Chapter 1–4 targets match both languages and include their boundaries; Chapter 5 stays pending', () => {
+test('491 AC-1/2: 38 Chapter 1–4 targets match both languages and include their boundaries; Chapter 5 has verified targets', () => {
   // [three-star maximum, two-star maximum], including issue #491's 22 targets.
   const targets = {
     1:[12,14], 2:[13,15], 3:[13,15], 4:[24,27], 5:[24,27], 6:[52,60],
@@ -53,12 +53,12 @@ test('491 AC-1/2: 38 Chapter 1–4 targets match both languages and include thei
     9:[54,65], 8:[105,120], 10:[125,150], 14:[185,215], 17:[155,180],
     13:[180,215], 16:[105,125], 24:[170,200], 15:[180,215], 18:[375,430], 47:[175,205],
     32:[185,225], 33:[135,155], 34:[315,370], 35:[145,175], 36:[150,180], 37:[165,195],
-    12:[145,170], 21:[160,190], 20:[70,85], 22:[215,250], 19:[165,190]
+    12:[145,170], 21:[160,190], 20:[70,85], 22:[215,250], 19:[165,190], 38:[230,270], 39:[245,285], 40:[180,210], 41:[390,450], 42:[370,425], 43:[315,365], 44:[500,580], 45:[230,270], 46:[550,650]
   };
   for (const file of ['levels.json','levels_en.json']) {
     const l=JSON.parse(fs.readFileSync(file,'utf8'));
-    assert.equal(Object.keys(targets).length,38);
-    assert.equal(Object.values(l.levelStarThresholds).filter(t=>t.threeStarMaxCost===null).length,9);
+    assert.equal(Object.keys(targets).length,47);
+    assert.equal(Object.values(l.levelStarThresholds).filter(t=>t.threeStarMaxCost===null).length,0);
     assert.deepEqual(Object.keys(l.levelStarThresholds),Object.keys(l.levelTitles).filter(id=>id!=='0'));
     for (const [id, value] of Object.entries(l.levelStarThresholds)) {
       const [three, two] = targets[id] || [null, null];

@@ -45,4 +45,5 @@ for(const [key,graph] of Object.entries(referenceGraphs)) {
   }
   console.log(`Verified ${id}: ${Object.keys(circuit.blocks).length} blocks, ${result.total} cases`);
 }
-await write('levels.json',levels);await write('levels_en.json',en);
+const { applyStageCopy } = await import('./apply-stage-copy.mjs');
+await write('levels.json',applyStageCopy(levels,0));await write('levels_en.json',applyStageCopy(en,1));

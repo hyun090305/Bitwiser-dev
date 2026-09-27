@@ -145,10 +145,13 @@ try {
   await page.getByRole('button',{name:'Close',exact:true}).click();
   await fs.writeFile('test-results/demo-progress.json', JSON.stringify(await save()));
   await enter(4); await grade(4); await enter(5); await grade(5);
-  for (const id of [30,31,29,28,27,26,7,25,11]) { await enter(id); await grade(id); }
+  await enter(7); await grade(7);
+  for (const id of [30,31,29,28,27,26,25,11]) { await enter(id); await grade(id); }
   await enter(23); // Existing Priority remains playable with configured cost targets.
   assert.ok((await save()).stages[23].draft);
   assert.equal('storySeen' in (await save()),false);
+  const totalStars=Object.values((await save()).stageStars).reduce((sum,stars)=>sum+stars,0);
+  assert.ok(totalStars>=36&&totalStars<=48,'full-version chapters stay unavailable above 36 demo stars');
   const forbidden=await page.evaluate(async()=>{try {await (await import('./src/modules/levels.js')).startLevel(24);return false;}catch{return true;}}); assert.equal(forbidden,true);
   for (const role of ['D','EN']) {
     await enter(25);const c=await fixture(25);delete c.wires.w1;

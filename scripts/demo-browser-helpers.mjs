@@ -28,7 +28,7 @@ export async function enterStage(page, id) {
   await goToMap(page);
   const target = await page.evaluate(async id => {
     const catalog = await import('./src/modules/stageCatalog.js');
-    const title=id===30&&window.currentLang==='ko'?'자동문':(await import('./src/modules/levels.js')).getLevelTitle(id);
+    const title=(await import('./src/modules/levels.js')).getLevelTitle(id);
     return {chapter: catalog.chapterForStage(id).order, name:title.toUpperCase()};
   }, id);
   for(let attempt=0;attempt<6;attempt++) {

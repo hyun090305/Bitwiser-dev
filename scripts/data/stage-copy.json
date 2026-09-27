@@ -1,0 +1,1190 @@
+{
+  "0": {
+    "title": "Tutorial",
+    "ko": "IN1을 반전한 뒤 IN2와 AND로 연결해 OUT1로 보내세요.",
+    "en": "Invert IN1, AND it with IN2, and send the result to OUT1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "1": {
+    "title": "NOT",
+    "ko": "IN1을 반전해 OUT1로 보내세요.",
+    "en": "Invert IN1 and send it to OUT1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "2": {
+    "title": "OR",
+    "ko": "IN1·IN2 중 하나라도 1이면 OUT1을 켜세요.",
+    "en": "Turn OUT1 on when either IN1 or IN2 is 1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "3": {
+    "title": "AND",
+    "ko": "IN1과 IN2가 모두 1일 때만 OUT1을 켜세요.",
+    "en": "Turn OUT1 on only when IN1 and IN2 are both 1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "4": {
+    "title": "NOR",
+    "ko": "IN1과 IN2가 모두 0일 때만 OUT1을 켜세요.",
+    "en": "Turn OUT1 on only when IN1 and IN2 are both 0.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "5": {
+    "title": "NAND",
+    "ko": "IN1·IN2 중 하나라도 0이면 OUT1을 켜세요.",
+    "en": "Turn OUT1 on when either IN1 or IN2 is 0.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "6": {
+    "title": "XOR",
+    "ko": "IN1과 IN2가 다를 때만 OUT1을 켜세요.",
+    "en": "Turn OUT1 on only when IN1 and IN2 differ.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "7": {
+    "title": "Majority",
+    "ko": "IN1·IN2·IN3 중 2개 이상이 1이면 OUT1을 켜세요.",
+    "en": "Turn OUT1 on when at least two of IN1, IN2 and IN3 are 1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "8": {
+    "title": "Parity",
+    "ko": "IN1·IN2·IN3 중 1의 개수가 홀수일 때만 OUT1을 켜세요.",
+    "en": "Turn OUT1 on only when an odd number of IN1, IN2 and IN3 are 1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "9": {
+    "title": "Half Adder",
+    "ko": "IN1과 IN2를 더해 OUT2 OUT1로 출력하세요.",
+    "en": "Add IN1 and IN2 and output OUT2 OUT1.",
+    "rules": {
+      "ko": [
+        [
+          "자리",
+          "OUT2=2의 자리, OUT1=1의 자리."
+        ]
+      ],
+      "en": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit."
+        ]
+      ]
+    }
+  },
+  "10": {
+    "title": "Full Adder",
+    "ko": "IN1·IN2·IN3를 더해 OUT2 OUT1로 출력하세요.",
+    "en": "Add IN1, IN2 and IN3 and output OUT2 OUT1.",
+    "rules": {
+      "ko": [
+        [
+          "자리",
+          "OUT2=2의 자리, OUT1=1의 자리. 합은 0~3."
+        ]
+      ],
+      "en": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit. The sum is 0–3."
+        ]
+      ]
+    }
+  },
+  "11": {
+    "title": "2-to-4 Decoder",
+    "ko": "IN1·IN2에 해당하는 출력 하나만 켜세요.",
+    "en": "Turn on only the output selected by IN1 and IN2.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "12": {
+    "title": "4-to-1 MUX",
+    "ko": "S1·S0로 고른 입력을 OUT1으로 보내세요.",
+    "en": "Send the input selected by S1 S0 to OUT1.",
+    "rules": {
+      "ko": [
+        [
+          "선택",
+          "S1 S0: 00→IN1, 01→IN2, 10→IN3, 11→IN4."
+        ]
+      ],
+      "en": [
+        [
+          "Selection",
+          "S1 S0: 00→IN1, 01→IN2, 10→IN3, 11→IN4."
+        ]
+      ]
+    }
+  },
+  "13": {
+    "title": "2-bit Comparator",
+    "ko": "A와 B를 비교해 A>B·A=B·A<B 중 맞는 출력 하나만 켜세요.",
+    "en": "Compare A and B and turn on only the matching output: A>B, A=B or A<B.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0: 각각 0~3."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each."
+        ]
+      ]
+    }
+  },
+  "14": {
+    "title": "2-bit Adder",
+    "ko": "A+B를 S2 S1 S0로 출력하세요.",
+    "en": "Output A+B as S2 S1 S0.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0: 각각 0~3. 합은 넘치는 자리까지 0~6."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Output the full sum, 0–6, including carry."
+        ]
+      ]
+    }
+  },
+  "15": {
+    "title": "2-bit Subtractor",
+    "ko": "A−B를 R1 R0로 출력하세요.",
+    "en": "Output A−B as R1 R0.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0: 각각 0~3. 음수 결과에는 4를 더합니다."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Add 4 to a negative result."
+        ]
+      ]
+    }
+  },
+  "16": {
+    "title": "Max Selector",
+    "ko": "A와 B 중 더 큰 값을 M1 M0로 출력하세요.",
+    "en": "Output the larger of A and B as M1 M0.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0: 각각 0~3. 같으면 그 값을 출력합니다."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. If equal, output that value."
+        ]
+      ]
+    }
+  },
+  "17": {
+    "title": "2-bit Multiplier",
+    "ko": "A×B를 P3 P2 P1 P0로 출력하세요.",
+    "en": "Output A×B as P3 P2 P1 P0.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0: 각각 0~3. 곱은 0~9."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. The product is 0–9."
+        ]
+      ]
+    }
+  },
+  "18": {
+    "title": "Remainder",
+    "ko": "A를 3으로 나눈 나머지를 R1 R0로 출력하세요.",
+    "en": "Output the remainder of A divided by 3 as R1 R0.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A3 A2 A1 A0: 0~15. 나머지는 0·1·2."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A3 A2 A1 A0: 0–15. The remainder is 0, 1 or 2."
+        ]
+      ]
+    }
+  },
+  "19": {
+    "title": "Crossroad",
+    "ko": "IN1은 OUT1으로, IN2는 OUT2로 그대로 보내세요.",
+    "en": "Pass IN1 to OUT1 and IN2 to OUT2 unchanged.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "20": {
+    "title": "Fixed XOR",
+    "ko": "IN1과 IN2가 다를 때만 OUT1을 켜세요.",
+    "en": "Turn OUT1 on only when IN1 and IN2 differ.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "21": {
+    "title": "Rotator",
+    "ko": "IN4로 세 신호의 출력 위치를 고르세요.",
+    "en": "Use IN4 to select the output positions of three signals.",
+    "rules": {
+      "ko": [
+        [
+          "선택",
+          "IN4=0: OUT1·2·3=IN1·2·3. IN4=1: OUT1·2·3=IN3·1·2."
+        ],
+        [
+          "반응",
+          "입력 변경을 즉시 반영합니다. tick마다 회전하지 않습니다."
+        ]
+      ],
+      "en": [
+        [
+          "Selection",
+          "IN4=0: OUT1/2/3=IN1/2/3. IN4=1: OUT1/2/3=IN3/1/2."
+        ],
+        [
+          "Response",
+          "Respond immediately to input changes; do not rotate repeatedly on ticks."
+        ]
+      ]
+    }
+  },
+  "22": {
+    "title": "Fixed 2-to-4 Decoder",
+    "ko": "IN1·IN2에 해당하는 출력 하나만 켜세요.",
+    "en": "Turn on only the output selected by IN1 and IN2.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "23": {
+    "title": "Priority Selector",
+    "ko": "1인 입력 중 우선순위가 가장 높은 입력의 출력만 켜세요.",
+    "en": "Turn on only the output for the highest-priority input that is 1.",
+    "rules": {
+      "ko": [
+        [
+          "우선순위",
+          "IN1 > IN2 > IN3 > IN4. 같은 번호의 OUT에 대응합니다."
+        ],
+        [
+          "요청 없음",
+          "입력이 모두 0이면 출력도 모두 0."
+        ]
+      ],
+      "en": [
+        [
+          "Priority",
+          "IN1 > IN2 > IN3 > IN4. Each input selects the OUT with the same number."
+        ],
+        [
+          "No request",
+          "All inputs 0 → all outputs 0."
+        ]
+      ]
+    }
+  },
+  "24": {
+    "title": "2’s Complement",
+    "ko": "A에 더하면 아래 네 비트가 0000이 되는 C를 구하세요.",
+    "en": "Find C so the lowest four bits of A+C are 0000.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A3 A2 A1 A0, C3 C2 C1 C0: 0~15."
+        ],
+        [
+          "계산",
+          "A=0이면 C=0. 그 외에는 A+C=16."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A3 A2 A1 A0 and C3 C2 C1 C0: 0–15."
+        ],
+        [
+          "Calculation",
+          "If A=0, C=0. Otherwise, A+C=16."
+        ]
+      ]
+    }
+  },
+  "25": {
+    "title": "Register",
+    "ko": "LOAD=1인 tick에 DATA를 저장해 VALUE로 출력하세요.",
+    "en": "Store DATA on ticks with LOAD=1 and output it at VALUE.",
+    "rules": {
+      "ko": [
+        [
+          "유지",
+          "LOAD=0이면 VALUE 유지."
+        ],
+        [
+          "초기값",
+          "VALUE=0."
+        ]
+      ],
+      "en": [
+        [
+          "Hold",
+          "LOAD=0 retains VALUE."
+        ],
+        [
+          "Initial",
+          "VALUE=0."
+        ]
+      ]
+    }
+  },
+  "26": {
+    "title": "Toggle",
+    "ko": "PRESS=1인 tick마다 LIGHT를 반전하세요.",
+    "en": "Toggle LIGHT on every tick with PRESS=1.",
+    "rules": {
+      "ko": [
+        [
+          "유지",
+          "PRESS=0이면 유지. 연속 요청은 매 tick 반전."
+        ],
+        [
+          "초기값",
+          "LIGHT=0."
+        ]
+      ],
+      "en": [
+        [
+          "Hold",
+          "PRESS=0 retains LIGHT. Consecutive requests toggle it every tick."
+        ],
+        [
+          "Initial",
+          "LIGHT=0."
+        ]
+      ]
+    }
+  },
+  "27": {
+    "title": "2-to-1 MUX",
+    "ko": "SEL=0이면 A를, SEL=1이면 B를 OUT으로 보내세요.",
+    "en": "Pass A to OUT when SEL=0, or B when SEL=1.",
+    "rules": {
+      "ko": [],
+      "en": []
+    }
+  },
+  "28": {
+    "title": "Fault Register",
+    "ko": "FAULT=1인 tick에 ALARM을 켜고 ACK로 끄세요.",
+    "en": "Set ALARM on ticks with FAULT=1; clear it with ACK.",
+    "rules": {
+      "ko": [
+        [
+          "우선순위",
+          "FAULT > ACK. 둘 다 0이면 유지."
+        ],
+        [
+          "초기값",
+          "ALARM=0."
+        ]
+      ],
+      "en": [
+        [
+          "Priority",
+          "FAULT takes priority over ACK. Both 0 retains ALARM."
+        ],
+        [
+          "Initial",
+          "ALARM=0."
+        ]
+      ]
+    }
+  },
+  "29": {
+    "title": "Response Check",
+    "ko": "A와 B의 응답이 모두 모인 tick에 GO를 켜세요.",
+    "en": "Set GO on the tick when responses from both A and B have arrived.",
+    "rules": {
+      "ko": [
+        [
+          "기억",
+          "A=1·B=1을 각각 기억합니다. 같은 쪽의 반복은 한 번으로 셉니다."
+        ],
+        [
+          "확인",
+          "두 응답이 모이면 GO=1, 기록은 모두 지웁니다. 그 외에는 GO=0."
+        ],
+        [
+          "동시 응답",
+          "동시에 와도 확인합니다. 매 tick 함께 오면 GO=1을 유지합니다."
+        ],
+        [
+          "초기값",
+          "기록 없음, GO=0."
+        ]
+      ],
+      "en": [
+        [
+          "Memory",
+          "Remember A=1 and B=1 separately. Repeated responses from one side count once."
+        ],
+        [
+          "Confirmation",
+          "Once both arrive, set GO=1 and clear both records. Otherwise GO=0."
+        ],
+        [
+          "Together",
+          "Simultaneous responses count. Both on every tick keeps GO=1."
+        ],
+        [
+          "Initial",
+          "No responses recorded; GO=0."
+        ]
+      ]
+    }
+  },
+  "30": {
+    "title": "Pulse Extender",
+    "ko": "OPEN=1인 tick부터 3 tick 동안 DOOR를 켜세요.",
+    "en": "Keep DOOR on for three ticks starting with a tick where OPEN=1.",
+    "rules": {
+      "ko": [
+        [
+          "시간",
+          "요청 tick을 포함합니다. 새 OPEN은 그 tick부터 3 tick을 다시 셉니다."
+        ],
+        [
+          "종료",
+          "마지막 요청의 두 tick 뒤까지 1, 그다음 tick에 0."
+        ],
+        [
+          "초기값",
+          "DOOR=0."
+        ]
+      ],
+      "en": [
+        [
+          "Timing",
+          "Include the request tick. A new OPEN restarts the three ticks from that tick."
+        ],
+        [
+          "End",
+          "Stay 1 through two ticks after the last request; become 0 on the following tick."
+        ],
+        [
+          "Initial",
+          "DOOR=0."
+        ]
+      ]
+    }
+  },
+  "31": {
+    "title": "Rising Edge Detector",
+    "ko": "SIGNAL이 이전 tick의 0에서 현재 tick의 1로 바뀌면 RISE를 켜세요.",
+    "en": "Set RISE when SIGNAL changes from 0 at the previous tick to 1 at the current tick.",
+    "rules": {
+      "ko": [
+        [
+          "관측",
+          "tick에서 읽은 값끼리만 비교합니다. 그 외에는 RISE=0."
+        ],
+        [
+          "초기값",
+          "이전 SIGNAL=0, RISE=0."
+        ]
+      ],
+      "en": [
+        [
+          "Sampling",
+          "Compare only values sampled at ticks. Otherwise RISE=0."
+        ],
+        [
+          "Initial",
+          "Previous SIGNAL=0; RISE=0."
+        ]
+      ]
+    }
+  },
+  "32": {
+    "title": "Up/Down Counter",
+    "ko": "INC·DEC로 0~3을 세어 BIT1 BIT0로 출력하세요.",
+    "en": "Count from 0 to 3 with INC and DEC; output BIT1 BIT0.",
+    "rules": {
+      "ko": [
+        [
+          "동작",
+          "INC만 1이면 +1, DEC만 1이면 −1. 둘 다 같으면 유지."
+        ],
+        [
+          "순환",
+          "3에서 증가하면 0, 0에서 감소하면 3."
+        ],
+        [
+          "초기값",
+          "BIT1 BIT0=00."
+        ]
+      ],
+      "en": [
+        [
+          "Action",
+          "INC alone adds 1; DEC alone subtracts 1. Equal inputs retain the value."
+        ],
+        [
+          "Wrap",
+          "Incrementing 3 gives 0; decrementing 0 gives 3."
+        ],
+        [
+          "Initial",
+          "BIT1 BIT0=00."
+        ]
+      ]
+    }
+  },
+  "33": {
+    "title": "PWM",
+    "ko": "네 칸을 반복하며 LEVEL로 고른 개수만큼 앞쪽 칸에서 LIGHT를 켜세요.",
+    "en": "Cycle through four positions; turn LIGHT on in the first LEVEL positions.",
+    "rules": {
+      "ko": [
+        [
+          "진행",
+          "첫째 칸에서 시작해 tick마다 다음 칸으로 이동합니다. 넷째 다음은 첫째."
+        ],
+        [
+          "설정",
+          "LEVEL1 LEVEL0=0~3. 변경은 현재 칸에 즉시 반영하며 위치는 유지합니다."
+        ],
+        [
+          "LEVEL=0",
+          "LIGHT=0이어도 반복 위치는 계속 진행합니다."
+        ]
+      ],
+      "en": [
+        [
+          "Advance",
+          "Start at the first position. Advance on each tick, wrapping after the fourth."
+        ],
+        [
+          "Setting",
+          "LEVEL1 LEVEL0=0–3. Changes apply immediately to the current position without moving it."
+        ],
+        [
+          "LEVEL=0",
+          "LIGHT=0, but the position keeps advancing."
+        ]
+      ]
+    }
+  },
+  "34": {
+    "title": "Delay Timer",
+    "ko": "START=1인 tick에 TIME을 저장하고, 그 시간이 지나면 DONE을 켜세요.",
+    "en": "Store TIME on a tick with START=1; set DONE when that delay elapses.",
+    "rules": {
+      "ko": [
+        [
+          "시간",
+          "TIME1 TIME0=0~3. START 다음 tick부터 셉니다. TIME=0은 즉시 완료."
+        ],
+        [
+          "재시작",
+          "새 START가 완료보다 우선합니다. 진행 중 TIME 변경은 무시합니다."
+        ],
+        [
+          "출력",
+          "완료 tick만 DONE=1. TIME=0으로 연속 START하면 계속 1."
+        ],
+        [
+          "초기값",
+          "예약 없음, DONE=0."
+        ]
+      ],
+      "en": [
+        [
+          "Timing",
+          "TIME1 TIME0=0–3. Count from the tick after START; TIME=0 completes on START."
+        ],
+        [
+          "Restart",
+          "New START takes priority over completion. Ignore TIME changes while waiting."
+        ],
+        [
+          "Output",
+          "DONE=1 only on completion ticks. Consecutive START with TIME=0 keeps it 1."
+        ],
+        [
+          "Initial",
+          "No active timer; DONE=0."
+        ]
+      ]
+    }
+  },
+  "35": {
+    "title": "Debouncer",
+    "ko": "RAW가 같은 값으로 3 tick 이어지면 세 번째 tick에 CLEAN을 그 값으로 바꾸세요.",
+    "en": "After RAW has the same value for three ticks, set CLEAN to it on the third tick.",
+    "rules": {
+      "ko": [
+        [
+          "유지",
+          "0·1 양쪽에 같은 규칙을 적용합니다. 그 전에는 CLEAN 유지."
+        ],
+        [
+          "초기값",
+          "이전 입력 기록=0, CLEAN=0."
+        ]
+      ],
+      "en": [
+        [
+          "Hold",
+          "Apply the rule to both 0 and 1. Retain CLEAN until then."
+        ],
+        [
+          "Initial",
+          "Previous input history=0; CLEAN=0."
+        ]
+      ]
+    }
+  },
+  "36": {
+    "title": "Round-Robin Arbiter",
+    "ko": "요청한 쪽에 사용권을 주고, 둘 다 요청하면 직전 사용자와 반대쪽을 고르세요.",
+    "en": "Grant the requesting side access; if both request, choose the opposite of the last user.",
+    "rules": {
+      "ko": [
+        [
+          "출력",
+          "REQ_A→A_OK, REQ_B→B_OK. 선택한 쪽만 1, 요청이 없으면 둘 다 0."
+        ],
+        [
+          "기억",
+          "단독 요청도 직전 사용자에 반영합니다. 요청이 없어도 기억합니다."
+        ],
+        [
+          "초기값",
+          "직전 사용자 없음, A_OK=B_OK=0. 첫 동시 요청은 A 우선."
+        ]
+      ],
+      "en": [
+        [
+          "Output",
+          "REQ_A→A_OK; REQ_B→B_OK. Only the selected side is 1; no requests gives both 0."
+        ],
+        [
+          "Memory",
+          "A lone request also updates the last user. No requests retains that memory."
+        ],
+        [
+          "Initial",
+          "No last user; A_OK=B_OK=0. The first simultaneous request chooses A."
+        ]
+      ]
+    }
+  },
+  "37": {
+    "title": "ABBA Detector",
+    "ko": "최근에 받은 네 글자가 ABBA이면 UNLOCKED를 켜세요.",
+    "en": "Set UNLOCKED when the last four received letters are ABBA.",
+    "rules": {
+      "ko": [
+        [
+          "입력",
+          "SUBMIT=1인 tick만 수신. SIGNAL=1은 A, 0은 B."
+        ],
+        [
+          "기억",
+          "SUBMIT=0이면 기록 유지. 앞선 글자는 무관하며 한 번 켜지면 계속 1."
+        ],
+        [
+          "초기값",
+          "기록 없음, UNLOCKED=0."
+        ]
+      ],
+      "en": [
+        [
+          "Input",
+          "Receive only on ticks with SUBMIT=1. SIGNAL=1 means A; 0 means B."
+        ],
+        [
+          "Memory",
+          "SUBMIT=0 retains history. Earlier letters do not matter; once set, stay at 1."
+        ],
+        [
+          "Initial",
+          "No letters recorded; UNLOCKED=0."
+        ]
+      ]
+    }
+  },
+  "38": {
+    "title": "Register Bank",
+    "ko": "ADDR로 고른 주소에 저장하고, 그 주소의 값을 Q1 Q0로 출력하세요.",
+    "en": "Store at the address selected by ADDR and output its value at Q1 Q0.",
+    "rules": {
+      "ko": [
+        [
+          "저장",
+          "주소 0·1, 각 2비트. WRITE=1인 tick에 선택한 주소에 D1 D0를 저장합니다."
+        ],
+        [
+          "읽기",
+          "ADDR 변경은 tick 없이 즉시 반영합니다. WRITE와 무관하며 저장 tick에는 새 값을 출력합니다."
+        ],
+        [
+          "유지",
+          "WRITE=0이면 두 저장값 유지. 입력만 바꾸어도 저장값은 변하지 않습니다."
+        ],
+        [
+          "초기값",
+          "두 주소 모두 00."
+        ]
+      ],
+      "en": [
+        [
+          "Write",
+          "Addresses 0 and 1 hold two bits each. On WRITE=1 ticks, store D1 D0 at the selected address."
+        ],
+        [
+          "Read",
+          "ADDR changes apply immediately without a tick, regardless of WRITE. A write tick outputs the new value."
+        ],
+        [
+          "Hold",
+          "WRITE=0 retains both values. Input changes alone do not alter storage."
+        ],
+        [
+          "Initial",
+          "Both addresses contain 00."
+        ]
+      ]
+    }
+  },
+  "39": {
+    "title": "Undo Register",
+    "ko": "SAVE로 D1 D0를 저장하고 UNDO로 직전 값에 한 번 되돌아가세요.",
+    "en": "SAVE stores D1 D0; UNDO returns once to the previous value.",
+    "rules": {
+      "ko": [
+        [
+          "저장",
+          "SAVE tick에 현재 Q1 Q0를 백업하고 새 값으로 바꾸며 UNDO_AVAILABLE=1."
+        ],
+        [
+          "되돌리기",
+          "가능할 때만 백업을 Q에 복원하고 UNDO_AVAILABLE=0. 그 외에는 유지."
+        ],
+        [
+          "우선순위",
+          "SAVE > UNDO. 같은 값을 SAVE해도 다시 되돌릴 수 있습니다."
+        ],
+        [
+          "초기값",
+          "현재·백업=00, UNDO_AVAILABLE=0."
+        ]
+      ],
+      "en": [
+        [
+          "Save",
+          "On SAVE ticks, back up Q1 Q0, store the new value, and set UNDO_AVAILABLE=1."
+        ],
+        [
+          "Undo",
+          "If available, restore the backup to Q and set UNDO_AVAILABLE=0. Otherwise retain values."
+        ],
+        [
+          "Priority",
+          "SAVE takes priority over UNDO. Saving the same value also enables undo."
+        ],
+        [
+          "Initial",
+          "Current and backup=00; UNDO_AVAILABLE=0."
+        ]
+      ]
+    }
+  },
+  "40": {
+    "title": "Mailbox",
+    "ko": "SEND로 DATA 한 비트를 보관하고 TAKE로 꺼내세요.",
+    "en": "Use SEND to store one DATA bit and TAKE to remove it.",
+    "rules": {
+      "ko": [
+        [
+          "동작",
+          "tick마다 TAKE 후 SEND. 비면 TAKE 무시. 꺼내지 않아 가득 차면 SEND 무시."
+        ],
+        [
+          "출력",
+          "꺼낸 값은 DATA_OUT. 성공한 TAKE만 VALID=1, 성공한 SEND만 ACCEPTED=1. 그 외에는 0."
+        ],
+        [
+          "유지",
+          "꺼내지 않으면 DATA_OUT 유지. 처리 후 차 있으면 FULL=1."
+        ],
+        [
+          "초기값",
+          "비어 있음. DATA_OUT·VALID·ACCEPTED·FULL=0."
+        ]
+      ],
+      "en": [
+        [
+          "Action",
+          "On each tick, TAKE before SEND. Ignore TAKE if empty; ignore SEND if still full."
+        ],
+        [
+          "Output",
+          "Output the taken value at DATA_OUT. VALID=1 only for successful TAKE; ACCEPTED=1 only for successful SEND. Otherwise 0."
+        ],
+        [
+          "Hold",
+          "Without a take, retain DATA_OUT. FULL=1 if occupied after processing."
+        ],
+        [
+          "Initial",
+          "Empty; DATA_OUT, VALID, ACCEPTED and FULL=0."
+        ]
+      ]
+    }
+  },
+  "41": {
+    "title": "Stack",
+    "ko": "DATA를 두 칸에 저장하고, 나중에 넣은 값부터 꺼내세요.",
+    "en": "Store two DATA bits and remove the most recently pushed bit first.",
+    "rules": {
+      "ko": [
+        [
+          "동작",
+          "tick마다 POP 후 PUSH. 비면 POP 무시. 꺼내지 않아 가득 차면 PUSH 무시."
+        ],
+        [
+          "출력",
+          "꺼낸 값은 DATA_OUT, 성공한 POP만 VALID=1. 그 외에는 DATA_OUT 유지, VALID=0."
+        ],
+        [
+          "상태",
+          "처리 후 비면 EMPTY=1, 두 칸이 차면 FULL=1."
+        ],
+        [
+          "초기값",
+          "EMPTY=1, DATA_OUT·VALID·FULL=0."
+        ]
+      ],
+      "en": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
+      ]
+    }
+  },
+  "42": {
+    "title": "Queue",
+    "ko": "DATA를 두 칸에 저장하고, 먼저 넣은 값부터 꺼내세요.",
+    "en": "Store two DATA bits and remove the earliest pushed bit first.",
+    "rules": {
+      "ko": [
+        [
+          "동작",
+          "tick마다 POP 후 PUSH. 비면 POP 무시. 꺼내지 않아 가득 차면 PUSH 무시."
+        ],
+        [
+          "출력",
+          "꺼낸 값은 DATA_OUT, 성공한 POP만 VALID=1. 그 외에는 DATA_OUT 유지, VALID=0."
+        ],
+        [
+          "상태",
+          "처리 후 비면 EMPTY=1, 두 칸이 차면 FULL=1."
+        ],
+        [
+          "초기값",
+          "EMPTY=1, DATA_OUT·VALID·FULL=0."
+        ]
+      ],
+      "en": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
+      ]
+    }
+  },
+  "43": {
+    "title": "Serial Receiver",
+    "ko": "RECEIVE=1인 tick마다 DATA를 받아 네 비트가 모이면 Q를 갱신하세요.",
+    "en": "Receive DATA on ticks with RECEIVE=1; update Q when four bits have arrived.",
+    "rules": {
+      "ko": [
+        [
+          "순서",
+          "Q3→Q2→Q1→Q0. RECEIVE=0이면 수신 기록 유지."
+        ],
+        [
+          "완료",
+          "네 번째 수신 tick에만 Q 전체 갱신, DONE=1. 그 외에는 Q 유지, DONE=0."
+        ],
+        [
+          "다음 묶음",
+          "네 비트 완성 후 새 묶음을 받습니다."
+        ],
+        [
+          "초기값",
+          "수신 기록 없음, Q3 Q2 Q1 Q0=0000, DONE=0."
+        ]
+      ],
+      "en": [
+        [
+          "Order",
+          "Q3→Q2→Q1→Q0. RECEIVE=0 retains received bits."
+        ],
+        [
+          "Complete",
+          "Only the fourth receive tick updates all of Q and sets DONE=1. Otherwise retain Q and set DONE=0."
+        ],
+        [
+          "Next group",
+          "Start a new group after four bits."
+        ],
+        [
+          "Initial",
+          "No bits received; Q3 Q2 Q1 Q0=0000; DONE=0."
+        ]
+      ]
+    }
+  },
+  "44": {
+    "title": "Serial Transmitter",
+    "ko": "대기 중 START로 D3 D2 D1 D0를 받아 SERIAL로 차례로 보내세요.",
+    "en": "When idle, START accepts D3 D2 D1 D0 to send in order at SERIAL.",
+    "rules": {
+      "ko": [
+        [
+          "전송",
+          "시작 tick에 D3, 다음 세 tick에 D2→D1→D0. 그동안 START·데이터 변경은 무시."
+        ],
+        [
+          "출력",
+          "전송 tick은 VALID=1. 뒤에 보낼 비트가 남으면 BUSY=1, 마지막은 BUSY=0."
+        ],
+        [
+          "대기",
+          "마지막 비트 다음 tick부터 재시작 가능. 대기 중 SERIAL 유지, VALID=BUSY=0."
+        ],
+        [
+          "초기화",
+          "RESET tick은 최우선으로 전송 취소, SERIAL·VALID·BUSY=0."
+        ],
+        [
+          "초기값",
+          "대기 상태, SERIAL·VALID·BUSY=0."
+        ]
+      ],
+      "en": [
+        [
+          "Send",
+          "Send D3 on the start tick, then D2→D1→D0 on the next three ticks. Ignore START and data changes meanwhile."
+        ],
+        [
+          "Output",
+          "VALID=1 on send ticks. BUSY=1 if more bits remain; BUSY=0 on the last bit."
+        ],
+        [
+          "Idle",
+          "Restart from the tick after the last bit. While idle, retain SERIAL; VALID=BUSY=0."
+        ],
+        [
+          "Reset",
+          "RESET takes priority, cancels transmission and clears SERIAL, VALID and BUSY to 0."
+        ],
+        [
+          "Initial",
+          "Idle; SERIAL, VALID and BUSY=0."
+        ]
+      ]
+    }
+  },
+  "45": {
+    "title": "Accumulator",
+    "ko": "ADD=1인 tick에 D1 D0를 합에 더해 Q1 Q0로 출력하세요.",
+    "en": "On ticks with ADD=1, add D1 D0 to the sum and output Q1 Q0.",
+    "rules": {
+      "ko": [
+        [
+          "계산",
+          "합이 4 이상이면 4를 뺍니다. ADD=0이면 유지."
+        ],
+        [
+          "우선순위",
+          "RESET=1이면 ADD보다 먼저 합을 0으로 만듭니다."
+        ],
+        [
+          "초기값",
+          "Q1 Q0=00."
+        ]
+      ],
+      "en": [
+        [
+          "Calculation",
+          "Subtract 4 if the sum reaches 4 or more. ADD=0 retains the sum."
+        ],
+        [
+          "Priority",
+          "RESET=1 takes priority over ADD and clears the sum to 0."
+        ],
+        [
+          "Initial",
+          "Q1 Q0=00."
+        ]
+      ]
+    }
+  },
+  "46": {
+    "title": "Divider",
+    "ko": "A÷B의 몫 Q와 나머지 R을 구하고 COMPLETE로 완료를 알리세요.",
+    "en": "Divide A by B to produce quotient Q and remainder R; signal completion with COMPLETE.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A2 A1 A0=0~7, B1 B0=1~3. 계산 중 입력 유지."
+        ],
+        [
+          "판정",
+          "1~10번째 tick 중 첫 COMPLETE=1에서 Q2 Q1 Q0·R1 R0가 정답이어야 합니다."
+        ],
+        [
+          "기한",
+          "그전 Q·R은 자유. 10번째 tick까지 완료하지 못하면 실패."
+        ],
+        [
+          "초기값",
+          "매 계산은 모든 D=0에서 시작."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A2 A1 A0=0–7; B1 B0=1–3. Inputs stay fixed during calculation."
+        ],
+        [
+          "Check",
+          "Q2 Q1 Q0 and R1 R0 must be correct at the first COMPLETE=1 on ticks 1–10."
+        ],
+        [
+          "Deadline",
+          "Earlier Q and R are unrestricted. Failure to complete by tick 10 fails."
+        ],
+        [
+          "Initial",
+          "Each calculation starts with all D=0."
+        ]
+      ]
+    }
+  },
+  "47": {
+    "title": "Capacity Check",
+    "ko": "A+B가 LIMIT보다 클 때만 OVER를 켜세요.",
+    "en": "Set OVER only when A+B is greater than LIMIT.",
+    "rules": {
+      "ko": [
+        [
+          "범위",
+          "A1 A0, B1 B0, L1 L0: 각각 0~3. L1 L0가 LIMIT."
+        ],
+        [
+          "비교",
+          "합은 두 비트로 자르지 않고 0~6 그대로 비교합니다. 같으면 OVER=0."
+        ]
+      ],
+      "en": [
+        [
+          "Range",
+          "A1 A0, B1 B0 and L1 L0: 0–3 each. L1 L0 is LIMIT."
+        ],
+        [
+          "Compare",
+          "Compare the full sum, 0–6, without truncation. Equality gives OVER=0."
+        ]
+      ]
+    }
+  }
+}

@@ -42,7 +42,7 @@ try {
   await page.locator('#loadingStartBtn').click();
   await page.evaluate(async () => {
     const levels = await import('/src/modules/levels.js');
-    levels.configureLevelModule({ progressProvider: () => [0, 6, 30, 31] });
+    levels.configureLevelModule({ progressProvider: () => [0, 6, 30, 31], accessProvider: () => ({unlockedChapters:['chapter_4']}) });
     await levels.startLevel(35);
     const nav = await import('/src/modules/navigation.js'); nav.hideStageMapScreen(); nav.showGameScreen();
   });

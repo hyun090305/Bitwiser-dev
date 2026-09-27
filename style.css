@@ -217,7 +217,10 @@ body.safe-mode .stage-map-surface {
   left: 50%;
   bottom: 1.5rem;
   transform: translateX(-50%);
-  display: flex;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  width: min(92vw, 420px);
+  box-sizing: border-box;
   align-items: center;
   gap: 0.5rem;
   z-index: 3;
@@ -239,6 +242,7 @@ body.lab-mode-active .stage-map-chapter-nav {
   color: #0f172a;
   padding: 0.4rem 0.8rem;
   min-width: 44px;
+  width: 44px;
   cursor: pointer;
   font-weight: 700;
 }
@@ -249,7 +253,7 @@ body.lab-mode-active .stage-map-chapter-nav {
 }
 
 .stage-map-chapter-label {
-  min-width: 220px;
+  min-width: 0;
   text-align: center;
   color: #f8fafc;
   font-weight: 700;
@@ -1672,6 +1676,8 @@ body.system-menu-open {
 }
 
 .level-intro-screen__panel {
+  overflow-y: auto;
+  box-sizing: border-box;
   width: min(960px, 100%);
   max-height: calc(100vh - 2.5rem);
   text-align: left;
@@ -1687,6 +1693,20 @@ body.system-menu-open {
   opacity: 0;
   transition: transform 0.36s ease, opacity 0.36s ease;
 }
+
+.level-intro-screen__panel > * { flex-shrink: 0; min-width: 0; }
+.level-intro-screen__title, .level-intro-screen__mission { overflow-wrap: anywhere; }
+.level-intro-fixed-io { align-self: flex-start; margin-top: 0.65rem; padding: 0.2rem 0.5rem; border: 1px solid #526579; border-radius: 5px; color: #cbd5e1; font-size: 0.8rem; }
+.level-intro-rules { width: 100%; margin-top: 0.8rem; border-collapse: collapse; table-layout: fixed; font-size: 0.92rem; line-height: 1.5; }
+.level-intro-rules th, .level-intro-rules td { padding: 0.45rem 0.65rem; border-bottom: 1px solid #334155; text-align: left; vertical-align: top; overflow-wrap: anywhere; }
+.level-intro-rules th { width: 5.8rem; color: #a5d9e6; }
+.level-intro-rules td { color: #dbe5ed; }
+.level-intro-rules[hidden], .level-intro-fixed-io[hidden] { display: none; }
+
+/* Keep wide truth-table cases readable inside narrow stage introductions. */
+#levelIntroModal .level-intro-case { max-width: 100%; min-width: 0; }
+#levelIntroModal .level-intro-case__side { min-width: 0; flex: 1 1 0; flex-wrap: wrap; }
+#levelIntroModal .level-intro-case__bit { box-sizing: border-box; max-width: 100%; overflow-wrap: anywhere; }
 
 .level-intro-screen--active .level-intro-screen__panel {
   transform: scale(1);
@@ -1709,6 +1729,7 @@ body.system-menu-open {
 }
 
 .level-intro-screen__mission {
+  white-space: pre-line;
   margin: 0.8rem 0 0;
   line-height: 1.5;
   font-size: 0.96rem;
@@ -1716,6 +1737,7 @@ body.system-menu-open {
 }
 
 .level-intro-screen__logic {
+  flex-shrink: 0;
   margin-top: 1rem;
   min-height: 0;
   overflow: hidden;
@@ -1942,6 +1964,7 @@ body.system-menu-open {
   flex-direction: column;
   align-items: stretch;
   padding-right: 0.35rem;
+  box-sizing: border-box;
   overscroll-behavior: contain;
   scrollbar-color: rgba(56, 189, 248, 0.65) rgba(15, 23, 42, 0.38);
 }
@@ -4829,3 +4852,22 @@ body.lab-mode-active {
   .circuit-edit-notice { grid-column: 1; grid-row: 2; justify-self: center; max-width: 100%; }
   .circuit-diagnostics { top: 32px; }
 }
+
+/* Chapter access covers the circuit panel only; titles and navigation stay clear. */
+.chapter-lock-overlay { position: absolute; z-index: 12; display: grid; place-items: center; background: rgb(2 6 16 / 60%); border-radius: 18px; pointer-events: auto; }
+.chapter-lock-overlay[hidden], .chapter-lock-overlay [hidden] { display: none; }
+.chapter-lock-panel { color: #f0f6ff; text-align: center; padding: 16px 22px; max-width: min(90%, 460px); background: rgb(12 23 42 / 92%); border: 1px solid #7186a5; border-radius: 16px; box-shadow: 0 8px 30px #0006; font-size: clamp(11px, 1.3vw, 16px); }
+.chapter-lock-panel p { margin: 8px 0; }
+.chapter-lock-title { display: block; font-size: 1.25em; }
+.chapter-lock-icon { display: block; width: 42px; margin: 0 auto 10px; }
+.chapter-lock-icon svg { overflow: visible; fill: none; stroke: currentColor; stroke-width: 3; }
+.chapter-unlock-skip { margin-top: 8px; padding: 5px 18px; }
+.chapter-total-stars { position: absolute; top: 12px; right: 14px; z-index: 3; padding: 6px 12px; border: 1px solid #475569; border-radius: 8px; background: #101b2e; color: #f7d782; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+body.lab-mode-active .chapter-total-stars { display: none; }
+.chapter-result-unlock { color: var(--accent-color, #8fd9ef); font-weight: 700; }
+.chapter-lock-overlay.is-unlocking { animation: chapter-unlock-fade 900ms linear forwards; }
+.is-unlocking .chapter-lock-shackle { animation: chapter-unlock-shackle 900ms linear forwards; transform-origin: 34px 22px; }
+@keyframes chapter-unlock-shackle { 0%, 16.66% { transform: translateY(0); } 50%, 100% { transform: translateY(-9px); } }
+@keyframes chapter-unlock-fade { 0%, 50% { opacity: 1; } 100% { opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .chapter-lock-overlay.is-unlocking { animation-duration: 100ms; } .is-unlocking .chapter-lock-shackle { animation: none; } }
+@media (max-height: 600px) { .chapter-lock-icon { width: 28px; margin-bottom: 4px; } .chapter-lock-panel { padding: 8px 12px; } }

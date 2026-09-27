@@ -600,6 +600,7 @@ document.addEventListener("DOMContentLoaded", () => {
     setLoadingMilestone(90);
     stageMapController = initializeStageMap({
       getStageAccess: levelsModule.getStageAccess,
+      acknowledgeChapter: levelsModule.acknowledgeChapterUnlock,
       getStageStars: costExperience.stars,
       getLevelTitle,
       isLevelUnlocked,

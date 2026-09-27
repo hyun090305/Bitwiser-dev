@@ -1,6 +1,7 @@
 import { calculateCircuitCost, validateStarThresholds } from './circuitCost.js';
 import { createStarIcon } from './achievementStars.js';
 import { createBlueprintShare } from './blueprintShare.js';
+import { CHAPTERS } from './stageCatalog.js';
 
 const words = {
   current: ['현재 회로 비용', 'Current circuit cost'], best: ['개인 최고 비용', 'Personal best cost'],
@@ -90,10 +91,18 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
   const view = createBlueprintShare(own, { circuit: record.circuit, title, totalCost: record.totalCost,
     stars: id === 0 ? null : record.stars, tutorial: id === 0, lang }, { header });
   let frame, observer;
-  const settle = () => { view.card.dataset.phase = 'settled'; };
+  const unlockNotice = node('p', '', 'chapter-result-unlock'); unlockNotice.setAttribute('role', 'status'); unlockNotice.hidden = true; own.append(unlockNotice);
+  const announce = () => {
+    const unlocked = CHAPTERS.filter(ch => result.unlockedChapters?.includes(ch.id));
+    if (!unlocked.length) return;
+    unlockNotice.textContent = unlocked.map(ch => `CHAPTER ${ch.order} · ${ch.title} ${lang === 'ko' ? '해금' : 'unlocked'}`).join(' · ');
+    unlockNotice.hidden = false;
+  };
+  const settle = () => { view.card.dataset.phase = 'settled'; announce(); };
   view.root.addEventListener('change', settle);
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   view.card.dataset.phase = id === 0 || reduced.matches ? 'settled' : 'awarding';
+  if (view.card.dataset.phase === 'settled') announce();
   if (id !== 0 && !reduced.matches) {
     frame = requestAnimationFrame(() => {
       const scale = Math.min(1.65, Math.max(1, (view.card.clientWidth - 48) / 156));
@@ -137,6 +146,9 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
     const status = result.first ? tr('first') : result.improved ? `${tr('improved')} · ${format(result.previousCost)} → ${format(record.totalCost)}`
       : tr(record.totalCost === best.totalCost ? 'tied' : 'kept');
     own.append(node('p', status, 'cost-record-status'));
+    if (result.first || result.improved) own.append(node('p', result.first
+      ? (lang === 'ko' ? '이 모듈의 연결이 복구되었습니다.' : 'This module’s connection has been restored.')
+      : (lang === 'ko' ? '더 적은 비용으로 연결을 안정화했습니다.' : 'Connection stabilized at a lower circuit cost.'), 'cost-recovery-status'));
   }
   if (result.saved === false) own.append(node('p', tr('saveFailed'), 'cost-warning'));
   if (id !== 0 && ranking) {

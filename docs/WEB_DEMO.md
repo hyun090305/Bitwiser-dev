@@ -1,5 +1,7 @@
 # Bitwiser 웹 체험판
 
+> 이 문서는 초기 구현 기록입니다. Issue #495의 현재 제목·48개 슬롯·43개 화살표·18/36/50/84★ 해금과 v5 이전은 [챕터 접근](chapter-access.md)을 따릅니다. 배치 데이터는 [현재 참조](stage-map-reference.json)를 사용합니다.
+
 ## 실행
 
 저장소 루트에서 다음 명령을 실행합니다. 기존 Electron 실행(`npm start`)과 패키징(`npm run dist`)은 유지됩니다.

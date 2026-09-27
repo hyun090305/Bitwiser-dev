@@ -47,7 +47,7 @@ test('DEV: before-unlock presets keep their gate incomplete and transition on a 
   assert.equal(can(store, 9), false); assert.equal(can(store, 12), false);
   const door = JSON.parse(fs.readFileSync(new URL('fixtures/demo/30-3.json', import.meta.url))).circuit;
   store.recordClear(30, door);
-  assert.equal(can(store, 9), true); assert.equal(can(store, 12), true);
+  assert.equal(can(store, 9), true); assert.equal(can(store, 12), false);
   assert.equal(can(store, 38), false);
 });
 
@@ -75,7 +75,7 @@ test('DEV: lowering stars and removing a clear replaces display without fabricat
   }
   store.setStage(6, null);
   assert.equal(store.stars(6), 0); assert.deepEqual(store.cleared(), []);
-  assert.equal(can(store, 25), true, 'normal earned chapter access is retained');
+  assert.equal(can(store, 25), false, 'a single XOR clear does not reach 18 stars');
   store.setStage(0, 3); assert.equal(store.stars(0), 0);
   assert.throws(() => store.setStage(1, 4)); assert.throws(() => store.setStage(999, 1));
   assert.throws(() => store.setChapter('missing', 'unlocked'));
