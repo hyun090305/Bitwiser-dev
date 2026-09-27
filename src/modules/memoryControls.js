@@ -36,7 +36,22 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   const toggle = document.createElement('button');
   toggle.type = 'button';
   toggle.dataset.memoryAction = 'play';
-  bar.append(tickStatus, speedLabel, toggle);
+  const resetControl = document.createElement('span');
+  resetControl.className = 'memory-playback-reset-control';
+  const reset = document.createElement('button');
+  reset.type = 'button';
+  reset.dataset.memoryAction = 'reset';
+  reset.textContent = '↺';
+  const resetTip = document.createElement('span');
+  resetTip.className = 'memory-playback-reset-tooltip';
+  resetTip.id = `${canvas.id}-reset-tooltip`;
+  resetTip.setAttribute('role', 'tooltip');
+  reset.setAttribute('aria-describedby', resetTip.id);
+  resetControl.append(reset, resetTip);
+  const actions = document.createElement('span');
+  actions.className = 'memory-playback-actions';
+  actions.append(toggle, resetControl);
+  bar.append(tickStatus, speedLabel, actions);
 
   const container = canvas.parentElement;
   const host = container?.parentElement;
@@ -160,6 +175,10 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
     toggle.disabled = locked() || !executable();
     toggle.textContent = runner.isRunning() ? tr('일시정지', 'Pause') : tr('계속', 'Continue');
     toggle.setAttribute('aria-pressed', runner.isRunning() ? 'true' : 'false');
+    reset.disabled = locked();
+    const resetLabel = tr('실행 초기화', 'Reset simulation');
+    reset.setAttribute('aria-label', resetLabel);
+    resetTip.textContent = resetLabel;
   }
 
   speed.addEventListener('input', () => {
@@ -169,6 +188,16 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   toggle.addEventListener('click', () => {
     policy.toggle();
     refresh();
+  });
+  reset.addEventListener('click', () => {
+    if (!tickBased || locked()) return;
+    policy.pause();
+    runner.reset({ resetInputs: true });
+  });
+  // Keep native button activation; the editor's Space shortcut must not
+  // prevent the click or switch editing modes while this button has focus.
+  for (const type of ['keydown', 'keyup']) reset.addEventListener(type, event => {
+    if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
   });
 
   const pauseIfHidden = () => policy.sync();

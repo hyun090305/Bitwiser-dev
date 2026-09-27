@@ -12,6 +12,7 @@ export function createPlaybackPolicy(runner, { enabled, canRun, isEditing = () =
     sync,
     setReady() { ready = true; },
     beginEdit() { runner.pause(); },
+    pause() { userPaused = true; runner.pause(); },
     toggle() { userPaused = runner.isRunning(); sync(); },
     isUserPaused: () => userPaused
   };

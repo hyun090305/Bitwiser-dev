@@ -4492,6 +4492,29 @@ body.lab-mode-active {
 }
 .memory-playback-bar button:disabled,
 .memory-playback-speed input:disabled { opacity: 0.5; cursor: default; }
+.memory-playback-actions { display: inline-flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
+.memory-playback-reset-control { position: relative; display: inline-flex; }
+.memory-playback-bar [data-memory-action="reset"] {
+  min-width: 32px;
+  padding: 0.2rem 0.4rem;
+  font-size: 20px;
+}
+.memory-playback-bar button:focus-visible { outline: 2px solid #67e8f9; outline-offset: 2px; }
+.memory-playback-reset-tooltip {
+  visibility: hidden;
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 8px);
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #64748b;
+  border-radius: 6px;
+  background: #0f172a;
+  color: #f0f9ff;
+  white-space: nowrap;
+  pointer-events: none;
+}
+.memory-playback-reset-control:hover .memory-playback-reset-tooltip,
+.memory-playback-reset-control:focus-within .memory-playback-reset-tooltip { visibility: visible; }
 #labScreen.memory-playback-host #labCanvasContainer { height: calc(100dvh - 62px - var(--circuit-status-height) - 16px); }
 #labScreen > .memory-playback-bar {
   position: fixed;
@@ -4502,9 +4525,9 @@ body.lab-mode-active {
   z-index: 80;
 }
 @media (max-width: 700px) {
-  .memory-playback-bar { gap: 0.55rem; width: 100%; }
+  .memory-playback-bar { gap: 0.55rem; width: 100%; flex-wrap: wrap; }
   .memory-playback-speed span { min-width: 76px; }
-  .memory-playback-speed { flex-wrap: wrap; gap: 0.25rem; }
+  .memory-playback-speed { flex-wrap: wrap; gap: 0.25rem; flex-basis: 100px; min-width: 100px; }
   #labScreen > .memory-playback-bar { left: 8px; right: 108px; }
 }
 /* Chapter titles stay complete on narrow screens. */

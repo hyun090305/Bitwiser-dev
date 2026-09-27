@@ -164,9 +164,11 @@ export function tickCircuit(circuit, state = getExecutionState(circuit), { input
   return { ...after, tick: nextTick, inputs: snapshot };
 }
 
-export function resetExecution(circuit) {
+// Loading/restoring keeps saved switch values; only an explicit simulation
+// reset opts into clearing every INPUT along with the transient runtime.
+export function resetExecution(circuit, { resetInputs = false } = {}) {
   for (const b of Object.values(circuit.blocks)) {
-    if (b.type === 'INPUT' && b.inputMode === 'button') b.value = false;
+    if (b.type === 'INPUT' && (resetInputs || b.inputMode === 'button')) b.value = false;
   }
   const state = createExecutionState(circuit);
   executions.set(circuit, state);
