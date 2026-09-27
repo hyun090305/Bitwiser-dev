@@ -1703,11 +1703,6 @@ body.system-menu-open {
 .level-intro-rules td { color: #dbe5ed; }
 .level-intro-rules[hidden], .level-intro-fixed-io[hidden] { display: none; }
 
-/* Keep wide truth-table cases readable inside narrow stage introductions. */
-#levelIntroModal .level-intro-case { max-width: 100%; min-width: 0; }
-#levelIntroModal .level-intro-case__side { min-width: 0; flex: 1 1 0; flex-wrap: wrap; }
-#levelIntroModal .level-intro-case__bit { box-sizing: border-box; max-width: 100%; overflow-wrap: anywhere; }
-
 .level-intro-screen--active .level-intro-screen__panel {
   transform: scale(1);
   opacity: 1;
@@ -1756,7 +1751,7 @@ body.system-menu-open {
   flex-wrap: wrap;
   gap: 0.6rem;
   align-items: start;
-  justify-content: center;
+  justify-content: safe center;
 }
 
 .level-intro-case {
@@ -1766,7 +1761,8 @@ body.system-menu-open {
   box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.08);
   padding: 0.65rem 0.8rem;
   display: flex;
-  align-items: stretch;
+  align-items: center;
+  flex: 0 0 auto;
   justify-content: flex-start;
   gap: 0.55rem;
   font-family: var(--logic-data-font);
@@ -1800,6 +1796,9 @@ body.system-menu-open {
 }
 
 .level-intro-case__bit {
+  box-sizing: border-box;
+  flex: 0 0 auto;
+  white-space: nowrap;
   min-width: 44px;
   padding: 0.22rem 0.28rem 0.28rem;
   border-radius: 7px;
@@ -1816,10 +1815,6 @@ body.system-menu-open {
   box-shadow:
     0 0 10px rgba(45, 212, 191, 0.38),
     inset 0 0 8px rgba(45, 212, 191, 0.2);
-}
-
-.level-intro-case__bit--group-start {
-  margin-left: 1rem;
 }
 
 .level-intro-case__bit-label {
@@ -1995,7 +1990,8 @@ body.system-menu-open {
 
 #truthTable {
   width: 100%;
-  max-width: 100%;
+  min-width: min-content;
+  flex-shrink: 0;
 }
 
 #gifModal {

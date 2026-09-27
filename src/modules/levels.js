@@ -1,3 +1,4 @@
+import { formatIntroText, parseLogicRows } from './introPresentation.js';
 import { validateStarThresholds } from './circuitCost.js';
 import { setupGrid, setGridDimensions, destroyPlayContext, getPlayController } from './grid.js';
 import { getUsername, setLastAccessedLevel, getStageAccessRecord, setStageAccessRecord } from './storage.js';
@@ -368,61 +369,6 @@ function getStageCode(level) {
   return 'STAGE --';
 }
 
-function formatSignalLabel(signalName) {
-  return (signalName || '').toString();
-}
-
-function getSignalGroupKey(signalLabel) {
-  const raw = (signalLabel || '').toString();
-  const match = raw.match(/[A-Za-z]/);
-  if (match) return match[0].toUpperCase();
-  return raw.charAt(0).toUpperCase();
-}
-
-function parseLogicRows(level, dataTable = []) {
-  if (!Array.isArray(dataTable) || !dataTable.length) return [];
-  // Legacy Subtractor examples call the result S1/S0; its actual ports are R1/R0.
-  // Normalize display labels only, keeping the stored examples and grading data intact.
-  if (Number(level) === 15) {
-    dataTable = dataTable.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) =>
-      [key === 'S1' ? 'R1' : key === 'S0' ? 'R0' : key, value])));
-  }
-  const firstRow = dataTable[0];
-  const rowKeys = Object.keys(firstRow);
-  if (!rowKeys.length) return [];
-
-  const blockSet = levelBlockSets[level] || [];
-  const inputKeys = blockSet
-    .filter(block => block.type === 'INPUT' && rowKeys.includes(block.name))
-    .map(block => block.name);
-  const outputKeys = blockSet
-    .filter(block => block.type === 'OUTPUT' && rowKeys.includes(block.name))
-    .map(block => block.name);
-
-  const fallbackOutputKey = rowKeys[rowKeys.length - 1];
-  const resolvedInputKeys = inputKeys.length ? inputKeys : rowKeys.slice(0, -1);
-  const resolvedOutputKeys = outputKeys.length ? outputKeys : [fallbackOutputKey];
-
-  return dataTable.map((row, index) => {
-    const inputSignals = resolvedInputKeys.map(key => ({
-      label: formatSignalLabel(key),
-      value: `${row[key] ?? ''}`.trim()
-    }));
-    const outputSignals = resolvedOutputKeys.map(key => ({
-      label: formatSignalLabel(key),
-      value: `${row[key] ?? ''}`.trim()
-    }));
-
-    return {
-      id: `case-${index}`,
-      tick: row.tick,
-      observation: row.observation,
-      inputSignals,
-      outputSignals
-    };
-  });
-}
-
 export function renderLogicCards(tableEl, rows) {
   tableEl.innerHTML = '';
 
@@ -444,16 +390,6 @@ export function renderLogicCards(tableEl, rows) {
       if (signal.value === '1') {
         bit.classList.add('level-intro-case__bit--active');
       }
-      const currentGroup = getSignalGroupKey(signal.label);
-      const previousBit = side.lastElementChild;
-      if (previousBit) {
-        const previousGroup = previousBit.getAttribute('data-group-key') || '';
-        if (previousGroup && previousGroup !== currentGroup) {
-          bit.classList.add('level-intro-case__bit--group-start');
-        }
-      }
-      bit.setAttribute('data-group-key', currentGroup);
-
       const label = document.createElement('span');
       label.className = 'level-intro-case__bit-label';
       label.textContent = signal.label;
@@ -503,7 +439,8 @@ function prepareIntroScreen(level, data) {
   if (!modal || !title || !desc || !stageCode || !table || !startBtn) return null;
 
   title.textContent = (data.title || '').toString().trim();
-  desc.textContent = (data.desc || '').toString().trim();
+  const blockSet = levelBlockSets[level] || [];
+  desc.textContent = formatIntroText(data.desc, blockSet).trim();
   const fixedIO = document.getElementById('introFixedIO');
   fixedIO.hidden = !levelFixedIO[level]?.fixIO;
   fixedIO.textContent = window.currentLang === 'en' ? 'Fixed I/O' : '고정 I/O';
@@ -513,7 +450,7 @@ function prepareIntroScreen(level, data) {
   const body = document.createElement('tbody');
   for (const [label, text] of data.rules || []) {
     const row = document.createElement('tr'), heading = document.createElement('th'), cell = document.createElement('td');
-    heading.scope = 'row'; heading.textContent = label; cell.textContent = text;
+    heading.scope = 'row'; heading.textContent = formatIntroText(label, blockSet); cell.textContent = formatIntroText(text, blockSet);
     row.append(heading, cell); body.append(row);
   }
   rules.append(body);
@@ -523,7 +460,7 @@ function prepareIntroScreen(level, data) {
     logicDataLabel.textContent = (translate('introLogicData') || 'LOGIC DATA').toString();
   }
 
-  const rows = parseLogicRows(level, data.table);
+  const rows = parseLogicRows(level, data.table, blockSet);
   renderLogicCards(table, rows);
   startBtn.disabled = true;
   startBtn.textContent = translate('startLevelBtn');

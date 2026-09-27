@@ -3,12 +3,19 @@ import path from 'node:path';
 import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium, _electron } from 'playwright';
+import { formatIntroText } from '../src/modules/introPresentation.js';
+import { verifyIntroCards } from './intro-ui-checks.mjs';
 import { observeMap, goToMap } from './demo-browser-helpers.mjs';
 
 const root = path.resolve('.'), out = path.join(root, 'test-results/concise-ui');
 await fs.mkdir(out, { recursive: true });
 const native = process.argv.includes('--electron');
 const browser = native ? null : await chromium.launch({ channel: process.env.BROWSER_CHANNEL || 'msedge', headless: true });
+const measurements = [];
+// Optional local copies of the production Google fonts allow isolated font QA.
+const testFonts = process.env.INTRO_FONT_DIR ? await Promise.all([
+  ['Press Start 2P', 'intro-press-start.ttf'], ['Noto Sans KR', 'intro-noto.ttf']
+].map(async ([family, file]) => ({ family, source:`url(data:font/ttf;base64,${(await fs.readFile(path.join(process.env.INTRO_FONT_DIR, file))).toString('base64')})` }))) : [];
 const copy = JSON.parse(await fs.readFile('scripts/data/stage-copy.json', 'utf8'));
 const report = [];
 try {
@@ -49,6 +56,11 @@ try {
           await page.evaluate(lang=>localStorage.setItem('lang',lang),lang);
           await page.reload();
         } else await page.goto(base);
+        if (testFonts.length) await page.evaluate(async fonts => {
+          for (const {family, source} of fonts) document.fonts.add(await new FontFace(family, source).load());
+          await document.fonts.ready;
+          for (const {family} of fonts) if (!document.fonts.check(`16px "${family}"`)) throw new Error(`Font not loaded: ${family}`);
+        }, testFonts);
         await page.locator('#loadingStartBtn').click();
         if (surface === 'demo') await page.locator('#startLevelBtn').click();
         await goToMap(page);
@@ -112,7 +124,8 @@ try {
           const nav=await import('./src/modules/navigation.js'); nav.hideStageMapScreen(); nav.showGameScreen();
         });
         await page.locator('#levelIntroModal').waitFor({state:'visible'});
-        for (const width of [1440,420,360]) {
+        const stageData = await page.evaluate(async () => (await import('./src/modules/levels.js')).getLoadedStageData());
+        for (const width of [1440,900,420,360]) {
           await page.setViewportSize({width,height:780});
           for (const id of ids) {
             await page.evaluate(async id => {
@@ -120,17 +133,25 @@ try {
               document.querySelector('.level-intro-screen__panel').scrollTop=0;
             },id);
             assert.equal(await page.locator('#introTitle').innerText(),copy[id].title);
-            assert.equal(await page.locator('#introDesc').innerText(),copy[id][lang]);
-            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang]);
+            assert.equal(await page.locator('#introDesc').innerText(),formatIntroText(copy[id][lang], stageData.levelBlockSets[id]));
+            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang].map(rule => rule.map(text => formatIntroText(text, stageData.levelBlockSets[id]))));
             if (id===15) {
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').first().locator('.level-intro-case__side--output .level-intro-case__bit-label').allTextContents(),['R1','R0']);
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').nth(1).locator('.level-intro-case__side--output .level-intro-case__bit-value').allTextContents(),['1','1']);
             }
-            const overflows = await page.evaluate(()=>['.level-intro-screen__panel','#introDesc','#introRules','#truthTableContainer','#startLevelBtn'].filter(s=>{
-              const e=document.querySelector(s); return !e.hidden && e.scrollWidth>e.clientWidth+1;
-            }));
-            assert.deepEqual(overflows,[],`${surface}/${lang}/${width}/stage ${id}: horizontal overflow`);
-            if (width===360 && [1,34,44,46].includes(id)) { await page.waitForTimeout(400); await page.screenshot({path:path.join(out,`${surface}-${lang}-guide-${id}.png`)}); }
+            const layout = await verifyIntroCards(page, {
+              table:stageData.levelDescriptions[id].table, stageId:id, context:`${surface}/${lang}/${width}/stage ${id}`
+            });
+            if ([1,32,39,44,46].includes(id)) {
+              measurements.push({surface,lang,width,id,...layout});
+              if (id===32 || width===360) {
+                await page.screenshot({path:path.join(out,`${surface}-${lang}-${width}-guide-${id}-left.png`)});
+                if (layout.scroll.max>0) {
+                  await page.locator('#truthTableContainer').evaluate(e=>e.scrollLeft=e.scrollWidth);
+                  await page.screenshot({path:path.join(out,`${surface}-${lang}-${width}-guide-${id}-right.png`)});
+                }
+              }
+            }
             const reachable=await page.evaluate(()=>{
               const panel=document.querySelector('.level-intro-screen__panel'); panel.scrollTop=panel.scrollHeight;
               const p=panel.getBoundingClientRect(), b=document.getElementById('startLevelBtn').getBoundingClientRect();
@@ -144,11 +165,14 @@ try {
           for (const id of [22,44]) {
             await page.evaluate(async id=>{
               (await import('./src/modules/levels.js')).showIntroModal(id);
-              (await import('./src/modules/problemEditor.js')).showProblemIntro({title:'Custom',table:[{IN1:0,OUT1:1}]});
+              (await import('./src/modules/problemEditor.js')).showProblemIntro({id:9,title:'Custom IN1 32',table:[{IN2:1,IN1:0,OUT1:1,OUT2:0}]});
             },id);
             assert.equal(await page.locator('#introFixedIO').isVisible(),false);
             assert.equal(await page.locator('#introRules').isVisible(),false);
-            assert.equal(await page.locator('#introTitle').innerText(),'Custom');
+            assert.equal(await page.locator('#introTitle').innerText(),'Custom IN1 32');
+            assert.equal(await page.locator('#introDesc').innerText(),'목표 출력 패턴을 유지하도록 Custom IN1 32 노드를 복구하십시오.');
+            assert.deepEqual(await page.locator('#truthTable .level-intro-case__bit-label').allTextContents(),['IN2','IN1','OUT1','OUT2']);
+            await verifyIntroCards(page, {table:[{IN2:1,IN1:0,OUT1:1,OUT2:0}],context:`${surface}/${lang}/custom after ${id}`});
           }
         }
         // Open common instructions through the actual game menu.
@@ -163,12 +187,13 @@ try {
         assert.match(await page.locator('#controlsTicks').innerText(),/D/);
         assert.match(await page.locator('#controlsOutputs').innerText(),/COMPLETE/);
         assert.deepEqual(errors,[]);
-        report.push({surface,lang,guides:ids.length,guideWidths:[1440,420,360],mapWidths:[1440,900,420,360],errors});
+        report.push({surface,lang,guides:ids.length,guideWidths:[1440,900,420,360],mapWidths:[1440,900,420,360],fonts:testFonts.map(font=>font.family),errors});
         console.log(`Verified concise UI: ${surface}/${lang}`);
         if (!native) await context.close();
       }
     } finally { await app?.close(); if(server){server.closeAllConnections();await new Promise(resolve=>server.close(resolve));} }
   }
   await fs.writeFile(path.join(out,native?'electron.json':'web-demo.json'),JSON.stringify(report,null,2));
+  await fs.writeFile(path.join(out,native?'intro-electron.json':'intro-web-demo.json'),JSON.stringify(measurements,null,2));
   console.log(JSON.stringify(report));
 } finally { await browser?.close(); }
