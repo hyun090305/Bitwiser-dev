@@ -52,3 +52,36 @@ test('combinational mode never schedules or manually advances ticks even with D 
   assert.equal(s.pending(), false); assert.equal(getExecutionState(s.circuit).tick, 0);
   s.runner.destroy();
 });
+
+test('reset from playing or paused cancels ticks and keeps explicit pause through all suspensions until Continue', () => {
+  for (const paused of [false, true]) {
+    const circuit = selfFeedbackCircuit(); evaluateCircuit(circuit);
+    const queue = new Map(); let nextId = 0, available = true, editing = false, policy;
+    const runner = createTickRunner(circuit, { canRun: () => policy.canRun(),
+      schedule: (fn, delay) => { queue.set(++nextId, { fn, delay }); return nextId; }, cancel: id => queue.delete(id) });
+    policy = createPlaybackPolicy(runner, { enabled: true, canRun: () => available, isEditing: () => editing });
+    policy.setReady(); runner.setInterval(1000); policy.sync();
+    const stale = [...queue.values()][0].fn;
+    runner.step(); circuit.blocks.x.value = true;
+    if (paused) policy.toggle();
+    for (let i = 0; i < 3; i++) {
+      policy.pause(); runner.reset({ resetInputs: true });
+      assert.equal(policy.isUserPaused(), true); assert.equal(queue.size, 0);
+      stale();
+      assert.equal(getExecutionState(circuit).tick, 0);
+      assert.equal(runner.getInterval(), 1000);
+    }
+    circuit.blocks.x.value = true; evaluateCircuit(circuit); policy.sync();
+    runner.setInterval(250); policy.sync();
+    editing = true; policy.beginEdit(); policy.sync(); editing = false; policy.sync();
+    available = false; policy.sync(); available = true;
+    for (let i = 0; i < 20; i++) policy.sync();
+    assert.equal(queue.size, 0); assert.equal(getExecutionState(circuit).tick, 0);
+    policy.toggle(); policy.sync(); policy.sync();
+    assert.equal(queue.size, 1); assert.equal(getExecutionState(circuit).tick, 0);
+    const [id, scheduled] = [...queue.entries()][0];
+    assert.equal(scheduled.delay, 250); queue.delete(id); scheduled.fn();
+    assert.equal(getExecutionState(circuit).tick, 1); assert.equal(queue.size, 1);
+    runner.destroy(); assert.equal(queue.size, 0);
+  }
+});

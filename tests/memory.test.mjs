@@ -111,6 +111,61 @@ test('D+EN holds at EN=0 and captures both 0 and 1 at EN=1', () => {
   c.blocks.en.value = true; tickCircuit(c); assert.equal(q(c),false);
 });
 
+test('explicit simulation reset clears every INPUT, Q and tick snapshot and settles NOT outputs without ticking', () => {
+  const c = build({ x:'INPUT', en:'INPUT', d:'D', single:'D', n:'NOT', o:'OUTPUT', nx:'NOT', ox:'OUTPUT' },
+    [['x','d'], ['en','d'], ['x','single'], ['d','n'], ['n','o'], ['x','nx'], ['nx','ox']]);
+  c.blocks.en.inputMode = 'button';
+  c.blocks.x.value = c.blocks.en.value = true;
+  assert.equal(tickCircuit(c).ok, true);
+  assert.equal(q(c), true); assert.equal(getExecutionState(c).memory.get('single'), true);
+  // The sampled button has released: reset must clear Q even with EN=0.
+  assert.equal(c.blocks.en.value, false);
+  const design = snapshotCircuit(c); design.blocks.x.value = false;
+  const plan = prepareCircuit(c);
+  for (let i = 0; i < 3; i++) {
+    const state = resetExecution(c, { resetInputs: true });
+    assert.equal(state, getExecutionState(c));
+    assert.deepEqual(state, { memory: new Map([['d', false], ['single', false]]), tick: 0, currentInputs: new Map(), lastTick: null });
+    assert.equal(c.blocks.x.value, false); assert.equal(c.blocks.en.value, false);
+    assert.equal(c.blocks.o.value, true); assert.equal(c.blocks.ox.value, true);
+    assert.equal(getEvaluationResult(c).ok, true);
+    assert.equal(prepareCircuit(c), plan);
+    assert.deepEqual(snapshotCircuit(c), design);
+  }
+});
+
+test('default execution and runner resets retain saved switches while clearing buttons and Q', () => {
+  for (const viaRunner of [false, true]) {
+    const c = enabled(); c.blocks.en.inputMode = 'button';
+    c.blocks.x.value = c.blocks.en.value = true; tickCircuit(c); c.blocks.en.value = true;
+    const runner = createTickRunner(c);
+    if (viaRunner) runner.reset(); else resetExecution(c);
+    assert.equal(c.blocks.x.value, true); assert.equal(c.blocks.en.value, false);
+    assert.equal(q(c), false); assert.equal(getExecutionState(c).tick, 0);
+    runner.destroy();
+  }
+});
+
+test('explicit reset is safe for empty, no-D, incomplete and invalid circuits and retains diagnostics', () => {
+  const invalid = enabled(); invalid.wires.w0.inputRole = 'EN';
+  for (const c of [makeCircuit(), build({ x:'INPUT', n:'NOT', o:'OUTPUT' }, [['x','n'],['n','o']]),
+    build({ x:'INPUT', d:'D', o:'OUTPUT' }), invalid]) {
+    for (const b of Object.values(c.blocks)) if (b.type === 'INPUT') b.value = true;
+    evaluateCircuit(c);
+    const diagnostics = structuredClone(getEvaluationResult(c).diagnostics);
+    const state = getExecutionState(c); state.tick = 9;
+    state.memory.forEach((_value, id) => state.memory.set(id, true));
+    for (let i = 0; i < 3; i++) {
+      const reset = resetExecution(c, { resetInputs: true });
+      assert.equal(reset.tick, 0); assert.equal(reset.lastTick, null); assert.equal(reset.currentInputs.size, 0);
+      assert.ok([...reset.memory.values()].every(value => value === false));
+      assert.ok(Object.values(c.blocks).filter(b => b.type === 'INPUT').every(b => b.value === false));
+      assert.deepEqual(getEvaluationResult(c).diagnostics, diagnostics);
+      if (diagnostics.length) assert.equal(c.blocks.o.value, null);
+    }
+  }
+});
+
 test('two serial D blocks only propagate one register per tick', () => {
   const c = build({ x:'INPUT', a:'D', b:'D', o:'OUTPUT' }, [['x','a'],['a','b'],['b','o']]);
   c.blocks.x.value = true; tickCircuit(c); assert.equal(c.blocks.o.value,false);

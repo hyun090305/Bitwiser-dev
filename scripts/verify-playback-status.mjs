@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium, _electron } from 'playwright';
 import { verifyExternalEditCancellation } from './external-edit-checks.mjs';
+import { verifySimulationReset } from './reset-simulation-checks.mjs';
 
 const root = path.resolve('.'), passed = [], errors = [], measurements = [];
 await fs.mkdir('test-results', { recursive: true });
@@ -94,6 +95,12 @@ try {
         await restore(fixture); await page.waitForTimeout(600);
         assert.equal((await read()).tick, 0); assert.equal((await read()).running, false);
         await page.locator('#startLevelBtn').click(); await running(true);
+        if (process.argv.includes('--reset-only')) {
+          measurements.push(await verifySimulationReset(page, { fixture, surface, lang, width }));
+          passed.push(`${surface}/${lang}/${width}: simulation reset, accessibility, pause intent, history, diagnostics and locks`);
+          console.log(passed.at(-1));
+          continue;
+        }
         await page.locator('.memory-playback-speed input').fill('1');
         await page.waitForFunction(async () => (await import('./src/canvas/evaluation.js')).getExecutionState((await import('./src/modules/grid.js')).getPlayCircuit()).tick > 0);
         await page.locator('#wireMoveInfo').click();
@@ -250,6 +257,7 @@ try {
           }, gate);
           assert.equal(resumed, stop); await running(true);
         }
+        measurements.push(await verifySimulationReset(page, { fixture, surface, lang, width }));
         // Combinational stage uses the same badge/strip but cannot tick, even with D/button parts.
         await page.evaluate(async () => (await import('./src/modules/levels.js')).startLevel(1));
         await page.locator('#startLevelBtn').click(); await restore(incomplete);
@@ -259,7 +267,7 @@ try {
         assert.equal((await read()).tick, 0); assert.equal((await read()).running, false);
         assert.deepEqual(await box(), combo);
         console.log(`Verified ${surface}/${lang}/${width}`);
-        passed.push(`${surface}/${lang}/${width}: fixed geometry, no-D bar, badge/popover, 3s toast/reset, autoplay/manual intent, outside wire/selection release, Escape, cancel/refusal and execution gates`);
+        passed.push(`${surface}/${lang}/${width}: simulation reset/accessibility/history/locks, fixed geometry, no-D bar, badge/popover, 3s toast/reset, autoplay/manual intent, outside wire/selection release, Escape, cancel/refusal and execution gates`);
       }
       assert.deepEqual(errors, []);
     } catch (e) {
@@ -269,6 +277,6 @@ try {
       if (server) await new Promise(resolve => server.close(resolve));
     }
   }
-  await fs.writeFile(`test-results/playback-status${surfaces[0] === 'electron' ? '-electron' : ''}${process.argv.includes('--input-only') ? '-input' : process.argv.includes('--cancel-only') ? '-cancel' : ''}.json`, JSON.stringify({ passed, errors, measurements }, null, 2));
+  await fs.writeFile(`test-results/playback-status${surfaces[0] === 'electron' ? '-electron' : ''}${process.argv.includes('--input-only') ? '-input' : process.argv.includes('--cancel-only') ? '-cancel' : process.argv.includes('--reset-only') ? '-reset' : ''}.json`, JSON.stringify({ passed, errors, measurements }, null, 2));
   console.log(JSON.stringify({ passed, errors }, null, 2));
 } finally { await browser?.close(); }

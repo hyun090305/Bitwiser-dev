@@ -55,7 +55,7 @@ export function createTickRunner(circuit, {
       next();
       onChange();
     },
-    reset() { pause(); resetExecution(circuit); onChange(); },
+    reset(options) { pause(); resetExecution(circuit, options); onChange(); },
     destroy() { pause(); destroyed = true; if (runners.get(circuit) === runner) runners.delete(circuit); }
   };
   runners.set(circuit, runner);
