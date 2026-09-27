@@ -41,6 +41,28 @@ export async function verifySimulationReset(page, { fixture, surface, lang, widt
     await restore(fixture);
     await reset.click(); assertReset(await read());
     await speed.fill('1');
+    // Space can start in the editor and end on the reset button. Its keyup
+    // must reach the shared controller so the next block drag does not pan.
+    await page.locator('#wireMoveInfo').click();
+    await page.evaluate(() => document.activeElement.blur());
+    const interaction = () => page.evaluate(async () => {
+      const { state } = (await import('./src/modules/grid.js')).getPlayController();
+      return { spaceHeld: state.spaceHeld, panning: state.panning,
+        dragId: state.draggingBlock?.id || state.dragCandidate?.id || null };
+    });
+    await page.keyboard.down('Space');
+    assert.equal((await interaction()).spaceHeld, true);
+    const resetBox = await reset.boundingBox();
+    await page.mouse.click(resetBox.x + resetBox.width / 2, resetBox.y + resetBox.height / 2);
+    assert.equal(await reset.evaluate(el => el === document.activeElement), true);
+    await page.keyboard.up('Space');
+    assert.deepEqual(await interaction(), { spaceHeld: false, panning: false, dragId: null });
+    const beforeDrag = await read(), drag = await point('Q');
+    await page.mouse.move(drag.x, drag.y); await page.mouse.down();
+    await page.mouse.move(drag.x + 15, drag.y + 15);
+    assert.deepEqual(await interaction(), { spaceHeld: false, panning: false, dragId: 'Q' });
+    await page.keyboard.press('Escape'); await page.mouse.up();
+    assert.deepEqual(await read(), beforeDrag);
     // Two real edits then undo leave both undo and redo populated.
     await page.locator('#wireMoveInfo').click();
     await clickBlock('Q'); await clickBlock('Q'); await page.locator('#undoBtn').click();

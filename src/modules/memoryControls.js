@@ -196,7 +196,8 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   });
   // Keep native button activation; the editor's Space shortcut must not
   // prevent the click or switch editing modes while this button has focus.
-  for (const type of ['keydown', 'keyup']) reset.addEventListener(type, event => {
+  // Let keyup reach the editor to release keys held before this button focused.
+  reset.addEventListener('keydown', event => {
     if (event.key === ' ' || event.key === 'Enter') event.stopPropagation();
   });
 
