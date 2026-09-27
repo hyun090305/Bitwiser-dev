@@ -1427,7 +1427,7 @@ export function getActiveCustomProblemKey() {
 }
 
 export function getUserProblems() {
-  if (typeof db === 'undefined') return Promise.resolve([]);
+  if (typeof db === 'undefined' || !db?.ref) return Promise.resolve([]);
   const nickname = getUsername();
   return db.ref('problems').once('value').then(snapshot => {
     const problems = [];

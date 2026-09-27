@@ -14,7 +14,7 @@ let hintTimerInterval = null;
 function checkHintCooldown(cb) {
   if (localProgress) return cb(0);
   const localUntil = getHintCooldown();
-  const user = firebase.auth().currentUser;
+  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
   if (user) {
     db.ref(`hintLocks/${user.uid}`).once('value').then(snap => {
       cb(Math.max(localUntil, snap.val() || 0));
@@ -27,7 +27,7 @@ function checkHintCooldown(cb) {
 function loadHintProgress(stage, cb) {
   if (localProgress) return cb(localProgress.get(stage));
   const local = getHintProgress(stage);
-  const user = firebase.auth().currentUser;
+  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
   if (user) {
     db.ref(`hintProgress/${user.uid}/stage${stage}`).once('value').then(snap => {
       const remote = snap.val() || 0;
@@ -43,7 +43,7 @@ function loadHintProgress(stage, cb) {
 function saveHintProgress(stage, count) {
   if (localProgress) return localProgress.set(stage, count);
   setHintProgress(stage, count);
-  const user = firebase.auth().currentUser;
+  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
   if (user) {
     db.ref(`hintProgress/${user.uid}/stage${stage}`).set(count);
   }

@@ -1,0 +1,17 @@
+#devProgressToggle { position: fixed; right: 16px; bottom: 16px; z-index: 100000; background: #ffcd69; color: #202735; border: 2px solid #563d15; border-radius: 10px; padding: 9px 16px; font: bold 14px system-ui, sans-serif; box-shadow: 0 3px 15px #0005; }
+#devProgressPanel { position: fixed; inset: auto 16px 64px auto; box-sizing: border-box; width: 450px; max-width: calc(100vw - 32px); max-height: calc(100dvh - 90px); overflow-y: auto; margin: 0; padding: 20px; background: #17212d; color: #f3f5f7; border: 1px solid #648198; border-radius: 16px; box-shadow: 0 16px 64px #0008; font: 13px/1.5 system-ui, sans-serif; text-align: left; }
+#devProgressPanel::backdrop { background: #0004; }
+#devProgressPanel .dev-panel-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+#devProgressPanel h2 { margin: 0; font: bold 19px system-ui, sans-serif; color: #ffcd69; }
+#devProgressPanel p { margin: 10px 0; color: #bccddd; }
+#devProgressPanel fieldset { min-width: 0; margin: 14px 0; padding: 10px; border: 1px solid #3e5366; border-radius: 8px; }
+#devProgressPanel legend { color: #ffcd69; padding: 0 5px; }
+#devProgressPanel label { display: flex; align-items: center; flex-wrap: wrap; gap: 5px 8px; margin: 8px 0; }
+#devProgressPanel select { box-sizing: border-box; min-width: 0; max-width: 100%; margin-left: auto; background: #253749; color: #f3f5f7; border: 1px solid #648198; border-radius: 5px; padding: 7px; font: inherit; }
+#devProgressPanel #devStage, #devProgressPanel #devPreset { width: 100%; }
+#devProgressPanel .dev-chapter-status { min-width: 28px; font-size: 11px; color: #a7cce8; }
+#devProgressPanel button { border: 1px solid #648198; border-radius: 7px; padding: 7px 10px; background: #31475a; color: #fff; font: inherit; cursor: pointer; }
+#devProgressPanel button:hover { background: #44627b; }
+#devProgressPanel :focus-visible { outline: 2px solid #ffcd69; outline-offset: 2px; }
+#devProgressPanel .dev-panel-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+#devProgressPanel #devProgressStatus[data-saved="false"] { color: #ffb9a5; }

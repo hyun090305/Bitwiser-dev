@@ -410,6 +410,12 @@ export function chapterAccess(chapterId, cleared = [], access = {}) {
   const chapter = CHAPTERS.find(ch => ch.id === chapterId);
   const done = new Set(cleared);
   const missing = (chapter?.prerequisites || []).filter(id => !done.has(id));
+  // Optional provider policy takes precedence even over retained clear/access.
+  // Normal save writers never persist these overrides.
+  const override = access.chapterOverrides?.[chapterId];
+  if (chapter && (override === 'locked' || override === 'unlocked')) {
+    return { unlocked: override === 'unlocked', missing, retained: false };
+  }
   // Legacy per-stage access grants the whole chapter, never an individual gate.
   const retained = Boolean(access.unlockedChapters?.includes(chapterId)
     || STAGES.some(s => s.status === 'playable' && s.chapterId === chapterId

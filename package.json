@@ -5,6 +5,10 @@
   "main": "electron/main.js",
   "scripts": {
     "start": "electron .",
+    "dev": "electron electron/dev/main.cjs",
+    "dev:web": "node scripts/dev-web.mjs",
+    "test:dev:browser": "node scripts/verify-dev-browser.mjs",
+    "test:dev:electron": "node scripts/verify-dev-electron.mjs",
     "dist": "cross-env ELECTRON_CACHE=.electron-cache ELECTRON_BUILDER_CACHE=.electron-builder-cache electron-builder",
     "test": "node --test tests/*.test.mjs",
     "build:demo": "node scripts/build-demo.mjs",
@@ -47,7 +51,9 @@
       "*.json",
       "src/**/*",
       "assets/**/*",
-      "electron/**/*"
+      "electron/**/*",
+      "!src/dev/**/*",
+      "!electron/dev/**/*"
     ],
     "directories": {
       "output": "dist"

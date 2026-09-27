@@ -8,10 +8,16 @@ import { initializeCostBoard, renderPerformance, disposePerformance, renderCostR
 import { configureOfficialCostRanking } from './rank.js';
 import { stylePassedResult } from './gradingResultView.js';
 
+let storeProvider = null;
+export function configureFullCostExperience(options = {}) {
+  storeProvider = options.storeProvider || null;
+}
+
 export function initializeFullCostExperience({ db, getStage = levels.getCurrentLevel }) {
   const stores = new Map();
   const nickname = () => getUsername() || (costLanguage() === 'ko' ? '익명' : 'Anonymous');
   const store = () => {
+    if (storeProvider) return storeProvider();
     const data = levels.getLoadedStageData(); if (!data) return null;
     const owner = nickname();
     if (!stores.has(owner)) {

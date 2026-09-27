@@ -36,6 +36,7 @@ await page.addInitScript(() => {
 });
 try{
   await page.goto(`http://127.0.0.1:${server.address().port}`);
+  assert.equal(await page.locator('#devProgressToggle, #devProgressPanel, meta[name="bitwiser-development"]').count(), 0);
   await page.waitForFunction(()=>document.getElementById('loadingStartBtn')?.disabled===false,{},{timeout:25000});
   assert.equal(await page.locator('#storyHudBtn, #storyPlaybackOverlay, #storyModalOverlay').count(),0);
   const result=await page.evaluate(async()=>({stages:Object.keys((await import('./src/modules/levels.js')).getLevelTitles()).length,hasLegacyAccount:!!document.getElementById('googleLoginBtn'),hasLegacyLabNode:(await(await fetch('stage_map.json')).json()).nodes.some(n=>n.id==='lab')}));

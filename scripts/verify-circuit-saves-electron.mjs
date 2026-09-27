@@ -67,8 +67,18 @@ async function stage(id, circuit) {
 }
 const list = () => page.evaluate(async () => (await window.bitwiserCircuitStore.list({ stageId: 1, problemKey: null })).value.items);
 const readCircuit = () => page.evaluate(async () => (await import('./src/canvas/circuitData.js')).snapshotCircuit((await import('./src/modules/grid.js')).getPlayCircuit()));
+async function waitForStorage(predicate, description) {
+  // waitForFunction's injected poller treats a Promise as a truthy predicate
+  // in the installed Playwright runtime. Await IPC on the Node side instead.
+  const deadline = Date.now() + 20000;
+  do {
+    if (await predicate()) return;
+    await page.waitForTimeout(100);
+  } while (Date.now() < deadline);
+  assert.fail(`Timed out waiting for ${description}`);
+}
 async function waitCount(count) {
-  await page.waitForFunction(async n => (await window.bitwiserCircuitStore.list({ stageId: 1, problemKey: null })).value.items.length === n, count);
+  await waitForStorage(async () => (await list()).length === count, `${count} committed saves`);
 }
 async function close() {
   report.blockedRequests.push(...await app.evaluate(() => global.blockedRequests));
@@ -108,10 +118,10 @@ try {
   await page.evaluate(async () => (await import('./src/modules/storage.js')).setAutoSaveSetting(true));
   await page.locator('#gradeButton').click(); await waitCount(3);
   // Wait for the autosave preview job before exiting the process.
-  await page.waitForFunction(async () => {
+  await waitForStorage(() => page.evaluate(async () => {
     const saved = (await window.bitwiserCircuitStore.list({ stageId: 1, problemKey: null })).value.items[0];
     return (await window.bitwiserCircuitStore.readPreview(saved.id)).value?.length > 0;
-  });
+  }), 'the autosave preview');
   report.checks.push('Actual grading UI respects autosave off/on while signed out');
   const savedIds = (await list()).map(i => i.id);
   await close();

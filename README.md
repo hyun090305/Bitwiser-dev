@@ -54,6 +54,9 @@ cd Bitwiser-dev
 ```
 
 ### 로컬 실행
+
+**개발 모드 / 바탕화면 바로가기:** [개발 모드 안내](docs/developer-mode.md)를 참고하세요. 프로젝트의 `Create Bitwiser DEV Shortcut.vbs`를 한 번 실행하면 **Bitwiser DEV** 아이콘으로 별도 테스트 기록과 진행 조작 패널을 사용할 수 있습니다. 터미널에서는 `npm run dev`로 실행합니다.
+
 - **Python 내장 서버**:
 ```bash
 python3 -m http.server 8000
