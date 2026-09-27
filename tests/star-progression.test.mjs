@@ -44,7 +44,7 @@ test('495 AC-4/5/17/18: authored copy regenerates exactly without changing any p
       const prose=[desc.desc,...desc.rules.flat()].join('\n');
       assert.doesNotMatch(prose,/상황:|목표:|시점:|Situation:|Goal:|Timing:|신호: 0은|Signals: 0 is|tick과 D|Ticks and D/);
       assert.equal(desc.desc.includes('\n'),false,'one concise goal');
-      assert.doesNotMatch(desc.desc,/[\u3040-\u30ff]/);
+      assert.doesNotMatch(prose,/[\u3040-\u30ff]/);
       if([33,38,46].includes(s.id)) assert.doesNotMatch(desc.desc,/출력은 tick 때만|Outputs in this puzzle change only/);
     }
     const contracts=structuredClone(data);delete contracts.levelTitles;
