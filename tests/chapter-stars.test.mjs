@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { beforeStarProgression } from './helpers/star-progression.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -24,12 +25,12 @@ const ports = (levels, id) => Object.fromEntries([['inputs','INPUT'],['outputs',
 test('491 AC-3/7: only the agreed data changes; Crossroad archives its old layout and keeps its palette and truth table', () => {
   for (const [file, levels] of [['levels.json',ko],['levels_en.json',en]]) {
     const original = starBaseline.languages[file];
-    const unchanged = structuredClone(levels);
+    const unchanged = beforeStarProgression(levels, file);
     for (const id of chapterStarIds) delete unchanged.levelStarThresholds[id];
     for (const key of ['levelGridSizes','levelFixedIO','levelPreviousLayouts']) delete unchanged[key][19];
     delete unchanged.levelAnswers[24];
     if(file==='levels_en.json') {
-      assert.equal(levels.levelTitles[19],'8 x 8 crossroad');
+      assert.equal(levels.levelTitles[19],'Crossroad');
       unchanged.levelTitles[19]='7 x 7 crossroad';
     }
     assert.equal(createHash('sha256').update(JSON.stringify(unchanged)).digest('hex'),original.unchangedHash);
@@ -44,8 +45,8 @@ test('491 AC-3/7: only the agreed data changes; Crossroad archives its old layou
     assert.deepEqual(levels.levelGridSizes[6],[6,6]);
     assert.deepEqual(levels.levelGridSizes[20],[7,7]);
   }
-  assert.equal(GRADING_VERSION,6); assert.equal(COST_RULES.version,'cost-v1'); assert.equal(CATALOG_VERSION,4);
-  assert.equal(read('stage_map.json').nodes.find(n=>n.id==='crossroad').label,'8 x 8 crossroad');
+  assert.equal(GRADING_VERSION,6); assert.equal(COST_RULES.version,'cost-v1'); assert.equal(CATALOG_VERSION,5);
+  assert.equal(read('stage_map.json').nodes.find(n=>n.id==='crossroad').label,'Crossroad');
 });
 
 test('491 AC-3/4: the two issue snapshots are planar, pass all four inputs and compute 152/3 stars and 178/2 stars', () => {

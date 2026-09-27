@@ -69,6 +69,7 @@ git diff --check
 | 채점·반례·결과 UI | `npm run test:grading:browser`, `npm run test:results:browser` |
 | 비용·별·랭킹 | `npm run test:cost:browser` |
 | 스테이지 맵·해금 | `npm run test:map:browser` |
+| 누적 별·잠금/해금 연출 | `node scripts/verify-star-progression.mjs` 및 `node scripts/verify-star-progression.mjs --electron` — 정식 웹/Electron 한영 실제 채점·결과·맵, 스킵/탭 이동/재시작/reduced motion |
 | 정식 웹 진입·공통 초기화 | `npm run test:full:web` |
 | Electron 또는 공통 코드의 데스크톱 영향 | `npm run test:full:electron` |
 | Electron 회로 파일 저장 | `npm run test:saves:electron` — 별도 프로필에서 외부 네트워크 차단, 저장·종료·재실행·복원/삭제 |

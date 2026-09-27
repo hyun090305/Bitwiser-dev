@@ -1,0 +1,242 @@
+{
+  "0": {
+    "title": "Tutorial",
+    "ko": "상황: 안전 모드가 응답하고 있습니다. 첫 진단 회로를 연결하세요.\n목표: 안내에 따라 IN1을 반전한 뒤 IN2와 AND로 연결해 OUT1으로 보내세요.\n시점: 즉시 반응\n\n완성하면 IN1=0이고 IN2=1일 때만 OUT1이 1이 됩니다.",
+    "en": "Situation: Safe mode is responding. Connect the first diagnostic circuit.\nGoal: Follow the guide: invert IN1, AND it with IN2, and send the result to OUT1.\nTiming: Immediate response\n\nWhen complete, OUT1 is 1 only when IN1=0 and IN2=1."
+  },
+  "1": {
+    "title": "NOT",
+    "ko": "상황: 입력과 반대되는 신호를 보내는 경로를 복구하세요.\n목표: IN1이 0이면 OUT1을 1로, IN1이 1이면 OUT1을 0으로 만드세요.\n시점: 즉시 반응",
+    "en": "Situation: Restore the path that sends the opposite signal.\nGoal: Set OUT1 to 1 when IN1 is 0, and to 0 when IN1 is 1.\nTiming: Immediate response"
+  },
+  "2": {
+    "title": "OR",
+    "ko": "상황: 어느 경로에서든 신호가 오면 응답하도록 복구하세요.\n목표: IN1·IN2 중 하나라도 1이면 OUT1을 1로 만드세요. 둘 다 0이면 0입니다.\n시점: 즉시 반응",
+    "en": "Situation: Restore a response to a signal from either path.\nGoal: Set OUT1 to 1 if IN1 or IN2 is 1. Set it to 0 when both are 0.\nTiming: Immediate response"
+  },
+  "3": {
+    "title": "AND",
+    "ko": "상황: 두 경로의 신호가 모두 있어야 응답하도록 복구하세요.\n목표: IN1과 IN2가 모두 1일 때만 OUT1을 1로 만드세요. 나머지 경우에는 0입니다.\n시점: 즉시 반응",
+    "en": "Situation: Restore a response that requires both paths.\nGoal: Set OUT1 to 1 only when IN1 and IN2 are both 1. Otherwise, output 0.\nTiming: Immediate response"
+  },
+  "4": {
+    "title": "NOR",
+    "ko": "상황: 신호가 없는 대기 상태를 확인하는 회로를 복구하세요.\n목표: IN1과 IN2가 모두 0일 때만 OUT1을 1로 만드세요. 나머지 경우에는 0입니다.\n시점: 즉시 반응",
+    "en": "Situation: Restore the circuit that detects an idle state.\nGoal: Set OUT1 to 1 only when IN1 and IN2 are both 0. Otherwise, output 0.\nTiming: Immediate response"
+  },
+  "5": {
+    "title": "NAND",
+    "ko": "상황: 한 경로라도 꺼진 상태를 확인하는 회로를 복구하세요.\n목표: IN1·IN2 중 하나라도 0이면 OUT1을 1로 만드세요. 둘 다 1이면 0입니다.\n시점: 즉시 반응",
+    "en": "Situation: Detect when at least one path is off.\nGoal: Set OUT1 to 1 if IN1 or IN2 is 0. Set it to 0 when both are 1.\nTiming: Immediate response"
+  },
+  "6": {
+    "title": "XOR",
+    "ko": "상황: 두 경로의 신호가 어긋나는 순간을 확인하세요.\n목표: IN1과 IN2가 서로 다르면 OUT1을 1로, 같으면 0으로 만드세요.\n시점: 즉시 반응",
+    "en": "Situation: Detect a mismatch between two signal paths.\nGoal: Set OUT1 to 1 when IN1 and IN2 differ, and to 0 when they match.\nTiming: Immediate response"
+  },
+  "7": {
+    "title": "Majority",
+    "ko": "상황: 여러 경로의 신호를 모아 하나의 판단으로 연결하세요.\n목표: IN1·IN2·IN3 중 2개 이상이 1이면 OUT1을 1로 만드세요. 그 외에는 0입니다.\n시점: 즉시 반응",
+    "en": "Situation: Combine several signal paths into one decision.\nGoal: Set OUT1 to 1 if at least two of IN1, IN2 and IN3 are 1. Otherwise, output 0.\nTiming: Immediate response"
+  },
+  "8": {
+    "title": "Parity",
+    "ko": "상황: 전달된 신호 묶음에서 1의 개수를 확인하세요.\n목표: IN1·IN2·IN3 중 1이 홀수 개이면 OUT1을 1로 만드세요.\n시점: 즉시 반응\n\n1이 1개 또는 3개이면 1, 0개 또는 2개이면 0입니다.",
+    "en": "Situation: Check how many signals in a group are on.\nGoal: Set OUT1 to 1 when an odd number of IN1, IN2 and IN3 are 1.\nTiming: Immediate response\n\nOutput 1 for one or three active inputs, and 0 for zero or two."
+  },
+  "9": {
+    "title": "Half Adder",
+    "ko": "상황: 두 입력 신호의 합을 계산하는 회로를 복구하세요.\n목표: IN1과 IN2를 더한 값을 OUT2 OUT1 순서의 2비트로 보여 주세요.\n시점: 즉시 반응\n\nOUT1은 값 1의 자리, OUT2는 값 2의 자리입니다.\n\n예시:\n\n1+1=2이면 OUT2 OUT1=10입니다.",
+    "en": "Situation: Restore a circuit that adds two input signals.\nGoal: Add IN1 and IN2 and display the two-bit result as OUT2 OUT1.\nTiming: Immediate response\n\nOUT1 is the ones bit; OUT2 is the twos bit.\nExample: 1+1=2 gives OUT2 OUT1=10."
+  },
+  "10": {
+    "title": "Full Adder",
+    "ko": "상황: 이전 자리의 신호까지 합산하도록 계산 경로를 확장하세요.\n목표: 세 1비트 입력 IN1·IN2·IN3를 더한 값을 OUT2 OUT1로 보여 주세요.\n시점: 즉시 반응\n\nOUT1은 값 1의 자리, OUT2는 값 2의 자리입니다. 합은 0~3입니다.\n\n예시:\n\n1+1+1=3이면 OUT2 OUT1=11입니다.",
+    "en": "Situation: Extend the addition path to include another input bit.\nGoal: Add the three one-bit inputs IN1, IN2 and IN3 and display the result as OUT2 OUT1.\nTiming: Immediate response\n\nOUT1 is the ones bit; OUT2 is the twos bit. The sum is 0–3.\nExample: 1+1+1=3 gives OUT2 OUT1=11."
+  },
+  "11": {
+    "title": "2-to-4 Decoder",
+    "ko": "상황: 주소에 맞는 기억 영역 하나를 선택하세요.\n목표: IN1·IN2의 조합에 맞는 출력 하나만 1로 켜고, 나머지는 0으로 만드세요.\n시점: 즉시 반응\n\nIN1 IN2가 00이면 OUT1, 01이면 OUT2, 10이면 OUT3, 11이면 OUT4를 켭니다.",
+    "en": "Situation: Select one memory area by its address.\nGoal: Turn on exactly one output for the combination of IN1 and IN2; all others must be 0.\nTiming: Immediate response\n\nIN1 IN2: 00 selects OUT1, 01 selects OUT2, 10 selects OUT3, and 11 selects OUT4."
+  },
+  "12": {
+    "title": "4-to-1 MUX",
+    "ko": "상황: 네 경로 중 선택한 신호를 출력으로 전달하세요.\n목표: S1·S0로 선택한 입력값을 OUT1으로 그대로 보내세요.\n시점: 즉시 반응\n\nS1 S0가 00이면 IN1, 01이면 IN2, 10이면 IN3, 11이면 IN4를 선택합니다.",
+    "en": "Situation: Send the selected one of four signal paths to the output.\nGoal: Use S1 and S0 to select the input passed unchanged to OUT1.\nTiming: Immediate response\n\nS1 S0: 00 selects IN1, 01 selects IN2, 10 selects IN3, and 11 selects IN4."
+  },
+  "13": {
+    "title": "2-bit Comparator",
+    "ko": "상황: 두 입력값의 크기를 판별하는 회로를 복구하세요.\n목표: A와 B를 비교해 A>B, A=B, A<B 중 맞는 출력 하나만 1로 켜세요.\n시점: 즉시 반응\n\nA1 A0와 B1 B0는 각각 0~3입니다. 나머지 두 출력은 0으로 만드세요.",
+    "en": "Situation: Restore the circuit that compares two values.\nGoal: Turn on exactly one of A>B, A=B and A<B to show the comparison of A and B.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. Set the other two outputs to 0."
+  },
+  "14": {
+    "title": "2-bit Adder",
+    "ko": "상황: 두 경로에서 온 값을 합산하세요.\n목표: A와 B를 더한 값을 S2·S1·S0로 보여 주세요.\n시점: 즉시 반응\n\nA1 A0와 B1 B0는 각각 0~3입니다. 합은 0~6이며 넘치는 자리도 출력합니다.\n\n예시:\n\n3+3=6 → S2 S1 S0=110",
+    "en": "Situation: Add the values from two paths.\nGoal: Display A+B using S2, S1 and S0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. The sum is 0–6; include the carry bit.\nExample: 3+3=6 → S2 S1 S0=110."
+  },
+  "15": {
+    "title": "2-bit Subtractor",
+    "ko": "상황: 입력값의 차이를 두 비트로 계산하세요.\n목표: A에서 B를 뺀 결과를 R1·R0로 보여 주세요.\n시점: 즉시 반응\n\nA1 A0와 B1 B0는 각각 0~3입니다.\n결과가 음수이면 4를 더해 0~3으로 바꾸세요.\n\n예시:\n\n1−3=−2 → 2를 출력합니다. R1 R0=10입니다.",
+    "en": "Situation: Calculate the difference between two values in two bits.\nGoal: Display A−B using R1 and R0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. If the difference is negative, add 4 to bring it into 0–3.\nExample: 1−3=−2 → output 2, or R1 R0=10."
+  },
+  "16": {
+    "title": "Max Selector",
+    "ko": "상황: 두 경로 중 더 큰 값을 다음 회로로 전달하세요.\n목표: A와 B 중 더 큰 값을 M1·M0로 보여 주세요.\n시점: 즉시 반응\n\nA1 A0와 B1 B0는 각각 0~3입니다. 두 값이 같으면 그 값을 출력하세요.",
+    "en": "Situation: Send the larger of two values to the next circuit.\nGoal: Display the larger of A and B using M1 and M0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. If they are equal, output that value."
+  },
+  "17": {
+    "title": "2-bit Multiplier",
+    "ko": "상황: 입력값을 곱하는 계산 경로를 복구하세요.\n목표: A와 B를 곱한 값을 P3·P2·P1·P0로 보여 주세요.\n시점: 즉시 반응\n\nA1 A0와 B1 B0는 각각 0~3입니다. 결과는 0~9입니다.\n\n예시:\n\n3×3=9 → P3 P2 P1 P0=1001",
+    "en": "Situation: Restore the multiplication path.\nGoal: Display A×B using P3, P2, P1 and P0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. The result is 0–9.\nExample: 3×3=9 → P3 P2 P1 P0=1001."
+  },
+  "18": {
+    "title": "Remainder",
+    "ko": "상황: 반복 단위에서 남는 값을 계산하는 회로를 복구하세요.\n목표: A를 3으로 나눈 나머지를 R1·R0로 보여 주세요.\n시점: 즉시 반응\n\nA3 A2 A1 A0는 0~15입니다. 결과는 0, 1, 2 중 하나입니다.\n\n예시:\n\nA=10 → 나머지 1 → R1 R0=01",
+    "en": "Situation: Calculate what remains after repeated groups.\nGoal: Display the remainder of A divided by 3 using R1 and R0.\nTiming: Immediate response\n\nA3 A2 A1 A0 represents 0–15. The result is 0, 1 or 2.\nExample: A=10 → remainder 1 → R1 R0=01."
+  },
+  "19": {
+    "title": "Crossroad",
+    "ko": "상황: 어긋난 두 경로를 각각의 목적지에 다시 연결하세요.\n목표: OUT1에는 IN1을, OUT2에는 IN2를 그대로 전달하세요.\n시점: 즉시 반응\n\n입력·출력 단자는 정해진 위치에 있습니다.\n두 입력의 모든 조합에서 정확히 동작해야 합니다. 도선끼리 교차할 수 없습니다.",
+    "en": "Situation: Reconnect two displaced paths to their destinations.\nGoal: Pass IN1 unchanged to OUT1 and IN2 unchanged to OUT2.\nTiming: Immediate response\n\nThe input and output terminals have fixed positions. The circuit must work for every input combination. Wires cannot cross."
+  },
+  "20": {
+    "title": "Fixed XOR",
+    "ko": "상황: 정해진 단자 사이에서 두 경로의 불일치를 확인하세요.\n목표: IN1과 IN2가 서로 다르면 OUT1을 1로, 같으면 0으로 만드세요.\n시점: 즉시 반응\n\n입력·출력 단자는 정해진 위치에 있습니다. 도선은 서로 교차할 수 없습니다.",
+    "en": "Situation: Detect a mismatch between two paths with fixed terminals.\nGoal: Set OUT1 to 1 when IN1 and IN2 differ, and to 0 when they match.\nTiming: Immediate response\n\nThe input and output terminals have fixed positions. Wires cannot cross."
+  },
+  "21": {
+    "title": "Rotator",
+    "ko": "상황: 세 신호를 정해진 다음 위치로 전달하세요.\n목표: IN4=0이면 그대로, IN4=1이면 신호를 한 칸 순환시켜 출력하세요.\n시점: 즉시 반응\n\nIN4=0: OUT1=IN1, OUT2=IN2, OUT3=IN3.\nIN4=1: OUT1=IN3, OUT2=IN1, OUT3=IN2.\n설정에 즉시 반응합니다. tick마다 계속 이동하는 동작은 아닙니다.",
+    "en": "Situation: Send three signals to their next designated positions.\nGoal: Pass signals straight through when IN4=0; rotate them by one position when IN4=1.\nTiming: Immediate response\n\nIN4=0: OUT1=IN1, OUT2=IN2, OUT3=IN3.\nIN4=1: OUT1=IN3, OUT2=IN1, OUT3=IN2.\nChanges take effect immediately. This is not a rotation repeated on each tick."
+  },
+  "22": {
+    "title": "Fixed 2-to-4 Decoder",
+    "ko": "상황: 주소에 해당하는 고정 출력 경로를 활성화하세요.\n목표: IN1·IN2의 조합에 맞는 출력 하나만 1로 켜고, 나머지는 0으로 만드세요.\n시점: 즉시 반응\n\nIN1 IN2가 00이면 OUT1, 01이면 OUT2, 10이면 OUT3, 11이면 OUT4를 켭니다.\n입력·출력 단자는 정해진 위치에 있습니다. 도선은 서로 교차할 수 없습니다.",
+    "en": "Situation: Activate the fixed output path for an address.\nGoal: Turn on exactly one output for the combination of IN1 and IN2; all others must be 0.\nTiming: Immediate response\n\nIN1 IN2: 00 selects OUT1, 01 selects OUT2, 10 selects OUT3, and 11 selects OUT4.\nThe input and output terminals have fixed positions. Wires cannot cross."
+  },
+  "23": {
+    "title": "Priority Selector",
+    "ko": "상황: 여러 요청이 겹치면 우선순위가 높은 경로를 선택하세요.\n목표: 1인 입력 중 우선순위가 가장 높은 입력 하나에 해당하는 출력만 1로 켜세요.\n시점: 즉시 반응\n\n우선순위는 IN1, IN2, IN3, IN4 순입니다. IN1이 가장 높습니다.\n선택한 IN1·IN2·IN3·IN4에 각각 OUT1·OUT2·OUT3·OUT4가 대응합니다.\n입력이 모두 0이면 출력도 모두 0입니다. 입력·출력 단자는 정해진 위치에 있습니다.",
+    "en": "Situation: Choose the highest-priority path when requests overlap.\nGoal: Turn on only the output corresponding to the highest-priority input that is 1.\nTiming: Immediate response\n\nPriority order: IN1, IN2, IN3, IN4, with IN1 highest. Each selected input corresponds to OUT1, OUT2, OUT3 or OUT4 respectively.\nIf all inputs are 0, all outputs must be 0. Input and output terminals have fixed positions."
+  },
+  "24": {
+    "title": "2’s Complement",
+    "ko": "상황: 입력값을 상쇄할 값을 계산하세요.\n목표: A에 더했을 때 아래 네 비트가 0000이 되는 값 C를 구하세요.\n시점: 즉시 반응\n\nA3 A2 A1 A0와 C3 C2 C1 C0는 각각 0~15입니다.\nA=0이면 C=0입니다. A가 1~15이면 A+C=16이 되도록 만드세요.\n\n예시:\n\nA=5 → C=11 · A=0 → C=0",
+    "en": "Situation: Calculate a value that cancels the input.\nGoal: Find C so the lowest four bits of A+C are 0000.\nTiming: Immediate response\n\nA3 A2 A1 A0 and C3 C2 C1 C0 each represent 0–15. If A=0, C=0. For A=1–15, make A+C=16.\nExample: A=5 → C=11; A=0 → C=0."
+  },
+  "25": {
+    "title": "Register",
+    "ko": "상황: 지나간 신호를 유지하는 기억 경로를 복구하세요.\n목표: LOAD=1인 tick에 DATA를 저장하고, 저장한 값을 VALUE로 보여 주세요.\n시점: tick마다 갱신\n\nLOAD=0이면 저장값을 유지하세요. DATA를 바꾸어도 다음 저장 전까지 VALUE는 그대로입니다.\n\n초기 상태: VALUE=0",
+    "en": "Situation: Restore memory that holds a past signal.\nGoal: On a tick with LOAD=1, store DATA and show the stored value at VALUE.\nTiming: Update on ticks\n\nWhen LOAD=0, keep the stored value. Changing DATA must not change VALUE until another load.\nInitial state: VALUE=0."
+  },
+  "26": {
+    "title": "Toggle",
+    "ko": "상황: 한 번의 요청으로 상태를 바꾸는 회로를 복구하세요.\n목표: PRESS=1인 tick마다 LIGHT를 0에서 1로, 또는 1에서 0으로 바꾸세요.\n시점: tick마다 갱신\n\nPRESS=0인 tick에는 이전 값을 유지하세요.\n연속된 tick에 요청하면 매번 바뀝니다.\n입력·출력 단자는 정해진 위치에 있습니다.\n\n초기 상태: LIGHT=0",
+    "en": "Situation: Restore a circuit that changes state on each request.\nGoal: On every tick with PRESS=1, switch LIGHT from 0 to 1 or from 1 to 0.\nTiming: Update on ticks\n\nKeep the value on ticks with PRESS=0. Requests on consecutive ticks toggle it each time.\nInput and output terminals have fixed positions.\nInitial state: LIGHT=0."
+  },
+  "27": {
+    "title": "2-to-1 MUX",
+    "ko": "상황: 기억 회로로 전달할 입력 경로를 고르세요.\n목표: SEL=0이면 A를, SEL=1이면 B를 OUT으로 그대로 보내세요.\n시점: 즉시 반응\n\n선택과 출력은 입력을 바꾸는 즉시 반영됩니다.\n입력·출력 단자는 정해진 위치에 있습니다.",
+    "en": "Situation: Select the input path to send to memory.\nGoal: Pass A to OUT when SEL=0, or B when SEL=1.\nTiming: Immediate response\n\nSelection and output respond immediately to input changes. Input and output terminals have fixed positions."
+  },
+  "28": {
+    "title": "Fault Register",
+    "ko": "상황: 잠깐 발생한 오류도 확인할 때까지 남겨 두세요.\n목표: FAULT=1인 tick에 ALARM을 1로 켜고, 오류가 사라져도 유지하세요.\n시점: tick마다 갱신\n\nACK=1인 tick에는 ALARM을 0으로 끄세요.\nFAULT와 ACK가 모두 1이면 오류 기록이 우선하므로 ALARM=1입니다.\n둘 다 0이면 이전 값을 유지하세요.\n\n초기 상태: ALARM=0",
+    "en": "Situation: Keep even a brief fault until it is acknowledged.\nGoal: Turn ALARM on at a tick with FAULT=1 and keep it on after the fault disappears.\nTiming: Update on ticks\n\nACK=1 turns ALARM off. If FAULT and ACK are both 1, recording the fault takes priority: ALARM=1. If both are 0, keep the previous value.\nInitial state: ALARM=0."
+  },
+  "29": {
+    "title": "Response Check",
+    "ko": "상황: 두 경로의 응답이 모이면 다음 연결을 진행할 수 있습니다.\n목표: A와 B의 응답을 모두 받은 tick에 GO를 1로 켜세요.\n시점: tick마다 갱신\n\nA=1 또는 B=1인 tick에 해당 응답을 받습니다. 먼저 받은 응답은 다른 응답이 올 때까지 기억하세요.\n같은 쪽의 반복 응답은 한 번으로 셉니다. 두 응답을 확인하면 사용한 기록을 모두 지우세요.\n두 응답이 모이지 않은 tick에는 GO=0입니다. 다음 tick부터 새 응답을 받습니다.\nA와 B가 동시에 와도 확인합니다. 매 tick 함께 오면 GO도 계속 1입니다.\n\n초기 상태: 기록 없음 · GO=0\n\n예시:\n\nA만 응답 → 대기 → B만 응답: 마지막 tick에 GO=1.",
+    "en": "Situation: Continue the connection once both paths have responded.\nGoal: Turn GO on for the tick when responses from both A and B have arrived.\nTiming: Update on ticks\n\nA=1 or B=1 at a tick records that response. Remember the first until the other arrives. Repeated responses from the same side count once. Once both are confirmed, clear both records.\nGO=0 on ticks without a complete pair. Begin collecting new responses on the next tick.\nSimultaneous A and B also count. If both arrive every tick, GO stays 1.\nInitial state: No responses recorded; GO=0.\nExample: A only → wait → B only: GO=1 on the last tick."
+  },
+  "30": {
+    "title": "Pulse Extender",
+    "ko": "상황: 요청이 들어온 통로를 잠시 열어 두세요.\n목표: OPEN=1인 tick부터 3 tick 동안 DOOR를 1로 켜세요.\n시점: tick마다 갱신\n\n요청을 받은 tick도 3 tick에 포함합니다.\n켜져 있는 동안 다시 요청하면 그 tick부터 3 tick을 새로 셉니다.\n요청을 받은 tick과 이어지는 두 tick에 켜 두고, 그다음 tick에 0으로 끄세요.\n\n초기 상태: DOOR=0\n\n예시:\n\nOPEN: 1 → 0 → 0 → 0\nDOOR: 1 → 1 → 1 → 0",
+    "en": "Situation: Hold a requested passage open briefly.\nGoal: Keep DOOR=1 for three ticks starting with a tick where OPEN=1.\nTiming: Update on ticks\n\nInclude the request tick in the three ticks. A new request restarts the three-tick interval from that tick, even while the door is open.\nKeep DOOR on for the request tick and the following two ticks, then turn it off.\nInitial state: DOOR=0.\nExample:\nOPEN: 1 → 0 → 0 → 0\nDOOR: 1 → 1 → 1 → 0"
+  },
+  "31": {
+    "title": "Rising Edge Detector",
+    "ko": "상황: 새 신호가 시작된 순간을 한 번만 알려 주세요.\n목표: 이전 tick의 SIGNAL이 0이고 현재 tick의 SIGNAL이 1이면 RISE를 1로 켜세요.\n시점: tick마다 갱신\n\n그 외의 tick에는 RISE=0입니다. SIGNAL이 계속 1이어도 다시 켜지지 않습니다.\ntick 사이에 바뀐 값은 별도로 세지 않습니다. 각 tick에서 읽은 값끼리 비교하세요.\n\n초기 상태: 이전 SIGNAL=0 · RISE=0\n\n예시:\n\nSIGNAL: 0 → 1 → 1 → 0 → 1\nRISE:   0 → 1 → 0 → 0 → 1",
+    "en": "Situation: Report the start of a new signal once.\nGoal: Set RISE=1 when SIGNAL was 0 at the previous tick and is 1 at the current tick.\nTiming: Update on ticks\n\nSet RISE=0 on other ticks. Remaining at 1 does not trigger another rise. Do not count changes between ticks; compare values sampled at ticks.\nInitial state: Previous SIGNAL=0; RISE=0.\nExample:\nSIGNAL: 0 → 1 → 1 → 0 → 1\nRISE: 0 → 1 → 0 → 0 → 1"
+  },
+  "32": {
+    "title": "Up/Down Counter",
+    "ko": "상황: 증가와 감소 요청에 맞춰 현재 값을 기억하세요.\n목표: INC·DEC 요청에 따라 0~3의 값을 세고 BIT1·BIT0로 보여 주세요.\n시점: tick마다 갱신\n\nINC만 1이면 1 증가, DEC만 1이면 1 감소합니다.\n둘 다 1이거나 둘 다 0이면 값을 유지하세요.\n3에서 증가하면 0, 0에서 감소하면 3입니다.\n\n초기 상태: BIT1 BIT0=00",
+    "en": "Situation: Remember a value as increment and decrement requests arrive.\nGoal: Count from 0 to 3 according to INC and DEC, displaying BIT1 BIT0.\nTiming: Update on ticks\n\nINC alone increases the value by 1; DEC alone decreases it by 1. If both or neither are 1, keep the value.\nIncreasing 3 gives 0; decreasing 0 gives 3.\nInitial state: BIT1 BIT0=00."
+  },
+  "33": {
+    "title": "PWM",
+    "ko": "상황: 상태 표시등이 켜져 있는 시간을 조절하세요.\n목표: 네 칸을 반복하면서, LEVEL로 고른 개수만큼 앞쪽 칸에서 LIGHT를 켜세요.\n시점: 진행은 tick · 설정은 즉시\n\nLEVEL1 LEVEL0로 0~3을 고릅니다.\n시작 화면은 첫째 칸입니다. tick마다 다음 칸으로 이동하고, 넷째 칸 뒤에는 첫째 칸으로 돌아옵니다.\nLEVEL을 바꾸면 현재 칸에 바로 적용합니다. 반복 위치는 바뀌지 않습니다.\nLEVEL=0이어도 칸은 계속 진행합니다.\n\n초기 상태: 반복 위치=첫째 칸 · LIGHT는 현재 LEVEL에 따라 결정\n\n예시:\n\n첫째 → 둘째 → 셋째 → 넷째\nLEVEL=0: 0 0 0 0\nLEVEL=1: 1 0 0 0\nLEVEL=2: 1 1 0 0\nLEVEL=3: 1 1 1 0",
+    "en": "Situation: Control how long the status light is on.\nGoal: Repeat four positions, turning LIGHT on in the first number of positions selected by LEVEL.\nTiming: Position advances on ticks; setting applies immediately\n\nLEVEL1 LEVEL0 selects 0–3. Start at the first position. Each tick advances one position; after the fourth, return to the first.\nChanging LEVEL applies immediately to the current position without moving it. Positions keep advancing even when LEVEL=0.\nInitial state: First position; LIGHT depends on the current LEVEL.\nExample (first → second → third → fourth):\nLEVEL=0: 0 0 0 0\nLEVEL=1: 1 0 0 0\nLEVEL=2: 1 1 0 0\nLEVEL=3: 1 1 1 0"
+  },
+  "34": {
+    "title": "Delay Timer",
+    "ko": "상황: 요청한 시간이 지나면 다음 동작을 알려 주세요.\n목표: START=1인 tick에 TIME을 저장하고, 정한 시간이 지난 tick에 DONE을 1로 켜세요.\n시점: tick마다 갱신\n\nTIME1 TIME0는 0~3입니다. START tick 다음부터 시간을 셉니다. TIME=0이면 START tick에 바로 완료합니다.\n예약 후 TIME을 바꾸어도 진행 중인 예약에는 영향을 주지 않습니다.\nSTART가 다시 오면 이전 예약을 취소하고 새 TIME으로 시작하세요. 완료 예정 tick에도 새 START가 우선합니다.\n완료 tick 외에는 DONE=0입니다. 완료 후에는 새 START를 기다립니다.\nSTART가 매 tick 1이면 매번 다시 예약합니다. TIME=0으로 연속 예약하면 DONE도 계속 1입니다.\n\n초기 상태: 예약 없음 · DONE=0\n\n예시:\n\nTIME=2로 시작: START tick → 1 tick 뒤 → 2 tick 뒤\nDONE: 0 → 0 → 1",
+    "en": "Situation: Signal when a requested delay has elapsed.\nGoal: On a tick with START=1, store TIME and turn DONE on at the completion tick.\nTiming: Update on ticks\n\nTIME1 TIME0 represents 0–3. Count time from the tick after START. TIME=0 completes on the START tick itself.\nLater TIME changes do not affect an active timer. A new START cancels the old timer and uses the new TIME, including on a scheduled completion tick.\nDONE=0 except on completion ticks. After completion, wait for START.\nSTART=1 on every tick restarts each time. Consecutive starts with TIME=0 keep DONE=1.\nInitial state: No active timer; DONE=0.\nExample: Start with TIME=2: START tick → 1 tick later → 2 ticks later\nDONE: 0 → 0 → 1"
+  },
+  "35": {
+    "title": "Debouncer",
+    "ko": "상황: 짧게 흔들리는 입력을 걸러 안정된 신호만 전달하세요.\n목표: RAW가 같은 값으로 3 tick 이어지면, 세 번째 tick에 CLEAN을 그 값으로 바꾸세요.\n시점: tick마다 갱신\n\n3 tick보다 짧게 바뀐 값은 무시하고 CLEAN을 유지하세요.\n0에서 1로 바뀔 때와 1에서 0으로 바뀔 때 모두 같은 규칙입니다.\n\n초기 상태: 이전 입력 기록=0 · CLEAN=0\n\n예시:\n\nRAW:   1 → 0 → 1 → 1 → 1\nCLEAN: 0 → 0 → 0 → 0 → 1",
+    "en": "Situation: Filter brief fluctuations and pass a stable signal.\nGoal: After RAW has the same value for three consecutive ticks, set CLEAN to that value on the third tick.\nTiming: Update on ticks\n\nIgnore changes shorter than three ticks and retain CLEAN. Apply the same rule for both rising and falling changes.\nInitial state: Previous input history=0; CLEAN=0.\nExample:\nRAW: 1 → 0 → 1 → 1 → 1\nCLEAN: 0 → 0 → 0 → 0 → 1"
+  },
+  "36": {
+    "title": "Round-Robin Arbiter",
+    "ko": "상황: 두 경로가 하나의 통로를 나누어 쓰도록 제어하세요.\n목표: 요청한 쪽에 사용권을 주고, 두 요청이 겹치면 직전 사용자와 반대쪽에 주세요.\n시점: tick마다 갱신\n\nREQ_A만 1이면 A_OK=1, REQ_B만 1이면 B_OK=1입니다. 나머지 출력은 0입니다.\n둘 다 1이면 직전에 사용권을 받은 쪽의 반대편을 선택합니다. 아직 사용자가 없으면 A를 선택하세요.\n한쪽만 요청해 사용한 경우도 직전 사용자에 반영합니다.\n요청이 없으면 A_OK·B_OK를 모두 0으로 끄되, 직전 사용자는 기억하세요.\n\n초기 상태: 직전 사용자 없음 · A_OK=0 · B_OK=0",
+    "en": "Situation: Let two paths share one passage.\nGoal: Grant the requesting side access; if both request, choose the opposite of the last user.\nTiming: Update on ticks\n\nREQ_A alone sets A_OK=1; REQ_B alone sets B_OK=1. The other output is 0.\nIf both request, choose the side opposite the last grant. If there has been no user, choose A. A lone request also updates the last user.\nWith no requests, set A_OK and B_OK to 0 but remember the last user.\nInitial state: No last user; A_OK=0; B_OK=0."
+  },
+  "37": {
+    "title": "ABBA Detector",
+    "ko": "상황: 정해진 확인 신호를 받은 뒤 연결을 승인하세요.\n목표: 받은 글자의 최근 네 개가 ABBA이면 UNLOCKED를 1로 켜세요.\n시점: tick마다 갱신\n\nSIGNAL=1은 A, SIGNAL=0은 B입니다. SUBMIT=1인 tick에만 한 글자를 받습니다.\n앞에 다른 글자가 있어도 됩니다. AABBA도 마지막 네 글자가 ABBA이므로 승인합니다.\nSUBMIT=0이면 기록을 유지하세요. 한 번 승인하면 UNLOCKED는 계속 1입니다.\n\n초기 상태: 기록 없음 · UNLOCKED=0",
+    "en": "Situation: Approve the connection after a specific confirmation sequence.\nGoal: Turn UNLOCKED on when the last four received letters are ABBA.\nTiming: Update on ticks\n\nSIGNAL=1 means A and SIGNAL=0 means B. Receive one letter only on ticks with SUBMIT=1.\nEarlier letters are allowed: AABBA also ends in ABBA. SUBMIT=0 retains the history. Once approved, UNLOCKED stays 1.\nInitial state: No letters recorded; UNLOCKED=0."
+  },
+  "38": {
+    "title": "Register Bank",
+    "ko": "상황: 주소로 구분된 두 기억 영역을 연결하세요.\n목표: ADDR로 선택한 곳에 D1·D0를 저장하고, 현재 주소의 값을 Q1·Q0로 보여 주세요.\n시점: 저장은 tick · 읽기는 즉시\n\n주소는 0과 1이며, 각 주소에는 두 비트를 저장합니다.\nWRITE=1인 tick에 선택한 주소만 갱신합니다. WRITE=0이면 두 저장값 모두 유지하세요.\nADDR을 바꾸면 tick 없이도 해당 주소의 값을 즉시 보여 주세요. WRITE 값과 관계없이 읽을 수 있습니다.\n저장한 tick에는 새 값을 보여 주세요. D1·D0나 WRITE만 바꾸어도 저장값은 바뀌지 않습니다.\n\n초기 상태: 두 주소 모두 00",
+    "en": "Situation: Connect two memory areas distinguished by address.\nGoal: Store D1 D0 at the address selected by ADDR and display the current address's value at Q1 Q0.\nTiming: Write on ticks; read immediately\n\nAddresses 0 and 1 each store two bits. WRITE=1 updates only the selected address at a tick. WRITE=0 retains both values.\nChanging ADDR must immediately show that address's value without a tick, regardless of WRITE.\nShow the new value on the write tick. Changing only D1, D0 or WRITE does not change stored values.\nInitial state: Both addresses contain 00."
+  },
+  "39": {
+    "title": "Undo Register",
+    "ko": "상황: 최근 저장 직전의 상태로 한 번 돌아갈 수 있게 하세요.\n목표: SAVE=1인 tick에 D1·D0를 저장하고, UNDO 요청으로 이전 값에 한 번 되돌아가세요.\n시점: tick마다 갱신\n\nSAVE할 때 현재 값을 이전 값으로 남기고 Q1·Q0를 새 값으로 바꿉니다. UNDO_AVAILABLE=1로 켜세요.\n되돌릴 수 있을 때 UNDO=1이면 Q를 이전 값으로 바꾸고 UNDO_AVAILABLE=0으로 끄세요.\n다시 SAVE하기 전에는 더 되돌릴 수 없습니다. 같은 값을 SAVE해도 되돌리기 기회가 생깁니다.\nSAVE와 UNDO가 함께 오면 SAVE가 우선입니다. 그 외에는 현재 값을 유지하세요.\n\n초기 상태: 현재 값=00 · 이전 값=00 · UNDO_AVAILABLE=0",
+    "en": "Situation: Allow one return to the state before the most recent save.\nGoal: On SAVE=1, store D1 D0; use UNDO to return once to the previous value.\nTiming: Update on ticks\n\nSAVE keeps the current value as the previous value, updates Q1 Q0, and sets UNDO_AVAILABLE=1.\nWhen undo is available, UNDO=1 restores the previous value and sets UNDO_AVAILABLE=0. No further undo is allowed until SAVE. Saving the same value also enables undo.\nSAVE takes priority over simultaneous UNDO. Otherwise, retain the current value.\nInitial state: Current=00; previous=00; UNDO_AVAILABLE=0."
+  },
+  "40": {
+    "title": "Mailbox",
+    "ko": "상황: 받은 신호를 다음 회로가 가져갈 때까지 보관하세요.\n목표: SEND로 DATA 한 비트를 저장하고, TAKE로 꺼낸 값을 DATA_OUT에 보여 주세요.\n시점: tick마다 갱신\n\n저장 공간은 한 칸입니다. 저장에 성공한 tick에는 ACCEPTED=1, 꺼내기에 성공한 tick에는 VALID=1입니다. 각각 실패하거나 요청이 없으면 0입니다.\nSEND와 TAKE가 함께 오면 먼저 기존 값을 꺼낸 뒤 새 값을 저장합니다.\n비어 있을 때 함께 요청하면 새 값을 저장하기만 합니다. 새 값을 즉시 꺼내지는 않습니다.\n가득 찼는데 꺼내지 않으면 새 저장 요청은 무시합니다.\n꺼내지 못한 tick에는 DATA_OUT을 유지하세요. FULL은 처리 후 저장 공간이 찼으면 1입니다.\n\n초기 상태: 비어 있음 · FULL=0 · DATA_OUT=0 · VALID=0 · ACCEPTED=0",
+    "en": "Situation: Hold a received signal until the next circuit takes it.\nGoal: SEND stores one DATA bit; TAKE displays the removed value at DATA_OUT.\nTiming: Update on ticks\n\nThere is one storage slot. ACCEPTED=1 on a successful send tick; VALID=1 on a successful take tick. Each is 0 on a failed or absent request.\nWith simultaneous SEND and TAKE, remove the old value first, then store the new one. If empty, only store; do not immediately take the new value.\nIf full without a successful take, ignore SEND. Keep DATA_OUT on ticks without a successful take. FULL=1 if the slot is occupied after processing.\nInitial state: Empty; FULL=0; DATA_OUT=0; VALID=0; ACCEPTED=0."
+  },
+  "41": {
+    "title": "Stack",
+    "ko": "상황: 가장 최근에 받은 신호부터 다시 꺼내세요.\n목표: PUSH로 DATA 한 비트를 최대 두 개까지 저장하고, POP으로 가장 나중에 넣은 값을 꺼내세요.\n시점: tick마다 갱신\n\n꺼낸 값은 DATA_OUT에 보여 주세요. 성공한 tick에만 VALID=1이며, 그 외에는 VALID=0이고 DATA_OUT은 이전 값을 유지합니다.\nPUSH와 POP이 함께 오면 먼저 기존 값을 꺼낸 뒤 새 값을 넣습니다. 비어 있으면 넣기만 합니다.\n가득 찼는데 꺼내지 않으면 넣기 요청을 무시합니다. 비어 있으면 꺼내기 요청을 무시합니다.\nEMPTY는 처리 후 비었으면 1, FULL은 두 칸이 모두 찼으면 1입니다.\n\n초기 상태: EMPTY=1 · FULL=0 · DATA_OUT=0 · VALID=0",
+    "en": "Situation: Retrieve the most recently received signal first.\nGoal: PUSH stores up to two one-bit DATA values; POP removes the most recently stored value.\nTiming: Update on ticks\n\nShow the removed value at DATA_OUT. VALID=1 only on successful pop ticks. Otherwise VALID=0 and DATA_OUT keeps its previous value.\nWith simultaneous PUSH and POP, remove an existing value first, then push. If empty, only push.\nIgnore a push when full without a pop; ignore a pop when empty.\nAfter processing, EMPTY=1 if empty and FULL=1 if both slots are occupied.\nInitial state: EMPTY=1; FULL=0; DATA_OUT=0; VALID=0."
+  },
+  "42": {
+    "title": "Queue",
+    "ko": "상황: 먼저 받은 신호가 먼저 전달되도록 보관하세요.\n목표: PUSH로 DATA 한 비트를 최대 두 개까지 저장하고, POP으로 가장 먼저 넣은 값을 꺼내세요.\n시점: tick마다 갱신\n\n꺼낸 값은 DATA_OUT에 보여 주세요. 성공한 tick에만 VALID=1이며, 그 외에는 VALID=0이고 DATA_OUT은 이전 값을 유지합니다.\nPUSH와 POP이 함께 오면 먼저 기존 값을 꺼낸 뒤 새 값을 넣습니다. 비어 있으면 넣기만 합니다.\n가득 찼는데 꺼내지 않으면 넣기 요청을 무시합니다. 비어 있으면 꺼내기 요청을 무시합니다.\nEMPTY는 처리 후 비었으면 1, FULL은 두 칸이 모두 찼으면 1입니다.\n\n초기 상태: EMPTY=1 · FULL=0 · DATA_OUT=0 · VALID=0",
+    "en": "Situation: Deliver received signals in their original order.\nGoal: PUSH stores up to two one-bit DATA values; POP removes the earliest stored value.\nTiming: Update on ticks\n\nShow the removed value at DATA_OUT. VALID=1 only on successful pop ticks. Otherwise VALID=0 and DATA_OUT keeps its previous value.\nWith simultaneous PUSH and POP, remove an existing value first, then push. If empty, only push.\nIgnore a push when full without a pop; ignore a pop when empty.\nAfter processing, EMPTY=1 if empty and FULL=1 if both slots are occupied.\nInitial state: EMPTY=1; FULL=0; DATA_OUT=0; VALID=0."
+  },
+  "43": {
+    "title": "Serial Receiver",
+    "ko": "상황: 한 줄로 들어오는 신호를 네 비트의 값으로 모으세요.\n목표: RECEIVE=1인 tick마다 DATA를 한 비트씩 받고, 네 번째 비트를 받으면 Q를 한꺼번에 갱신하세요.\n시점: tick마다 갱신\n\n받는 순서는 Q3, Q2, Q1, Q0입니다. 높은 자리부터 받습니다.\n네 비트가 모인 tick에만 DONE=1입니다. 그 외에는 DONE=0이고 기존 Q를 유지하세요.\nRECEIVE=0인 동안에도 받은 기록은 유지합니다.\n네 비트를 완성하면 다음 묶음을 새로 받습니다.\n\n초기 상태: 받은 기록 없음 · Q3 Q2 Q1 Q0=0000 · DONE=0\n\n예시:\n\n1, 0, 1, 1을 받으면 네 번째 수신 tick에 Q=1011, DONE=1입니다.",
+    "en": "Situation: Collect a serial signal into a four-bit value.\nGoal: Receive one DATA bit on each tick with RECEIVE=1, updating all of Q when the fourth bit arrives.\nTiming: Update on ticks\n\nReceive in order Q3, Q2, Q1, Q0, highest bit first. DONE=1 only on the tick completing four bits. Otherwise DONE=0 and Q retains its previous value.\nKeep received bits while RECEIVE=0. After four bits, start a new group.\nInitial state: No bits received; Q3 Q2 Q1 Q0=0000; DONE=0.\nExample: Receiving 1, 0, 1, 1 gives Q=1011 and DONE=1 on the fourth receive tick."
+  },
+  "44": {
+    "title": "Serial Transmitter",
+    "ko": "상황: 저장한 네 비트를 한 줄의 신호로 차례대로 보내세요.\n목표: 대기 중 START=1이면 D3·D2·D1·D0를 받아, SERIAL로 네 tick에 걸쳐 보내세요.\n시점: tick마다 갱신\n\n시작한 tick에 D3, 다음 세 tick에 D2, D1, D0를 보냅니다.\n전송 중에는 데이터 입력 변경과 START를 무시합니다. 마지막 비트를 보낸 다음 tick부터 새 전송을 시작할 수 있습니다.\n비트를 보낸 tick에는 VALID=1입니다. 그 뒤에도 보낼 비트가 남았으면 BUSY=1입니다.\n마지막 전송 tick에는 VALID=1, BUSY=0입니다. 대기 중에는 둘 다 0이고 SERIAL은 마지막 값을 유지합니다.\nRESET=1인 tick에는 다른 요청보다 먼저 전송을 취소하고 SERIAL·VALID·BUSY를 모두 0으로 만드세요.\n\n초기 상태: 대기 상태 · SERIAL=0 · VALID=0 · BUSY=0\n\n예시:\n\n보내는 값: D3 → D2 → D1 → D0\nVALID:     1 → 1 → 1 → 1\nBUSY:      1 → 1 → 1 → 0",
+    "en": "Situation: Send four stored bits in sequence on a single signal line.\nGoal: When idle and START=1, accept D3 D2 D1 D0 and transmit them at SERIAL over four ticks.\nTiming: Update on ticks\n\nSend D3 on the starting tick, then D2, D1 and D0 on the next three ticks. Ignore data changes and START during transmission. A new transmission may begin on the tick after the last bit.\nVALID=1 on ticks that send a bit. BUSY=1 if more bits remain after that tick. The last bit has VALID=1 and BUSY=0. While idle, both are 0 and SERIAL retains its last value.\nRESET=1 takes priority over all requests, cancels transmission, and clears SERIAL, VALID and BUSY to 0.\nInitial state: Idle; SERIAL=0; VALID=0; BUSY=0.\nExample:\nSent bit: D3 → D2 → D1 → D0\nVALID: 1 → 1 → 1 → 1\nBUSY: 1 → 1 → 1 → 0"
+  },
+  "45": {
+    "title": "Accumulator",
+    "ko": "상황: 들어오는 값을 기억하면서 계속 더하세요.\n목표: ADD=1인 tick에 D1·D0의 값을 현재 합에 더하고 Q1·Q0로 보여 주세요.\n시점: tick마다 갱신\n\n합은 0~3으로 표시합니다. 4 이상이면 4를 빼고 남은 값을 저장하세요.\nADD=0이면 합을 유지합니다.\nRESET=1이면 합을 0으로 만드세요. ADD와 함께 오면 RESET이 우선합니다.\n\n초기 상태: Q1 Q0=00\n\n예시:\n\n현재 합 3에 2를 더하면 1이 됩니다.",
+    "en": "Situation: Remember incoming values and keep adding them.\nGoal: On ticks with ADD=1, add D1 D0 to the current sum and display Q1 Q0.\nTiming: Update on ticks\n\nThe sum is 0–3. If it reaches 4 or more, subtract 4 and store the remainder. ADD=0 retains the sum.\nRESET=1 clears the sum to 0 and takes priority over ADD.\nInitial state: Q1 Q0=00.\nExample: Adding 2 to a current sum of 3 gives 1."
+  },
+  "46": {
+    "title": "Divider",
+    "ko": "상황: 계산 경로와 완료 신호를 연결해 결과를 전달하세요.\n목표: A를 B로 나눈 몫 Q와 나머지 R을 구하고, 준비되면 COMPLETE를 1로 켜세요.\n시점: 완료 tick에서 확인\n\nA2 A1 A0는 0~7, B1 B0는 1~3입니다. 계산 중 입력은 바뀌지 않습니다.\n몫은 Q2·Q1·Q0, 나머지는 R1·R0로 보여 주세요.\n1~10번째 tick 중 COMPLETE가 처음 1인 순간의 Q와 R이 정확해야 합니다.\n그전의 Q·R 값은 자유입니다. 10번째 tick까지 완료하지 못하면 실패합니다.\n\n초기 상태: 매 계산은 모든 D의 저장값이 0인 상태에서 시작\n\n예시:\n\nA=7, B=3 → Q=2, R=1",
+    "en": "Situation: Connect the calculation path with its completion signal.\nGoal: Divide A by B to produce quotient Q and remainder R; set COMPLETE=1 when ready.\nTiming: Check at the completion tick\n\nA2 A1 A0 represents 0–7; B1 B0 represents 1–3. Inputs stay fixed during calculation. Display Q2 Q1 Q0 and R1 R0.\nQ and R must be correct on the first tick where COMPLETE=1, between ticks 1 and 10 inclusive. Earlier Q and R values are unrestricted. Failure to complete by tick 10 is a failure.\nInitial state: Every calculation starts with all D storage values at 0.\nExample: A=7, B=3 → Q=2, R=1."
+  },
+  "47": {
+    "title": "Capacity Check",
+    "ko": "상황: 두 경로의 신호량이 처리 한도를 넘는지 확인하세요.\n목표: A와 B의 합이 LIMIT보다 크면 OVER를 1로, 그 외에는 0으로 만드세요.\n시점: 즉시 반응\n\nA1 A0, B1 B0, L1 L0는 각각 0~3입니다. L1 L0가 LIMIT입니다.\n합은 0~6의 실제 값으로 비교하세요. 두 비트로 잘라서 비교하지 않습니다.\n합이 LIMIT와 같은 경우에는 OVER=0입니다.\n\n예시:\n\nA=2, B=2, LIMIT=3 → OVER=1",
+    "en": "Situation: Check whether the combined signal load exceeds capacity.\nGoal: Set OVER=1 if A+B is greater than LIMIT; otherwise set it to 0.\nTiming: Immediate response\n\nA1 A0, B1 B0 and L1 L0 each represent 0–3. L1 L0 is LIMIT. Compare the full sum, 0–6, without truncating it to two bits. If the sum equals LIMIT, OVER=0.\nExample: A=2, B=2, LIMIT=3 → OVER=1."
+  }
+}

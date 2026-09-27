@@ -90,11 +90,11 @@ try {
         const themes = await import('./src/themes.js');
         themes.setActiveTheme('soft-glow');
         const rejected = [];
-        for (const id of [7, 19, 24]) { try { await levels.startLevel(id); } catch { rejected.push(id); } }
+        for (const id of [25, 19, 24]) { try { await levels.startLevel(id); } catch { rejected.push(id); } }
         return { ids: Object.keys(levels.getLevelTitles()), rejected, theme: themes.getActiveThemeId(), savedTheme: localStorage.getItem('bitwiserTheme') };
       });
       assert.deepEqual(state.ids.map(Number), [...DEMO_IDS].sort((a,b)=>a-b));
-      assert.deepEqual(state.rejected, [7,19,24]);
+      assert.deepEqual(state.rejected, [25,19,24]);
       assert.equal(state.theme, 'midnight-neon'); assert.equal(state.savedTheme, 'soft-glow');
       await openSettings(page);
       assert.equal(await page.locator('#themeOptions, #themeHeading, #themePreviewCanvas, #autoSaveCheckbox, #demoSaveBtn, #demoMenuSaveBtn, #saveCircuitBtn, #viewSavedBtn').count(), 0);

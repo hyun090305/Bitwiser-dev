@@ -63,6 +63,7 @@ for(const entry of catalog) {
     previousGrid:languages[0].levelPreviousLayouts?.[id]?.[0]?.levelGridSizes,grid:[c.rows,c.cols],fixedIO:false,padding:id===29||entry.blocks<=11?1:2,
     ...calculateCircuitCost(c),transitions:result.transitions});
 }
-for(const [i,file] of ['levels.json','levels_en.json'].entries())await write(file,languages[i]);
+const { applyStageCopy } = await import('./apply-stage-copy.mjs');
+for(const [i,file] of ['levels.json','levels_en.json'].entries())await write(file,applyStageCopy(languages[i],i));
 await write('docs/memory20-integration.json',report);
 console.log(`Integrated ${report.length} final memory puzzles; existing IDs and star thresholds retained.`);

@@ -23,7 +23,7 @@ const storageFor = entries => {
 };
 
 test('AC-1/5: response check has bilingual Button ports, free 12x12 IO and a distinct revision', () => {
-  assert.equal(levels.levelTitles[29], '응답 확인');
+  assert.equal(levels.levelTitles[29], 'Response Check');
   assert.equal(en.levelTitles[29], 'Response Check');
   assert.deepEqual(levels.levelGridSizes[29], [12, 12]);
   const solution = fixture(), points = [...Object.values(solution.blocks).map(b => b.pos), ...Object.values(solution.wires).flatMap(w => w.path)];

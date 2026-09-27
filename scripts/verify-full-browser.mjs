@@ -61,7 +61,7 @@ try{
     }
     return checks;
   });
-  assert.deepEqual(guards,[false,true,true,true,true,true,true,true]);
+  assert.deepEqual(guards,[false,false,true,false,false,false,false,false]);
   for (const lang of ['en', 'ko']) {
     await page.evaluate(lang => localStorage.setItem('lang', lang), lang);
     await page.reload();
@@ -136,7 +136,7 @@ try{
     await page.locator('#continueGameBtn').click();
     await page.evaluate(async()=>{
       const levels=await import('./src/modules/levels.js');
-      levels.configureLevelModule({progressProvider:()=>[6]});await levels.startLevel(25);
+      levels.configureLevelModule({progressProvider:()=>[6],accessProvider:()=>({unlockedChapters:['chapter_2']})});await levels.startLevel(25);
       const nav=await import('./src/modules/navigation.js');nav.hideStageMapScreen();nav.showGameScreen();
     });
     await page.locator('#startLevelBtn').click();

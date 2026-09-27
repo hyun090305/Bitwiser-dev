@@ -40,8 +40,13 @@ export function validateProgress(raw, levels, budgets, themeIds, { recoverFailed
   check((raw.archivedStages == null || plain(raw.archivedStages)) && (raw.archivedHints == null || plain(raw.archivedHints)), 'Invalid archived progress');
   if (raw.archivedLastStageId != null) check(Number.isInteger(raw.archivedLastStageId) && raw.archivedLastStageId >= 0 && raw.archivedLastStageId <= 46 && !isDemoStage(raw.archivedLastStageId), 'Invalid archived recent stage');
   const result = emptyProgress();
+  if (raw.recoveryStages != null) {
+    check(plain(raw.recoveryStages), 'Invalid recovery records');
+    result.recoveryStages = structuredClone(raw.recoveryStages);
+  }
   for (const [key, entry] of Object.entries({...raw.archivedStages, ...raw.stages})) {
     const id = Number(key);
+    try {
     check(String(id) === key && Number.isInteger(id) && id >= 0 && id <= 46 && plain(entry), 'Backup contains an unsupported stage');
     if (!isDemoStage(id)) { result.archivedStages[id] = structuredClone(entry); continue; }
     const next = {};
@@ -88,7 +93,9 @@ export function validateProgress(raw, levels, budgets, themeIds, { recoverFailed
       if(obsolete) {
         (next.legacyStageRecords ||= []).push(validateOldEntry(entry));
         next.legacyStageRecords=next.legacyStageRecords.slice(-4);
-        next.highestStars=Math.min(3,Math.max(0,Number(entry.highestStars)||0,Number(entry.bestStars?.stars)||0));
+        const archivedResults=[entry.best,entry.bestStars,...(entry.legacyResults||[])].filter(Boolean);
+        next.highestStars=id===0?0:Math.min(3,Math.max(archivedResults.length?1:0,Number(entry.highestStars)||0,
+          ...archivedResults.map(record=>Number(record.stars)||0)));
         result.stages[id]=next;
         continue;
       }
@@ -146,12 +153,25 @@ export function validateProgress(raw, levels, budgets, themeIds, { recoverFailed
     }
     if (entry.highestStars != null) next.highestStars = Math.max(highestStars(next, levels, id), id === 0 ? 0 : Math.min(3, Number(entry.highestStars) || 0));
     result.stages[id] = next;
+    } catch (error) {
+      if (!recoverFailedRecords) throw error;
+      // Quarantine only this record. Never let a malformed draft/score erase
+      // other stages; retain its original bytes in the next exported backup.
+      (result.recoveryStages ||= {})[key] = structuredClone(entry);
+      if (isDemoStage(id) && plain(entry)) {
+        const historicalClear = Boolean(entry.best || entry.historicalClear);
+        const earned = [entry.highestStars, entry.best?.stars, entry.bestStars?.stars].filter(Number.isInteger);
+        result.stages[id] = { historicalClear, highestStars: id === 0 ? 0 : Math.min(3, Math.max(historicalClear ? 1 : 0, ...earned)) };
+      }
+    }
   }
   const cleared = DEMO_IDS.filter(id => result.stages[id]?.best || result.stages[id]?.historicalClear);
   check(raw.unlockedStages == null || (Array.isArray(raw.unlockedStages) && raw.unlockedStages.every(isDemoStage)), 'Invalid unlocked stages');
   check(raw.unlockedChapters == null || (Array.isArray(raw.unlockedChapters) && raw.unlockedChapters.every(id => CHAPTERS.slice(0,2).some(ch => ch.id === id))), 'Invalid unlocked chapters');
   const legacyReplay = DEMO_IDS.filter(id => result.stages[id]?.legacyResults?.length || result.stages[id]?.legacyStageRecords?.some(entry=>entry.best||entry.legacyResults?.length));
-  Object.assign(result, preserveStageAccess(cleared, { ...raw, unlockedStages: [...(raw.unlockedStages || []), ...legacyReplay] }, { legacy: (raw.catalogVersion || 1) < 3, allowedIds: DEMO_IDS }));
+  Object.assign(result, preserveStageAccess(cleared, { ...raw, stageStars: {}, unlockedStages: [...(raw.unlockedStages || []), ...legacyReplay] }, {
+    legacy: (raw.catalogVersion || 1) < 3, allowedIds: DEMO_IDS,
+    stageStars: Object.fromEntries(DEMO_IDS.map(id => [id, highestStars(result.stages[id], levels, id)])) }));
   // Solved legacy stages remain replayable even after their prerequisites move.
   const recent = raw.lastStageId;
   if (recent !== null && !isDemoStage(recent) && Number.isInteger(recent) && recent >= 0 && recent <= 46) result.archivedLastStageId = recent;

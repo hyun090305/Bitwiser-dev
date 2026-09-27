@@ -59,8 +59,8 @@ export function mountProgressPanel(store) {
   const presetFields = el('fieldset'); presetFields.append(el('legend', text('진행 상태 프리셋', 'Progress presets')));
   const preset = select('devPreset', [
     ['fresh', text('처음 시작', 'Fresh start')],
-    ['before-ch2', text('Ch.2 해금 직전 · XOR(6)만 남김', 'Before Ch.2 · clear XOR (6) next')],
-    ['before-ch34', text('Ch.3·4 해금 직전 · 자동문(30)만 남김', 'Before Ch.3/4 · clear Automatic Door (30) next')],
+    ['before-ch2', text('Ch.2 해금 직전 · 17★', 'Before Ch.2 · 17 stars')],
+    ['before-ch34', text('Ch.3 해금 직전 · 35★', 'Before Ch.3 · 35 stars')],
     ['complete', text('전체 클리어 · 별 3개', 'All cleared · 3 stars')]
   ]);
   presetFields.append(label(text('프리셋', 'Preset'), preset), button(text('프리셋 적용', 'Apply preset'), () => store.applyPreset(preset.value), 'devApplyPreset'));

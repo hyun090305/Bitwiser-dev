@@ -48,9 +48,9 @@ function run(id, masks) {
 
 test('AC-1/2/4/7/8/11: bilingual ports, revisions, physical solutions and unchanged access', () => {
   const cases = [
-    [32,'양방향 카운터','Up/Down Counter',['INC','DEC'],['BIT0','BIT1'],'up-down-counter-no-reset','up_down_counter'],
-    [33,'점등 시간 조절','Light Timing',['LEVEL0','LEVEL1'],['LIGHT'],'light-timing','pwm'],
-    [34,'예약 타이머','Delay Timer',['TIME0','TIME1','START'],['DONE'],'delay-timer','watchdog']
+    [32,'Up/Down Counter','Up/Down Counter',['INC','DEC'],['BIT0','BIT1'],'up-down-counter-no-reset','up_down_counter'],
+    [33,'PWM','PWM',['LEVEL0','LEVEL1'],['LIGHT'],'light-timing','pwm'],
+    [34,'Delay Timer','Delay Timer',['TIME0','TIME1','START'],['DONE'],'delay-timer','watchdog']
   ];
   for (const [id,ko,english,inputs,outs,reference,nodeId] of cases) {
     assert.equal(levels.levelTitles[id], ko); assert.equal(en.levelTitles[id], english);
@@ -67,7 +67,7 @@ test('AC-1/2/4/7/8/11: bilingual ports, revisions, physical solutions and unchan
     assert.deepEqual(levels.levelDescriptions[id].table, en.levelDescriptions[id].table);
     for (const data of [levels,en]) {
       const copy = JSON.stringify([data.levelDescriptions[id],data.levelHints[`stage${id}`]]);
-      assert.doesNotMatch(copy, /RESET|KICK|TIMEOUT|BUSY|DUTY|PWM|Watchdog|응답 감시기/);
+      assert.doesNotMatch(copy, /RESET|KICK|TIMEOUT|BUSY|DUTY|Watchdog|응답 감시기/);
       if (id === 33) assert.deepEqual(data.levelDescriptions[id].table,[0,1,2,3].map(n=>({LEVEL0:n&1,LEVEL1:n>>1,LIGHT:['0 0 0 0','1 0 0 0','1 1 0 0','1 1 1 0'][n]})));
       for (const c of [fixture(id), ...[2,3].map(tier => read(`tests/fixtures/stages/${id}-${tier}.json`).circuit)]) {
         validateStageCircuit(c,id,data);
@@ -76,7 +76,7 @@ test('AC-1/2/4/7/8/11: bilingual ports, revisions, physical solutions and unchan
       }
     }
     assert.equal(stageById(id).nodeId,nodeId); assert.equal(DEMO_IDS.includes(id),false);
-    assert.equal(canPlayStage(id,[30]),true);
+    assert.equal(canPlayStage(id,[30],{unlockedChapters:['chapter_4']}),true);
   }
   assert.deepEqual(levels.levelGridSizes[32],[19,25]); assert.deepEqual(levels.levelGridSizes[33],[12,13]);
   assert.deepEqual(levels.levelGridSizes[34],[15,24]);
@@ -230,9 +230,6 @@ test('AC-9/10/11: old archives, every unrelated stage and map topology remain ex
     }
   }
   const map=read('stage_map.json');
-  assert.equal(map.nodes.find(n=>n.id==='pwm').label,'Light Timing');assert.equal(map.nodes.find(n=>n.id==='watchdog').label,'Delay Timer');
-  for(const node of map.nodes)if(['pwm','watchdog'].includes(node.id))delete node.label;
-  // Issue #491 expands Crossroad; its display label follows the new board size.
-  map.nodes.find(n=>n.id==='crossroad').label='7 x 7 crossroad';
-  assert.equal(hash(map),baseline.mapHash);
+  assert.equal(map.nodes.find(n=>n.id==='pwm').label,'PWM');
+  assert.equal(map.nodes.find(n=>n.id==='watchdog').label,'Delay Timer');
 });

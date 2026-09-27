@@ -36,7 +36,7 @@ test('stable IDs, five chapters plus extras, complete catalog and no candidate p
     assert.deepEqual(incoming,STAGE_MAP_EDGES.filter(e=>e.to===s.nodeId).map(e=>STAGES.find(n=>n.nodeId===e.from).id).sort((a,b)=>a-b));
     assert.equal(s.status==='playable',Boolean(levels.levelAnswers[s.id]));
   }
-  assert.equal(map.edges.filter(e=>e.from==='fixed_xor'&&e.to==='crossroad').length,1);
+  assert.equal(map.edges.filter(e=>e.from==='fixed_decoder_2to4'&&e.to==='crossroad').length,1);
   for(const edge of map.edges) {
     const center=id=>{const n=map.nodes.find(n=>n.id===id);return {x:n.position.x+(n.size.w-1)/2,y:n.position.y+(n.size.h-1)/2};};
     const points=[center(edge.from),...(edge.waypoints || []),center(edge.to)];
@@ -48,7 +48,7 @@ test('stable IDs, five chapters plus extras, complete catalog and no candidate p
 
 test('demo chapter access excludes later chapters and keeps the ending stage',()=>{
   for(const id of [0,1,2,3,4,5,6])assert.equal(isUnlocked(id,[]),true);
-  for(const id of DEMO_IDS.filter(id=>id>6))assert.equal(isUnlocked(id,[6]),true);
+  for(const id of DEMO_IDS.filter(id=>id>6))assert.equal(isUnlocked(id,[6],{unlockedChapters:['chapter_2']}),true);
   assert.equal(isUnlocked(24,[24,30]),false);
   assert.equal(DEMO_END_STAGE,30);assert.equal(DEMO_IDS.length,17);
 });

@@ -32,11 +32,15 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
     getBest: id => store()?.best(id), getThresholds: levels.getLevelStarThresholds, onModified: onCircuitModified });
   let syncedOwner = null;
   levels.configureLevelModule({ localProgressProvider: () => store()?.cleared() || [],
+    starsProvider: id => store()?.stars(id) || 0,
     remoteProgressProvider: async () => {
       const owner = nickname();
       if (!db?.ref || syncedOwner === owner) return;
       const target = store(), records = await leaderboard().loadPersonal();
-      for (const record of records) target.recordClear(record.stageId, record.circuit);
+      for (const record of records) {
+        try { target.recordClear(record.stageId, record.circuit); }
+        catch (error) { console.warn(`Cost record ${record.stageId} could not be restored`, error); }
+      }
       syncedOwner = owner;
     }
   });
@@ -49,10 +53,12 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
     close.type = 'button'; close.onclick = () => modal.classList.remove('active'); list.append(close);
   });
   return {
-    stars: id => id === 0 ? 0 : Math.max(store()?.stars(id) || 0, levels.getClearedLevels().includes(id) ? 1 : 0),
+    stars: id => id === 0 ? 0 : Math.max(store()?.stars(id) || 0, levels.getStageAccess().stageStars?.[id] || 0, levels.getClearedLevels().includes(id) ? 1 : 0),
     onPassed(id, circuit) {
+      const before = new Set(levels.getStageAccess().unlockedChapters || []);
       const result = store().recordClear(id, circuit);
       levels.markLevelCleared(id);
+      result.unlockedChapters = (levels.getStageAccess().unlockedChapters || []).filter(id => !before.has(id));
       const modal = document.getElementById('clearedModal');
       stylePassedResult(modal.querySelector('.modal-content'), id);
       const title = document.getElementById('clearedTitle');
@@ -70,7 +76,10 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
         b.onclick = async () => { b.disabled = true; try { await action(); } finally { b.disabled = false; } }; actions.append(b);
       };
       add(ko ? '다시 설계하기' : 'Back to design', close);
-      add(ko ? '맵으로 돌아가기' : 'Back to map', async () => { close(); await levels.returnToLevels(); }, 'clearedMapBtn');
+      add(ko ? '맵으로 돌아가기' : 'Back to map', async () => {
+        close(); await levels.returnToLevels();
+        if (result.unlockedChapters[0]) document.dispatchEvent(new CustomEvent('stageMap:focusChapter', { detail: result.unlockedChapters[0] }));
+      }, 'clearedMapBtn');
       modal.querySelector('.closeBtn').onclick = close;
       modal.onkeydown = event => { if (event.key === 'Escape') { event.preventDefault(); close(); } };
       modal.style.display = 'flex';

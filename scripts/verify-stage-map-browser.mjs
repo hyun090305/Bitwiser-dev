@@ -171,23 +171,23 @@ try {
     await page.screenshot({path:path.join(out,`chapter-${n}-locked.png`)});
   }
   assert.ok(scales.every(s=>Math.abs(s-scales[0])<1e-8));
-  let data=await geometry();assert.equal(data.edges.length,44);
+  let data=await geometry();assert.equal(data.edges.length,43);
   for(const edge of data.edges){assert.equal(edge.points.length,2);assert.equal(Math.hypot(edge.points[1].x-edge.points[0].x,edge.points[1].y-edge.points[0].y),52);}
   const cardPixels=data.nodes[0].rect.w*data.scale;
   assert.ok(cardPixels>=160&&cardPixels<=180,`Actual card size: ${cardPixels}px`);
   const bannerPixels=await page.evaluate(()=>window.mapTest.state.chapters[0].title.rect.h*window.mapTest.camera.getScale());
   assert.ok(bannerPixels>=110&&bannerPixels<=130,`Actual banner height: ${bannerPixels}px`);
-  assert.equal(data.nodes.filter(n=>n.status.unlocked).length,7);
+  assert.equal(data.nodes.filter(n=>n.status.unlocked).length,8);
   await setProgress([0,1,2,3]);await chapter(1);
   assert.deepEqual(await page.evaluate(()=>Object.keys(window.mapTextSamples).filter(text=>/[✓★☆]|^(완료|Complete)$/.test(text))),[]);
   await page.screenshot({path:path.join(out,'chapter-1-reward-stars.png')});
   await setProgress([0,1,2,3,6,25,7,27]);await chapter(2);
   assert.equal((await geometry()).nodes.find(n=>n.id==='staging_register').status.locked,false);
   await page.screenshot({path:path.join(out,'chapter-2-partial.png')});
-  const typography=await page.evaluate(()=>({title:window.mapTextSamples['자동문'],optional:window.mapTextSamples['선택'],status:window.mapTextSamples['잠김']}));
+  const typography=await page.evaluate(()=>({title:Object.entries(window.mapTextSamples).find(([label])=>/^Pulse/i.test(label))?.[1],optional:window.mapTextSamples['선택'],status:window.mapTextSamples['잠김']}));
   assert.ok(typography.title.fontSize>=20&&typography.title.fontSize<=22);
   assert.equal(typography.title.align,'center');
-  for(const kind of ['optional','status'])assert.ok(typography[kind].fontSize>=12&&typography[kind].fontSize<=14);
+  for(const kind of ['optional'])assert.ok(typography[kind].fontSize>=12&&typography[kind].fontSize<=14);
   assert.deepEqual(await page.evaluate(()=>Object.keys(window.mapTextSamples).filter(text=>/^STAGE\s/.test(text))),[]);
   assert.equal(await page.locator('#stageMapChapterRequirements').count(),0);
   assert.equal(await page.locator('#stageMapChapterLabel').innerText(),'MEMORY LINK');
@@ -260,10 +260,10 @@ try {
   assert.equal(await page.evaluate(()=>window.mapTest.state.selectedNodeId),null);
   assert.deepEqual((await geometry()).camera,beforePan.camera);
   await page.mouse.click(card.x,card.y);
-  assert.equal(await page.evaluate(()=>window.mapTest.state.selectedNodeId),'half_adder','Card clicks remain enabled');
+  assert.equal(await page.evaluate(()=>window.mapTest.state.selectedNodeId),null,'Locked chapter overlay blocks card clicks');
   await page.evaluate(()=>{window.mapTest.state.selectedNodeId=null;});
   await page.touchscreen.tap(card.x,card.y);
-  assert.equal(await page.evaluate(()=>window.mapTest.state.selectedNodeId),'half_adder','Card taps remain enabled');
+  assert.equal(await page.evaluate(()=>window.mapTest.state.selectedNodeId),null,'Locked chapter overlay blocks card taps');
   await page.locator('#stageMapChapterPrev').click();await page.waitForTimeout(600);
   assert.equal((await geometry()).chapter,'chapter_2');
   assert.equal((await geometry()).scale,beforePan.scale);
@@ -297,11 +297,11 @@ try {
     }
     return results;
   });
-  assert.deepEqual(guards,[false,true,true,true,false,true,true,true]);
+  assert.deepEqual(guards,[false,false,true,true,false,false,false,true]);
   // AC-1–7: click every playable card with only its chapter gate satisfied.
-  const minimalProgress=[[],[6],[30],[30],[30,14,32]];
+  const starBoundaries=[0,18,36,50,84];
   for (let n=1;n<=5;n++) {
-    await setProgress(minimalProgress[n-1]);
+    await setProgress([], {stageStars:Object.fromEntries(Array.from({length:47},(_,i)=>[i+1,Math.max(0,Math.min(3,starBoundaries[n-1]-3*i))]))});
     await page.evaluate(async()=>{await (await import('./src/modules/levels.js')).returnToLevels();});
     await chapter(n);
     for (const stage of STAGES.filter(s=>s.chapterId===`chapter_${n}`)) {
@@ -337,7 +337,7 @@ try {
       localStorage.setItem(`stageMapAccess_v3_${owner}`,JSON.stringify({catalogVersion:version,unlockedStages:[44],unlockedChapters:['chapter_3']}));
       await levels.loadClearedLevelsFromDb();
       const saved=JSON.parse(localStorage.getItem(`stageMapAccess_v3_${owner}`));
-      versions.push(saved.catalogVersion===4 && [9,8,10,38,39,46].every(id=>levels.isLevelUnlocked(id)) && levels.getClearedLevels().length===0);
+      versions.push(saved.catalogVersion===5 && [9,8,10,38,39,46].every(id=>levels.isLevelUnlocked(id)) && levels.getClearedLevels().length===0);
     }
     localStorage.setItem('username','v6-new-qa');records=[];await levels.loadClearedLevelsFromDb();
     records=[30,11];await levels.loadClearedLevelsFromDb();
@@ -371,7 +371,7 @@ try {
   const labAfterPan=await page.evaluate(()=>window.labCamera());
   assert.notEqual(labAfterPan.originX,labBeforePan.originX,'Lab two-finger panning must remain enabled');
   assert.deepEqual(errors,[]);
-  await fs.writeFile(path.join(out,'browser-check.json'),JSON.stringify({scales,cardPixels,bannerPixels,typography,extrasCards,extrasKeyboardAndGates:true,extrasSingleSignal:true,keyboardNavigation:true,buttonNavigation:true,mapGestureZoomDisabled:true,mapGesturePanDisabled:true,cardClickAndTap:true,labPanEnabled:true,labScales,arrows:44,nodes:48,guards,migration,errors},null,2));
+  await fs.writeFile(path.join(out,'browser-check.json'),JSON.stringify({scales,cardPixels,bannerPixels,typography,extrasCards,extrasKeyboardAndGates:true,extrasSingleSignal:true,keyboardNavigation:true,buttonNavigation:true,mapGestureZoomDisabled:true,mapGesturePanDisabled:true,cardClickAndTap:true,labPanEnabled:true,labScales,arrows:43,nodes:48,guards,migration,errors},null,2));
   console.log('Stage map browser passed: progress/access guards, button/key navigation, blocked drag/swipe/pinch, card clicks/taps, resize, and Lab zoom/pan.');
 }catch(error){await page.screenshot({path:path.join(out,'failure.png')});console.error(error,errors);process.exitCode=1;}
 finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

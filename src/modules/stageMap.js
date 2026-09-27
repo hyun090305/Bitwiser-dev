@@ -11,6 +11,7 @@ import { CELL } from '../canvas/model.js';
 import { drawStarRow } from './achievementStars.js';
 import { getActiveTheme } from '../themes.js';
 import { canPlayStage, chapterAccess } from './stageCatalog.js';
+import { createChapterUnlockUI } from './chapterUnlockUI.js';
 import { isExtrasCard, extrasCardText, drawExtrasCard, EXTRAS_SIGNAL_DURATION } from './stageMapExtras.js';
 import {
   STAGE_NODE_LEVEL_MAP,
@@ -1123,7 +1124,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     return lines;
   }
 
-  const cardTitle = node.id === 'automatic_door' && window.currentLang === 'ko' ? '자동문' : node.title;
+  const cardTitle = node.title;
   let titleLines = wrapText(cardTitle);
   if (node.gridPosition) {
     while ((titleLines.length > 2 || titleLines.some(line => ctx.measureText(line).width > maxTextWidth)) && fontSize > 21 * scale) {
@@ -1257,7 +1258,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
     const stateLabel = node.previewFeature ? (ko ? '정식판' : 'Full version')
       : node.comingSoon ? (ko ? '예정' : 'Coming soon')
       : status.locked ? (ko ? '잠김' : 'Locked')
-      : status.progressCleared ? ''
+      : status.progressCleared || status.chapterLocked ? ''
       : (ko ? '플레이 가능' : 'Ready');
     ctx.fillText(stateLabel, topLeft.x + width / 2, topLeft.y + height - 42 * scale);
     if (!stateLabel && status.progressCleared && node.level !== 0) {
@@ -1444,9 +1445,11 @@ export function initializeStageMap({
   returnToEditScreen,
   mapSpec = null,
   onlineFeatures = true,
+  demoMode = false,
   getStageStars = null,
   onFeatureLocked = null,
-  getStageAccess = () => ({})
+  getStageAccess = () => ({}),
+  acknowledgeChapter = null
 } = {}) {
   const screenEl = document.getElementById('stageMapScreen');
   const canvas = document.getElementById('stageMapCanvas');
@@ -1474,6 +1477,9 @@ export function initializeStageMap({
   if (!screenEl || !canvas || !surface) {
     return null;
   }
+
+  const chapterUI = createChapterUnlockUI({ surface, screen: screenEl, nav: chapterNavEl,
+    getAccess: getStageAccess, getCleared: () => getClearedLevels?.() || [], acknowledge: acknowledgeChapter, fullVersion: !demoMode });
 
   canvas.style.cursor = 'default';
   // The map accepts card taps, but native scroll/zoom gestures cannot move it.
@@ -1699,7 +1705,7 @@ export function initializeStageMap({
       };
       const opacity = !state.currentChapterId || state.currentChapterId === chapter.id
         ? 1 : CHAPTER_FADE_NODE_OPACITY;
-      ctx.globalAlpha = opacity * (status.locked ? 0.5 : 1);
+      ctx.globalAlpha = opacity;
       drawNode(ctx, camera, presentation, {
         ...status,
         locked: false,
@@ -1863,10 +1869,16 @@ export function initializeStageMap({
         if (signalProgress >= 1) state.extraSignalStarts.delete(node.id);
         drawExtrasCard(ctx, camera, node, status, { active: isHovered, pressed: isPressed, signalProgress, language: window.currentLang });
       } else {
-        drawNode(ctx, camera, node, status, timestamp, isHovered, isPressed, highlight);
+        const chapterLocked = state.chapterStatus.get(node.chapterId)?.locked;
+        drawNode(ctx, camera, node, chapterLocked ? { ...status, locked: false, chapterLocked: true } : status, timestamp, isHovered, isPressed, highlight);
       }
       ctx.globalAlpha = 1;
     });
+    const panelRect = state.chapterLookup.get(state.currentChapterId)?.panel?.rect;
+    if (panelRect && !state.archiveMode.active) {
+      const pos = camera.worldToScreen(panelRect.x, panelRect.y), scale = camera.getScale();
+      chapterUI.position({ ...pos, w: panelRect.w * scale, h: panelRect.h * scale });
+    }
     syncExtrasControls();
 
     _raf = window.requestAnimationFrame(renderFrame);
@@ -2444,6 +2456,7 @@ export function initializeStageMap({
     const chapters = state.chapters || [];
     const active = chapters.find(ch => ch.id === state.currentChapterId) || chapters[0] || null;
     const activeIndex = active ? chapters.findIndex(ch => ch.id === active.id) : -1;
+    chapterUI.update(state.archiveMode.active ? 'extras' : active?.id);
     if (chapterLabelEl) {
       chapterLabelEl.textContent = state.archiveMode.active
         ? (translate('blueprintArchiveTitle') || 'External Blueprint Archive')
@@ -2832,7 +2845,7 @@ export function initializeStageMap({
   }
 
   function handleNodeActivation(node) {
-    if (!node) return;
+    if (!node || chapterUI.playing) return;
     state.selectedNodeId = node.id;
     requestRender();
     if (node.previewFeature) { onFeatureLocked?.(node.previewFeature); return; }
@@ -3193,6 +3206,15 @@ export function initializeStageMap({
 
   document.addEventListener('stageMap:shown', () => {
     scheduleViewportSync();
+    refreshNodeStates();
+    const pending = getStageAccess().pendingChapters?.[0];
+    if (pending) focusChapter(pending, { animate: false });
+  });
+  document.addEventListener('stageMap:focusChapter', event => focusChapter(event.detail, { animate: false }));
+  document.addEventListener('bitwiser:loadingComplete', () => {
+    if (screenEl.style.display === 'none') return;
+    const pending = getStageAccess().pendingChapters?.[0];
+    if (pending) focusChapter(pending, { animate: false });
   });
 
   document.addEventListener('stageMap:returnFromLab', (e) => {
