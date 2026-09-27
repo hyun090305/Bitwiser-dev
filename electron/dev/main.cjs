@@ -4,7 +4,8 @@ const { renderDevShell } = require('../../scripts/dev-shell.cjs');
 
 if (app.isPackaged) throw new Error('Developer mode is only available from the source checkout');
 require('../app.cjs').launch({
-  userData: path.join(app.getPath('appData'), 'Bitwiser-DEV'),
+  // Must differ from package.json's "bitwiser-dev" even on case-insensitive disks.
+  userData: path.join(app.getPath('appData'), 'Bitwiser-DevTools'),
   title: 'Bitwiser DEV',
   transformHTML: renderDevShell,
   configureSession(session) {

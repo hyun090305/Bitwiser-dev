@@ -35,23 +35,25 @@ Windows에서 프로젝트 루트의 [Create Bitwiser DEV Shortcut.vbs](../Creat
 
 ## 저장과 배포 경계
 
-- Electron 개발 프로필: `%APPDATA%/Bitwiser-DEV`. 일반 프로필과 별도의 Chromium 저장 공간과 회로 저장 폴더를 사용합니다. single-instance lock도 프로필 지정 이후 획득하므로 일반판과 DEV를 동시에 사용할 수 있습니다.
+- Electron 개발 프로필: `%APPDATA%/Bitwiser-DevTools`. 일반 `npm start`의 `%APPDATA%/bitwiser-dev`는 기존 저장 호환을 위해 유지합니다. 대소문자를 무시해도 다른 경로이며, DEV의 `userData`와 `sessionData`를 모두 새 프로필로 지정합니다. Chromium 저장 공간과 회로 원본(`saves/profiles/local/circuits`)·미리보기 캐시가 분리됩니다. single-instance lock도 프로필 지정 이후 획득하므로 일반판과 DEV를 동시에 사용할 수 있습니다.
 - 진행 키: `bitwiser:dev-progress:v1`. 웹은 DEV 전용 origin에 저장하며, 일반 비용/접근권 키를 진행 공급원으로 사용하지 않습니다. 종료·재실행해도 유지됩니다.
 - 초기화와 프리셋은 DEV 진행 기록만 바꾸며, 별도로 저장한 회로 파일·설정·힌트는 지우지 않습니다. 저장 실패는 패널에 ‘현재 실행에서만 유지’로 표시합니다. 손상된 진행 원문은 다음 저장 시 `:recovery` 키에 보존합니다.
 - DEV HTML은 실행 시 정식 HTML에서 구성하며 Firebase/광고 SDK와 서비스 워커를 제외합니다. `db`/`firestore`는 연결하지 않습니다. CSP와 Electron 세션의 외부 네트워크 차단으로 실제 랭킹에 제출되지 않습니다. 계정·온라인 데이터가 필요한 기능은 DEV에서 오프라인 상태입니다.
 - 배포용 Electron 파일 목록은 `src/dev/`, `electron/dev/`를 제외합니다. 개발 서버·바로가기 생성기도 배포 목록에 없습니다. 체험판 빌드는 DEV 진입점을 참조하지 않습니다. 일반 `index.html`은 DEV 코드를 로드하지 않습니다.
 
-검증: `npm test`, `npm run test:dev:browser`, `npm run test:dev:electron`. 브라우저 검사는 한영 패널 조작, 실제 관문 채점, 맵과 진입 판정 일치, 저장·초기화를 검사합니다. Electron 검사는 임시 테스트 프로필에서 실제 DEV 진입점과 재실행 복원·native IPC·네트워크 차단을 확인합니다. 기존 회귀 명령은 [개발 흐름](development-workflow.md)을 참고하세요.
+초기 구현의 `%APPDATA%/Bitwiser-DEV`는 Windows에서 일반 프로필과 같은 폴더였습니다. 수정 후 DEV는 새 저장 공간에서 시작합니다. 일반 기록이 섞여 있을 수 있으므로 이전 폴더를 자동 이동·복사·삭제하지 않으며, 이전 DEV 진행도 자동으로 가져오지 않습니다. 바로가기는 같은 실행기를 가리키므로 다시 만들 필요가 없습니다.
+
+검증: `npm test`, `npm run test:dev:browser`, `npm run test:dev:electron`. 브라우저 검사는 한영 패널 조작, 실제 관문 채점, 맵과 진입 판정 일치, 저장·초기화를 검사합니다. Electron 검사는 **같은 임시 appData**에서 실제 일반 진입점과 DEV 진입점을 실행합니다. 대소문자를 무시한 경로 비교, 일반 설정·힌트·진행·회로 파일 보존, DEV의 일반 회로 조회/삭제 차단, 별도 회로 저장/삭제, 두 앱의 동시 실행과 각각의 재실행 복원·외부 네트워크 차단을 확인합니다. 일반 앱 이름과 기본 프로필은 Electron이 루트 package.json에서 결정하도록 두며 테스트에서 userData/sessionData를 강제로 지정하지 않습니다. 기존 회귀 명령은 [개발 흐름](development-workflow.md)을 참고하세요.
 
 ## 구현 검증 기록 (2026-09-27)
 
-Windows, Node.js v22.18.0, npm 10.9.3에서 실행했습니다. 기준 커밋은 `f00ef55071495cddbe504b0c86eeca72b609819e`입니다.
+Windows, Node.js v22.18.0, npm 10.9.3에서 실행했습니다. 아래 표는 초기 구현 `fc2aef82e996389a8f2201c5623353a8c6037b58`의 기록입니다. DEV만 실행하던 당시 Electron 검사는 일반 프로필과의 Windows 경로 충돌을 발견하지 못했습니다. 이를 보완한 PR #493 리뷰 수정 검증은 아래에 별도로 기록합니다.
 
 | 명령 / 확인 | 결과 |
 | --- | --- |
 | `npm test` | 192개 통과 |
 | `npm run test:dev:browser` | 한영 패널, 실제 XOR/자동문 채점 후 해금, 맵/진입 일치, 별 변경, 재로드, 초기화, 외부 요청 없음 통과 |
-| `npm run test:dev:electron` | DEV 프로필/캐시 격리, 재실행 진행 유지, 실제 회로 파일 저장·재실행 복원, 네트워크 차단 통과 |
+| `npm run test:dev:electron` | DEV 단독 실행의 지정 경로·재실행·회로 저장/복원·네트워크 차단 통과. 일반 프로필과의 충돌은 미검사였으며 아래 리뷰 수정에서 보완 |
 | `npm run build:demo` | 통과, DEV 모듈 미포함 |
 | `npm run test:demo:browser` | 전체 브라우저·복구·기능·챕터 접근 검사 통과 |
 | `npm run test:full:web` | 정식 웹 한영 UI, 48개 스테이지, DEV UI 부재 통과 |
@@ -63,3 +65,17 @@ Windows, Node.js v22.18.0, npm 10.9.3에서 실행했습니다. 기준 커밋은
 | `git diff --check` | 통과 |
 
 Electron 검사는 샌드박스의 GPU 프로세스 실행 제약을 피한 환경에서 임시 프로필로 실행했습니다. 저장 회귀 검사의 비동기 완료 대기는 Node 측에서 IPC 결과를 기다리도록 수정했고, 3초 편집 안내의 Undo 유지 검사는 숨겨진 창의 포인터 대기 시간이 안내 수명을 소비하지 않도록 즉시 클릭 이벤트로 확인합니다. 저장 개수·재시작 전후 ID·회로 내용·안내 표시의 기존 성공 조건은 유지합니다.
+
+## PR #493 프로필 충돌 수정 검증 (2026-09-27)
+
+[AC-5 리뷰 코멘트](https://github.com/hyun090305/Bitwiser-dev/pull/493#issuecomment-5852722398)를 반영했습니다. 수정 전 코드에서 추가한 Windows 경로 비교 단위 검사와 실제 일반/DEV Electron 검사가 모두 같은 경로 충돌로 실패하는 것을 확인한 후, DEV 경로를 수정했습니다.
+
+| 명령 / 확인 | 수정 후 결과 |
+| --- | --- |
+| `npm test` | 193개 통과. 대소문자를 무시한 일반/DEV 프로필 충돌 회귀 포함 |
+| `npm run test:dev:electron` | 같은 임시 appData에서 실제 일반판 3회·DEV 2회 실행. userData/sessionData 및 회로·미리보기 경로 분리, 양쪽 single-instance lock을 가진 동시 실행 통과 |
+| 위 Electron 검사의 저장 시나리오 | 일반판 설정·힌트·검증된 진행·회로를 먼저 저장. DEV에서 일반 회로 조회/삭제 불가, DEV 설정·힌트·진행 변경과 회로 저장/삭제 후 일반 데이터와 원본 파일 내용 보존, 양쪽 재실행 복원 통과 |
+| `npm run test:dev:browser` | 한영 패널·실제 관문 채점·별·잠금·저장·초기화·오프라인 경계 통과 |
+| `git diff --check` | 통과 |
+
+실제 사용자 프로필은 사용하지 않았습니다. 실행별 경로/PID와 검사 결과는 로컬 `test-results/dev-progress/electron-isolation.json`에 기록하며 커밋하지 않습니다. 이 수정은 DEV 실행기·검사·문서에 한정되어 정식/체험판 공통 코드와 패키징 설정은 바꾸지 않았습니다. 초기 구현 표의 나머지 회귀·패키징 명령은 이번 수정에서 재실행하지 않았습니다.

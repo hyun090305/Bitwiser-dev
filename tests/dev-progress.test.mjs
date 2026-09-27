@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import path from 'node:path';
+import vm from 'node:vm';
 import { createDevProgress, DEV_PROGRESS_KEY, presetProgress } from '../src/dev/progress.js';
 import { canPlayStage, chapterAccess, playableStages } from '../src/modules/stageCatalog.js';
 import { renderDevShell } from '../scripts/dev-shell.cjs';
@@ -108,4 +110,21 @@ test('DEV: shell removes online SDK/worker and production packaging excludes dev
   assert.ok(pkg.build.files.includes('!src/dev/**/*'));
   assert.ok(pkg.build.files.includes('!electron/dev/**/*'));
   assert.equal(pkg.scripts.start, 'electron .');
+});
+
+test('DEV: Windows profile remains distinct from the normal package name ignoring case', () => {
+  const pkg = JSON.parse(fs.readFileSync(new URL('../package.json', import.meta.url)));
+  const appData = 'C:\\test\\AppData\\Roaming';
+  let options;
+  vm.runInNewContext(fs.readFileSync(new URL('../electron/dev/main.cjs', import.meta.url), 'utf8'), {
+    require(id) {
+      if (id === 'electron') return { app: { isPackaged: false, getPath(name) { assert.equal(name, 'appData'); return appData; } } };
+      if (id === 'node:path') return path.win32;
+      if (id === '../../scripts/dev-shell.cjs') return { renderDevShell };
+      if (id === '../app.cjs') return { launch(value) { options = value; } };
+      assert.fail(`Unexpected module: ${id}`);
+    }
+  });
+  assert.equal(path.win32.dirname(options.userData), appData);
+  assert.notEqual(options.userData.toLowerCase(), path.win32.join(appData, pkg.productName || pkg.name).toLowerCase());
 });
