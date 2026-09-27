@@ -1346,7 +1346,11 @@ export function showProblemIntro(problem, callback) {
   if (!modal || !title || !desc || !table) return;
 
   const nodeTitle = (problem?.title || 'CUSTOM').toString().trim() || 'CUSTOM';
-  title.textContent = `LOGIC NODE: ${nodeTitle}`;
+  title.textContent = nodeTitle;
+  document.getElementById('introFixedIO').hidden = true;
+  const rules = document.getElementById('introRules');
+  rules.replaceChildren();
+  rules.hidden = true;
   desc.textContent = `목표 출력 패턴을 유지하도록 ${nodeTitle} 노드를 복구하십시오.`;
   if (stageCode) stageCode.textContent = 'CUSTOM NODE';
   if (logicDataLabel) {

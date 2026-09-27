@@ -6652,7 +6652,7 @@
   "levelDescriptions": {
     "0": {
       "title": "Tutorial",
-      "desc": "Situation: Safe mode is responding. Connect the first diagnostic circuit.\nGoal: Follow the guide: invert IN1, AND it with IN2, and send the result to OUT1.\nTiming: Immediate response\n\nWhen complete, OUT1 is 1 only when IN1=0 and IN2=1.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Invert IN1, AND it with IN2, and send the result to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6674,11 +6674,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "1": {
       "title": "NOT",
-      "desc": "Situation: Restore the path that sends the opposite signal.\nGoal: Set OUT1 to 1 when IN1 is 0, and to 0 when IN1 is 1.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Invert IN1 and send it to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6688,11 +6689,12 @@
           "IN1": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "2": {
       "title": "OR",
-      "desc": "Situation: Restore a response to a signal from either path.\nGoal: Set OUT1 to 1 if IN1 or IN2 is 1. Set it to 0 when both are 0.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on when either IN1 or IN2 is 1.",
       "table": [
         {
           "IN1": 0,
@@ -6714,11 +6716,12 @@
           "IN2": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "3": {
       "title": "AND",
-      "desc": "Situation: Restore a response that requires both paths.\nGoal: Set OUT1 to 1 only when IN1 and IN2 are both 1. Otherwise, output 0.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on only when IN1 and IN2 are both 1.",
       "table": [
         {
           "IN1": 0,
@@ -6740,11 +6743,12 @@
           "IN2": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "4": {
       "title": "NOR",
-      "desc": "Situation: Restore the circuit that detects an idle state.\nGoal: Set OUT1 to 1 only when IN1 and IN2 are both 0. Otherwise, output 0.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on only when IN1 and IN2 are both 0.",
       "table": [
         {
           "IN1": 0,
@@ -6766,11 +6770,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "5": {
       "title": "NAND",
-      "desc": "Situation: Detect when at least one path is off.\nGoal: Set OUT1 to 1 if IN1 or IN2 is 0. Set it to 0 when both are 1.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on when either IN1 or IN2 is 0.",
       "table": [
         {
           "IN1": 0,
@@ -6792,11 +6797,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "6": {
       "title": "XOR",
-      "desc": "Situation: Detect a mismatch between two signal paths.\nGoal: Set OUT1 to 1 when IN1 and IN2 differ, and to 0 when they match.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on only when IN1 and IN2 differ.",
       "table": [
         {
           "IN1": 0,
@@ -6818,11 +6824,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "7": {
       "title": "Majority",
-      "desc": "Situation: Combine several signal paths into one decision.\nGoal: Set OUT1 to 1 if at least two of IN1, IN2 and IN3 are 1. Otherwise, output 0.\nTiming: Immediate response\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on when at least two of IN1, IN2 and IN3 are 1.",
       "table": [
         {
           "IN1": 0,
@@ -6872,11 +6879,12 @@
           "IN3": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "8": {
       "title": "Parity",
-      "desc": "Situation: Check how many signals in a group are on.\nGoal: Set OUT1 to 1 when an odd number of IN1, IN2 and IN3 are 1.\nTiming: Immediate response\n\nOutput 1 for one or three active inputs, and 0 for zero or two.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on only when an odd number of IN1, IN2 and IN3 are 1.",
       "table": [
         {
           "IN1": 0,
@@ -6926,11 +6934,12 @@
           "IN3": 1,
           "OUT1": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "9": {
       "title": "Half Adder",
-      "desc": "Situation: Restore a circuit that adds two input signals.\nGoal: Add IN1 and IN2 and display the two-bit result as OUT2 OUT1.\nTiming: Immediate response\n\nOUT1 is the ones bit; OUT2 is the twos bit.\nExample: 1+1=2 gives OUT2 OUT1=10.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Add IN1 and IN2 and output OUT2 OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -6956,11 +6965,17 @@
           "OUT1": 0,
           "OUT2": 1
         }
+      ],
+      "rules": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit."
+        ]
       ]
     },
     "10": {
       "title": "Full Adder",
-      "desc": "Situation: Extend the addition path to include another input bit.\nGoal: Add the three one-bit inputs IN1, IN2 and IN3 and display the result as OUT2 OUT1.\nTiming: Immediate response\n\nOUT1 is the ones bit; OUT2 is the twos bit. The sum is 0–3.\nExample: 1+1+1=3 gives OUT2 OUT1=11.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Add IN1, IN2 and IN3 and output OUT2 OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -7018,11 +7033,17 @@
           "OUT1": 1,
           "OUT2": 1
         }
+      ],
+      "rules": [
+        [
+          "Bits",
+          "OUT2 is the twos bit; OUT1 is the ones bit. The sum is 0–3."
+        ]
       ]
     },
     "11": {
       "title": "2-to-4 Decoder",
-      "desc": "Situation: Select one memory area by its address.\nGoal: Turn on exactly one output for the combination of IN1 and IN2; all others must be 0.\nTiming: Immediate response\n\nIN1 IN2: 00 selects OUT1, 01 selects OUT2, 10 selects OUT3, and 11 selects OUT4.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn on only the output selected by IN1 and IN2.",
       "table": [
         {
           "IN1": 0,
@@ -7056,11 +7077,12 @@
           "OUT3": 0,
           "OUT4": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "12": {
       "title": "4-to-1 MUX",
-      "desc": "Situation: Send the selected one of four signal paths to the output.\nGoal: Use S1 and S0 to select the input passed unchanged to OUT1.\nTiming: Immediate response\n\nS1 S0: 00 selects IN1, 01 selects IN2, 10 selects IN3, and 11 selects IN4.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Send the input selected by S1 S0 to OUT1.",
       "table": [
         {
           "IN1": 0,
@@ -7107,11 +7129,17 @@
           "S0": 1,
           "OUT1": 1
         }
+      ],
+      "rules": [
+        [
+          "Selection",
+          "S1 S0: 00→IN1, 01→IN2, 10→IN3, 11→IN4."
+        ]
       ]
     },
     "13": {
       "title": "2-bit Comparator",
-      "desc": "Situation: Restore the circuit that compares two values.\nGoal: Turn on exactly one of A>B, A=B and A<B to show the comparison of A and B.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. Set the other two outputs to 0.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Compare A and B and turn on only the matching output: A>B, A=B or A<B.",
       "table": [
         {
           "A1": 0,
@@ -7158,11 +7186,17 @@
           "A=B": 1,
           "A<B": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each."
+        ]
       ]
     },
     "14": {
       "title": "2-bit Adder",
-      "desc": "Situation: Add the values from two paths.\nGoal: Display A+B using S2, S1 and S0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. The sum is 0–6; include the carry bit.\nExample: 3+3=6 → S2 S1 S0=110.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Output A+B as S2 S1 S0.",
       "table": [
         {
           "A1": 0,
@@ -7209,11 +7243,17 @@
           "S1": 1,
           "S0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Output the full sum, 0–6, including carry."
+        ]
       ]
     },
     "15": {
       "title": "2-bit Subtractor",
-      "desc": "Situation: Calculate the difference between two values in two bits.\nGoal: Display A−B using R1 and R0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. If the difference is negative, add 4 to bring it into 0–3.\nExample: 1−3=−2 → output 2, or R1 R0=10.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Output A−B as R1 R0.",
       "table": [
         {
           "A1": 0,
@@ -7255,11 +7295,17 @@
           "S1": 1,
           "S0": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. Add 4 to a negative result."
+        ]
       ]
     },
     "16": {
       "title": "Max Selector",
-      "desc": "Situation: Send the larger of two values to the next circuit.\nGoal: Display the larger of A and B using M1 and M0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. If they are equal, output that value.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Output the larger of A and B as M1 M0.",
       "table": [
         {
           "A1": 0,
@@ -7301,11 +7347,17 @@
           "M1": 0,
           "M0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. If equal, output that value."
+        ]
       ]
     },
     "17": {
       "title": "2-bit Multiplier",
-      "desc": "Situation: Restore the multiplication path.\nGoal: Display A×B using P3, P2, P1 and P0.\nTiming: Immediate response\n\nA1 A0 and B1 B0 each represent 0–3. The result is 0–9.\nExample: 3×3=9 → P3 P2 P1 P0=1001.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Output A×B as P3 P2 P1 P0.",
       "table": [
         {
           "A1": 0,
@@ -7357,11 +7409,17 @@
           "P1": 0,
           "P0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0 and B1 B0: 0–3 each. The product is 0–9."
+        ]
       ]
     },
     "18": {
       "title": "Remainder",
-      "desc": "Situation: Calculate what remains after repeated groups.\nGoal: Display the remainder of A divided by 3 using R1 and R0.\nTiming: Immediate response\n\nA3 A2 A1 A0 represents 0–15. The result is 0, 1 or 2.\nExample: A=10 → remainder 1 → R1 R0=01.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Output the remainder of A divided by 3 as R1 R0.",
       "table": [
         {
           "A3": 0,
@@ -7403,11 +7461,17 @@
           "R1": 0,
           "R0": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A3 A2 A1 A0: 0–15. The remainder is 0, 1 or 2."
+        ]
       ]
     },
     "19": {
       "title": "Crossroad",
-      "desc": "Situation: Reconnect two displaced paths to their destinations.\nGoal: Pass IN1 unchanged to OUT1 and IN2 unchanged to OUT2.\nTiming: Immediate response\n\nThe input and output terminals have fixed positions. The circuit must work for every input combination. Wires cannot cross.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Pass IN1 to OUT1 and IN2 to OUT2 unchanged.",
       "table": [
         {
           "IN1": 0,
@@ -7433,11 +7497,12 @@
           "OUT1": 1,
           "OUT2": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "20": {
       "title": "Fixed XOR",
-      "desc": "Situation: Detect a mismatch between two paths with fixed terminals.\nGoal: Set OUT1 to 1 when IN1 and IN2 differ, and to 0 when they match.\nTiming: Immediate response\n\nThe input and output terminals have fixed positions. Wires cannot cross.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn OUT1 on only when IN1 and IN2 differ.",
       "table": [
         {
           "IN1": 0,
@@ -7459,11 +7524,12 @@
           "IN2": 1,
           "OUT1": 0
         }
-      ]
+      ],
+      "rules": []
     },
     "21": {
       "title": "Rotator",
-      "desc": "Situation: Send three signals to their next designated positions.\nGoal: Pass signals straight through when IN4=0; rotate them by one position when IN4=1.\nTiming: Immediate response\n\nIN4=0: OUT1=IN1, OUT2=IN2, OUT3=IN3.\nIN4=1: OUT1=IN3, OUT2=IN1, OUT3=IN2.\nChanges take effect immediately. This is not a rotation repeated on each tick.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Use IN4 to select the output positions of three signals.",
       "table": [
         {
           "IN4": 0,
@@ -7501,11 +7567,21 @@
           "OUT2": 0,
           "OUT3": 0
         }
+      ],
+      "rules": [
+        [
+          "Selection",
+          "IN4=0: OUT1/2/3=IN1/2/3. IN4=1: OUT1/2/3=IN3/1/2."
+        ],
+        [
+          "Response",
+          "Respond immediately to input changes; do not rotate repeatedly on ticks."
+        ]
       ]
     },
     "22": {
       "title": "Fixed 2-to-4 Decoder",
-      "desc": "Situation: Activate the fixed output path for an address.\nGoal: Turn on exactly one output for the combination of IN1 and IN2; all others must be 0.\nTiming: Immediate response\n\nIN1 IN2: 00 selects OUT1, 01 selects OUT2, 10 selects OUT3, and 11 selects OUT4.\nThe input and output terminals have fixed positions. Wires cannot cross.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn on only the output selected by IN1 and IN2.",
       "table": [
         {
           "IN1": 0,
@@ -7539,11 +7615,12 @@
           "OUT3": 0,
           "OUT4": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "23": {
       "title": "Priority Selector",
-      "desc": "Situation: Choose the highest-priority path when requests overlap.\nGoal: Turn on only the output corresponding to the highest-priority input that is 1.\nTiming: Immediate response\n\nPriority order: IN1, IN2, IN3, IN4, with IN1 highest. Each selected input corresponds to OUT1, OUT2, OUT3 or OUT4 respectively.\nIf all inputs are 0, all outputs must be 0. Input and output terminals have fixed positions.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Turn on only the output for the highest-priority input that is 1.",
       "table": [
         {
           "IN1": 1,
@@ -7585,11 +7662,21 @@
           "OUT3": 0,
           "OUT4": 1
         }
+      ],
+      "rules": [
+        [
+          "Priority",
+          "IN1 > IN2 > IN3 > IN4. Each input selects the OUT with the same number."
+        ],
+        [
+          "No request",
+          "All inputs 0 → all outputs 0."
+        ]
       ]
     },
     "24": {
       "title": "2’s Complement",
-      "desc": "Situation: Calculate a value that cancels the input.\nGoal: Find C so the lowest four bits of A+C are 0000.\nTiming: Immediate response\n\nA3 A2 A1 A0 and C3 C2 C1 C0 each represent 0–15. If A=0, C=0. For A=1–15, make A+C=16.\nExample: A=5 → C=11; A=0 → C=0.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Find C so the lowest four bits of A+C are 0000.",
       "table": [
         {
           "A3": 0,
@@ -7631,11 +7718,21 @@
           "C1": 0,
           "C0": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A3 A2 A1 A0 and C3 C2 C1 C0: 0–15."
+        ],
+        [
+          "Calculation",
+          "If A=0, C=0. Otherwise, A+C=16."
+        ]
       ]
     },
     "25": {
       "title": "Register",
-      "desc": "Situation: Restore memory that holds a past signal.\nGoal: On a tick with LOAD=1, store DATA and show the stored value at VALUE.\nTiming: Update on ticks\n\nWhen LOAD=0, keep the stored value. Changing DATA must not change VALUE until another load.\nInitial state: VALUE=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Store DATA on ticks with LOAD=1 and output it at VALUE.",
       "table": [
         {
           "tick": 1,
@@ -7665,11 +7762,21 @@
           "LOAD": 1,
           "VALUE": 0
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "LOAD=0 retains VALUE."
+        ],
+        [
+          "Initial",
+          "VALUE=0."
+        ]
       ]
     },
     "26": {
       "title": "Toggle",
-      "desc": "Situation: Restore a circuit that changes state on each request.\nGoal: On every tick with PRESS=1, switch LIGHT from 0 to 1 or from 1 to 0.\nTiming: Update on ticks\n\nKeep the value on ticks with PRESS=0. Requests on consecutive ticks toggle it each time.\nInput and output terminals have fixed positions.\nInitial state: LIGHT=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Toggle LIGHT on every tick with PRESS=1.",
       "table": [
         {
           "tick": 1,
@@ -7701,11 +7808,21 @@
           "PRESS": 1,
           "LIGHT": 1
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "PRESS=0 retains LIGHT. Consecutive requests toggle it every tick."
+        ],
+        [
+          "Initial",
+          "LIGHT=0."
+        ]
       ]
     },
     "27": {
       "title": "2-to-1 MUX",
-      "desc": "Situation: Select the input path to send to memory.\nGoal: Pass A to OUT when SEL=0, or B when SEL=1.\nTiming: Immediate response\n\nSelection and output respond immediately to input changes. Input and output terminals have fixed positions.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Pass A to OUT when SEL=0, or B when SEL=1.",
       "table": [
         {
           "A": 0,
@@ -7755,11 +7872,12 @@
           "SEL": 1,
           "OUT": 1
         }
-      ]
+      ],
+      "rules": []
     },
     "28": {
       "title": "Fault Register",
-      "desc": "Situation: Keep even a brief fault until it is acknowledged.\nGoal: Turn ALARM on at a tick with FAULT=1 and keep it on after the fault disappears.\nTiming: Update on ticks\n\nACK=1 turns ALARM off. If FAULT and ACK are both 1, recording the fault takes priority: ALARM=1. If both are 0, keep the previous value.\nInitial state: ALARM=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Set ALARM on ticks with FAULT=1; clear it with ACK.",
       "table": [
         {
           "tick": 1,
@@ -7803,11 +7921,21 @@
           "ACK": 0,
           "ALARM": 0
         }
+      ],
+      "rules": [
+        [
+          "Priority",
+          "FAULT takes priority over ACK. Both 0 retains ALARM."
+        ],
+        [
+          "Initial",
+          "ALARM=0."
+        ]
       ]
     },
     "29": {
       "title": "Response Check",
-      "desc": "Situation: Continue the connection once both paths have responded.\nGoal: Turn GO on for the tick when responses from both A and B have arrived.\nTiming: Update on ticks\n\nA=1 or B=1 at a tick records that response. Remember the first until the other arrives. Repeated responses from the same side count once. Once both are confirmed, clear both records.\nGO=0 on ticks without a complete pair. Begin collecting new responses on the next tick.\nSimultaneous A and B also count. If both arrive every tick, GO stays 1.\nInitial state: No responses recorded; GO=0.\nExample: A only → wait → B only: GO=1 on the last tick.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Set GO on the tick when responses from both A and B have arrived.",
       "table": [
         {
           "tick": 1,
@@ -7865,11 +7993,29 @@
           "B": 0,
           "GO": 1
         }
+      ],
+      "rules": [
+        [
+          "Memory",
+          "Remember A=1 and B=1 separately. Repeated responses from one side count once."
+        ],
+        [
+          "Confirmation",
+          "Once both arrive, set GO=1 and clear both records. Otherwise GO=0."
+        ],
+        [
+          "Together",
+          "Simultaneous responses count. Both on every tick keeps GO=1."
+        ],
+        [
+          "Initial",
+          "No responses recorded; GO=0."
+        ]
       ]
     },
     "30": {
       "title": "Pulse Extender",
-      "desc": "Situation: Hold a requested passage open briefly.\nGoal: Keep DOOR=1 for three ticks starting with a tick where OPEN=1.\nTiming: Update on ticks\n\nInclude the request tick in the three ticks. A new request restarts the three-tick interval from that tick, even while the door is open.\nKeep DOOR on for the request tick and the following two ticks, then turn it off.\nInitial state: DOOR=0.\nExample:\nOPEN: 1 → 0 → 0 → 0\nDOOR: 1 → 1 → 1 → 0\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Keep DOOR on for three ticks starting with a tick where OPEN=1.",
       "table": [
         {
           "tick": 1,
@@ -7937,11 +8083,25 @@
           "OPEN": 0,
           "DOOR": 0
         }
+      ],
+      "rules": [
+        [
+          "Timing",
+          "Include the request tick. A new OPEN restarts the three ticks from that tick."
+        ],
+        [
+          "End",
+          "Stay 1 through two ticks after the last request; become 0 on the following tick."
+        ],
+        [
+          "Initial",
+          "DOOR=0."
+        ]
       ]
     },
     "31": {
       "title": "Rising Edge Detector",
-      "desc": "Situation: Report the start of a new signal once.\nGoal: Set RISE=1 when SIGNAL was 0 at the previous tick and is 1 at the current tick.\nTiming: Update on ticks\n\nSet RISE=0 on other ticks. Remaining at 1 does not trigger another rise. Do not count changes between ticks; compare values sampled at ticks.\nInitial state: Previous SIGNAL=0; RISE=0.\nExample:\nSIGNAL: 0 → 1 → 1 → 0 → 1\nRISE: 0 → 1 → 0 → 0 → 1\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Set RISE when SIGNAL changes from 0 at the previous tick to 1 at the current tick.",
       "table": [
         {
           "tick": 1,
@@ -7985,11 +8145,21 @@
           "SIGNAL": 0,
           "RISE": 0
         }
+      ],
+      "rules": [
+        [
+          "Sampling",
+          "Compare only values sampled at ticks. Otherwise RISE=0."
+        ],
+        [
+          "Initial",
+          "Previous SIGNAL=0; RISE=0."
+        ]
       ]
     },
     "32": {
       "title": "Up/Down Counter",
-      "desc": "Situation: Remember a value as increment and decrement requests arrive.\nGoal: Count from 0 to 3 according to INC and DEC, displaying BIT1 BIT0.\nTiming: Update on ticks\n\nINC alone increases the value by 1; DEC alone decreases it by 1. If both or neither are 1, keep the value.\nIncreasing 3 gives 0; decreasing 0 gives 3.\nInitial state: BIT1 BIT0=00.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Count from 0 to 3 with INC and DEC; output BIT1 BIT0.",
       "table": [
         {
           "tick": 1,
@@ -8071,11 +8241,25 @@
           "BIT0": 0,
           "BIT1": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "INC alone adds 1; DEC alone subtracts 1. Equal inputs retain the value."
+        ],
+        [
+          "Wrap",
+          "Incrementing 3 gives 0; decrementing 0 gives 3."
+        ],
+        [
+          "Initial",
+          "BIT1 BIT0=00."
+        ]
       ]
     },
     "33": {
       "title": "PWM",
-      "desc": "Situation: Control how long the status light is on.\nGoal: Repeat four positions, turning LIGHT on in the first number of positions selected by LEVEL.\nTiming: Position advances on ticks; setting applies immediately\n\nLEVEL1 LEVEL0 selects 0–3. Start at the first position. Each tick advances one position; after the fourth, return to the first.\nChanging LEVEL applies immediately to the current position without moving it. Positions keep advancing even when LEVEL=0.\nInitial state: First position; LIGHT depends on the current LEVEL.\nExample (first → second → third → fourth):\nLEVEL=0: 0 0 0 0\nLEVEL=1: 1 0 0 0\nLEVEL=2: 1 1 0 0\nLEVEL=3: 1 1 1 0\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Cycle through four positions; turn LIGHT on in the first LEVEL positions.",
       "table": [
         {
           "LEVEL0": 0,
@@ -8097,11 +8281,25 @@
           "LEVEL1": 1,
           "LIGHT": "1 1 1 0"
         }
+      ],
+      "rules": [
+        [
+          "Advance",
+          "Start at the first position. Advance on each tick, wrapping after the fourth."
+        ],
+        [
+          "Setting",
+          "LEVEL1 LEVEL0=0–3. Changes apply immediately to the current position without moving it."
+        ],
+        [
+          "LEVEL=0",
+          "LIGHT=0, but the position keeps advancing."
+        ]
       ]
     },
     "34": {
       "title": "Delay Timer",
-      "desc": "Situation: Signal when a requested delay has elapsed.\nGoal: On a tick with START=1, store TIME and turn DONE on at the completion tick.\nTiming: Update on ticks\n\nTIME1 TIME0 represents 0–3. Count time from the tick after START. TIME=0 completes on the START tick itself.\nLater TIME changes do not affect an active timer. A new START cancels the old timer and uses the new TIME, including on a scheduled completion tick.\nDONE=0 except on completion ticks. After completion, wait for START.\nSTART=1 on every tick restarts each time. Consecutive starts with TIME=0 keep DONE=1.\nInitial state: No active timer; DONE=0.\nExample: Start with TIME=2: START tick → 1 tick later → 2 ticks later\nDONE: 0 → 0 → 1\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Store TIME on a tick with START=1; set DONE when that delay elapses.",
       "table": [
         {
           "tick": 1,
@@ -8207,11 +8405,29 @@
           "START": 0,
           "DONE": 0
         }
+      ],
+      "rules": [
+        [
+          "Timing",
+          "TIME1 TIME0=0–3. Count from the tick after START; TIME=0 completes on START."
+        ],
+        [
+          "Restart",
+          "New START takes priority over completion. Ignore TIME changes while waiting."
+        ],
+        [
+          "Output",
+          "DONE=1 only on completion ticks. Consecutive START with TIME=0 keeps it 1."
+        ],
+        [
+          "Initial",
+          "No active timer; DONE=0."
+        ]
       ]
     },
     "35": {
       "title": "Debouncer",
-      "desc": "Situation: Filter brief fluctuations and pass a stable signal.\nGoal: After RAW has the same value for three consecutive ticks, set CLEAN to that value on the third tick.\nTiming: Update on ticks\n\nIgnore changes shorter than three ticks and retain CLEAN. Apply the same rule for both rising and falling changes.\nInitial state: Previous input history=0; CLEAN=0.\nExample:\nRAW: 1 → 0 → 1 → 1 → 1\nCLEAN: 0 → 0 → 0 → 0 → 1\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "After RAW has the same value for three ticks, set CLEAN to it on the third tick.",
       "table": [
         {
           "tick": 1,
@@ -8273,11 +8489,21 @@
           "RAW": 0,
           "CLEAN": 0
         }
+      ],
+      "rules": [
+        [
+          "Hold",
+          "Apply the rule to both 0 and 1. Retain CLEAN until then."
+        ],
+        [
+          "Initial",
+          "Previous input history=0; CLEAN=0."
+        ]
       ]
     },
     "36": {
       "title": "Round-Robin Arbiter",
-      "desc": "Situation: Let two paths share one passage.\nGoal: Grant the requesting side access; if both request, choose the opposite of the last user.\nTiming: Update on ticks\n\nREQ_A alone sets A_OK=1; REQ_B alone sets B_OK=1. The other output is 0.\nIf both request, choose the side opposite the last grant. If there has been no user, choose A. A lone request also updates the last user.\nWith no requests, set A_OK and B_OK to 0 but remember the last user.\nInitial state: No last user; A_OK=0; B_OK=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Grant the requesting side access; if both request, choose the opposite of the last user.",
       "table": [
         {
           "tick": 1,
@@ -8335,11 +8561,25 @@
           "A_OK": 0,
           "B_OK": 1
         }
+      ],
+      "rules": [
+        [
+          "Output",
+          "REQ_A→A_OK; REQ_B→B_OK. Only the selected side is 1; no requests gives both 0."
+        ],
+        [
+          "Memory",
+          "A lone request also updates the last user. No requests retains that memory."
+        ],
+        [
+          "Initial",
+          "No last user; A_OK=B_OK=0. The first simultaneous request chooses A."
+        ]
       ]
     },
     "37": {
       "title": "ABBA Detector",
-      "desc": "Situation: Approve the connection after a specific confirmation sequence.\nGoal: Turn UNLOCKED on when the last four received letters are ABBA.\nTiming: Update on ticks\n\nSIGNAL=1 means A and SIGNAL=0 means B. Receive one letter only on ticks with SUBMIT=1.\nEarlier letters are allowed: AABBA also ends in ABBA. SUBMIT=0 retains the history. Once approved, UNLOCKED stays 1.\nInitial state: No letters recorded; UNLOCKED=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Set UNLOCKED when the last four received letters are ABBA.",
       "table": [
         {
           "tick": 1,
@@ -8390,11 +8630,25 @@
           "SUBMIT": 1,
           "UNLOCKED": 1
         }
+      ],
+      "rules": [
+        [
+          "Input",
+          "Receive only on ticks with SUBMIT=1. SIGNAL=1 means A; 0 means B."
+        ],
+        [
+          "Memory",
+          "SUBMIT=0 retains history. Earlier letters do not matter; once set, stay at 1."
+        ],
+        [
+          "Initial",
+          "No letters recorded; UNLOCKED=0."
+        ]
       ]
     },
     "38": {
       "title": "Register Bank",
-      "desc": "Situation: Connect two memory areas distinguished by address.\nGoal: Store D1 D0 at the address selected by ADDR and display the current address's value at Q1 Q0.\nTiming: Write on ticks; read immediately\n\nAddresses 0 and 1 each store two bits. WRITE=1 updates only the selected address at a tick. WRITE=0 retains both values.\nChanging ADDR must immediately show that address's value without a tick, regardless of WRITE.\nShow the new value on the write tick. Changing only D1, D0 or WRITE does not change stored values.\nInitial state: Both addresses contain 00.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Store at the address selected by ADDR and output that address at Q1 Q0.",
       "table": [
         {
           "tick": 1,
@@ -8446,11 +8700,29 @@
           "Q0": 0,
           "Q1": 1
         }
+      ],
+      "rules": [
+        [
+          "Write",
+          "Addresses 0 and 1 hold two bits each. On WRITE=1 ticks, store D1 D0 at the selected address."
+        ],
+        [
+          "Read",
+          "ADDR changes apply immediately without a tick, regardless of WRITE. A write tick outputs the new value."
+        ],
+        [
+          "Hold",
+          "WRITE=0 retains both values. Input changes alone do not alter storage."
+        ],
+        [
+          "Initial",
+          "Both addresses contain 00."
+        ]
       ]
     },
     "39": {
       "title": "Undo Register",
-      "desc": "Situation: Allow one return to the state before the most recent save.\nGoal: On SAVE=1, store D1 D0; use UNDO to return once to the previous value.\nTiming: Update on ticks\n\nSAVE keeps the current value as the previous value, updates Q1 Q0, and sets UNDO_AVAILABLE=1.\nWhen undo is available, UNDO=1 restores the previous value and sets UNDO_AVAILABLE=0. No further undo is allowed until SAVE. Saving the same value also enables undo.\nSAVE takes priority over simultaneous UNDO. Otherwise, retain the current value.\nInitial state: Current=00; previous=00; UNDO_AVAILABLE=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "SAVE stores D1 D0; UNDO returns once to the previous value.",
       "table": [
         {
           "tick": 1,
@@ -8518,11 +8790,29 @@
           "Q1": 0,
           "UNDO_AVAILABLE": 0
         }
+      ],
+      "rules": [
+        [
+          "Save",
+          "On SAVE ticks, back up Q1 Q0, store the new value, and set UNDO_AVAILABLE=1."
+        ],
+        [
+          "Undo",
+          "If available, restore the backup to Q and set UNDO_AVAILABLE=0. Otherwise retain values."
+        ],
+        [
+          "Priority",
+          "SAVE takes priority over UNDO. Saving the same value also enables undo."
+        ],
+        [
+          "Initial",
+          "Current and backup=00; UNDO_AVAILABLE=0."
+        ]
       ]
     },
     "40": {
       "title": "Mailbox",
-      "desc": "Situation: Hold a received signal until the next circuit takes it.\nGoal: SEND stores one DATA bit; TAKE displays the removed value at DATA_OUT.\nTiming: Update on ticks\n\nThere is one storage slot. ACCEPTED=1 on a successful send tick; VALID=1 on a successful take tick. Each is 0 on a failed or absent request.\nWith simultaneous SEND and TAKE, remove the old value first, then store the new one. If empty, only store; do not immediately take the new value.\nIf full without a successful take, ignore SEND. Keep DATA_OUT on ticks without a successful take. FULL=1 if the slot is occupied after processing.\nInitial state: Empty; FULL=0; DATA_OUT=0; VALID=0; ACCEPTED=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Use SEND to store one DATA bit and TAKE to remove it.",
       "table": [
         {
           "tick": 1,
@@ -8590,11 +8880,29 @@
           "VALID": 1,
           "ACCEPTED": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, TAKE before SEND. Ignore TAKE if empty; ignore SEND if still full."
+        ],
+        [
+          "Output",
+          "Output the taken value at DATA_OUT. VALID=1 only for successful TAKE; ACCEPTED=1 only for successful SEND. Otherwise 0."
+        ],
+        [
+          "Hold",
+          "Without a take, retain DATA_OUT. FULL=1 if occupied after processing."
+        ],
+        [
+          "Initial",
+          "Empty; DATA_OUT, VALID, ACCEPTED and FULL=0."
+        ]
       ]
     },
     "41": {
       "title": "Stack",
-      "desc": "Situation: Retrieve the most recently received signal first.\nGoal: PUSH stores up to two one-bit DATA values; POP removes the most recently stored value.\nTiming: Update on ticks\n\nShow the removed value at DATA_OUT. VALID=1 only on successful pop ticks. Otherwise VALID=0 and DATA_OUT keeps its previous value.\nWith simultaneous PUSH and POP, remove an existing value first, then push. If empty, only push.\nIgnore a push when full without a pop; ignore a pop when empty.\nAfter processing, EMPTY=1 if empty and FULL=1 if both slots are occupied.\nInitial state: EMPTY=1; FULL=0; DATA_OUT=0; VALID=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Store two DATA bits and remove the most recently pushed bit first.",
       "table": [
         {
           "tick": 1,
@@ -8684,11 +8992,29 @@
           "EMPTY": 0,
           "FULL": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
       ]
     },
     "42": {
       "title": "Queue",
-      "desc": "Situation: Deliver received signals in their original order.\nGoal: PUSH stores up to two one-bit DATA values; POP removes the earliest stored value.\nTiming: Update on ticks\n\nShow the removed value at DATA_OUT. VALID=1 only on successful pop ticks. Otherwise VALID=0 and DATA_OUT keeps its previous value.\nWith simultaneous PUSH and POP, remove an existing value first, then push. If empty, only push.\nIgnore a push when full without a pop; ignore a pop when empty.\nAfter processing, EMPTY=1 if empty and FULL=1 if both slots are occupied.\nInitial state: EMPTY=1; FULL=0; DATA_OUT=0; VALID=0.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Store two DATA bits and remove the earliest pushed bit first.",
       "table": [
         {
           "tick": 1,
@@ -8778,11 +9104,29 @@
           "EMPTY": 0,
           "FULL": 0
         }
+      ],
+      "rules": [
+        [
+          "Action",
+          "On each tick, POP before PUSH. Ignore POP if empty; ignore PUSH if still full."
+        ],
+        [
+          "Output",
+          "Output the popped bit at DATA_OUT; VALID=1 only on successful POP. Otherwise retain DATA_OUT and set VALID=0."
+        ],
+        [
+          "State",
+          "After processing, EMPTY=1 if empty; FULL=1 if both slots are occupied."
+        ],
+        [
+          "Initial",
+          "EMPTY=1; DATA_OUT, VALID and FULL=0."
+        ]
       ]
     },
     "43": {
       "title": "Serial Receiver",
-      "desc": "Situation: Collect a serial signal into a four-bit value.\nGoal: Receive one DATA bit on each tick with RECEIVE=1, updating all of Q when the fourth bit arrives.\nTiming: Update on ticks\n\nReceive in order Q3, Q2, Q1, Q0, highest bit first. DONE=1 only on the tick completing four bits. Otherwise DONE=0 and Q retains its previous value.\nKeep received bits while RECEIVE=0. After four bits, start a new group.\nInitial state: No bits received; Q3 Q2 Q1 Q0=0000; DONE=0.\nExample: Receiving 1, 0, 1, 1 gives Q=1011 and DONE=1 on the fourth receive tick.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Receive DATA on ticks with RECEIVE=1; update Q when four bits have arrived.",
       "table": [
         {
           "tick": 1,
@@ -8861,11 +9205,29 @@
           "Q3": 1,
           "DONE": 0
         }
+      ],
+      "rules": [
+        [
+          "Order",
+          "Q3→Q2→Q1→Q0. RECEIVE=0 retains received bits."
+        ],
+        [
+          "Complete",
+          "Only the fourth receive tick updates all of Q and sets DONE=1. Otherwise retain Q and set DONE=0."
+        ],
+        [
+          "Next group",
+          "Start a new group after four bits."
+        ],
+        [
+          "Initial",
+          "No bits received; Q3 Q2 Q1 Q0=0000; DONE=0."
+        ]
       ]
     },
     "44": {
       "title": "Serial Transmitter",
-      "desc": "Situation: Send four stored bits in sequence on a single signal line.\nGoal: When idle and START=1, accept D3 D2 D1 D0 and transmit them at SERIAL over four ticks.\nTiming: Update on ticks\n\nSend D3 on the starting tick, then D2, D1 and D0 on the next three ticks. Ignore data changes and START during transmission. A new transmission may begin on the tick after the last bit.\nVALID=1 on ticks that send a bit. BUSY=1 if more bits remain after that tick. The last bit has VALID=1 and BUSY=0. While idle, both are 0 and SERIAL retains its last value.\nRESET=1 takes priority over all requests, cancels transmission, and clears SERIAL, VALID and BUSY to 0.\nInitial state: Idle; SERIAL=0; VALID=0; BUSY=0.\nExample:\nSent bit: D3 → D2 → D1 → D0\nVALID: 1 → 1 → 1 → 1\nBUSY: 1 → 1 → 1 → 0\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "When idle, START accepts D3 D2 D1 D0 to send in order at SERIAL.",
       "table": [
         {
           "tick": 1,
@@ -8958,11 +9320,33 @@
           "VALID": 0,
           "BUSY": 0
         }
+      ],
+      "rules": [
+        [
+          "Send",
+          "Send D3 on the start tick, then D2→D1→D0 on the next three ticks. Ignore START and data changes meanwhile."
+        ],
+        [
+          "Output",
+          "VALID=1 on send ticks. BUSY=1 if more bits remain; BUSY=0 on the last bit."
+        ],
+        [
+          "Idle",
+          "Restart from the tick after the last bit. While idle, retain SERIAL; VALID=BUSY=0."
+        ],
+        [
+          "Reset",
+          "RESET takes priority, cancels transmission and clears SERIAL, VALID and BUSY to 0."
+        ],
+        [
+          "Initial",
+          "Idle; SERIAL, VALID and BUSY=0."
+        ]
       ]
     },
     "45": {
       "title": "Accumulator",
-      "desc": "Situation: Remember incoming values and keep adding them.\nGoal: On ticks with ADD=1, add D1 D0 to the current sum and display Q1 Q0.\nTiming: Update on ticks\n\nThe sum is 0–3. If it reaches 4 or more, subtract 4 and store the remainder. ADD=0 retains the sum.\nRESET=1 clears the sum to 0 and takes priority over ADD.\nInitial state: Q1 Q0=00.\nExample: Adding 2 to a current sum of 3 gives 1.\n\nOutputs in this puzzle change only on ticks. Changing inputs or automatically releasing buttons does not change them.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "On ticks with ADD=1, add D1 D0 to the sum and output Q1 Q0.",
       "table": [
         {
           "tick": 1,
@@ -9014,11 +9398,25 @@
           "Q0": 0,
           "Q1": 0
         }
+      ],
+      "rules": [
+        [
+          "Calculation",
+          "Subtract 4 if the sum reaches 4 or more. ADD=0 retains the sum."
+        ],
+        [
+          "Priority",
+          "RESET=1 takes priority over ADD and clears the sum to 0."
+        ],
+        [
+          "Initial",
+          "Q1 Q0=00."
+        ]
       ]
     },
     "46": {
       "title": "Divider",
-      "desc": "Situation: Connect the calculation path with its completion signal.\nGoal: Divide A by B to produce quotient Q and remainder R; set COMPLETE=1 when ready.\nTiming: Check at the completion tick\n\nA2 A1 A0 represents 0–7; B1 B0 represents 1–3. Inputs stay fixed during calculation. Display Q2 Q1 Q0 and R1 R0.\nQ and R must be correct on the first tick where COMPLETE=1, between ticks 1 and 10 inclusive. Earlier Q and R values are unrestricted. Failure to complete by tick 10 is a failure.\nInitial state: Every calculation starts with all D storage values at 0.\nExample: A=7, B=3 → Q=2, R=1.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.\n\nTicks and D: A tick updates stored values once. All D blocks read the values immediately before the tick and update together. All D storage starts at 0.\nButtons and switches: A button becomes 1 when pressed, is sampled at the next tick, then returns to 0. A switch keeps its selected value.\nOne-tick outputs: An output that is 1 on a tick stays 1 until the next tick. Consecutive qualifying ticks may keep it at 1 for several ticks.",
+      "desc": "Divide A by B to produce quotient Q and remainder R; signal completion with COMPLETE.",
       "table": [
         {
           "A0": 0,
@@ -9085,11 +9483,29 @@
           "R1": 0,
           "COMPLETE": 1
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A2 A1 A0=0–7; B1 B0=1–3. Inputs stay fixed during calculation."
+        ],
+        [
+          "Check",
+          "Q2 Q1 Q0 and R1 R0 must be correct at the first COMPLETE=1 on ticks 1–10."
+        ],
+        [
+          "Deadline",
+          "Earlier Q and R are unrestricted. Failure to complete by tick 10 fails."
+        ],
+        [
+          "Initial",
+          "Each calculation starts with all D=0."
+        ]
       ]
     },
     "47": {
       "title": "Capacity Check",
-      "desc": "Situation: Check whether the combined signal load exceeds capacity.\nGoal: Set OVER=1 if A+B is greater than LIMIT; otherwise set it to 0.\nTiming: Immediate response\n\nA1 A0, B1 B0 and L1 L0 each represent 0–3. L1 L0 is LIMIT. Compare the full sum, 0–6, without truncating it to two bits. If the sum equals LIMIT, OVER=0.\nExample: A=2, B=2, LIMIT=3 → OVER=1.\n\nSignals: 0 is off and 1 is on.\nReading numbers: In values such as A1 A0, bit 0 on the right is the lowest bit. Two bits mean 00=0, 01=1, 10=2, 11=3. For selection tables listing terminals such as IN1 IN2, follow the order stated in the puzzle.\nConnections: Wires cannot cross. Fixed input and output terminals cannot be moved.",
+      "desc": "Set OVER only when A+B is greater than LIMIT.",
       "table": [
         {
           "A1": 0,
@@ -9154,6 +9570,16 @@
           "L0": 1,
           "OVER": 0
         }
+      ],
+      "rules": [
+        [
+          "Range",
+          "A1 A0, B1 B0 and L1 L0: 0–3 each. L1 L0 is LIMIT."
+        ],
+        [
+          "Compare",
+          "Compare the full sum, 0–6, without truncation. Equality gives OVER=0."
+        ]
       ]
     }
   },

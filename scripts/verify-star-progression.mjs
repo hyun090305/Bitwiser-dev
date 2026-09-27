@@ -68,8 +68,8 @@ try {
     for(const [n,required,id] of [[2,18,25],[3,36,9],[4,50,32],[5,84,38]]) {
       await focus(`chapter_${n}`);
       assert.equal(await page.locator('.chapter-lock-overlay').isVisible(),true);
-      assert.match(await page.locator('.chapter-lock-requirement').innerText(),new RegExp(String(required)));
-      assert.match(await page.locator('.chapter-lock-progress').innerText(),new RegExp(String(required-17)));
+      assert.equal(await page.locator('.chapter-lock-requirement').innerText(),`★ 17/${required}`);
+      assert.equal(await page.locator('.chapter-lock-progress, #chapterIntro').count(),0);
       assert.equal(await page.evaluate(async id=>{try{await(await import('./src/modules/levels.js')).startLevel(id);return false;}catch{return true;}},id),true);
       await page.locator('.chapter-lock-panel').click();await page.keyboard.press('Enter');
       assert.equal(await page.locator('#levelIntroModal').isVisible(),false);

@@ -9,15 +9,6 @@ export const CHAPTERS = [
   ['chapter_5', 'System Integration', '기억과 계산을 하나로 연결하다', 'Connect memory and calculation.', 'system_core']
 ].map(([id, title, ko, en, titleStyleId], i) => ({ id, title, subtitle: { ko, en }, order: i + 1, titleStyleId, requiredStars: [0, 18, 36, 50, 84][i] }));
 
-const chapterIntros = [
-  ['안전 모드가 켜졌습니다.\n기본 신호 경로를 복구해 인터페이스의 응답을 되찾으세요.', 'Safe mode is active.\nRestore basic signal paths to bring the interface back online.'],
-  ['신호를 받아도 이전 상태가 남지 않습니다.\n지나간 입력을 기억하고, 필요한 순간에 다시 쓰도록 연결하세요.', 'Incoming signals leave no memory of earlier states.\nConnect past inputs so they can be remembered and used when needed.'],
-  ['입력된 값을 처리하는 계산 경로가 손상되었습니다.\n합과 차이, 크기와 나머지를 다시 계산할 수 있게 하세요.', 'The paths that process input values are damaged.\nRestore sums, differences, comparisons and remainders.'],
-  ['신호가 흐를 경로와 응답할 시점을 조율해야 합니다.\n시간, 사용 순서, 단자 사이의 연결을 복구하세요.', 'Signal paths and response timing need coordination.\nRestore timing, access order and connections between terminals.'],
-  ['개별 경로를 연결해 더 큰 기능을 되살릴 수 있습니다.\n값을 보관하고 계산하며, 신호를 주고받는 인터페이스를 복구하세요.', 'Connect individual paths to restore larger functions.\nRebuild an interface that stores and calculates values and exchanges signals.']
-];
-CHAPTERS.forEach((chapter, i) => { chapter.intro = { ko: chapterIntros[i][0], en: chapterIntros[i][1] }; });
-
 // Candidate IDs are reserved, but have no playable definition or invented budget.
 const STAGE_SLOTS = {
   "tutorial": {

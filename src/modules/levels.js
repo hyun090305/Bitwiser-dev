@@ -368,15 +368,6 @@ function getStageCode(level) {
   return 'STAGE --';
 }
 
-function buildMissionBrief(title, desc) {
-  const safeTitle = (title || 'UNKNOWN').toString().trim() || 'UNKNOWN';
-  const source = (desc || '').toString().trim();
-  if (source) {
-    return source;
-  }
-  return `LOGIC NODE: ${safeTitle}의 출력 패턴을 복구하십시오.`;
-}
-
 function formatSignalLabel(signalName) {
   return (signalName || '').toString();
 }
@@ -390,6 +381,12 @@ function getSignalGroupKey(signalLabel) {
 
 function parseLogicRows(level, dataTable = []) {
   if (!Array.isArray(dataTable) || !dataTable.length) return [];
+  // Legacy Subtractor examples call the result S1/S0; its actual ports are R1/R0.
+  // Normalize display labels only, keeping the stored examples and grading data intact.
+  if (Number(level) === 15) {
+    dataTable = dataTable.map(row => Object.fromEntries(Object.entries(row).map(([key, value]) =>
+      [key === 'S1' ? 'R1' : key === 'S0' ? 'R0' : key, value])));
+  }
   const firstRow = dataTable[0];
   const rowKeys = Object.keys(firstRow);
   if (!rowKeys.length) return [];
@@ -505,9 +502,21 @@ function prepareIntroScreen(level, data) {
   const startBtn = document.getElementById('startLevelBtn');
   if (!modal || !title || !desc || !stageCode || !table || !startBtn) return null;
 
-  const nodeTitle = `LOGIC NODE: ${(data.title || '').toString().trim()}`;
-  title.textContent = nodeTitle;
-  desc.textContent = buildMissionBrief(data.title, data.desc);
+  title.textContent = (data.title || '').toString().trim();
+  desc.textContent = (data.desc || '').toString().trim();
+  const fixedIO = document.getElementById('introFixedIO');
+  fixedIO.hidden = !levelFixedIO[level]?.fixIO;
+  fixedIO.textContent = window.currentLang === 'en' ? 'Fixed I/O' : '고정 I/O';
+  const rules = document.getElementById('introRules');
+  rules.replaceChildren();
+  rules.hidden = !data.rules?.length;
+  const body = document.createElement('tbody');
+  for (const [label, text] of data.rules || []) {
+    const row = document.createElement('tr'), heading = document.createElement('th'), cell = document.createElement('td');
+    heading.scope = 'row'; heading.textContent = label; cell.textContent = text;
+    row.append(heading, cell); body.append(row);
+  }
+  rules.append(body);
   const chapter = chapterForStage(Number(level));
   stageCode.textContent = `${chapter ? chapter.title.toUpperCase() + ' · ' : ''}${getStageCode(level)}`;
   if (logicDataLabel) {

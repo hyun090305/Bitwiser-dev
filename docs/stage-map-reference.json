@@ -42,7 +42,6 @@
       "subtitle": "신호에 의미를 부여하다",
       "entrance": "0 stars",
       "accent": "#d8c98c",
-      "description": "안전 모드가 켜졌습니다.\n기본 신호 경로를 복구해 인터페이스의 응답을 되찾으세요.",
       "nodes": [
         {
           "layoutKey": "c1_tutorial",
@@ -331,7 +330,6 @@
       "subtitle": "지나간 신호를 기억하다",
       "entrance": "18 stars",
       "accent": "#6bc8df",
-      "description": "신호를 받아도 이전 상태가 남지 않습니다.\n지나간 입력을 기억하고, 필요한 순간에 다시 쓰도록 연결하세요.",
       "nodes": [
         {
           "layoutKey": "c2_save",
@@ -652,7 +650,6 @@
       "subtitle": "신호를 값으로 계산하다",
       "entrance": "36 stars",
       "accent": "#e0c97c",
-      "description": "입력된 값을 처리하는 계산 경로가 손상되었습니다.\n합과 차이, 크기와 나머지를 다시 계산할 수 있게 하세요.",
       "nodes": [
         {
           "layoutKey": "c3_half",
@@ -1043,7 +1040,6 @@
       "subtitle": "신호의 경로와 반응을 조율하다",
       "entrance": "50 stars",
       "accent": "#b9a0eb",
-      "description": "신호가 흐를 경로와 응답할 시점을 조율해야 합니다.\n시간, 사용 순서, 단자 사이의 연결을 복구하세요.",
       "nodes": [
         {
           "layoutKey": "c4_mux",
@@ -1434,7 +1430,6 @@
       "subtitle": "기억과 계산을 하나로 연결하다",
       "entrance": "84 stars",
       "accent": "#70c9a6",
-      "description": "개별 경로를 연결해 더 큰 기능을 되살릴 수 있습니다.\n값을 보관하고 계산하며, 신호를 주고받는 인터페이스를 복구하세요.",
       "nodes": [
         {
           "layoutKey": "c5_register",

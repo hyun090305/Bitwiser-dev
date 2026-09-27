@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { STAGES } from '../src/modules/stageCatalog.js';
+import { GRID_UNIT, EXTRAS_CARD, EXTRAS_CARD_GAP } from '../src/modules/stageMapLayout.js';
 
 const root=path.resolve('.'), out=path.join(root,'test-results/stage-map');
 await fs.mkdir(out,{recursive:true});
@@ -113,10 +114,13 @@ try {
   const extrasCards=await page.evaluate(()=>window.mapTest.state.nodes.filter(n=>n.chapterId==='extras').map(n=>({
     id:n.id,...window.mapTest.camera.worldToScreen(n.rect.x,n.rect.y),width:n.rect.w*window.mapTest.camera.getScale(),height:n.rect.h*window.mapTest.camera.getScale()
   })));
+  const extrasScale=await page.evaluate(()=>window.mapTest.camera.getScale());
   assert.equal(extrasCards.length,2);
-  for(const card of extrasCards){assert.ok(Math.abs(card.width-320)<2);assert.ok(Math.abs(card.height-280)<2);}
+  // The header now reserves space for stars, so the fit scale can change.
+  // Preserve the authored card geometry and gap at the actual camera scale.
+  for(const card of extrasCards){assert.ok(Math.abs(card.width-EXTRAS_CARD.w*GRID_UNIT*extrasScale)<2);assert.ok(Math.abs(card.height-EXTRAS_CARD.h*GRID_UNIT*extrasScale)<2);assert.ok(card.width>=300);}
   assert.equal(extrasCards[0].y,extrasCards[1].y);
-  assert.ok(Math.abs(extrasCards[1].x-extrasCards[0].x-extrasCards[0].width-60)<2);
+  assert.ok(Math.abs(extrasCards[1].x-extrasCards[0].x-extrasCards[0].width-EXTRAS_CARD_GAP*GRID_UNIT*extrasScale)<2);
   assert.ok(Math.abs((extrasCards[0].x+extrasCards[1].x+extrasCards[1].width)/2-720)<1);
   await page.mouse.move(20,20);await page.waitForTimeout(1000);
   await page.screenshot({path:path.join(out,'extras-ko.png')});

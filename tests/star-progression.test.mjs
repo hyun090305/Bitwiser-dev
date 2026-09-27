@@ -39,12 +39,16 @@ test('495 AC-4/5/17/18: authored copy regenerates exactly without changing any p
     for(const s of STAGES) {
       const desc=data.levelDescriptions[s.id];
       assert.equal(desc.title,copy[s.id].title);
-      assert.ok(desc.desc.startsWith(copy[s.id][language?'en':'ko']));
+      assert.equal(desc.desc,copy[s.id][language?'en':'ko']);
+      assert.deepEqual(desc.rules,copy[s.id].rules[language?'en':'ko']);
+      const prose=[desc.desc,...desc.rules.flat()].join('\n');
+      assert.doesNotMatch(prose,/상황:|목표:|시점:|Situation:|Goal:|Timing:|신호: 0은|Signals: 0 is|tick과 D|Ticks and D/);
+      assert.equal(desc.desc.includes('\n'),false,'one concise goal');
       assert.doesNotMatch(desc.desc,/[\u3040-\u30ff]/);
       if([33,38,46].includes(s.id)) assert.doesNotMatch(desc.desc,/출력은 tick 때만|Outputs in this puzzle change only/);
     }
     const contracts=structuredClone(data);delete contracts.levelTitles;
-    for(const d of Object.values(contracts.levelDescriptions)){delete d.title;delete d.desc;}
+    for(const d of Object.values(contracts.levelDescriptions)){delete d.title;delete d.desc;delete d.rules;}
     for(let id=38;id<=46;id++)delete contracts.levelStarThresholds[id];
     assert.equal(createHash('sha256').update(JSON.stringify(contracts)).digest('hex'),progressionBaseline.languages[file].contractHash);
   }

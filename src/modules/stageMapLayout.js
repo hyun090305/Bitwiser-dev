@@ -4,7 +4,7 @@ import { STAGES } from './stageCatalog.js';
 export const GRID_UNIT = CELL + GAP;
 export const STAGE_PANEL = { w: 25, h: 17 };
 export const STAGE_CARD = { w: 4, h: 4 };
-// At the shared 1440×1000 camera fit: about 320×280 px with a 60 px gap.
+// Fixed world proportions; screen size follows the shared chapter camera fit.
 export const EXTRAS_CARD = { w: 7.2, h: 6.3 };
 export const EXTRAS_CARD_GAP = 1.35;
 

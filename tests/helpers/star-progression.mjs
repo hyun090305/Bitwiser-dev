@@ -8,6 +8,7 @@ export function beforeStarProgression(levels, file = 'levels.json') {
     previous.levelTitles[id] = copy.title;
     previous.levelDescriptions[id].title = copy.descriptionTitle;
     previous.levelDescriptions[id].desc = copy.desc;
+    delete previous.levelDescriptions[id].rules;
   }
   for (let id=38;id<=46;id++) previous.levelStarThresholds[id] = {twoStarMaxCost:null,threeStarMaxCost:null};
   return previous;

@@ -1478,7 +1478,7 @@ export function initializeStageMap({
     return null;
   }
 
-  const chapterUI = createChapterUnlockUI({ surface, screen: screenEl, nav: chapterNavEl,
+  const chapterUI = createChapterUnlockUI({ surface, screen: screenEl,
     getAccess: getStageAccess, getCleared: () => getClearedLevels?.() || [], acknowledge: acknowledgeChapter, fullVersion: !demoMode });
 
   canvas.style.cursor = 'default';
@@ -2537,7 +2537,8 @@ export function initializeStageMap({
       const { scale, viewportWidth, viewportHeight } = camera.getState();
       const safeViewportWidth = viewportWidth || canvas.clientWidth || 1;
       const safeViewportHeight = viewportHeight || canvas.clientHeight || 1;
-      const topPadding = clamp(safeViewportHeight * 0.024, 12, 24);
+      // Reserve a header row for the global star count, above the canvas banner.
+      const topPadding = Math.max(56, (document.getElementById('chapterTotalStars')?.offsetHeight || 0) + 28);
       const bottomPadding = Math.max(64, (chapterNavEl?.getBoundingClientRect().height || 46) + 40);
       const availableHeight = Math.max(1, safeViewportHeight - topPadding - bottomPadding);
       const availableWidth = Math.max(1, safeViewportWidth - Math.max(32, safeViewportWidth * 0.07));

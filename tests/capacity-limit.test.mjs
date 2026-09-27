@@ -71,7 +71,8 @@ test('486 AC-3/4/6, 491 AC-1: bilingual ports, free grid, hints, revision and ag
   for (const [data,title] of [[ko,'Capacity Check'],[en,'Capacity Check']]) {
     assert.equal(data.levelTitles[47], title);
     assert.equal(data.levelDescriptions[47].title, title);
-    assert.match(data.levelDescriptions[47].desc, /L1 L0/);
+    const guide = data.levelDescriptions[47];
+    assert.match([guide.desc, ...guide.rules.flat()].join(' '), /L1 L0/);
     const hints = data.levelHints.stage47.hints;
     assert.equal(hints.length, 3);
     assert.ok(hints.every(h => h.type && h.content));

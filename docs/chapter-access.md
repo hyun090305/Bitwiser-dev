@@ -16,11 +16,15 @@
 
 ID 0~47, nodeId, 저장 키는 유지합니다. Majority(7)만 C2에서 C1로 옮깁니다. 48개 슬롯과 43개 직선 화살표의 원본은 `stageCatalog.js`, `stageMapTopology.js`이며 `node scripts/restructure-stage-map.mjs`로 `stage_map.json`을 재생성합니다. [배치 참조](stage-map-reference.json)와 `tests/fixtures/progression-layout.json`은 이슈의 정확한 슬롯/연결을 기록합니다.
 
-한영 기능명과 전체 안내문 원본은 `scripts/data/stage-copy.json`입니다. `node scripts/apply-stage-copy.mjs`는 제목·설명과 C5 상한만 갱신합니다. 메모리 생성 스크립트도 이 함수를 사용합니다. 정답표, FSM, 보드, 고정 IO, D/EN, 입력 종류, 비용/채점 버전, C1~4 상한은 바꾸지 않습니다. ID 33은 LEVEL 즉시 반영, 38은 ADDR 즉시 읽기, 46은 첫 COMPLETE tick 계약을 유지합니다.
+한영 기능명과 안내 원본은 `scripts/data/stage-copy.json`입니다. 각 문제는 짧은 목표와 필요한 고유 규칙 표(`levelDescriptions.rules`), 기존 진리표/시퀀스를 표시합니다. 초기값·우선순위·유지 조건을 표에 남기고 공통 신호·이진수·배선·tick·입력 조작은 기존 조작법 도움말에서 제공합니다. `LOGIC NODE:` 접두사와 반복 스토리/소제목은 표시하지 않습니다. 고정 I/O는 배지로 표시합니다.
+
+`node scripts/apply-stage-copy.mjs`는 제목·목표·규칙 표와 C5 상한만 갱신합니다. 메모리 생성 스크립트도 이 함수를 사용합니다. 정답표, FSM, 보드, 고정 IO, D/EN, 입력 종류, 비용/채점 버전, C1~4 상한은 바꾸지 않습니다. ID 33은 LEVEL 즉시 반영, 38은 ADDR 즉시 읽기, 46은 첫 COMPLETE tick 계약을 유지합니다.
+
+누적 별은 맵 우측 상단에 `★ 61`처럼 독립적으로 표시합니다. 하단 전환 바의 이전/다음 버튼은 같은 너비이며 챕터명을 중앙에 둡니다. 챕터 설명은 기존 상단 배너의 짧은 부제만 사용합니다. 긴 하단 도입문·해금 완료 상시 문구·별도 스토리 팝업은 없습니다.
 
 ## 잠김과 최초 해금
 
-잠긴 챕터 탭에서도 맵을 볼 수 있습니다. `chapterUnlockUI.js`는 맵 패널만 약 60% 어둡게 덮고 조건·현재·남은 별을 표시합니다. 제목·탭·누적 별은 선명하며 클릭/터치/키보드와 `startLevel`의 접근 검사가 실행을 막습니다.
+잠긴 챕터 탭에서도 맵을 볼 수 있습니다. `chapterUnlockUI.js`는 맵 패널만 약 60% 어둡게 덮고 자물쇠 → 잠김 제목 → `★ 현재/필요`를 표시합니다. 체험판 C3~5는 자물쇠와 `정식판 전용 / Full version only`만 표시합니다. 제목·탭·누적 별은 선명하며 클릭/터치/키보드와 `startLevel`의 접근 검사가 실행을 막습니다.
 
 접근권은 별 획득 즉시 저장하고, `pendingChapters`/`seenChapters`는 연출 상태만 기록합니다. 결과의 기존 별→축소→설계도 연출이 끝나면 해금 소식을 표시합니다. 맵으로 돌아가면 새 챕터에서 약 900ms 동안 고리가 열리고 덮개가 사라집니다. 특정 문제를 추천하거나 자동 실행하지 않습니다.
 
@@ -44,6 +48,7 @@ ID 0~47, nodeId, 저장 키는 유지합니다. Majority(7)만 C2에서 C1로 �
 
 - `npm test`: 한영 계약 snapshot, 48개 슬롯/43개 연결, 상한 경계, C5 실제 회로 9개, 누적 별/이전/손상 복구/체험판 범위를 검사합니다.
 - `node scripts/verify-star-progression.mjs`: 정식 웹 한영에서 실제 17→19★ 클리어, 네 잠김 맵/API, 결과 순서, 스킵/탭 이동/재시작/다중 대기/reduced motion을 검사합니다.
+- `node scripts/verify-concise-ui.mjs` 및 `--electron`: 실제 진입점에서 한영 전체 안내·규칙·도움말, 360~1440px 맵과 1/61/141★, 체험판 제한 문구, 사용자 문제로 전환 시 안내 초기화를 검사합니다.
 - `npm run test:map:browser`: 실제 48개 카드 진입과 맵 배치·키보드·터치·이전을 검사합니다.
 - `npm run build:demo`, `npm run preview:demo` 후 `npm run test:demo:browser`: 로컬 저장/복원, 한영 17개 카드, 별 해금, ID 30 종료, 정식판 제한을 검사합니다.
 - `npm run test:cost:browser`, `npm run test:results:browser`, `npm run test:full:web`, `npm run test:full:electron`, `npm run test:dev:browser`는 해당 실제 실행 경로를 검사합니다. 현재 실행 결과는 PR에 기록합니다.
