@@ -776,7 +776,7 @@
   "38": {
     "title": "Register Bank",
     "ko": "ADDR로 고른 주소에 저장하고, 그 주소의 값을 Q1 Q0로 출력하세요.",
-    "en": "Store at the address selected by ADDR and output that address at Q1 Q0.",
+    "en": "Store at the address selected by ADDR and output its value at Q1 Q0.",
     "rules": {
       "ko": [
         [

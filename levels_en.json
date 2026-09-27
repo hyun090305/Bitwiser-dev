@@ -8648,7 +8648,7 @@
     },
     "38": {
       "title": "Register Bank",
-      "desc": "Store at the address selected by ADDR and output that address at Q1 Q0.",
+      "desc": "Store at the address selected by ADDR and output its value at Q1 Q0.",
       "table": [
         {
           "tick": 1,
