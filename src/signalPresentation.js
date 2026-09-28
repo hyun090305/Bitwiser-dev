@@ -24,8 +24,13 @@ export function signalDisplayName(name, stageId = null) {
   return ALIASES[stageId]?.[name] || name;
 }
 
+export function blockDisplayName(type, name, stageId = null) {
+  return type === 'INPUT' || type === 'OUTPUT' ? signalDisplayName(name, stageId) : name;
+}
+
+// Subscripts belong to labels drawn inside blocks, never prose or overlays.
 export function blockDisplayLabel(type, name, stageId = null) {
-  return formatBlockLabels(type === 'INPUT' || type === 'OUTPUT' ? signalDisplayName(name, stageId) : name);
+  return formatBlockLabels(blockDisplayName(type, name, stageId));
 }
 
 export function diagnosticDisplayText(text, block, stageId = null) {

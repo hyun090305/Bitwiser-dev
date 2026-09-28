@@ -1,4 +1,4 @@
-import { blockDisplayLabel } from '../signalPresentation.js';
+import { blockDisplayName } from '../signalPresentation.js';
 import { connectionDiagnostics, editConnectionDiagnostics, wireStartDiagnostic, assignNewInputRole, normalizeAfterEdit, swapMemoryInputs, incomingWires } from './connections.js';
 import { getExecutionState, synchronizeExecution, resetExecution, toggleButton, getEvaluationResult } from './evaluation.js';
 import { createMemoryControls, D_HELP } from '../modules/memoryControls.js';
@@ -743,7 +743,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       paletteCostTooltip.append(label, price); document.body.append(paletteCostTooltip);
     }
     const ko = (window.currentLang || document.documentElement.lang || 'ko') === 'ko';
-    paletteCostTooltip.firstElementChild.textContent = blockDisplayLabel(item.type, normalizePaletteLabel(item.type, item.label), stageId);
+    paletteCostTooltip.firstElementChild.textContent = blockDisplayName(item.type, normalizePaletteLabel(item.type, item.label), stageId);
     paletteCostTooltip.lastElementChild.textContent = `${ko ? '비용' : 'Cost'} ${COST_RULES.prices[item.type] ?? '—'}`;
     paletteCostTooltip.hidden = false;
     const { width, height } = paletteCostTooltip.getBoundingClientRect();

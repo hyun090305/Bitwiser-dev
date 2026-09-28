@@ -17,7 +17,7 @@ export function blueprintLayout(circuit, scale = 1, stageId = null) {
   blocks.forEach(b => {
     const alias = `${prefixes[b.type] || b.type}${counts[b.type] = (counts[b.type] || 0) + 1}`;
     const defaultName = b.name === b.type || (b.type === 'JUNCTION' && b.name === 'JUNC');
-    aliases[b.id] = ['INPUT', 'OUTPUT'].includes(b.type) ? (stageId == null ? b.name || b.type : blockDisplayLabel(b.type, b.name || b.type, stageId)) : b.name && !defaultName ? b.name : alias;
+    aliases[b.id] = ['INPUT', 'OUTPUT'].includes(b.type) ? blockDisplayLabel(b.type, b.name || b.type, stageId) : b.name && !defaultName ? b.name : alias;
     if (sources.has(b.id)) colors[b.id] = BLUEPRINT.colors[Object.keys(colors).length % BLUEPRINT.colors.length];
   });
   const points = [...blocks.map(b => b.pos), ...Object.values(snapshot.wires).flatMap(w => w.path)];

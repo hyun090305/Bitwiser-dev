@@ -2,7 +2,6 @@ import { gradeCircuit } from './circuitGrading.js';
 import { pauseCircuit } from '../canvas/tickRunner.js';
 import { getCircuitStats, snapshotCircuit } from '../canvas/circuitData.js';
 import { triggerConfetti } from './confetti.js';
-import { formatBlockLabels } from '../blockLabel.js';
 import { createGradingResultView } from './gradingResultView.js';
 import { storageErrorMessage } from './circuitStorage.js';
 
@@ -31,13 +30,13 @@ function setInlineStatus(ui, { title, percent, text, detail, state }) {
   if (!ui || !ui.container) return;
   ui.container.hidden = false;
   ui.container.dataset.state = state || 'running';
-  if (ui.title && typeof title === 'string') ui.title.textContent = formatBlockLabels(title);
+  if (ui.title && typeof title === 'string') ui.title.textContent = title;
   if (ui.percent && Number.isFinite(percent)) ui.percent.textContent = `${percent}%`;
   if (ui.fill && Number.isFinite(percent)) {
     ui.fill.style.width = `${percent}%`;
   }
-  if (ui.text && typeof text === 'string') ui.text.textContent = formatBlockLabels(text);
-  if (ui.detail && typeof detail === 'string') ui.detail.textContent = formatBlockLabels(detail);
+  if (ui.text && typeof text === 'string') ui.text.textContent = text;
+  if (ui.detail && typeof detail === 'string') ui.detail.textContent = detail;
 }
 
 async function attemptAutoSave({

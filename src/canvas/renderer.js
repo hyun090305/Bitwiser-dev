@@ -1,4 +1,4 @@
-import { blockDisplayLabel } from '../signalPresentation.js';
+import { blockDisplayLabel, blockDisplayName } from '../signalPresentation.js';
 import { CELL, GAP } from './model.js';
 import { getActiveTheme, getThemeAccent } from '../themes.js';
 import { formatBlockLabels } from '../blockLabel.js';
@@ -1092,7 +1092,7 @@ export function renderContent(
     roundRect(ctx, rect.x - 4, rect.y - 4, rect.size + 8, rect.size + 8, 6); ctx.stroke();
     ctx.shadowBlur = 0;
     if (traceHighlight.type === 'expect' || traceHighlight.type === 'observe') {
-      const label = `${blockDisplayLabel(block.type, signal.signal, options.stageId)}  ${signal.actual} ${failed ? '✕' : '✓'}`;
+      const label = `${blockDisplayName(block.type, signal.signal, options.stageId)}  ${signal.actual} ${failed ? '✕' : '✓'}`;
       const expected = `EXPECTED ${signal.expected}`;
       ctx.font = 'bold 12px monospace';
       const width = Math.max(ctx.measureText(label).width, ctx.measureText(expected).width) + 18;

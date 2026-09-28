@@ -3,6 +3,11 @@ import fs from 'node:fs';
 import { formatBlockLabels } from '../src/blockLabel.js';
 
 const aliases = JSON.parse(fs.readFileSync(new URL('../tests/fixtures/signal-aliases.json', import.meta.url), 'utf8'));
+const numberedLabels = {
+  1: [['IN1','IN₁'], ['OUT1','OUT₁']],
+  33: [['L1','L₁'], ['L0','L₀']],
+  46: [['Q2','Q₂'], ['R1','R₁']]
+};
 
 // Runs against the actual web/demo/Electron entry after the intro layout checks.
 export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
@@ -26,21 +31,39 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
       } else click.call(this);
     };
     CanvasRenderingContext2D.prototype.fillText = function(text, ...args) {
-      if (window.captureSignals) window.signalDraws.push({ text:String(text), attached:this.canvas.isConnected, canvas:this.canvas.id });
+      if (window.captureSignals) {
+        const point = this.getTransform().transformPoint(new DOMPoint(args[0], args[1]));
+        const bounds = this.canvas.getBoundingClientRect();
+        window.signalDraws.push({ text:String(text), attached:this.canvas.isConnected, canvas:this.canvas.id,
+          x:bounds.x + point.x * bounds.width / this.canvas.width, y:bounds.y + point.y * bounds.height / this.canvas.height });
+      }
       return fill.call(this, text, ...args);
     };
   }, surface);
   try {
-    for (const id of ids.filter(id => aliases[id])) {
+    for (const id of ids.filter(id => id === 1 || aliases[id])) {
+      await page.evaluate(async id => {
+        window.signalDraws = []; window.captureSignals = true;
+        await (await import('./src/modules/levels.js')).startLevel(id);
+      }, id);
+      await page.locator('#startLevelBtn').click();
+      const palette = await page.evaluate(async () => {
+        signalDraws = [];
+        (await import('./src/modules/grid.js')).getPlayController().refreshVisuals();
+        return signalDraws.filter(d=>d.canvas==='bgCanvas');
+      });
+      for (const [plain, block] of numberedLabels[id] || []) {
+        const target = palette.find(d=>d.text===block);
+        assert.ok(target, `${surface}/${lang}/${id}: literal palette label ${block}`);
+        await page.mouse.move(target.x, target.y);
+        assert.equal(await page.locator('.palette-cost-tooltip:not([hidden]) span').innerText(), plain);
+      }
       const observed = await page.evaluate(async ({id,surface}) => {
         const levels = await import('./src/modules/levels.js');
         const grid = await import('./src/modules/grid.js');
         const { snapshotCircuit } = await import('./src/canvas/circuitData.js');
         const validateRecord = surface === 'demo' ? record => record : (await import('./src/modules/savedCircuitRecord.js')).validateSavedCircuitRecord;
-        window.signalDraws = []; window.captureSignals = true;
-        await levels.startLevel(id);
         const controller = grid.getPlayController();
-        const palette = signalDraws.map(d => d.text);
         const rawPorts = levels.getLoadedStageData().levelBlockSets[id].filter(b => ['INPUT','OUTPUT'].includes(b.type));
         const circuit = snapshotCircuit(controller.circuit);
         circuit.wires = {};
@@ -71,26 +94,27 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
         view.destroy();
         window.signalDraft = snapshotCircuit(controller.circuit);
         window.captureSignals = false;
-        return {stageId:controller.stageId, palette, restored, original, ports:rawPorts, traceLabels, diagnostic,
+        return {stageId:controller.stageId, restored, original, ports:rawPorts, traceLabels, diagnostic,
           traceUnchanged:rawTrace===JSON.stringify(trace), fixed:Boolean(levels.getLoadedStageData().levelFixedIO[id]?.fixIO)};
       }, {id,surface});
       const context = `${surface}/${lang}/${id}`;
       assert.equal(observed.stageId, id, context);
       assert.ok(observed.traceUnchanged, context);
-      assert.deepEqual(observed.traceLabels, ['INPUT','OUTPUT'].flatMap(type => observed.ports.filter(b=>b.type===type).map(b=>aliases[id][b.name] || b.name)), context);
+      assert.deepEqual(observed.traceLabels, ['INPUT','OUTPUT'].flatMap(type => observed.ports.filter(b=>b.type===type).map(b=>aliases[id]?.[b.name] || b.name)), context);
+      assert.doesNotMatch(observed.traceLabels.join(' ') + observed.diagnostic, /[₀-₉]/);
       for (const restored of observed.restored) {
         assert.equal(restored.design, observed.original, `${context}: saved raw design preserved`);
-        for (const [raw, label] of Object.entries(aliases[id])) {
+        for (const [raw, label] of Object.entries(aliases[id] || {})) {
           assert.ok(restored.labels.includes(formatBlockLabels(label)), `${context}: restored block ${label}`);
           assert.ok(!restored.labels.includes(formatBlockLabels(raw)), `${context}: obsolete block ${raw}`);
-          if (!observed.fixed) assert.ok(observed.palette.includes(formatBlockLabels(label)), `${context}: palette ${label}`);
+          if (!observed.fixed) assert.ok(palette.some(d=>d.text===formatBlockLabels(label)), `${context}: palette ${label}`);
         }
+        for (const [, block] of numberedLabels[id] || []) assert.ok(restored.labels.includes(block), `${context}: literal block ${block}`);
       }
       const firstOutput = observed.ports.find(b=>b.type==='OUTPUT').name;
-      assert.ok(observed.diagnostic.includes(aliases[id][firstOutput] || firstOutput), `${context}: diagnostic`);
+      assert.ok(observed.diagnostic.includes(aliases[id]?.[firstOutput] || firstOutput), `${context}: diagnostic`);
 
       // Manual export uses the stage captured from the actual active controller.
-      await page.locator('#startLevelBtn').click();
       await page.evaluate(async ({surface,id,lang}) => {
         window.signalDraws = []; window.captureSignals = true;
         if (surface === 'demo') document.getElementById('demoShareBtn').click();
@@ -98,7 +122,8 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
       }, {surface,id,lang});
       await page.locator('.blueprint-export .blueprint-share[data-state="ready"]').waitFor();
       const pngLabels = await page.evaluate(() => signalDraws.filter(d=>!d.attached).map(d=>d.text));
-      for (const label of Object.values(aliases[id])) assert.ok(pngLabels.join('').includes(formatBlockLabels(label)), `${context}: PNG ${label}`);
+      for (const label of Object.values(aliases[id] || {})) assert.ok(pngLabels.join('').includes(formatBlockLabels(label)), `${context}: PNG ${label}`);
+      for (const [, block] of numberedLabels[id] || []) assert.ok(pngLabels.includes(block), `${context}: literal PNG block ${block}`);
       if ([10,37,39,46].includes(id)) await page.screenshot({path:`${out}/${surface}-${lang}-signals-${id}.png`});
       // The saved GIF uses the same frozen stage context as the PNG preview.
       await page.evaluate(() => { window.signalDraws = []; window.signalDownload = null; });
@@ -113,7 +138,8 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
         assert.match(file.signature,/^GIF8[79]a$/); assert.ok(file.size>6, `${context}: encoded GIF link`);
       }
       const gifLabels = await page.evaluate(() => signalDraws.filter(d=>!d.attached).map(d=>d.text));
-      for (const label of Object.values(aliases[id])) assert.ok(gifLabels.includes(formatBlockLabels(label)), `${context}: GIF ${label}`);
+      for (const label of Object.values(aliases[id] || {})) assert.ok(gifLabels.includes(formatBlockLabels(label)), `${context}: GIF ${label}`);
+      for (const [, block] of numberedLabels[id] || []) assert.ok(gifLabels.includes(block), `${context}: literal GIF block ${block}`);
       await page.keyboard.press('Escape');
       await page.evaluate(() => { window.captureSignals = false; });
     }
@@ -130,13 +156,13 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
           wires:{w:{id:'w',startBlockId:'i',endBlockId:'o',path:[{r:1,c:1},{r:1,c:2},{r:1,c:3}]}}};
         let release;
         Object.defineProperty(document.fonts,'ready',{configurable:true,value:new Promise(resolve=>{release=resolve;})});
-        const pending = createBlueprintPng({circuit:draft,title:'Frozen target',stageId:9});
+        const pending = createBlueprintPng({circuit:draft,title:'IN1 OUT1 tick 10',stageId:9});
         await levels.startLevel(37); // Another official context while PNG awaits fonts.
         signalDraws=[]; captureSignals=true;
         release(); await pending; delete document.fonts.ready;
         const png=signalDraws.filter(d=>!d.attached).map(d=>d.text);
         signalDraws=[];
-        const gif = createCircuitGif(draft,{stageId:9});
+        const gif = createCircuitGif(draft,{stageId:9,caption:'IN1 OUT1 tick 10'});
         await levels.startLevel(46);
         await gif;
         const gifLabels=signalDraws.filter(d=>!d.attached).map(d=>d.text);
@@ -145,6 +171,9 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
         const canvas=document.createElement('canvas');canvas.width=600;canvas.height=600;
         renderContent(canvas.getContext('2d'),draft,0,0,null,null,{stageId:9});
         const overlay=signalDraws.map(d=>d.text);
+        signalDraws=[];
+        renderContent(canvas.getContext('2d'),draft,0,0,null,null,{});
+        const plainOverlay=signalDraws.map(d=>d.text);
         // Custom setup and Lab use no official-stage context, even after stage 46.
         const custom=await grid.setupGrid('canvasContainer',6,6,levels.buildPaletteGroups([{type:'INPUT',name:'IN1'},{type:'OUTPUT',name:'OUT1'}]),{deferPlayback:true});
         custom.restoreCircuit(snapshotCircuit(draft)); signalDraws=[];custom.refreshVisuals();
@@ -156,20 +185,22 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
         signalDraws=[];controller.refreshVisuals();
         const labLabels=signalDraws.map(d=>d.text), labStage=controller.stageId;
         captureSignals=false;
-        return {png,gifLabels,overlay,customLabels,customStage,labLabels,labStage};
+        return {png,gifLabels,overlay,plainOverlay,customLabels,customStage,labLabels,labStage};
       });
       for (const labels of [isolated.png,isolated.gifLabels]) {
         assert.ok(labels.includes('A') && labels.includes('SUM'), `${surface}: captured export stage survives navigation`);
         assert.ok(!labels.includes('IN₁') && !labels.includes('OUT₁'));
+        assert.ok(labels.includes('IN1 OUT1 tick 10'), `${surface}: export caption uses ordinary digits`);
       }
       assert.ok(isolated.overlay.some(s=>s.startsWith('SUM  ') && s.includes('✕')), `${surface}: playback overlay aliases`);
+      assert.ok(isolated.plainOverlay.includes('OUT1  0 ✕') && isolated.plainOverlay.includes('OUT₁'), `${surface}: plain playback text alongside subscript block`);
       assert.equal(isolated.customStage,null); assert.equal(isolated.labStage,null);
       for (const labels of [isolated.customLabels,isolated.labLabels]) assert.ok(labels.includes('IN₁') && labels.includes('OUT₁'), `${surface}: custom/Lab names`);
       // Lab export must use the Lab circuit, not the retained official controller.
       await page.evaluate(async () => { signalDraws=[];captureSignals=true;(await import('./src/modules/circuitShare.js')).handleGIFExport(); });
       await page.locator('.blueprint-export .blueprint-share[data-state="ready"]').waitFor();
       const labels=await page.evaluate(()=>signalDraws.filter(d=>!d.attached).map(d=>d.text));
-      assert.ok(labels.includes('IN1') && labels.includes('OUT1'), `${surface}: Lab PNG preserves custom names`);
+      assert.ok(labels.includes('IN₁') && labels.includes('OUT₁'), `${surface}: Lab PNG uses block typography without official aliases`);
       await page.keyboard.press('Escape');
       await page.locator('#labExitBtn').click();
       await page.waitForFunction(()=>!document.body.classList.contains('lab-mode-active'));

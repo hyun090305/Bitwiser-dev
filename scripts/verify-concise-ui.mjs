@@ -3,7 +3,6 @@ import path from 'node:path';
 import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium, _electron } from 'playwright';
-import { formatIntroText } from '../src/modules/introPresentation.js';
 import { verifySignalSurfaces } from './signal-ui-checks.mjs';
 import { verifyIntroCards } from './intro-ui-checks.mjs';
 import { observeMap, goToMap } from './demo-browser-helpers.mjs';
@@ -18,6 +17,8 @@ const testFonts = process.env.INTRO_FONT_DIR ? await Promise.all([
   ['Press Start 2P', 'intro-press-start.ttf'], ['Noto Sans KR', 'intro-noto.ttf']
 ].map(async ([family, file]) => ({ family, source:`url(data:font/ttf;base64,${(await fs.readFile(path.join(process.env.INTRO_FONT_DIR, file))).toString('base64')})` }))) : [];
 const copy = JSON.parse(await fs.readFile('scripts/data/stage-copy.json', 'utf8'));
+// Reviewed literal translations; expected strings never call the UI formatter.
+const introText = JSON.parse(await fs.readFile('tests/fixtures/intro-text.json', 'utf8'));
 const report = [];
 try {
   for (const surface of native ? ['electron'] : process.argv.includes('--demo') ? ['demo'] : ['full', 'demo']) {
@@ -134,8 +135,9 @@ try {
               document.querySelector('.level-intro-screen__panel').scrollTop=0;
             },id);
             assert.equal(await page.locator('#introTitle').innerText(),copy[id].title);
-            assert.equal(await page.locator('#introDesc').innerText(),formatIntroText(copy[id][lang], stageData.levelBlockSets[id], id));
-            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang].map(rule => rule.map(text => formatIntroText(text, stageData.levelBlockSets[id], id))));
+            assert.equal(await page.locator('#introDesc').innerText(),introText[id]?.[lang] ?? copy[id][lang]);
+            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang].map((rule,i) => introText[id]?.rules?.[lang]?.[i] ?? rule));
+            assert.doesNotMatch(await page.locator('#introDesc').innerText() + await page.locator('#introRules').innerText(), /[₀-₉]/);
             if (id===15) {
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').first().locator('.level-intro-case__side--output .level-intro-case__bit-label').allTextContents(),['R1','R0']);
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').nth(1).locator('.level-intro-case__side--output .level-intro-case__bit-value').allTextContents(),['1','1']);

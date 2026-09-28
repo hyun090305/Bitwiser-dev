@@ -4,10 +4,12 @@ import fs from 'node:fs';
 import { formatBlockLabels } from '../src/blockLabel.js';
 import { formatIntroText, parseLogicRows } from '../src/modules/introPresentation.js';
 import { stageRules } from '../src/modules/costRecords.js';
-import { signalDisplayName, signalDisplayText, blockDisplayLabel, hintDisplayText, diagnosticDisplayText } from '../src/signalPresentation.js';
+import { signalDisplayName, signalDisplayText, blockDisplayName, blockDisplayLabel, hintDisplayText, diagnosticDisplayText } from '../src/signalPresentation.js';
 import { blueprintLayout } from '../src/canvas/blueprintExport.js';
 
 const aliases = JSON.parse(fs.readFileSync(new URL('./fixtures/signal-aliases.json', import.meta.url), 'utf8'));
+const introText = JSON.parse(fs.readFileSync(new URL('./fixtures/intro-text.json', import.meta.url), 'utf8'));
+const copy = JSON.parse(fs.readFileSync('scripts/data/stage-copy.json', 'utf8'));
 
 const languages = ['levels.json', 'levels_en.json'].map(file => JSON.parse(fs.readFileSync(file, 'utf8')));
 const orders = {
@@ -30,12 +32,30 @@ const orders = {
   46: ['A2 A1 A0 B1 B0', 'Q2 Q1 Q0 R1 R0 COMPLETE']
 };
 
-test('497 AC-1: reuse block subscripts only for IO names, preserving ordinary numbers', () => {
+test('497 AC-1: only block labels use subscripts; bilingual prose uses literal plain-digit expectations', () => {
   assert.equal(formatBlockLabels('IN1 IN2 OUT1 BIT0 A1 INC DEC AND'), 'IN₁ IN₂ OUT₁ BIT₀ A₁ INC DEC AND');
-  const ports = ['IN1', 'IN2', 'IN3', 'OUT1', 'OUT2', 'OUT3', 'BIT1', 'BIT0'].map(name => ({type:'INPUT', name}));
-  assert.equal(formatIntroText('IN1을 IN2와 OUT1으로. BIT1 BIT0=00, tick 10, 0/1, 0~3, STAGE 32, V2, AND.', ports),
-    'IN₁을 IN₂와 OUT₁으로. BIT₁ BIT₀=00, tick 10, 0/1, 0~3, STAGE 32, V2, AND.');
-  assert.equal(formatIntroText('OUT1·2·3=IN3·1·2. IN10 XIN1 IN1_suffix OUT1·9', ports), 'OUT₁·₂·₃=IN₃·₁·₂. IN10 XIN1 IN1_suffix OUT1·9');
+  assert.equal(formatIntroText('IN1을 IN2와 OUT1으로. BIT1 BIT0=00, tick 10, 0/1, 0~3, STAGE 32, V2, AND.'),
+    'IN1을 IN2와 OUT1으로. BIT1 BIT0=00, tick 10, 0/1, 0~3, STAGE 32, V2, AND.');
+  assert.equal(formatIntroText('OUT1·2·3=IN3·1·2. IN10 XIN1 IN1_suffix OUT1·9', 21), 'OUT1·2·3=IN3·1·2. IN10 XIN1 IN1_suffix OUT1·9');
+  for (const [index, lang] of ['ko', 'en'].entries()) {
+    for (const [id, desc] of Object.entries(languages[index].levelDescriptions)) {
+      const expected = introText[id];
+      assert.equal(formatIntroText(desc.desc, id), expected?.[lang] ?? copy[id][lang], `${id}/${lang}/desc`);
+      assert.deepEqual(desc.rules.map(rule => rule.map(text => formatIntroText(text, id))),
+        copy[id].rules[lang].map((rule, i) => expected?.rules?.[lang]?.[i] ?? rule), `${id}/${lang}/rules`);
+      assert.doesNotMatch(formatIntroText(desc.desc + JSON.stringify(desc.rules), id), /[₀-₉]/);
+    }
+  }
+  for (const [type, raw, stageId, plain, block] of [
+    ['INPUT', 'IN1', 1, 'IN1', 'IN₁'], ['OUTPUT', 'OUT1', 1, 'OUT1', 'OUT₁'],
+    ['INPUT', 'LEVEL1', 33, 'L1', 'L₁'], ['INPUT', 'LEVEL0', 33, 'L0', 'L₀'],
+    ['OUTPUT', 'Q2', 46, 'Q2', 'Q₂']
+  ]) {
+    assert.equal(blockDisplayName(type, raw, stageId), plain);
+    assert.equal(blockDisplayLabel(type, raw, stageId), block);
+    const circuit = {rows:2,cols:2,blocks:{b:{id:'b',type,name:raw,pos:{r:0,c:0}}},wires:{}};
+    assert.equal(blueprintLayout(circuit, 1, stageId).aliases.b, block);
+  }
 });
 
 test('497 AC-4/6: all 562 bilingual rows preserve raw keys, values, timing and authoritative data', () => {
@@ -64,8 +84,8 @@ test('497 AC-4/6: all 562 bilingual rows preserve raw keys, values, timing and a
           assert.deepEqual(row[side].map(s => s.label), expected.map(key => aliases[id]?.[key] || key), `${id}/${side}`);
         }
       });
-      formatIntroText(desc.desc, blocks);
-      for (const rule of desc.rules || []) rule.forEach(text => formatIntroText(text, blocks));
+      formatIntroText(desc.desc, id);
+      for (const rule of desc.rules || []) rule.forEach(text => formatIntroText(text, id));
       assert.equal(stageRules(data, id), rules[id]);
     }
     assert.deepEqual(data, before);
@@ -86,7 +106,7 @@ test('497 AC-7/8: official aliases preserve raw designs and require an explicit 
     for (const [raw, display] of Object.entries(names)) {
       assert.equal(signalDisplayName(raw, stageId), display);
       assert.equal(official.aliases[raw], formatBlockLabels(display));
-      assert.equal(custom.aliases[raw], raw);
+      assert.equal(custom.aliases[raw], formatBlockLabels(raw));
       assert.equal(signalDisplayName(raw), raw);
       assert.equal(blockDisplayLabel('AND', raw, stageId), formatBlockLabels(raw));
       assert.equal(signalDisplayText(`X${raw} ${raw}_suffix`, stageId), `X${raw} ${raw}_suffix`);

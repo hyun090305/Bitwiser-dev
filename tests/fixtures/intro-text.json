@@ -1,0 +1,144 @@
+{
+  "9": {
+    "ko": "A와 B를 더해 COUT SUM으로 출력하세요.",
+    "en": "Add A and B and output COUT SUM."
+  },
+  "10": {
+    "ko": "A·B·CIN을 더해 COUT SUM으로 출력하세요.",
+    "en": "Add A, B and CIN and output COUT SUM."
+  },
+  "21": {
+    "ko": "SEL로 세 신호의 출력 위치를 고르세요.",
+    "en": "Use SEL to select the output positions of three signals.",
+    "rules": {
+      "ko": {"0": ["선택", "SEL=0: OUT1·2·3=IN1·2·3. SEL=1: OUT1·2·3=IN3·1·2."]},
+      "en": {"0": ["Selection", "SEL=0: OUT1/2/3=IN1/2/3. SEL=1: OUT1/2/3=IN3/1/2."]}
+    }
+  },
+  "29": {
+    "ko": "A와 B의 응답이 모두 모인 tick에 DONE을 켜세요.",
+    "en": "Set DONE on the tick when responses from both A and B have arrived.",
+    "rules": {
+      "ko": {
+        "1": ["확인", "두 응답이 모이면 DONE=1, 기록은 모두 지웁니다. 그 외에는 DONE=0."],
+        "2": ["동시 응답", "동시에 와도 확인합니다. 매 tick 함께 오면 DONE=1을 유지합니다."],
+        "3": ["초기값", "기록 없음, DONE=0."]
+      },
+      "en": {
+        "1": ["Confirmation", "Once both arrive, set DONE=1 and clear both records. Otherwise DONE=0."],
+        "2": ["Together", "Simultaneous responses count. Both on every tick keeps DONE=1."],
+        "3": ["Initial", "No responses recorded; DONE=0."]
+      }
+    }
+  },
+  "30": {
+    "ko": "IN=1인 tick부터 3 tick 동안 OUT을 켜세요.",
+    "en": "Keep OUT on for three ticks starting with a tick where IN=1.",
+    "rules": {
+      "ko": {"0": ["시간", "요청 tick을 포함합니다. 새 IN은 그 tick부터 3 tick을 다시 셉니다."], "2": ["초기값", "OUT=0."]},
+      "en": {"0": ["Timing", "Include the request tick. A new IN restarts the three ticks from that tick."], "2": ["Initial", "OUT=0."]}
+    }
+  },
+  "31": {
+    "ko": "SIG가 이전 tick의 0에서 현재 tick의 1로 바뀌면 RISE를 켜세요.",
+    "en": "Set RISE when SIG changes from 0 at the previous tick to 1 at the current tick.",
+    "rules": {
+      "ko": {"1": ["초기값", "이전 SIG=0, RISE=0."]},
+      "en": {"1": ["Initial", "Previous SIG=0; RISE=0."]}
+    }
+  },
+  "33": {
+    "ko": "네 칸을 반복하며 L로 고른 개수만큼 앞쪽 칸에서 LIGHT를 켜세요.",
+    "en": "Cycle through four positions; turn LIGHT on in the first L positions.",
+    "rules": {
+      "ko": {
+        "1": ["설정", "L1 L0=0~3. 변경은 현재 칸에 즉시 반영하며 위치는 유지합니다."],
+        "2": ["L=0", "LIGHT=0이어도 반복 위치는 계속 진행합니다."]
+      },
+      "en": {
+        "1": ["Setting", "L1 L0=0–3. Changes apply immediately to the current position without moving it."],
+        "2": ["L=0", "LIGHT=0, but the position keeps advancing."]
+      }
+    }
+  },
+  "37": {
+    "ko": "최근에 받은 네 글자가 ABBA이면 FOUND를 켜세요.",
+    "en": "Set FOUND when the last four received letters are ABBA.",
+    "rules": {
+      "ko": {
+        "0": ["입력", "READ=1인 tick만 수신. BIT=1은 A, 0은 B."],
+        "1": ["기억", "READ=0이면 기록 유지. 앞선 글자는 무관하며 한 번 켜지면 계속 1."],
+        "2": ["초기값", "기록 없음, FOUND=0."]
+      },
+      "en": {
+        "0": ["Input", "Receive only on ticks with READ=1. BIT=1 means A; 0 means B."],
+        "1": ["Memory", "READ=0 retains history. Earlier letters do not matter; once set, stay at 1."],
+        "2": ["Initial", "No letters recorded; FOUND=0."]
+      }
+    }
+  },
+  "39": {
+    "rules": {
+      "ko": {"0": ["저장", "SAVE tick에 현재 Q1 Q0를 백업하고 새 값으로 바꾸며 READY=1."], "3": ["초기값", "현재·백업=00, READY=0."]},
+      "en": {"0": ["Save", "On SAVE ticks, back up Q1 Q0, store the new value, and set READY=1."], "3": ["Initial", "Current and backup=00; READY=0."]}
+    }
+  },
+  "40": {
+    "rules": {
+      "ko": {
+        "1": ["출력", "꺼낸 값은 OUT. 성공한 TAKE만 VALID=1, 성공한 SEND만 ACK=1. 그 외에는 0."],
+        "2": ["유지", "꺼내지 않으면 OUT 유지. 처리 후 차 있으면 FULL=1."],
+        "3": ["초기값", "비어 있음. OUT·VALID·ACK·FULL=0."]
+      },
+      "en": {
+        "1": ["Output", "Output the taken value at OUT. VALID=1 only for successful TAKE; ACK=1 only for successful SEND. Otherwise 0."],
+        "2": ["Hold", "Without a take, retain OUT. FULL=1 if occupied after processing."],
+        "3": ["Initial", "Empty; OUT, VALID, ACK and FULL=0."]
+      }
+    }
+  },
+  "41": {
+    "rules": {
+      "ko": {"1": ["출력", "꺼낸 값은 OUT, 성공한 POP만 VALID=1. 그 외에는 OUT 유지, VALID=0."], "3": ["초기값", "EMPTY=1, OUT·VALID·FULL=0."]},
+      "en": {"1": ["Output", "Output the popped bit at OUT; VALID=1 only on successful POP. Otherwise retain OUT and set VALID=0."], "3": ["Initial", "EMPTY=1; OUT, VALID and FULL=0."]}
+    }
+  },
+  "42": {
+    "rules": {
+      "ko": {"1": ["출력", "꺼낸 값은 OUT, 성공한 POP만 VALID=1. 그 외에는 OUT 유지, VALID=0."], "3": ["초기값", "EMPTY=1, OUT·VALID·FULL=0."]},
+      "en": {"1": ["Output", "Output the popped bit at OUT; VALID=1 only on successful POP. Otherwise retain OUT and set VALID=0."], "3": ["Initial", "EMPTY=1; OUT, VALID and FULL=0."]}
+    }
+  },
+  "43": {
+    "ko": "READ=1인 tick마다 DATA를 받아 네 비트가 모이면 Q를 갱신하세요.",
+    "en": "Receive DATA on ticks with READ=1; update Q when four bits have arrived.",
+    "rules": {
+      "ko": {"0": ["순서", "Q3→Q2→Q1→Q0. READ=0이면 수신 기록 유지."]},
+      "en": {"0": ["Order", "Q3→Q2→Q1→Q0. READ=0 retains received bits."]}
+    }
+  },
+  "44": {
+    "ko": "대기 중 START로 D3 D2 D1 D0를 받아 OUT으로 차례로 보내세요.",
+    "en": "When idle, START accepts D3 D2 D1 D0 to send in order at OUT.",
+    "rules": {
+      "ko": {
+        "2": ["대기", "마지막 비트 다음 tick부터 재시작 가능. 대기 중 OUT 유지, VALID=BUSY=0."],
+        "3": ["초기화", "RESET tick은 최우선으로 전송 취소, OUT·VALID·BUSY=0."],
+        "4": ["초기값", "대기 상태, OUT·VALID·BUSY=0."]
+      },
+      "en": {
+        "2": ["Idle", "Restart from the tick after the last bit. While idle, retain OUT; VALID=BUSY=0."],
+        "3": ["Reset", "RESET takes priority, cancels transmission and clears OUT, VALID and BUSY to 0."],
+        "4": ["Initial", "Idle; OUT, VALID and BUSY=0."]
+      }
+    }
+  },
+  "46": {
+    "ko": "A÷B의 몫 Q와 나머지 R을 구하고 DONE으로 완료를 알리세요.",
+    "en": "Divide A by B to produce quotient Q and remainder R; signal completion with DONE.",
+    "rules": {
+      "ko": {"1": ["판정", "1~10번째 tick 중 첫 DONE=1에서 Q2 Q1 Q0·R1 R0가 정답이어야 합니다."]},
+      "en": {"1": ["Check", "Q2 Q1 Q0 and R1 R0 must be correct at the first DONE=1 on ticks 1–10."]}
+    }
+  }
+}

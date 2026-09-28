@@ -1,5 +1,4 @@
 import { signalDisplayName, signalDisplayText } from '../signalPresentation.js';
-import { formatBlockLabels } from '../blockLabel.js';
 
 // Presentation only: palette/FSM port order is also part of saved cost rules.
 // Numbered terminals are not necessarily bit positions (e.g. decoder outputs).
@@ -18,15 +17,8 @@ const SIGNAL_ORDER = {
   46: { input: ['A2', 'A1', 'A0', 'B1', 'B0'], output: ['Q2', 'Q1', 'Q0', 'R1', 'R0', 'COMPLETE'] }
 };
 
-export function formatIntroText(text, blockSet = [], stageId = null) {
-  const ports = new Set(blockSet.filter(block => block.type === 'INPUT' || block.type === 'OUTPUT').map(block => signalDisplayName(block.name, stageId)));
-  // Match complete IO names, including Korean particles and abbreviated lists
-  // such as OUT1·2·3. Values, ticks, ranges and unrelated identifiers stay plain.
-  return signalDisplayText(text, stageId).replace(/\b([A-Za-z]+)(\d+(?:·\d+)*)\b/g, (name, prefix, suffix) => {
-    const digits = suffix.split('·');
-    if (!digits.every(number => ports.has(prefix + number))) return name;
-    return prefix + digits.map(number => formatBlockLabels(prefix + number).slice(prefix.length)).join('·');
-  });
+export function formatIntroText(text, stageId = null) {
+  return signalDisplayText(text, stageId);
 }
 
 export function parseLogicRows(level, dataTable = [], blockSet = []) {
