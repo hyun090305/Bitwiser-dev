@@ -91,6 +91,7 @@ function collectPaletteGroups(circuit) {
 
 let labInitialized = false;
 let labController = null;
+export const getLabController = () => labController;
 let labCircuit = null;
 let labCamera = null;
 let labResizeHandler = null;

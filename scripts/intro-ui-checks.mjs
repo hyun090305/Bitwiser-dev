@@ -1,4 +1,7 @@
+import fs from 'node:fs';
 import assert from 'node:assert/strict';
+
+const aliases = JSON.parse(fs.readFileSync(new URL('../tests/fixtures/signal-aliases.json', import.meta.url), 'utf8'));
 
 // Measure the final rendered layout, including content outside the scrollport.
 export async function verifyIntroCards(page, { table, stageId, context }) {
@@ -46,7 +49,8 @@ export async function verifyIntroCards(page, { table, stageId, context }) {
   cards.forEach((card, i) => {
     const signals = card.sides.flat();
     const original = table[i];
-    const sourceKey = label => stageId===15 ? ({R1:'S1',R0:'S0'}[plainLabel(label)] || plainLabel(label)) : plainLabel(label);
+    const rawLabel = label => Object.entries(aliases[stageId] || {}).find(([,display]) => display === plainLabel(label))?.[0] || plainLabel(label);
+    const sourceKey = label => stageId===15 ? ({R1:'S1',R0:'S0'}[plainLabel(label)] || plainLabel(label)) : rawLabel(label);
     assert.deepEqual(signals.map(s => sourceKey(s.label)).sort(), Object.keys(original).filter(k => !['tick','observation'].includes(k)).sort(), context);
     for (const signal of signals) {
       assert.equal(signal.value, String(original[sourceKey(signal.label)]).trim(), context);

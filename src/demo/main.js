@@ -154,7 +154,7 @@ function download(blob, name) {
 }
 async function showShare() {
   if (activeStage === null || busy) return;
-  openBlueprintExport(getPlayCircuit(), levels.getLevelTitle(activeStage), lang);
+  openBlueprintExport(getPlayCircuit(), levels.getLevelTitle(activeStage), lang, activeStage);
 }
 let data, starBudgets;
 async function boot() {

@@ -4,14 +4,14 @@ import { WIRE_FLOW_SPEED } from './engine.js';
 import { drawGrid, renderContent, getWireFlowPeriod } from './renderer.js';
 import { getActiveTheme } from '../themes.js';
 
-export async function createCircuitGif(circuit, { caption = '' } = {}) {
+export async function createCircuitGif(circuit, { caption = '', stageId = null } = {}) {
   // Freeze the displayed values as well as the design. A design snapshot alone
   // resets D/button values; evaluating it would also lose the current Q state.
   const snapshot = snapshotCircuit(circuit);
   for (const [id, block] of Object.entries(circuit.blocks)) {
     snapshot.blocks[id].value = block.value;
   }
-  const options = { theme: getActiveTheme(), preserveExisting: true };
+  const options = { theme: getActiveTheme(), preserveExisting: true, stageId };
   const width = snapshot.cols * (CELL + GAP) + GAP;
   const gridHeight = snapshot.rows * (CELL + GAP) + GAP;
   const height = gridHeight + (caption ? 48 : 0);

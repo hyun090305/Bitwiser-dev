@@ -4,6 +4,7 @@ import { createServer } from 'node:http';
 import assert from 'node:assert/strict';
 import { chromium, _electron } from 'playwright';
 import { formatIntroText } from '../src/modules/introPresentation.js';
+import { verifySignalSurfaces } from './signal-ui-checks.mjs';
 import { verifyIntroCards } from './intro-ui-checks.mjs';
 import { observeMap, goToMap } from './demo-browser-helpers.mjs';
 
@@ -79,7 +80,7 @@ try {
             await levels.loadClearedLevelsFromDb();
           }, total);
         };
-        for (const width of [1440, 900, 420, 360]) {
+        for (const width of (process.argv.includes('--signals') ? [] : [1440, 900, 420, 360])) {
           await page.setViewportSize({width,height:width < 500 ? 780 : 980});
           for (const total of surface === 'demo' ? [0] : [1,61,141]) {
             if (surface !== 'demo') await setStars(total);
@@ -125,7 +126,7 @@ try {
         });
         await page.locator('#levelIntroModal').waitFor({state:'visible'});
         const stageData = await page.evaluate(async () => (await import('./src/modules/levels.js')).getLoadedStageData());
-        for (const width of [1440,900,420,360]) {
+        for (const width of (process.argv.includes('--signals') ? [] : [1440,900,420,360])) {
           await page.setViewportSize({width,height:780});
           for (const id of ids) {
             await page.evaluate(async id => {
@@ -133,8 +134,8 @@ try {
               document.querySelector('.level-intro-screen__panel').scrollTop=0;
             },id);
             assert.equal(await page.locator('#introTitle').innerText(),copy[id].title);
-            assert.equal(await page.locator('#introDesc').innerText(),formatIntroText(copy[id][lang], stageData.levelBlockSets[id]));
-            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang].map(rule => rule.map(text => formatIntroText(text, stageData.levelBlockSets[id]))));
+            assert.equal(await page.locator('#introDesc').innerText(),formatIntroText(copy[id][lang], stageData.levelBlockSets[id], id));
+            assert.deepEqual(await page.locator('#introRules tr').evaluateAll(rows=>rows.map(r=>[...r.cells].map(c=>c.textContent))),copy[id].rules[lang].map(rule => rule.map(text => formatIntroText(text, stageData.levelBlockSets[id], id))));
             if (id===15) {
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').first().locator('.level-intro-case__side--output .level-intro-case__bit-label').allTextContents(),['R1','R0']);
               assert.deepEqual(await page.locator('#truthTable .level-intro-case').nth(1).locator('.level-intro-case__side--output .level-intro-case__bit-value').allTextContents(),['1','1']);
@@ -175,6 +176,7 @@ try {
             await verifyIntroCards(page, {table:[{IN2:1,IN1:0,OUT1:1,OUT2:0}],context:`${surface}/${lang}/custom after ${id}`});
           }
         }
+        await verifySignalSurfaces(page, { ids, surface, lang, out });
         // Open common instructions through the actual game menu.
         await page.evaluate(async()=>{
           const levels=await import('./src/modules/levels.js'); await levels.startLevel(1);
@@ -185,9 +187,9 @@ try {
         await page.locator('#controlsDialog').waitFor({state:'visible'});
         assert.match(await page.locator('#controlsBasicsTitle').innerText(),lang==='ko'?/신호/:/Signals/);
         assert.match(await page.locator('#controlsTicks').innerText(),/D/);
-        assert.match(await page.locator('#controlsOutputs').innerText(),/COMPLETE/);
+        assert.match(await page.locator('#controlsOutputs').innerText(),/DONE/);
         assert.deepEqual(errors,[]);
-        report.push({surface,lang,guides:ids.length,guideWidths:[1440,900,420,360],mapWidths:[1440,900,420,360],fonts:testFonts.map(font=>font.family),errors});
+        report.push({surface,lang,guides:ids.length,guideWidths:process.argv.includes('--signals')?[]:[1440,900,420,360],mapWidths:process.argv.includes('--signals')?[]:[1440,900,420,360],fonts:testFonts.map(font=>font.family),errors});
         console.log(`Verified concise UI: ${surface}/${lang}`);
         if (!native) await context.close();
       }

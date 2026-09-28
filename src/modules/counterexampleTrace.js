@@ -1,3 +1,4 @@
+import { signalDisplayName } from '../signalPresentation.js';
 import { eventSignals } from '../canvas/tracePlayback.js';
 
 const element = (tag, className, text) => {
@@ -18,7 +19,7 @@ export function observationLabel(observation, language = globalThis.window?.curr
   return labels[observation]?.[language === 'en' ? 1 : 0] || '';
 }
 
-export function createTraceEvent(event, index) {
+export function createTraceEvent(event, index, stageId = null) {
   const node = element('li', `trace-event trace-event--${event.type}`);
   node.dataset.eventType = event.type;
   node.dataset.eventIndex = index;
@@ -28,7 +29,7 @@ export function createTraceEvent(event, index) {
     data.append(element('strong', 'trace-event__clock', '↑'));
     const en = (globalThis.window?.currentLang || document.documentElement.lang) === 'en';
     const hint = event.tickMode === 'visible'
-      ? [en ? 'TICK COMPLETE' : 'tick 완료', ...(event.releaseInputs || []).map(s => `${s.signal}=0`)].join(' · ')
+      ? [en ? 'TICK COMPLETE' : 'tick 완료', ...(event.releaseInputs || []).map(s => `${signalDisplayName(s.signal, stageId)}=0`)].join(' · ')
       : 'MEMORY COMMIT';
     node.append(data, element('span', 'trace-event__hint', hint));
   } else {
@@ -37,7 +38,7 @@ export function createTraceEvent(event, index) {
       const observed = event.type === 'expect' || event.type === 'observe';
       const failed = observed && signal.passed === false;
       const bit = element('div', `trace-signal${failed ? ' trace-signal--failed' : ''}`);
-      bit.append(element('span', 'trace-signal__name', signal.signal));
+      bit.append(element('span', 'trace-signal__name', event.type === 'init' ? signal.signal : signalDisplayName(signal.signal, stageId)));
       const value = element('strong', 'trace-signal__value', observed ? signal.actual : signal.value);
       if (observed) value.append(element('span', 'trace-signal__verdict', failed ? '✕' : '✓'));
       bit.append(value);
@@ -57,13 +58,13 @@ export function createTraceEvent(event, index) {
 }
 
 // One DOM node per supplied event; no sorting, coalescing, or clock assumptions.
-export function createCounterexampleTrace(trace) {
+export function createCounterexampleTrace(trace, stageId = null) {
   const viewport = element('div', 'counterexample-trace');
   viewport.tabIndex = 0;
   viewport.setAttribute('role', 'region');
   viewport.setAttribute('aria-label', 'Counterexample · SET / TICK / EXPECT');
   const list = element('ol', 'counterexample-trace__events');
-  const nodes = trace.map(createTraceEvent);
+  const nodes = trace.map((event, index) => createTraceEvent(event, index, stageId));
   list.append(...nodes); viewport.append(list);
   const controls = element('div', 'trace-navigation');
   controls.append(element('span', 'trace-navigation__count', `${trace.length} EVENTS`));

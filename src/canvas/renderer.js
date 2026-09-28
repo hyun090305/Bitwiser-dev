@@ -1,3 +1,4 @@
+import { blockDisplayLabel } from '../signalPresentation.js';
 import { CELL, GAP } from './model.js';
 import { getActiveTheme, getThemeAccent } from '../themes.js';
 import { formatBlockLabels } from '../blockLabel.js';
@@ -787,7 +788,7 @@ export function drawBlock(
   ctx.font = resolvedFont;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const label = block.type === 'D' ? 'D' : formatBlockLabels(block.name || block.type);
+  const label = block.type === 'D' ? 'D' : blockDisplayLabel(block.type, block.name || block.type, options.stageId);
   if (block.type === 'INPUT' || block.type === 'OUTPUT') {
     const availableWidth = size - (isButton ? 16 : 12) * scale;
     const labelWidth = ctx.measureText(label).width;
@@ -1091,7 +1092,7 @@ export function renderContent(
     roundRect(ctx, rect.x - 4, rect.y - 4, rect.size + 8, rect.size + 8, 6); ctx.stroke();
     ctx.shadowBlur = 0;
     if (traceHighlight.type === 'expect' || traceHighlight.type === 'observe') {
-      const label = `${signal.signal}  ${signal.actual} ${failed ? '✕' : '✓'}`;
+      const label = `${blockDisplayLabel(block.type, signal.signal, options.stageId)}  ${signal.actual} ${failed ? '✕' : '✓'}`;
       const expected = `EXPECTED ${signal.expected}`;
       ctx.font = 'bold 12px monospace';
       const width = Math.max(ctx.measureText(label).width, ctx.measureText(expected).width) + 18;
@@ -1191,7 +1192,7 @@ export function drawPanel(ctx, items, panelWidth, canvasHeight, groups = [], opt
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(
-      formatBlockLabels(item.label || item.type),
+      blockDisplayLabel(item.type, item.label || item.type, options.stageId),
       item.x + item.w / 2,
       item.y + item.h / 2
     );

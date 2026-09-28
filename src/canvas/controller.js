@@ -1,3 +1,4 @@
+import { blockDisplayLabel } from '../signalPresentation.js';
 import { connectionDiagnostics, editConnectionDiagnostics, wireStartDiagnostic, assignNewInputRole, normalizeAfterEdit, swapMemoryInputs, incomingWires } from './connections.js';
 import { getExecutionState, synchronizeExecution, resetExecution, toggleButton, getEvaluationResult } from './evaluation.js';
 import { createMemoryControls, D_HELP } from '../modules/memoryControls.js';
@@ -116,6 +117,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     panelWidth = 180,
     forceHideInOut = false,
     executionMode = 'combinational',
+    stageId = null,
     onCircuitModified,
     camera: externalCamera = null,
     unboundedGrid = false,
@@ -125,7 +127,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const gridDrawOptions = unboundedGrid
     ? { ...(panelDrawOptions.grid || {}), unbounded: true }
     : panelDrawOptions.grid;
-  const panelStyleOptions = panelDrawOptions.panel;
+  const panelStyleOptions = { ...panelDrawOptions.panel, stageId };
   const camera = externalCamera && typeof externalCamera.screenToCell === 'function'
     ? externalCamera
     : null;
@@ -238,6 +240,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   updateCanvasMetadata();
 
   const renderOptions = {
+    stageId,
     tutorialHighlights: [],
     tutorialWireGuides: []
   };
@@ -296,6 +299,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   let engineHandle = null;
   const memoryControls = createMemoryControls(circuit, overlayCanvas, {
     executionMode,
+    stageId,
     // INPUT press is a signal interaction until it actually moves to another
     // cell. A mere drag candidate must not cancel/restart the playback timer.
     isEditing: () => Boolean(state.draggingBlock ||
@@ -739,7 +743,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       paletteCostTooltip.append(label, price); document.body.append(paletteCostTooltip);
     }
     const ko = (window.currentLang || document.documentElement.lang || 'ko') === 'ko';
-    paletteCostTooltip.firstElementChild.textContent = normalizePaletteLabel(item.type, item.label);
+    paletteCostTooltip.firstElementChild.textContent = blockDisplayLabel(item.type, normalizePaletteLabel(item.type, item.label), stageId);
     paletteCostTooltip.lastElementChild.textContent = `${ko ? '비용' : 'Cost'} ${COST_RULES.prices[item.type] ?? '—'}`;
     paletteCostTooltip.hidden = false;
     const { width, height } = paletteCostTooltip.getBoundingClientRect();
@@ -2756,7 +2760,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
               inputMode: state.draggingBlock.inputMode, pos: cell },
             panelTotalWidth,
             false,
-            camera
+            camera,
+            renderOptions
           );
           overlayCtx.restore();
         }
@@ -3010,6 +3015,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     memoryControls.refresh();
   }
   return {
+    stageId,
     restoreCircuit: restoreDesign,
     state,
     circuit,

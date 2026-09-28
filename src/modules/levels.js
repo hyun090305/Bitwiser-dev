@@ -167,6 +167,7 @@ export async function startLevel(level, { onIntroComplete } = {}) {
     cols,
     createPaletteForLevel(level),
     {
+      stageId: Number(level),
       enableCopyPaste: dependencies.copyPasteEnabled ? dependencies.copyPasteEnabled(Number(level)) : level >= 7,
       forceHideInOut: hasFixedIO,
       executionMode: levelAnswers[level]?.mode === 'sequential' ? 'sequential' : 'combinational',
@@ -440,7 +441,7 @@ function prepareIntroScreen(level, data) {
 
   title.textContent = (data.title || '').toString().trim();
   const blockSet = levelBlockSets[level] || [];
-  desc.textContent = formatIntroText(data.desc, blockSet).trim();
+  desc.textContent = formatIntroText(data.desc, blockSet, level).trim();
   const fixedIO = document.getElementById('introFixedIO');
   fixedIO.hidden = !levelFixedIO[level]?.fixIO;
   fixedIO.textContent = window.currentLang === 'en' ? 'Fixed I/O' : '고정 I/O';
@@ -450,7 +451,7 @@ function prepareIntroScreen(level, data) {
   const body = document.createElement('tbody');
   for (const [label, text] of data.rules || []) {
     const row = document.createElement('tr'), heading = document.createElement('th'), cell = document.createElement('td');
-    heading.scope = 'row'; heading.textContent = formatIntroText(label, blockSet); cell.textContent = formatIntroText(text, blockSet);
+    heading.scope = 'row'; heading.textContent = formatIntroText(label, blockSet, level); cell.textContent = formatIntroText(text, blockSet, level);
     row.append(heading, cell); body.append(row);
   }
   rules.append(body);

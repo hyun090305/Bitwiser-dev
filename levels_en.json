@@ -6969,7 +6969,7 @@
       "rules": [
         [
           "Bits",
-          "OUT2 is the twos bit; OUT1 is the ones bit."
+          "COUT is the carry out (twos bit); SUM is the ones bit of the sum."
         ]
       ]
     },
@@ -7037,7 +7037,7 @@
       "rules": [
         [
           "Bits",
-          "OUT2 is the twos bit; OUT1 is the ones bit. The sum is 0–3."
+          "CIN is the carry in; COUT is the carry out (twos bit); SUM is the ones bit. The sum is 0–3."
         ]
       ]
     },
@@ -8798,7 +8798,7 @@
         ],
         [
           "Undo",
-          "If available, restore the backup to Q and set UNDO_AVAILABLE=0. Otherwise retain values."
+          "READY=1 means UNDO is available. Only then restore the backup to Q and set READY=0. Otherwise retain values."
         ],
         [
           "Priority",
