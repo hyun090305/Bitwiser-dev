@@ -100,7 +100,7 @@ export function createBlueprintShare(parent, options, { header, generate = creat
   if (manual) {
     const gif = button(tr('gif'), async () => {
       gif.disabled = true; status.textContent = tr('preparing');
-      try { const result = await createCircuitGif(gifCircuit, { caption: input.title }); if (alive) { download(result, 'circuit.gif'); status.textContent = tr('saved'); } }
+      try { const result = await createCircuitGif(gifCircuit, { caption: input.title, stageId: input.stageId }); if (alive) { download(result, 'circuit.gif'); status.textContent = tr('saved'); } }
       catch { if (alive) status.textContent = tr('gifFailed'); }
       finally { if (alive) gif.disabled = false; }
     }, 'blueprint-gif'); gif.disabled = !Object.keys(input.circuit.blocks).length; actions.append(gif);
@@ -115,12 +115,12 @@ export function createBlueprintShare(parent, options, { header, generate = creat
 }
 
 let activeExport;
-export function openBlueprintExport(circuit, title, lang = window.currentLang || 'ko') {
+export function openBlueprintExport(circuit, title, lang = window.currentLang || 'ko', stageId = null) {
   activeExport?.();
   const tr = key => blueprintText(key, lang), dialog = el('dialog', null, 'blueprint-export');
   const heading = el('h2', tr('export')); dialog.setAttribute('aria-label', tr('export')); dialog.append(heading);
   let totalCost = null; try { totalCost = calculateCircuitCost(circuit).totalCost; } catch { /* Unknown parts still have a drawable placement. */ }
-  const view = createBlueprintShare(dialog, { circuit, title, totalCost, lang }, { manual: true });
+  const view = createBlueprintShare(dialog, { circuit, title, totalCost, lang, stageId }, { manual: true });
   const origin = document.activeElement;
   const releaseKeys = shieldDialogKeys(dialog);
   const close = () => {

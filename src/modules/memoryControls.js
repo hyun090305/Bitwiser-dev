@@ -1,3 +1,4 @@
+import { diagnosticDisplayText } from '../signalPresentation.js';
 import { createTickRunner } from '../canvas/tickRunner.js';
 import { createPlaybackPolicy } from '../canvas/playbackPolicy.js';
 import { getExecutionState, getEvaluationResult } from '../canvas/evaluation.js';
@@ -5,7 +6,7 @@ import { diagnosticMessage } from '../canvas/connections.js';
 
 export const D_HELP = 'D는 1비트를 저장합니다. 입력 1개: 매 tick 저장. 입력 2개: EN=1일 때 D를 저장, EN=0이면 유지. 두 입력이 있을 때 짧게 클릭/탭하면 D와 EN을 교환합니다.';
 
-export function createMemoryControls(circuit, canvas, { executionMode = 'combinational', isEditing } = {}) {
+export function createMemoryControls(circuit, canvas, { executionMode = 'combinational', stageId = null, isEditing } = {}) {
   const tr = (ko, en) => window.currentLang === 'en' ? en : ko;
   const tickBased = executionMode === 'sequential';
   const bar = document.createElement('section');
@@ -103,7 +104,7 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   let editDiagnostics = [];
   let noticeTimer = null;
   function refreshEditNotice() {
-    const messages = editDiagnostics.map(d => diagnosticMessage(d));
+    const messages = editDiagnostics.map(d => diagnosticDisplayText(diagnosticMessage(d), circuit?.blocks[d.blockId], stageId));
     const text = messages.length ? tr('⚠ 편집 거부: ', '⚠ Edit rejected: ') + messages[0] : '';
     const title = messages.join('\n');
     // Keep the live region unchanged during frame/tick refreshes.
@@ -144,7 +145,7 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
     failure = result?.ok === false ? result : null;
     const items = failure?.diagnostics || (!Object.keys(circuit.blocks).length ? [{ code: 'EMPTY_CIRCUIT',
       message: '부품과 도선을 배치해 회로를 완성하세요.', messageEn: 'Place blocks and wires to complete the circuit.' }] : []);
-    const messages = items.map(d => diagnosticMessage(d));
+    const messages = items.map(d => diagnosticDisplayText(diagnosticMessage(d), circuit?.blocks[d.blockId], stageId));
     badge.hidden = !messages.length;
     const incomplete = items.every(d => ['MISSING_INPUT', 'MISSING_D_INPUT', 'EMPTY_CIRCUIT'].includes(d.code));
     const label = `⚠ ${incomplete ? tr('미완성', 'Incomplete') : tr('연결 오류', 'Invalid circuit')} · ${items.length}`;

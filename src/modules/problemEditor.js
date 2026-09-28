@@ -1385,11 +1385,9 @@ function parseCustomProblemLogicRows(problem) {
 
   const keys = Object.keys(dataTable[0] || {});
   const inputKeys = keys
-    .filter(key => /^IN\d+$/i.test(key))
-    .sort((a, b) => compareIONames(a, b, 'IN'));
+    .filter(key => /^IN\d+$/i.test(key));
   const outputKeys = keys
-    .filter(key => /^OUT\d+$/i.test(key))
-    .sort((a, b) => compareIONames(a, b, 'OUT'));
+    .filter(key => /^OUT\d+$/i.test(key));
 
   const fallbackOutputKey = keys[keys.length - 1];
   const resolvedInputKeys = inputKeys.length ? inputKeys : keys.slice(0, -1);

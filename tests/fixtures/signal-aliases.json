@@ -1,0 +1,17 @@
+{
+  "9": { "IN1": "A", "IN2": "B", "OUT1": "SUM", "OUT2": "COUT" },
+  "10": { "IN1": "A", "IN2": "B", "IN3": "CIN", "OUT1": "SUM", "OUT2": "COUT" },
+  "21": { "IN4": "SEL" },
+  "29": { "GO": "DONE" },
+  "30": { "OPEN": "IN", "DOOR": "OUT" },
+  "31": { "SIGNAL": "SIG" },
+  "33": { "LEVEL0": "L0", "LEVEL1": "L1" },
+  "37": { "SIGNAL": "BIT", "SUBMIT": "READ", "UNLOCKED": "FOUND" },
+  "39": { "UNDO_AVAILABLE": "READY" },
+  "40": { "DATA_OUT": "OUT", "ACCEPTED": "ACK" },
+  "41": { "DATA_OUT": "OUT" },
+  "42": { "DATA_OUT": "OUT" },
+  "43": { "RECEIVE": "READ" },
+  "44": { "SERIAL": "OUT" },
+  "46": { "COMPLETE": "DONE" }
+}

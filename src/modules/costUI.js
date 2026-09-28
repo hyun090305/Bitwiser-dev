@@ -88,7 +88,7 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
   header.append(node('h3', title, 'blueprint-title'));
   const cost = node('div', null, 'blueprint-cost');
   cost.append(node('span', tr('cost'), 'cost-label'), node('strong', format(record.totalCost), 'cost-result-total')); header.append(cost);
-  const view = createBlueprintShare(own, { circuit: record.circuit, title, totalCost: record.totalCost,
+  const view = createBlueprintShare(own, { circuit: record.circuit, stageId: id, title, totalCost: record.totalCost,
     stars: id === 0 ? null : record.stars, tutorial: id === 0, lang }, { header });
   let frame, observer;
   const unlockNotice = node('p', '', 'chapter-result-unlock'); unlockNotice.setAttribute('role', 'status'); unlockNotice.hidden = true; own.append(unlockNotice);

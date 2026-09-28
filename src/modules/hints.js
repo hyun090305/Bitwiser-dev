@@ -1,3 +1,4 @@
+import { hintDisplayText } from '../signalPresentation.js';
 import {
   getHintProgress,
   setHintProgress,
@@ -110,7 +111,7 @@ function showHint(index) {
   const hint = hints[index];
   const messageEl = document.getElementById('hintMessage');
   const messageModal = document.getElementById('hintMessageModal');
-  if (messageEl) messageEl.textContent = `[${hint.type}] ${hint.content}`;
+  if (messageEl) messageEl.textContent = `[${hint.type}] ${hintDisplayText(hint.content, currentHintStage)}`;
   if (messageModal) messageModal.style.display = 'flex';
 
   if (index >= currentHintProgress) {

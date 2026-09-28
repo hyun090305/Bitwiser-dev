@@ -88,13 +88,13 @@
       "ko": [
         [
           "자리",
-          "OUT2=2의 자리, OUT1=1의 자리."
+          "COUT은 출력 자리올림(2의 자리), SUM은 합의 1의 자리입니다."
         ]
       ],
       "en": [
         [
           "Bits",
-          "OUT2 is the twos bit; OUT1 is the ones bit."
+          "COUT is the carry out (twos bit); SUM is the ones bit of the sum."
         ]
       ]
     }
@@ -107,13 +107,13 @@
       "ko": [
         [
           "자리",
-          "OUT2=2의 자리, OUT1=1의 자리. 합은 0~3."
+          "CIN은 입력 자리올림, COUT은 출력 자리올림(2의 자리), SUM은 합의 1의 자리입니다. 합은 0~3."
         ]
       ],
       "en": [
         [
           "Bits",
-          "OUT2 is the twos bit; OUT1 is the ones bit. The sum is 0–3."
+          "CIN is the carry in; COUT is the carry out (twos bit); SUM is the ones bit. The sum is 0–3."
         ]
       ]
     }
@@ -828,7 +828,7 @@
         ],
         [
           "되돌리기",
-          "가능할 때만 백업을 Q에 복원하고 UNDO_AVAILABLE=0. 그 외에는 유지."
+          "READY=1은 UNDO 가능 상태입니다. 이때만 백업을 Q에 복원하고 READY=0. 그 외에는 유지."
         ],
         [
           "우선순위",
@@ -846,7 +846,7 @@
         ],
         [
           "Undo",
-          "If available, restore the backup to Q and set UNDO_AVAILABLE=0. Otherwise retain values."
+          "READY=1 means UNDO is available. Only then restore the backup to Q and set READY=0. Otherwise retain values."
         ],
         [
           "Priority",

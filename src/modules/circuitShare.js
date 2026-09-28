@@ -7,6 +7,7 @@ import { validateSavedCircuitRecord, matchesSaveContext } from './savedCircuitRe
 import { circuitStorage, isCircuitStorageAvailable, storageErrorMessage } from './circuitStorage.js';
 import { createCircuitGif } from '../canvas/gifExport.js';
 import { openBlueprintExport } from './blueprintShare.js';
+import { getLabController } from './labMode.js';
 
 const CURRENT_CIRCUIT_VERSION = CIRCUIT_VERSION;
 
@@ -347,11 +348,12 @@ export async function handleGifShareClick() {
 }
 
 export function handleGIFExport() {
-  const circuit = getActiveController()?.circuit || getActiveCircuit();
-  if (!circuit) return;
   const lab = document.body.classList.contains('lab-mode-active');
+  const controller = lab ? getLabController() : getActiveController();
+  const circuit = controller?.circuit || (lab ? null : getActiveCircuit());
+  if (!circuit) return;
   const title = lab ? 'Lab' : getCustomProblem()?.title || (getCurrentLevel() != null ? getLevelTitle(getCurrentLevel()) : translate('problemUntitled'));
-  openBlueprintExport(circuit, title);
+  openBlueprintExport(circuit, title, undefined, controller?.stageId);
 }
 
 function getSaveContext() {
@@ -589,9 +591,11 @@ export function showCircuitSavedToast({ message, canShare = true, onContinue } =
 }
 
 export async function captureGIF(onFinish, { caption = '' } = {}) {
-  const circuit = getActiveController()?.circuit || getActiveCircuit();
+  const lab = document.body.classList.contains('lab-mode-active');
+  const controller = lab ? getLabController() : getActiveController();
+  const circuit = controller?.circuit || (lab ? null : getActiveCircuit());
   if (!circuit) throw new Error('No circuit to export');
-  const blob = await createCircuitGif(circuit, { caption });
+  const blob = await createCircuitGif(circuit, { caption, stageId: controller?.stageId });
   if (typeof onFinish === 'function') onFinish(blob);
   return blob;
 }

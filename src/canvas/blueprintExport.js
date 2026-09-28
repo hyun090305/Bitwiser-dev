@@ -1,3 +1,4 @@
+import { blockDisplayLabel } from '../signalPresentation.js';
 import { snapshotCircuit } from './circuitData.js';
 import { drawStarRow } from '../modules/achievementStars.js';
 
@@ -9,14 +10,14 @@ const compare = (a, b) => a.pos.r - b.pos.r || a.pos.c - b.pos.c || String(a.id)
 const fills = { INPUT: '#F0FDF4', OUTPUT: '#FFFBEB', D: '#DBEAFE' };
 const prefixes = { AND: 'A', OR: 'O', NOT: 'N', D: 'D', JUNCTION: 'J' };
 
-export function blueprintLayout(circuit, scale = 1) {
+export function blueprintLayout(circuit, scale = 1, stageId = null) {
   const snapshot = snapshotCircuit(circuit), blocks = Object.values(snapshot.blocks).sort(compare);
   if (!blocks.length) throw new Error('empty');
   const aliases = {}, counts = {}, colors = {}, sources = new Set(Object.values(snapshot.wires).map(w => w.startBlockId));
   blocks.forEach(b => {
     const alias = `${prefixes[b.type] || b.type}${counts[b.type] = (counts[b.type] || 0) + 1}`;
     const defaultName = b.name === b.type || (b.type === 'JUNCTION' && b.name === 'JUNC');
-    aliases[b.id] = ['INPUT', 'OUTPUT'].includes(b.type) ? b.name || b.type : b.name && !defaultName ? b.name : alias;
+    aliases[b.id] = ['INPUT', 'OUTPUT'].includes(b.type) ? blockDisplayLabel(b.type, b.name || b.type, stageId) : b.name && !defaultName ? b.name : alias;
     if (sources.has(b.id)) colors[b.id] = BLUEPRINT.colors[Object.keys(colors).length % BLUEPRINT.colors.length];
   });
   const points = [...blocks.map(b => b.pos), ...Object.values(snapshot.wires).flatMap(w => w.path)];
@@ -103,8 +104,8 @@ export function drawBlueprint(ctx, layout) {
 }
 
 // Returns the final card and its exact blueprint region for the on-screen preview.
-export async function createBlueprintPng({ circuit, title, totalCost, stars = null, tutorial = false, includeCircuit = true, lang = 'ko' }) {
-  let layout = includeCircuit ? blueprintLayout(circuit) : null;
+export async function createBlueprintPng({ circuit, title, totalCost, stars = null, tutorial = false, includeCircuit = true, lang = 'ko', stageId = null }) {
+  let layout = includeCircuit ? blueprintLayout(circuit, 1, stageId) : null;
   const canvas = document.createElement('canvas'), ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Canvas unavailable');
   await document.fonts?.ready;
@@ -112,7 +113,7 @@ export async function createBlueprintPng({ circuit, title, totalCost, stars = nu
     // Exceptionally long real names need more paper, not flattened or tiny text.
     ctx.font = `700 12px ${font}`;
     const scale = Math.max(1, ...Object.values(layout.aliases).map(name => (ctx.measureText(name).width / 2 + 10) / 60));
-    if (scale > 1) layout = blueprintLayout(layout.snapshot, scale);
+    if (scale > 1) layout = blueprintLayout(layout.snapshot, scale, stageId);
   }
   const width = Math.max(600, Math.ceil(layout?.width || 0));
   ctx.font = `700 24px ${font}`;
