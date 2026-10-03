@@ -53,8 +53,8 @@ try {
       const checkPage = await browser.newPage({ deviceScaleFactor: dpr });
       await checkPage.goto(`${base}/visuals.html`);
       report.checks.push(...await checkPage.evaluate(async () => {
-        const { checkGridAlignment, checkWireGaps } = await import('/scripts/check-circuit-rendering.mjs');
-        return [checkGridAlignment(), checkWireGaps()];
+        const { checkGridAlignment, checkWireGaps, checkGateSignals } = await import('/scripts/check-circuit-rendering.mjs');
+        return [checkGridAlignment(), checkWireGaps(), checkGateSignals()];
       }));
       await checkPage.close();
     }
@@ -175,7 +175,7 @@ try {
     await page.evaluate(async () => {
       const levels = await import('./src/modules/levels.js');
       levels.configureLevelModule({ progressProvider: () => [0,6], canStartLevel: null });
-      await levels.startLevel(25);
+      await levels.startLevel(1);
       const nav = await import('./src/modules/navigation.js'); nav.hideStageMapScreen(); nav.showGameScreen();
     });
     await page.locator('#startLevelBtn').click();

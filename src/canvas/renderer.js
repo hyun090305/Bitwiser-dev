@@ -15,6 +15,9 @@ const SIGNAL_BLOCK_BORDERS = {
   D: '#8E7CFF',
   JUNCTION: '#5D7893'
 };
+const SIGNAL_ACTIVE_BLOCK_TYPES = new Set([
+  'INPUT', 'OUTPUT', 'D', 'JUNCTION', 'AND', 'OR', 'NOT'
+]);
 const SIGNAL_ACTIVE_FILL = '#F2F0DF';
 const BUTTON_ACTIVE_MARGIN_FILL = '#CDC9B2';
 
@@ -703,7 +706,7 @@ export function drawBlock(
   ctx.save();
 
   const typeBorder = SIGNAL_BLOCK_BORDERS[block.type];
-  const isActive = Boolean(block.value && typeBorder);
+  const isActive = Boolean(block.value && SIGNAL_ACTIVE_BLOCK_TYPES.has(block.type));
   const isJunction = block.type === 'JUNCTION';
   const isButton = block.type === 'INPUT' && block.inputMode === 'button';
   const blockRadius = Math.max(0, style.radius * scale);
