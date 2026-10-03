@@ -97,7 +97,32 @@ try {
     assert.match(await page.locator('.chapter-result-unlock').innerText(),/CHAPTER 2 · Memory Link/);
     assert.equal(await page.locator('#clearedModal .blueprint-card').getAttribute('data-phase'),'settled');
     await page.screenshot({path:path.join(out,`${native?'electron':'web'}-result-${lang}.png`)});
+    await page.evaluate(()=>{
+      window.collectedTotals=[];
+      window.collectionObserver=new MutationObserver(()=>{
+        const value=Number(document.querySelector('.chapter-total-star-value').textContent);
+        if(window.collectedTotals.at(-1)!==value)window.collectedTotals.push(value);
+      });
+      window.collectionObserver.observe(document.getElementById('chapterTotalStars'),{subtree:true,childList:true,characterData:true});
+    });
     await page.locator('#clearedMapBtn').click();
+    assert.equal(await page.locator('.stage-map-chapter-nav').getAttribute('data-chapter-id'),'chapter_1');
+    assert.equal(await page.locator('.chapter-total-star-value').innerText(),'17');
+    await page.locator('.map-collect-star').first().waitFor({state:'visible'});
+    await page.evaluate(()=>document.dispatchEvent(new Event('stageMap:progressUpdated')));
+    assert.equal(await page.locator('.chapter-total-star-value').innerText(),'17');
+    if(process.argv.includes('--cancel-collection')) {
+      await page.keyboard.press('ArrowLeft');
+      await page.waitForTimeout(1250);
+      assert.equal(await page.locator('.stage-map-chapter-nav').getAttribute('data-chapter-id'),'extras');
+      assert.equal(await page.locator('.chapter-total-star-value').innerText(),'19');
+      assert.equal(await page.locator('.map-star-collection, .map-collect-star').count(),0);
+      assert.ok((await saved()).pendingChapters.includes('chapter_2'));
+      assert.ok(!(await saved()).seenChapters.includes('chapter_2'));
+      await focus('chapter_2');
+    }
+    await page.waitForFunction(()=>document.querySelector('.stage-map-chapter-nav').dataset.chapterId==='chapter_2');
+    assert.deepEqual(await page.evaluate(()=>{window.collectionObserver.disconnect();return window.collectedTotals;}),process.argv.includes('--cancel-collection')?[17,19]:[17,18,19]);
     assert.equal(await page.locator('.stage-map-chapter-nav').getAttribute('data-chapter-id'),'chapter_2');
     // The native smoke window is hidden; dispatch the same button event before
     // the 900ms animation expires instead of waiting for window hit testing.
@@ -144,9 +169,9 @@ try {
     assert.deepEqual((await saved()).pendingChapters,[]);
     assert.equal(await page.locator('#gameScreen').isVisible(),false);
     assert.deepEqual(errors,[]);
-    report.push({surface:native?'electron':'web',lang,lockedChapters:4,entryGuards:true,totalBefore:17,totalAfter:19,actualGradeUnlock:true,resultAfterBlueprint:true,skip:true,restartBeforeAndDuring:true,completeAfter900ms:true,multiplePending:true,tabCancellation:true,reducedMotion:true,errors});
+    report.push({surface:native?'electron':'web',lang,lockedChapters:4,entryGuards:true,totalBefore:17,totalAfter:19,actualGradeUnlock:true,resultAfterBlueprint:true,collectionBeforeUnlock:true,collectionCancellation:process.argv.includes('--cancel-collection'),arrivalTotals:process.argv.includes('--cancel-collection')?[17,19]:[17,18,19],skip:true,restartBeforeAndDuring:true,completeAfter900ms:true,multiplePending:true,tabCancellation:true,reducedMotion:true,errors});
     if(native) {await app.close();app=null;}else await context.close();
   }
-  await fs.writeFile(path.join(out,`${native?'electron':'web'}.json`),JSON.stringify(report,null,2));
+  await fs.writeFile(path.join(out,`${native?'electron':'web'}${process.argv.includes('--cancel-collection')?'-cancel-collection':''}.json`),JSON.stringify(report,null,2));
   console.log('Star progression: both languages, real 17→19 star clear, four locked previews/API guards, result ordering, skip, restart, multiple pending chapters and reduced motion passed.');
 } finally {await app?.close();await browser?.close();server.closeAllConnections();await new Promise(resolve=>server.close(resolve));}

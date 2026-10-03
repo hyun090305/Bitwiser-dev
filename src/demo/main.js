@@ -17,6 +17,7 @@ import { createDemoStore } from './store.js';
 import { SETTING_KEYS } from './records.js';
 import { DEMO_END_STAGE } from './catalog.js';
 import { initializeFullVersion } from './fullVersion.js';
+import { effectiveStageStars, mapStarRewards } from '../modules/mapStarCollection.js';
 
 const $ = id => document.getElementById(id);
 const lang = window.currentLang === 'ko' ? 'ko' : 'en';
@@ -43,7 +44,7 @@ const words = {
 };
 const text = key => words[key]?.[lang === 'ko' ? 0 : 1] || window.t(key);
 let store, activeStage = null, pendingSave = null, restoring = false, busy = false, launchBusy = false, lastSavedStructure = null;
-let mapController, grading, tutorial, fullVersion, pendingCelebration = null, resultChapter = null;
+let mapController, grading, tutorial, fullVersion, pendingCelebration = null;
 const dialog = $('demoDialog');
 dialog.addEventListener('cancel', () => {
   disposePerformance($('demoDialogBody'));
@@ -110,9 +111,7 @@ async function goMap() {
   if (busy || launchBusy) return;
   tutorial?.stop?.(); flushDraft(); closeDialog();
   await levels.returnToLevels(); activeStage = null; refreshProgress();
-  if (resultChapter) {
-    mapController?.focusChapter(resultChapter); resultChapter = null; pendingCelebration = null;
-  } else if (pendingCelebration !== null) {
+  if (pendingCelebration !== null) {
     mapController?.celebrateLevel(pendingCelebration);
     pendingCelebration = null;
   }
@@ -138,7 +137,6 @@ function showFullVersion(feature) {
   flushDraft(); fullVersion(feature);
 }
 function showResult(id, result, budgets) {
-  resultChapter = result.unlockedChapters?.[0] || null;
   openDialog(`${levels.getLevelTitle(id)} · ${text('cleared')}`);
   dialog.classList.add('cost-dialog');
   stylePassedResult(dialog, id);
@@ -157,6 +155,7 @@ async function showShare() {
   openBlueprintExport(getPlayCircuit(), levels.getLevelTitle(activeStage), lang, activeStage);
 }
 let data, starBudgets;
+const stageStars = id => effectiveStageStars(id, store.cleared(), store.state.stageStars, highestStars(store.state.stages[id], data, id));
 async function boot() {
   if (document.readyState === 'loading') await new Promise(resolve => document.addEventListener('DOMContentLoaded', resolve, { once: true }));
   lockTheme('midnight-neon');
@@ -202,8 +201,10 @@ async function boot() {
     t: window.t, returnToEditScreen: levels.returnToEditScreen,
     onScoringChange: value => { if (value) flushDraft(); setBusy(value); },
     onPassed: async (id, circuit) => {
+      const beforeStars = stageStars(id);
       const result = store.recordClear(id, circuit); showSaved(result.saved);
-      if (result.first) pendingCelebration = id;
+      mapStarRewards.add(id, beforeStars, stageStars(id));
+      if (result.first && id === 0) pendingCelebration = id;
       if (id === 0) getPlayController()?.setCopyPasteEnabled(true);
       refreshProgress();
       showResult(id, result, starBudgets);
@@ -215,7 +216,7 @@ async function boot() {
     if (context !== 'play' || restoring || busy) return;
     clearTimeout(pendingSave); pendingSave = setTimeout(flushDraft, 400);
   });
-  mapController = initializeStageMap({ getLevelTitle: levels.getLevelTitle, isLevelUnlocked: id => store.isUnlocked(id), getClearedLevels: store.cleared, getStageAccess: () => store.state, acknowledgeChapter: id => store.acknowledgeChapter(id), startLevel: launch, returnToEditScreen: levels.returnToEditScreen, onlineFeatures: false, demoMode: true, onFeatureLocked: showFullVersion, getStageStars: id => highestStars(store.state.stages[id], data, id) });
+  mapController = initializeStageMap({ getLevelTitle: levels.getLevelTitle, isLevelUnlocked: id => store.isUnlocked(id), getClearedLevels: store.cleared, getStageAccess: () => store.state, acknowledgeChapter: id => store.acknowledgeChapter(id), startLevel: launch, returnToEditScreen: levels.returnToEditScreen, onlineFeatures: false, demoMode: true, onFeatureLocked: showFullVersion, getStageStars: stageStars });
   refreshProgress(); showStageMapScreen();
   $('gradeButton').addEventListener('click', () => grading.gradeCurrentSelection().catch(error => { console.error(error); showStatus(text('error'), true); }));
   $('backToLevelsBtn').addEventListener('click', goMap);
