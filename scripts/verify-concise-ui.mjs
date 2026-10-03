@@ -27,7 +27,7 @@ try {
     try {
       if (native) {
         const profile = await fs.mkdtemp(path.join(out, 'electron-'));
-        const env = { ...process.env, BITWISER_TEST_PROFILE: profile }; delete env.ELECTRON_RUN_AS_NODE;
+        const env = { ...process.env, BITWISER_TEST_PROFILE: profile, BITWISER_TEST_VISIBLE: '1' }; delete env.ELECTRON_RUN_AS_NODE;
         app = await _electron.launch({ args:[path.join(root, 'scripts/electron-save-test-entry.cjs')], env });
       } else {
         server = createServer(async (req, res) => {

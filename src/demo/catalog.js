@@ -9,7 +9,7 @@ export function isUnlocked(id, cleared, access = {}) { return isDemoStage(id) &&
 export function demoMap(spec) {
   const nodes = spec.nodes.filter(n => n.nodeType !== 'stage' || DEMO_NODES.includes(n.id)).map(node => {
     const shell = {id:node.id,nodeType:node.nodeType,chapterId:node.chapterId,position:node.position,size:node.size,label:node.label,gridPosition:node.gridPosition,layoutKey:node.layoutKey};
-    if (DEMO_NODES.includes(node.id)) return {...shell, optional:node.optional};
+    if (DEMO_NODES.includes(node.id)) return shell;
     if (node.id === 'lab') return {...shell,previewFeature:'sandbox'};
     if (node.id === 'user_created_stages') return {...shell,previewFeature:'problems'};
     return {...shell,...(!['chapter_1','chapter_2'].includes(node.chapterId)?{previewFeature:'stages'}:{})};

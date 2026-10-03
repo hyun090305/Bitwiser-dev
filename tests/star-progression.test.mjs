@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { beforeFirstPlay } from './helpers/first-play.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -47,7 +48,7 @@ test('495 AC-4/5/17/18: authored copy regenerates exactly without changing any p
       assert.doesNotMatch(prose,/[\u3040-\u30ff]/);
       if([33,38,46].includes(s.id)) assert.doesNotMatch(desc.desc,/출력은 tick 때만|Outputs in this puzzle change only/);
     }
-    const contracts=structuredClone(data);delete contracts.levelTitles;
+    const contracts=beforeFirstPlay(data, file);delete contracts.levelTitles;
     for(const d of Object.values(contracts.levelDescriptions)){delete d.title;delete d.desc;delete d.rules;}
     for(let id=38;id<=46;id++)delete contracts.levelStarThresholds[id];
     assert.equal(createHash('sha256').update(JSON.stringify(contracts)).digest('hex'),progressionBaseline.languages[file].contractHash);

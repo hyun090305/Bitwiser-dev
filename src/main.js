@@ -376,17 +376,7 @@ document.getElementById("gameTitle").addEventListener("click", () => {
 });
 
 document.getElementById('hintBtn').addEventListener('click', () => {
-  const level = getCurrentLevel();
-  const customProblem = getActiveCustomProblem();
-  if (level == null) {
-    if (customProblem) {
-      alert(t('noHints'));
-    } else {
-      alert(t('startStageFirst'));
-    }
-    return;
-  }
-  openHintModal(level);
+  const level = getCurrentLevel(); if (level != null) openHintModal(level);
 });
 
 

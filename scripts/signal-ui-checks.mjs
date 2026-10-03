@@ -47,6 +47,7 @@ export async function verifySignalSurfaces(page, { ids, surface, lang, out }) {
         await (await import('./src/modules/levels.js')).startLevel(id);
       }, id);
       await page.locator('#startLevelBtn').click();
+      await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
       const palette = await page.evaluate(async () => {
         signalDraws = [];
         (await import('./src/modules/grid.js')).getPlayController().refreshVisuals();

@@ -191,7 +191,7 @@ try {
   const typography=await page.evaluate(()=>({title:Object.entries(window.mapTextSamples).find(([label])=>/^Pulse/i.test(label))?.[1],optional:window.mapTextSamples['선택'],status:window.mapTextSamples['잠김']}));
   assert.ok(typography.title.fontSize>=20&&typography.title.fontSize<=22);
   assert.equal(typography.title.align,'center');
-  for(const kind of ['optional'])assert.ok(typography[kind].fontSize>=12&&typography[kind].fontSize<=14);
+  assert.equal(typography.optional, undefined, 'No optional-stage label is rendered');
   assert.deepEqual(await page.evaluate(()=>Object.keys(window.mapTextSamples).filter(text=>/^STAGE\s/.test(text))),[]);
   assert.equal(await page.locator('#stageMapChapterRequirements').count(),0);
   assert.equal(await page.locator('#stageMapChapterLabel').innerText(),'MEMORY LINK');

@@ -1,171 +1,140 @@
 import { hintDisplayText } from '../signalPresentation.js';
-import {
-  getHintProgress,
-  setHintProgress,
-  getHintCooldown,
-  setHintCooldown
-} from './storage.js';
-import { getLevelHints } from './levels.js';
+import { getHintProgress, setHintProgress, getHintCooldown, setHintCooldown } from './storage.js';
+import { getLevelHints, getCurrentLevel } from './levels.js';
+import { chapterForStage } from './stageCatalog.js';
 
-let localProgress = null;
-let currentHintStage = null;
-let currentHintProgress = 0;
-let hintTimerInterval = null;
+let localProgress = null, currentHintStage = null, currentHintProgress = 0, selectedHint = null;
+let hintTimerInterval = null, revision = 0;
+const hintsFor = stage => {
+  const hints = getLevelHints()[`stage${stage}`]?.hints;
+  return Array.isArray(hints) ? hints.filter(h => h && typeof h.content === 'string' && h.content.trim()) : [];
+};
+const immediateHints = stage => Boolean(localProgress || chapterForStage(Number(stage))?.order === 1);
+const database = () => typeof db === 'undefined' ? null : db;
+const user = () => typeof firebase === 'undefined' || !firebase.auth ? null : firebase.auth().currentUser;
+const localCount = stage => localProgress ? localProgress.get(stage) : getHintProgress(stage);
 
-function checkHintCooldown(cb) {
-  if (localProgress) return cb(0);
-  const localUntil = getHintCooldown();
-  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
-  if (user) {
-    db.ref(`hintLocks/${user.uid}`).once('value').then(snap => {
-      cb(Math.max(localUntil, snap.val() || 0));
-    });
-  } else {
-    cb(localUntil);
-  }
+function cooldown(stage, callback) {
+  if (immediateHints(stage)) { callback(0); return; }
+  const local = getHintCooldown(), account = user();
+  if (account && database()?.ref) database().ref(`hintLocks/${account.uid}`).once('value')
+    .then(snap => callback(Math.max(local, snap.val() || 0))).catch(() => callback(local));
+  else callback(local);
 }
 
-function loadHintProgress(stage, cb) {
-  if (localProgress) return cb(localProgress.get(stage));
-  const local = getHintProgress(stage);
-  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
-  if (user) {
-    db.ref(`hintProgress/${user.uid}/stage${stage}`).once('value').then(snap => {
-      const remote = snap.val() || 0;
-      const val = Math.max(local, remote);
-      if (val !== local) setHintProgress(stage, val);
-      cb(val);
-    });
-  } else {
-    cb(local);
-  }
-}
-
-function saveHintProgress(stage, count) {
-  if (localProgress) return localProgress.set(stage, count);
-  setHintProgress(stage, count);
-  const user = typeof firebase !== 'undefined' && firebase.auth ? firebase.auth().currentUser : null;
-  if (user) {
-    db.ref(`hintProgress/${user.uid}/stage${stage}`).set(count);
-  }
-}
-
-function startHintTimer(until) {
-  if (localProgress) return;
-  clearInterval(hintTimerInterval);
-  const timerEl = document.getElementById('nextHintTimer');
-  if (!timerEl) return;
-
-  function update() {
-    const diff = until - Date.now();
-    if (diff <= 0) {
-      timerEl.textContent = t('hintReady');
-    } else {
-      const h = Math.floor(diff / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-      timerEl.textContent = t('hintCountdown').replace('{time}', timeStr);
+function saveProgress(stage, count) {
+  if (localProgress) { localProgress.set(stage, count); return; }
+  setHintProgress(stage, Math.max(getHintProgress(stage), count));
+  const account = user(), run = revision, store = database();
+  if (account && store?.ref) Promise.resolve().then(() =>
+    // The initial account read can still be pending, and Firebase may retry this updater.
+    store.ref(`hintProgress/${account.uid}/stage${stage}`).transaction(old => Math.max(Number(old) || 0, count), undefined, false)
+  ).then(result => {
+    if (!result.committed) return;
+    const saved = Math.max(getHintProgress(stage), Number(result.snapshot.val()) || 0);
+    setHintProgress(stage, saved);
+    if (run === revision && currentHintStage === Number(stage)) {
+      currentHintProgress = Math.max(currentHintProgress, saved);
+      cooldown(stage, until => refresh(until, run));
     }
-  }
-
-  update();
-  hintTimerInterval = setInterval(update, 1000);
+  }).catch(() => {});
 }
 
-function renderHintButtons(hints, progress, cooldownUntil) {
-  const container = document.getElementById('hintButtons');
+function renderButtons(until) {
+  const hints = hintsFor(currentHintStage), container = document.getElementById('hintButtons');
   if (!container) return;
-  container.innerHTML = '';
-  const now = Date.now();
-  const hasAvailable = progress < hints.length && now >= cooldownUntil;
-  hints.forEach((hint, i) => {
-    const btn = document.createElement('button');
-    btn.appendChild(document.createTextNode(`${t('hintLabel')} ${i + 1} (${hint.type})`));
-    btn.appendChild(document.createElement('br'));
-    const lockIcon = document.createElement('span');
-    lockIcon.className = 'lock-icon';
-    lockIcon.textContent = i < progress ? '🔓' : '🔒';
-    btn.appendChild(lockIcon);
-    btn.onclick = () => showHint(i);
-    if (i < progress) {
-      btn.classList.add('open');
-    } else if (i === progress) {
-      if (now < cooldownUntil) {
-        btn.disabled = true;
-      } else {
-        btn.classList.add('available');
-      }
-    } else {
-      btn.disabled = true;
-    }
-    container.appendChild(btn);
+  const focusedId = container.contains(document.activeElement) ? document.activeElement.id : null;
+  container.replaceChildren();
+  hints.forEach((hint, index) => {
+    const button = document.createElement('button'); button.type = 'button'; button.id = `hint-step-${index}`;
+    button.textContent = `${t('hintLabel')} ${index + 1} · ${hint.type}`;
+    button.disabled = index > currentHintProgress || (index === currentHintProgress && Date.now() < until);
+    button.className = index < currentHintProgress ? 'open' : button.disabled ? '' : 'available';
+    button.setAttribute('aria-controls', 'hintMessage'); button.setAttribute('aria-expanded', String(selectedHint === index));
+    button.addEventListener('click', () => showHint(index)); container.append(button);
   });
-  const adBtn = document.getElementById('adHintBtn');
-  if (adBtn) adBtn.style.display = localProgress || hasAvailable ? 'none' : 'inline-block';
+  const waiting = !immediateHints(currentHintStage) && currentHintProgress < hints.length && Date.now() < until;
+  const timer = document.getElementById('hintTimerContainer'); if (timer) timer.hidden = !waiting;
+  const ad = document.getElementById('adHintBtn'); if (ad) ad.hidden = !waiting;
+  if (focusedId) document.getElementById(focusedId)?.focus();
+}
+
+function startTimer(until) {
+  clearInterval(hintTimerInterval); hintTimerInterval = null;
+  const timer = document.getElementById('nextHintTimer');
+  if (immediateHints(currentHintStage) || until <= Date.now() || !timer) { if (timer) timer.textContent = ''; return; }
+  const run = revision;
+  const update = () => {
+    if (run !== revision) return;
+    const diff = Math.max(0, until - Date.now());
+    const time = [Math.floor(diff / 3600000), Math.floor(diff % 3600000 / 60000), Math.floor(diff % 60000 / 1000)].map(n => String(n).padStart(2, '0')).join(':');
+    timer.textContent = diff ? t('hintCountdown').replace('{time}', time) : t('hintReady');
+    if (!diff) { clearInterval(hintTimerInterval); hintTimerInterval = null; renderButtons(0); }
+  };
+  update(); hintTimerInterval = setInterval(update, 1000);
+}
+
+function refresh(until, run = revision) {
+  if (run !== revision || currentHintStage === null) return;
+  renderButtons(until); startTimer(until);
 }
 
 function showHint(index) {
-  const hints = getLevelHints()[`stage${currentHintStage}`]?.hints || [];
-  if (!hints[index]) return;
-  const hint = hints[index];
-  const messageEl = document.getElementById('hintMessage');
-  const messageModal = document.getElementById('hintMessageModal');
-  if (messageEl) messageEl.textContent = `[${hint.type}] ${hintDisplayText(hint.content, currentHintStage)}`;
-  if (messageModal) messageModal.style.display = 'flex';
-
+  const stage = currentHintStage, run = revision, hints = hintsFor(stage);
+  if (!hints[index] || index > currentHintProgress) return;
+  const hint = hints[index], message = document.getElementById('hintMessage');
+  selectedHint = selectedHint === index ? null : index;
+  if (message) {
+    message.hidden = selectedHint === null;
+    message.textContent = selectedHint === null ? '' : hintDisplayText(hint.content, stage);
+    message.setAttribute('aria-labelledby', `hint-step-${index}`);
+  }
   if (index >= currentHintProgress) {
-    currentHintProgress = index + 1;
-    saveHintProgress(currentHintStage, currentHintProgress);
-    if (!localProgress) {
-    const until = Date.now() + 60 * 60 * 1000;
-    setHintCooldown(until);
-    const user = firebase.auth().currentUser;
-    if (user) db.ref(`hintLocks/${user.uid}`).set(until);
+    currentHintProgress = index + 1; saveProgress(stage, currentHintProgress);
+    if (!immediateHints(stage)) {
+      const until = Date.now() + 3600000; setHintCooldown(until);
+      const account = user();
+      if (account && database()?.ref) Promise.resolve(database().ref(`hintLocks/${account.uid}`).set(until)).catch(() => {});
     }
   }
-
-  checkHintCooldown(until => {
-    renderHintButtons(hints, currentHintProgress, until);
-    startHintTimer(until);
+  cooldown(stage, until => {
+    refresh(until, run);
+    if (run === revision) document.getElementById(`hint-step-${index}`)?.focus();
   });
 }
 
+function closeHintModal(restoreFocus = false) {
+  revision++; clearInterval(hintTimerInterval); hintTimerInterval = null; currentHintStage = null; selectedHint = null;
+  const modal = document.getElementById('hintModal'); if (modal) modal.style.display = 'none';
+  const message = document.getElementById('hintMessage'); if (message) { message.hidden = true; message.textContent = ''; }
+  const buttons = document.getElementById('hintButtons'); buttons?.replaceChildren();
+  const timer = document.getElementById('nextHintTimer'); if (timer) timer.textContent = '';
+  if (restoreFocus) document.getElementById('hintBtn')?.focus();
+}
+
 export function openHintModal(stage) {
-  const hints = getLevelHints()[`stage${stage}`]?.hints;
-  if (!hints) {
-    alert(t('noHints'));
-    return;
-  }
-  currentHintStage = stage;
-  const modal = document.getElementById('hintModal');
-  if (modal) modal.style.display = 'flex';
-  const adBtn = document.getElementById('adHintBtn');
-  if (adBtn) adBtn.onclick = () => alert(t('featureComingSoon'));
-  loadHintProgress(stage, progress => {
-    currentHintProgress = progress;
-    checkHintCooldown(until => {
-      renderHintButtons(hints, progress, until);
-      startHintTimer(until);
-    });
-  });
+  closeHintModal(); if (!hintsFor(stage).length) return;
+  currentHintStage = Number(stage); currentHintProgress = Number(localCount(stage)) || 0;
+  const run = revision, modal = document.getElementById('hintModal'); if (modal) modal.style.display = 'flex';
+  cooldown(stage, until => refresh(until, run));
+  (document.querySelector('#hintButtons button:not(:disabled)') || document.getElementById('closeHintBtn'))?.focus();
+  // Show locally known steps immediately; remote progress must not block Chapter 1.
+  const account = localProgress ? null : user();
+  if (account && database()?.ref) database().ref(`hintProgress/${account.uid}/stage${stage}`).once('value').then(snap => {
+    if (run !== revision) return;
+    currentHintProgress = Math.max(currentHintProgress, getHintProgress(stage), Number(snap.val()) || 0);
+    setHintProgress(stage, currentHintProgress); cooldown(stage, until => refresh(until, run));
+  }).catch(() => {});
 }
 
 export function initializeHintUI({ progress = null } = {}) {
   localProgress = progress;
-  const closeHintBtn = document.getElementById('closeHintBtn');
-  const closeHintMsgBtn = document.getElementById('closeHintMessageBtn');
-  if (closeHintBtn) {
-    closeHintBtn.addEventListener('click', () => {
-      const modal = document.getElementById('hintModal');
-      if (modal) modal.style.display = 'none';
-      clearInterval(hintTimerInterval);
-    });
-  }
-  if (closeHintMsgBtn) {
-    closeHintMsgBtn.addEventListener('click', () => {
-      const modal = document.getElementById('hintMessageModal');
-      if (modal) modal.style.display = 'none';
-    });
-  }
+  document.getElementById('closeHintBtn')?.addEventListener('click', () => closeHintModal(true));
+  document.getElementById('hintModal')?.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); closeHintModal(true); } });
+  document.getElementById('adHintBtn')?.addEventListener('click', () => alert(t('featureComingSoon')));
+  const stageChanged = () => {
+    closeHintModal(); const button = document.getElementById('hintBtn');
+    if (button) button.hidden = !hintsFor(getCurrentLevel()).length;
+  };
+  document.addEventListener('bitwiser:stageReady', stageChanged); stageChanged();
 }

@@ -30,7 +30,7 @@ try {
       assert.equal(await page.locator('.demo-result-map').innerText(), lang === 'ko' ? '맵으로 돌아가기' : 'Back to map');
       assert.equal(await page.getByRole('button', { name: /^(Next stage|다음 문제|다음 스테이지)$/i }).count(), 0);
       assert.notEqual(await page.locator('.demo-result-map').evaluate(el => getComputedStyle(el).backgroundColor),
-        await page.locator('#demoDialogActions button').first().evaluate(el => getComputedStyle(el).backgroundColor));
+        await page.locator('.demo-result-design').evaluate(el => getComputedStyle(el).backgroundColor));
     };
     await page.goto(base);
     await page.locator('#loadingStartBtn').click(); await page.locator('#startLevelBtn').click();

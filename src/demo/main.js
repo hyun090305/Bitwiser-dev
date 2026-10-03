@@ -28,7 +28,7 @@ const words = {
   close: ['닫기', 'Close'], retry: ['계속 최적화하기', 'Keep optimizing'], backToMap: ['맵으로 돌아가기', 'Back to map'],
   practice: ['다시 연습하기', 'Practice again'],
   cleared: ['회로 복구 완료', 'Circuit restored'], improved: ['개인 최고 기록 갱신!', 'New personal best!'],
-  blocks: ['블록', 'Blocks'], wires: ['도선 점유 칸', 'Wire cells'], complete: ['완료 ✓', 'Complete ✓'], locked: ['잠김 🔒', 'Locked 🔒'], optional: ['선택', 'Optional'],
+  blocks: ['블록', 'Blocks'], wires: ['도선 점유 칸', 'Wire cells'], complete: ['완료 ✓', 'Complete ✓'], locked: ['잠김 🔒', 'Locked 🔒'],
   finish: ['체험판 마무리', 'Finish demo'], ending: ['MEMORY LINK · 작은 복구를 마쳤습니다', 'MEMORY LINK · A small recovery complete'],
   endingBody: ['Pulse Extender를 복구했습니다. 아직 안전 모드에 있지만, 지나간 신호를 기억할 수 있습니다.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\n정식판에서는 누적 별로 계산·제어·시스템 챕터를 열 수 있습니다. 체험판의 다른 문제와 더 높은 별에도 계속 도전할 수 있습니다.', 'You restored the Pulse Extender. Safe mode can now remember past signals.\nARITHMETIC UNIT · CONTROL FLOW · SYSTEM INTEGRATION\nIn the full version, total stars unlock the calculation, control and system chapters. Keep exploring other demo puzzles and improving your stars.'],
   exportBackup: ['진행 백업 저장','Export progress backup'], importBackup: ['진행 백업 열기','Import progress backup'],
@@ -66,12 +66,14 @@ function button(label, action, parent = $('demoDialogActions')) {
   }); parent.append(b); return b;
 }
 function openDialog(title) {
+  const actions = $('demoDialogActions');
+  dialog.append(actions);
   disposePerformance($('demoDialogBody'));
   dialog.classList.remove('cost-dialog');
   dialog.classList.remove('grading-result-panel', 'grading-result-panel--passed');
   dialog.querySelector('.grading-result-header')?.remove();
   $('demoDialogTitle').textContent = title;
-  $('demoDialogBody').replaceChildren(); $('demoDialogActions').replaceChildren();
+  $('demoDialogBody').replaceChildren(); actions.replaceChildren();
   if (!dialog.open) dialog.showModal();
 }
 function closeDialog() {
@@ -140,9 +142,9 @@ function showResult(id, result, budgets) {
   openDialog(`${levels.getLevelTitle(id)} · ${text('cleared')}`);
   dialog.classList.add('cost-dialog');
   stylePassedResult(dialog, id);
-  renderPerformance($('demoDialogBody'), { id, result, title: levels.getLevelTitle(id), thresholds: data.levelStarThresholds?.[id], ranking: { restricted: true }, lang });
-  button(text(id === 0 ? 'practice' : 'retry'), () => { closeDialog(); levels.returnToEditScreen(); });
-  button(text('backToMap'), goMap).classList.add('demo-result-map');
+  renderPerformance($('demoDialogBody'), { id, result, actions: $('demoDialogActions'), title: levels.getLevelTitle(id), thresholds: data.levelStarThresholds?.[id], ranking: { restricted: true }, lang });
+  button(text('backToMap'), goMap).classList.add('demo-result-map', 'result-primary');
+  button(text(id === 0 ? 'practice' : 'retry'), () => { closeDialog(); levels.returnToEditScreen(); }).classList.add('demo-result-design');
   if (id === DEMO_END_STAGE) button(text('finish'), showEnding);
   button(text('close'), closeDialog);
 }

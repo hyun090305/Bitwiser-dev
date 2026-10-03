@@ -566,23 +566,16 @@
       </div>
     </div>
     <div id="hintModal" class="modal" style="display:none;">
-      <div class="modal-content">
+      <div class="modal-content hint-panel" role="dialog" aria-modal="true" aria-labelledby="hintTitle">
         <h2 id="hintTitle">💡 힌트</h2>
         <div id="hintButtons" class="modal-buttons" style="flex-wrap:wrap; margin-bottom:1rem; justify-content:center;"></div>
+        <div id="hintMessage" role="region" hidden></div>
         <div id="hintTimerContainer" class="modal-buttons" style="justify-content:center; margin-bottom:1rem;">
           <span id="nextHintTimer"></span>
           <button id="adHintBtn">광고 보고 힌트 얻기</button>
         </div>
         <div class="modal-buttons">
           <button id="closeHintBtn">닫기</button>
-        </div>
-      </div>
-    </div>
-    <div id="hintMessageModal" class="modal" style="display:none;">
-      <div class="modal-content">
-        <div id="hintMessage" style="margin-bottom:1rem;"></div>
-        <div class="modal-buttons">
-          <button id="closeHintMessageBtn">닫기</button>
         </div>
       </div>
     </div>

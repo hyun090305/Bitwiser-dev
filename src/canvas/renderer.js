@@ -1033,6 +1033,7 @@ export function renderContent(
     preserveExisting,
     tutorialHighlights = [],
     tutorialWireGuides = [],
+    diagnosticHighlights = [],
     ...styleOptions
   } = options || {};
   if (preserveExisting) {
@@ -1080,6 +1081,19 @@ export function renderContent(
   });
   if (tutorialHighlights.length) {
     drawTutorialHighlights(ctx, tutorialHighlights, phase, offsetX, camera, themeForTutorial);
+  }
+  for (const marker of diagnosticHighlights) {
+    const rect = getCellScreenRect(circuit.blocks[marker.blockId]?.pos || marker.pos, offsetX, camera);
+    if (!rect) continue;
+    ctx.save();
+    // A static outline and cross remain legible without motion or color cues.
+    ctx.strokeStyle = '#ff8c9f'; ctx.lineWidth = Math.max(2, 3 * rect.scale);
+    ctx.setLineDash([]);
+    roundRect(ctx, rect.x - 2, rect.y - 2, rect.size + 4, rect.size + 4, 4); ctx.stroke();
+    const x = rect.x + rect.size - 6 * rect.scale, y = rect.y + 6 * rect.scale, arm = 5 * rect.scale;
+    ctx.beginPath(); ctx.moveTo(x - arm, y - arm); ctx.lineTo(x + arm, y + arm);
+    ctx.moveTo(x - arm, y + arm); ctx.lineTo(x + arm, y - arm); ctx.stroke();
+    ctx.restore();
   }
   const traceHighlight = getTraceHighlight(circuit);
   for (const signal of traceHighlight?.blocks || []) {

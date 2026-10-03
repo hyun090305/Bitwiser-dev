@@ -118,7 +118,7 @@ try {
   await page.locator('#gradeButton').click();
   await page.locator('#gradingResultOverlay[data-state="failed"]').waitFor();
   assert.equal(await page.locator('.trace-event').count(),0);
-  assert.match(await page.locator('#gradingResultOverlay').innerText(),/Incomplete/);
+  assert.match(await page.locator('#gradingResultOverlay').innerText(),/1 input missing/);
   assert.equal((await save()).stages[1].best.stars,3);
   await page.locator('#gradingResultEditBtn').click();
   await enter(2); await grade(2); await enter(3); await grade(3);
@@ -127,9 +127,9 @@ try {
   await page.locator('#fullVersionDialog[open][data-feature="ranking"]').waitFor();
   await page.locator('.full-version-back').click();
   await page.locator('#hintBtn').click();
-  await page.locator('#hintButtons button').nth(0).click(); await page.locator('#closeHintMessageBtn').click();
+  await page.locator('#hintButtons button').nth(0).click(); assert.equal(await page.locator('#hintMessage').isVisible(), true);
   assert.equal(await page.locator('#hintButtons button').nth(1).isEnabled(),true);
-  await page.locator('#hintButtons button').nth(1).click(); await page.locator('#closeHintMessageBtn').click(); await page.locator('#closeHintBtn').click();
+  await page.locator('#hintButtons button').nth(1).click(); assert.equal(await page.locator('#hintMessage').isVisible(), true); await page.locator('#closeHintBtn').click();
   await grade(6);
   const completed=await save(); assert.ok(completed.stages[6].best); assert.equal(completed.stages[4],undefined); assert.equal(completed.stages[5],undefined);
   assert.equal(completed.hints[6],2); assert.equal('storySeen' in completed,false);

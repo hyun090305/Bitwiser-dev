@@ -102,7 +102,7 @@ try {
     for (let i=0;i<3;i++) {
       await page.locator('#hintButtons button').nth(i).click();
       assert.ok((await page.locator('#hintMessage').textContent()).includes(hintTexts[i]));
-      await page.locator('#closeHintMessageBtn').click();
+      assert.equal(await page.locator('#hintMessage').isVisible(), true);
     }
     await page.locator('#closeHintBtn').click();
     await page.evaluate(async circuit => {

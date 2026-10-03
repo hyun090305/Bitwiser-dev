@@ -1,8 +1,8 @@
 {
   "0": {
     "title": "Tutorial",
-    "ko": "IN1을 반전한 뒤 IN2와 AND로 연결해 OUT1로 보내세요.",
-    "en": "Invert IN1, AND it with IN2, and send the result to OUT1.",
+    "ko": "IN1이 꺼져 있고 IN2가 켜져 있을 때만 OUT1이 켜지게 하세요.",
+    "en": "Turn OUT1 on only when IN1 is off and IN2 is on.",
     "rules": {
       "ko": [],
       "en": []

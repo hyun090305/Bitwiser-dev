@@ -1,0 +1,60 @@
+{
+  "levels.json": {
+    "description": "IN1을 반전한 뒤 IN2와 AND로 연결해 OUT1로 보내세요.",
+    "hints": {
+      "stage6": {
+        "hints": [
+          {
+            "type": "설명",
+            "content": "A∨B가 참이지만, A∧B가 거짓일 때만 참을 출력합니다."
+          },
+          {
+            "type": "논리식",
+            "content": "A XOR B = (A∨B)∧~(A∧B) = (A∧~B)∨(~A∧B)"
+          }
+        ]
+      },
+      "stage7": {
+        "hints": [
+          {
+            "type": "설명",
+            "content": "A와 B가 참이거나, B와 C가 참이거나, C와 A가 참일 때만 참을 출력합니다."
+          },
+          {
+            "type": "논리식",
+            "content": "(A∧B)∨(B∧C)∨(C∧A)"
+          }
+        ]
+      }
+    }
+  },
+  "levels_en.json": {
+    "description": "Invert IN1, AND it with IN2, and send the result to OUT1.",
+    "hints": {
+      "stage6": {
+        "hints": [
+          {
+            "type": "Explanation",
+            "content": "Outputs true only when A∨B is true but A∧B is false."
+          },
+          {
+            "type": "Logic expression",
+            "content": "A XOR B = (A∨B)∧¬(A∧B) = (A∧¬B)∨(¬A∧B)"
+          }
+        ]
+      },
+      "stage7": {
+        "hints": [
+          {
+            "type": "Explanation",
+            "content": "Outputs true only when A and B, B and C, or C and A are true."
+          },
+          {
+            "type": "Logic expression",
+            "content": "(A∧B)∨(B∧C)∨(C∧A)"
+          }
+        ]
+      }
+    }
+  }
+}

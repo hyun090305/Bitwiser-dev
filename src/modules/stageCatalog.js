@@ -355,18 +355,18 @@ export const STAGES = [
   [2,'or',1],
   [3,'and',1],
   [6,'xor',1],
-  [4,'nor',1,true],
-  [5,'nand',1,true],
+  [4,'nor',1],
+  [5,'nand',1],
   [25,'enabled_register',2],
-  [7,'majority_gate',1,true],
+  [7,'majority_gate',1],
   [26,'toggle_light',2],
   [27,'selector_2to1',2],
   [28,'sticky_fault',2],
   [29,'staging_register',2],
   [30,'automatic_door',2],
-  [23,'priority_gate',2,true],
-  [11,'decoder_2to4',2,true],
-  [31,'rising_edge',2,true],
+  [23,'priority_gate',2],
+  [11,'decoder_2to4',2],
+  [31,'rising_edge',2],
   [9,'half_adder',3],
   [8,'parity_checker',3],
   [10,'full_adder',3],
@@ -398,9 +398,9 @@ export const STAGES = [
   [44,'serial_transmitter',5],
   [45,'accumulator',5],
   [46,'iterative_multiplier',5]
-].map(([id, nodeId, chapter, optional = false, status = 'playable', title]) => ({
+].map(([id, nodeId, chapter, status = 'playable', title]) => ({
   id, nodeId, chapterId: `chapter_${chapter}`,
-  ...STAGE_SLOTS[nodeId], optional, status,
+  ...STAGE_SLOTS[nodeId], status,
   ...(id === 23 ? { budgetStatus: 'pending' } : {}), ...(title ? { title } : {})
 }));
 

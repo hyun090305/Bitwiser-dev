@@ -6,7 +6,7 @@ import { diagnosticMessage } from '../canvas/connections.js';
 
 export const D_HELP = 'D는 1비트를 저장합니다. 입력 1개: 매 tick 저장. 입력 2개: EN=1일 때 D를 저장, EN=0이면 유지. 두 입력이 있을 때 짧게 클릭/탭하면 D와 EN을 교환합니다.';
 
-export function createMemoryControls(circuit, canvas, { executionMode = 'combinational', stageId = null, isEditing } = {}) {
+export function createMemoryControls(circuit, canvas, { executionMode = 'combinational', stageId = null, isEditing, onDiagnosticSelect } = {}) {
   const tr = (ko, en) => window.currentLang === 'en' ? en : ko;
   const tickBased = executionMode === 'sequential';
   const bar = document.createElement('section');
@@ -71,7 +71,8 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   const diagnostics = document.createElement('div');
   diagnostics.className = 'circuit-diagnostics';
   diagnostics.id = `${canvas.id}-diagnostics`;
-  diagnostics.setAttribute('role', 'tooltip');
+  diagnostics.setAttribute('role', 'group');
+  diagnostics.setAttribute('aria-label', tr('연결 문제 상세', 'Connection details'));
   diagnostics.hidden = true;
   badge.setAttribute('aria-describedby', diagnostics.id);
   badge.setAttribute('aria-controls', diagnostics.id);
@@ -83,11 +84,11 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
     badge.setAttribute('aria-expanded', String(!diagnostics.hidden));
   }
   diagnosticControl.addEventListener('mouseenter', () => showDetails(true));
-  diagnosticControl.addEventListener('mouseleave', () => { if (!pinned && document.activeElement !== badge) showDetails(false); });
-  badge.addEventListener('focus', () => showDetails(true));
-  badge.addEventListener('blur', () => { if (!pinned) showDetails(false); });
+  diagnosticControl.addEventListener('mouseleave', () => { if (!pinned && !diagnosticControl.contains(document.activeElement)) showDetails(false); });
+  diagnosticControl.addEventListener('focusin', () => showDetails(true));
+  diagnosticControl.addEventListener('focusout', event => { if (!pinned && !diagnosticControl.contains(event.relatedTarget)) showDetails(false); });
   badge.addEventListener('click', () => { pinned = !pinned; showDetails(pinned); });
-  badge.addEventListener('keydown', event => {
+  diagnosticControl.addEventListener('keydown', event => {
     if (event.key === 'Escape') { pinned = false; showDetails(false); event.stopPropagation(); }
   });
   const dismissDetails = event => {
@@ -114,6 +115,7 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
   }
 
   let failure = null;
+  let detailsStamp = null;
   let pulseTimer = null;
   let lastInterval = null;
   let lastState = null;
@@ -150,8 +152,20 @@ export function createMemoryControls(circuit, canvas, { executionMode = 'combina
     const incomplete = items.every(d => ['MISSING_INPUT', 'MISSING_D_INPUT', 'EMPTY_CIRCUIT'].includes(d.code));
     const label = `⚠ ${incomplete ? tr('미완성', 'Incomplete') : tr('연결 오류', 'Invalid circuit')} · ${items.length}`;
     if (badge.textContent !== label) badge.textContent = label;
-    const details = messages.join('\n');
-    if (diagnostics.textContent !== details) diagnostics.textContent = details;
+    const details = JSON.stringify(items.map((d, index) => [d.blockId, messages[index], circuit.blocks[d.blockId]?.pos]));
+    if (detailsStamp !== details) {
+      detailsStamp = details;
+      diagnostics.replaceChildren(...items.map((item, index) => {
+        const block = circuit.blocks[item.blockId];
+        const row = document.createElement(block ? 'button' : 'p');
+        row.textContent = messages[index] + (block ? ` · ${tr('행', 'row')} ${block.pos.r + 1}, ${tr('열', 'column')} ${block.pos.c + 1}` : '');
+        if (block) {
+          row.type = 'button'; row.dataset.blockId = block.id;
+          row.addEventListener('click', () => onDiagnosticSelect?.(item));
+        }
+        return row;
+      }));
+    }
     if (badge.hidden) { pinned = false; showDetails(false); }
     const ticksPerSecond = Math.round(1000 / runner.getInterval());
     const state = getExecutionState(circuit);

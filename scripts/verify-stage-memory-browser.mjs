@@ -40,7 +40,7 @@ try {
   await page.screenshot({path:'test-results/memory-stage-tutorial.png'});
   await page.locator('#hintBtn').click();await page.locator('#hintButtons button').first().click();
   assert.match(await page.locator('#hintMessage').innerText(),/LOAD to EN/);assert.doesNotMatch(await page.locator('#hintMessage').innerText(),/undefined/);
-  await page.locator('#closeHintMessageBtn').click();await page.locator('#closeHintBtn').click();
+  assert.equal(await page.locator('#hintMessage').isVisible(), true);await page.locator('#closeHintBtn').click();
   await clickBlock(memoryId);await page.waitForTimeout(600);
   const roles=Object.values((await save()).stages[25].draft.circuit.wires).map(w=>[w.id,w.inputRole]);
   assert.equal(roles.find(([id])=>id===dataWireId)[1],'EN');

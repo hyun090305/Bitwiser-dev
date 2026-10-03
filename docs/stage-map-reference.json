@@ -59,7 +59,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": []
         },
         {
@@ -78,7 +77,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c1_tutorial"
           ]
@@ -99,7 +97,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c1_not"
           ]
@@ -120,7 +117,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c1_or"
           ]
@@ -141,7 +137,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c1_and"
           ]
@@ -162,7 +157,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c1_or"
           ]
@@ -183,7 +177,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c1_and"
           ]
@@ -204,7 +197,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c1_and"
           ]
@@ -347,7 +339,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": []
         },
         {
@@ -366,7 +357,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c2_save"
           ]
@@ -387,7 +377,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c2_save"
           ]
@@ -408,7 +397,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c2_toggle"
           ]
@@ -429,7 +417,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c2_fault"
           ]
@@ -450,7 +437,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c2_buffer"
           ]
@@ -471,7 +457,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c2_fault"
           ]
@@ -492,7 +477,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c2_selector"
           ]
@@ -513,7 +497,6 @@
             4,
             4
           ],
-          "optional": true,
           "visualParents": [
             "c2_toggle"
           ]
@@ -667,7 +650,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": []
         },
         {
@@ -686,7 +668,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_half"
           ]
@@ -707,7 +688,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_parity"
           ]
@@ -728,7 +708,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_full"
           ]
@@ -749,7 +728,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_adder"
           ]
@@ -770,7 +748,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_parity"
           ]
@@ -791,7 +768,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_comparator"
           ]
@@ -812,7 +788,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_adder"
           ]
@@ -833,7 +808,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_twos"
           ]
@@ -854,7 +828,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_multiplier"
           ]
@@ -875,7 +848,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c3_adder"
           ]
@@ -1057,7 +1029,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_fixedxor"
           ]
@@ -1078,7 +1049,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_mux"
           ]
@@ -1099,7 +1069,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_debounce"
           ]
@@ -1120,7 +1089,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_counter"
           ]
@@ -1141,7 +1109,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_pwm"
           ]
@@ -1162,7 +1129,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": []
         },
         {
@@ -1181,7 +1147,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_debounce"
           ]
@@ -1202,7 +1167,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_round"
           ]
@@ -1223,7 +1187,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_debounce"
           ]
@@ -1244,7 +1207,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_shifter"
           ]
@@ -1265,7 +1227,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c4_fixeddecoder"
           ]
@@ -1447,7 +1408,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": []
         },
         {
@@ -1466,7 +1426,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_register"
           ]
@@ -1487,7 +1446,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_undo"
           ]
@@ -1508,7 +1466,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_mail"
           ]
@@ -1529,7 +1486,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_mail"
           ]
@@ -1550,7 +1506,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_register"
           ]
@@ -1571,7 +1526,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_rx"
           ]
@@ -1592,7 +1546,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_register"
           ]
@@ -1613,7 +1566,6 @@
             4,
             4
           ],
-          "optional": false,
           "visualParents": [
             "c5_accum"
           ]

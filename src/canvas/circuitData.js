@@ -32,24 +32,39 @@ export function snapshotCircuit(circuit) {
 
 // The editor requires at least one empty cell between endpoints, orthogonal
 // unit steps, and no intersections with blocks, other wires, or itself.
-export function isValidWirePath(trace, { withinBounds, blockAt, cellHasWire }, endpoints = true) {
-  if (!Array.isArray(trace) || (endpoints && trace.length < 3)) return false;
-  if (trace.some(p => !p || !Number.isInteger(p.r) || !Number.isInteger(p.c))) return false;
+export function wirePathDiagnostic(trace, { withinBounds, blockAt, cellHasWire }, endpoints = true) {
+  const fail = (code, message, messageEn, cell) => ({ code, message, messageEn,
+    ...(cell ? { cell: { r: cell.r, c: cell.c }, ...(blockAt(cell) ? { blockId: blockAt(cell).id } : {}) } : {}) });
+  if (!Array.isArray(trace) || trace.some(p => !p || !Number.isInteger(p.r) || !Number.isInteger(p.c))) {
+    return fail('INVALID_WIRE_PATH', '도선은 이웃한 칸을 따라 연결하세요.', 'Route the wire through neighboring cells.');
+  }
+  const outside = trace.find(p => !withinBounds(p.r, p.c));
+  if (outside) return fail('WIRE_OUTSIDE_GRID', '도선은 격자 안에서 연결하세요.', 'Keep the wire inside the grid.', outside);
   const start = trace.length ? blockAt(trace[0]) : null;
   const end = trace.length ? blockAt(trace.at(-1)) : null;
   const selfFeedback = start?.type === 'D' && start.id === end?.id && trace.length >= 5;
   if (endpoints) {
-    if (!start || !end || (start.id === end.id && !selfFeedback)) return false;
+    if (!end && trace.length && cellHasWire(trace.at(-1))) return fail('WIRE_OVERLAP', '기존 도선과 겹칠 수 없습니다.', 'A wire cannot overlap an existing wire.', trace.at(-1));
+    if (!start || !end) return fail('WIRE_EMPTY_ENDPOINT', '도선의 끝을 블록에 연결하세요.', 'End the wire on a block.', !start ? trace[0] : trace.at(-1));
+    if (trace.length < 3) return fail('WIRE_ADJACENT_BLOCKS', '블록 사이에 빈 칸이 하나 이상 필요합니다.', 'Leave at least one empty cell between blocks.', trace.at(-1));
+    if (start.id === end.id && !selfFeedback) return fail('WIRE_SELF_INTERSECTION', '도선이 자신과 겹칠 수 없습니다.', 'A wire cannot overlap itself.', trace.at(-1));
   }
   const seen = new Set();
-  return trace.every((p, i) => {
-    if (!p || !Number.isInteger(p.r) || !Number.isInteger(p.c) || !withinBounds(p.r, p.c)) return false;
+  for (const [i, p] of trace.entries()) {
     const key = `${p.r},${p.c}`;
-    if (seen.has(key) && !(selfFeedback && i === trace.length - 1 && p.r === trace[0].r && p.c === trace[0].c)) return false;
+    if (seen.has(key) && !(selfFeedback && i === trace.length - 1 && p.r === trace[0].r && p.c === trace[0].c)) return fail('WIRE_SELF_INTERSECTION', '도선이 자신과 겹칠 수 없습니다.', 'A wire cannot overlap itself.', p);
     seen.add(key);
-    if (i && Math.abs(p.r - trace[i - 1].r) + Math.abs(p.c - trace[i - 1].c) !== 1) return false;
-    return !(i > 0 && i < trace.length - 1 && (blockAt(p) || cellHasWire(p)));
-  });
+    if (i && Math.abs(p.r - trace[i - 1].r) + Math.abs(p.c - trace[i - 1].c) !== 1) return fail('INVALID_WIRE_PATH', '도선은 이웃한 칸을 따라 연결하세요.', 'Route the wire through neighboring cells.', p);
+    if (i > 0 && i < trace.length - 1) {
+      if (blockAt(p)) return fail('WIRE_THROUGH_BLOCK', '도선이 블록을 통과할 수 없습니다.', 'A wire cannot pass through a block.', p);
+      if (cellHasWire(p)) return fail('WIRE_OVERLAP', '기존 도선과 겹칠 수 없습니다.', 'A wire cannot overlap an existing wire.', p);
+    }
+  }
+  return null;
+}
+
+export function isValidWirePath(trace, context, endpoints = true) {
+  return wirePathDiagnostic(trace, context, endpoints) === null;
 }
 
 // Validate a proposed editor transaction, including overlaps between new wires.
