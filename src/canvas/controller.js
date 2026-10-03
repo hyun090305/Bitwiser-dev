@@ -1673,58 +1673,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return true;
   }
 
-  function hasMemoryConnections(drag) {
-    return drag.type === 'D' || drag.wires?.some(w => circuit.blocks[w.endBlockId]?.type === 'D');
-  }
-
-  // Moving a memory or its input keeps connection IDs/roles. Route around
-  // occupied cells; if there is no valid space, put the block and wires back.
-  function restoreMemoryDragWires(drag) {
-    const block = circuit.blocks[drag.id];
-    if (!block || !hasMemoryConnections(drag)) return;
-    const restored = [];
-    const occupied = new Set(Object.values(circuit.wires).flatMap(w => w.path.slice(1, -1).map(p => `${p.r},${p.c}`)));
-    for (const w of drag.wires || []) {
-      if (circuit.wires[w.id]) continue;
-      const start = circuit.blocks[w.startBlockId]?.pos;
-      const end = circuit.blocks[w.endBlockId]?.pos;
-      if (!start || !end) break;
-      const queue = [[{ ...start }]];
-      const visited = new Set([`${start.r},${start.c}`]);
-      const oldStart = w.path[0], oldEnd = w.path.at(-1);
-      const departure = { r: w.path[1].r - oldStart.r, c: w.path[1].c - oldStart.c };
-      const approach = { r: w.path.at(-2).r - oldEnd.r, c: w.path.at(-2).c - oldEnd.c };
-      let path = null;
-      for (let i = 0; i < queue.length && i < 4096 && !path; i++) {
-        const trail = queue[i];
-        const last = trail.at(-1);
-        for (const [dr, dc] of [[0,1],[1,0],[0,-1],[-1,0]]) {
-          if (trail.length === 1 && (dr !== departure.r || dc !== departure.c)) continue;
-          const p = { r: last.r + dr, c: last.c + dc };
-          const key = `${p.r},${p.c}`;
-          if (!withinBounds(p.r,p.c) || p.r < Math.min(start.r,end.r)-4 || p.r > Math.max(start.r,end.r)+4 ||
-              p.c < Math.min(start.c,end.c)-4 || p.c > Math.max(start.c,end.c)+4) continue;
-          if (p.r === end.r && p.c === end.c) {
-            if (trail.length >= 2 && last.r === end.r + approach.r && last.c === end.c + approach.c) { path = [...trail,p]; break; }
-            continue;
-          }
-          if (visited.has(key) || occupied.has(key) || blockAt(p)) continue;
-          visited.add(key); queue.push([...trail,p]);
-        }
-      }
-      if (!path) break;
-      restored.push({ ...w, path });
-      path.slice(1,-1).forEach(p => occupied.add(`${p.r},${p.c}`));
-    }
-    const missing = (drag.wires || []).filter(w => !circuit.wires[w.id]);
-    if (restored.length === missing.length) restored.forEach(w => { circuit.wires[w.id] = w; });
-    else {
-      block.pos = { ...drag.origPos };
-      (drag.wires || []).forEach(w => { circuit.wires[w.id] = w; });
-      rejectLayout();
-    }
-  }
-
   function updateButtons() {
     const isWireMode = state.mode === 'wireDrawing';
     const isDeleteMode = state.mode === 'deleting';
@@ -2456,7 +2404,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         } else if (state.draggingBlock.id) {
           const existingBlock = blockAt(cell);
           const occupiedByWire = cellHasWire(cell);
-          if (existingBlock && !hasMemoryConnections(state.draggingBlock)) {
+          if (existingBlock) {
             const replaced = replaceExistingBlock(existingBlock, {
               type: state.draggingBlock.type,
               name: state.draggingBlock.name,
@@ -2471,7 +2419,6 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           if (!placed) {
             const collision = Boolean(existingBlock) || occupiedByWire;
             if (collision && !existingBlock) rejectLayout();
-            if (collision && hasMemoryConnections(state.draggingBlock)) rejectLayout();
             const target = collision ? state.draggingBlock.origPos : cell;
             const id = state.draggingBlock.id;
             circuit.blocks[id] = newBlock({
@@ -2545,8 +2492,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const removedExistingBlock =
         !placed && Boolean(state.draggingBlock && state.draggingBlock.id);
       if (placed) {
-        if (state.draggingBlock.id) restoreMemoryDragWires(state.draggingBlock);
         const before = state.draggingBlock.before;
+        // Detaching a data wire can leave only EN; apply the usual deletion
+        // normalization before validating the final move. Rejections restore before.
+        if (before) normalizeAfterEdit(circuit, before);
         if (before && !canCommitEdit(circuit, before, true)) {
           circuit.blocks = before.blocks;
           circuit.wires = before.wires;
