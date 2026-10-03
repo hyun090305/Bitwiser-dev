@@ -63,6 +63,7 @@ git diff --check
 | --- | --- |
 | 문서·Issue/PR 템플릿만 변경 | 링크·소스 경로·명령 존재, front matter 및 필수 항목, `git diff --check` |
 | JS·회로·데이터 동작 | `npm test` |
+| 도선 드래그 | `npm run build:demo` 후 `npm run test:wires:browser`, `npm run test:wires:electron` — 빠른 이동 보간, 첫 도착 블록 고정, 한영 오류, 취소·Undo/Redo·실행 상태 보존 |
 | 단일 블록·그룹 이동 | `npm run build:demo` 후 `npm run test:move:browser`, `npm run test:move:electron` — D/EN·자기 연결·fan-out 제거, 무관한 도선 유지, 같은 칸/취소/거절 복원, Undo/Redo와 그룹 경로 유지 |
 | 공통 UI/모듈·카탈로그·체험판 | `npm run build:demo`; 별도 터미널에서 `npm run preview:demo`를 켜고 `npm run test:demo:browser` |
 | 첫 플레이 UX·튜토리얼·힌트·비용 상세 | `npm run build:demo` 후 `npm run test:ux:browser`, `npm run test:ux:electron` — 한영 입력 클릭·복구·힌트 대기시간 격리·비용 갱신·오류 위치/소멸·접힌 결과와 재진입·좁은 화면/reduced motion |

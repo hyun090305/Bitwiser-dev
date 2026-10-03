@@ -4,6 +4,7 @@ import { getExecutionState, synchronizeExecution, resetExecution, toggleButton, 
 import { createMemoryControls, D_HELP } from '../modules/memoryControls.js';
 import { COST_RULES } from '../modules/circuitCost.js';
 import { snapshotCircuit, getCircuitStats, wirePathDiagnostic, hasValidWireLayout } from './circuitData.js';
+import { wireSegmentCells } from './wireDrawing.js';
 import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import {
   drawGrid,
@@ -250,6 +251,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     mode: 'idle',
     placingType: null,
     wireTrace: [],
+    wirePointer: null,
     startBlockId: null,
     draggingBlock: null,
     dragCandidate: null,
@@ -678,6 +680,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.selectionDrag = null;
     setMode('idle');
     state.wireTrace = [];
+    state.wirePointer = null;
     state.draggingBlock = null;
     overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
     syncPaletteWithCircuit();
@@ -1673,6 +1676,61 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return true;
   }
 
+  function hasWireTarget() {
+    return state.wireTrace.length > 1 && Boolean(blockAt(state.wireTrace.at(-1)));
+  }
+
+  function wireGridPoint(x, y) {
+    const world = useCamera ? camera.screenToWorld(x, y) : { x: x - panelTotalWidth, y };
+    const point = { x: (world.x - GAP) / pitch, y: (world.y - GAP) / pitch };
+    // Match pxToCell at the thin outer grid margin on fixed-size canvases.
+    if (!useCamera) {
+      point.x = Math.max(0, Math.min(circuit.cols - 1e-6, point.x));
+      point.y = Math.max(0, Math.min(circuit.rows - 1e-6, point.y));
+    }
+    return point;
+  }
+
+  function extendWireTrace(x, y) {
+    if (hasWireTarget()) return true;
+    const from = state.wirePointer;
+    const outside = x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight;
+    // Inspect the visible part of a fast stroke before rejecting an outside
+    // pointer: it may have crossed its destination before leaving the canvas.
+    let fraction = 1;
+    if (x < panelTotalWidth) fraction = Math.min(fraction, (panelTotalWidth - from.x) / (x - from.x));
+    if (x >= canvasWidth) fraction = Math.min(fraction, (canvasWidth - 1e-6 - from.x) / (x - from.x));
+    if (y < 0) fraction = Math.min(fraction, -from.y / (y - from.y));
+    if (y >= gridHeight) fraction = Math.min(fraction, (gridHeight - 1e-6 - from.y) / (y - from.y));
+    const to = { x: from.x + (x - from.x) * fraction, y: from.y + (y - from.y) * fraction };
+    let extended = false;
+    for (const cell of wireSegmentCells(wireGridPoint(from.x, from.y), wireGridPoint(to.x, to.y))) {
+      state.wireTrace.push(cell);
+      extended = true;
+      const diagnostic = wirePathDiagnostic(state.wireTrace, wireValidationContext(), false);
+      if (diagnostic) {
+        rejectEdit([diagnostic]);
+        cancelInteraction();
+        return false;
+      }
+      if (hasWireTarget()) {
+        if (!isValidWire(state.wireTrace)) {
+          cancelInteraction();
+          return false;
+        }
+        break;
+      }
+    }
+    state.wirePointer = to;
+    if (outside && !hasWireTarget()) {
+      rejectOutsideWire(x, y);
+      cancelInteraction();
+      return false;
+    }
+    if (extended) playWirePlacingSound();
+    return true;
+  }
+
   function updateButtons() {
     const isWireMode = state.mode === 'wireDrawing';
     const isDeleteMode = state.mode === 'deleting';
@@ -1881,6 +1939,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     return e => {
       if (isControlLikeKey(e) && state.mode === 'wireDrawing') {
         state.wireTrace = [];
+        state.wirePointer = null;
         overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         setMode('idle');
       } else if (e.key === 'Shift' && state.mode === 'deleting') {
@@ -2076,7 +2135,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           if (block) {
             const diagnostic = wireStartDiagnostic(block);
             if (diagnostic) rejectEdit([diagnostic]);
-            else state.wireTrace = [coord(cell.r, cell.c)];
+            else {
+              state.wireTrace = [coord(cell.r, cell.c)];
+              state.wirePointer = { x, y };
+            }
             handled = true;
           }
         } else if (state.mode === 'deleting') {
@@ -2246,10 +2308,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       return;
     }
     const { x, y } = getPointerPos(e);
+    // A release may be the first sample past the destination, especially on touch.
+    if (state.mode === 'wireDrawing' && state.wireTrace.length && !extendWireTrace(x, y)) return;
     // Touch release still targets the starting canvas after moving outside it.
-    if ((state.wireTrace.length || state.selecting) &&
+    if (state.selecting &&
         (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight)) {
-      if (state.wireTrace.length) rejectOutsideWire(x, y);
       cancelInteraction();
       return;
     }
@@ -2533,6 +2596,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     // Clear any pending drag candidate after pointer release
     state.dragCandidate = null;
     state.wireTrace = [];
+    state.wirePointer = null;
     state.pointerDown = null;
     state.pointerMoved = false;
     if (state.selection) {
@@ -2640,24 +2704,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
-      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) {
-        rejectOutsideWire(x, y); cancelInteraction(); return false;
-      }
-      const cell = pointerToBoundedCell(x, y);
-      if (!cell) { rejectOutsideWire(x, y); cancelInteraction(); return false; }
-      const last = state.wireTrace[state.wireTrace.length - 1];
-      if (!last || last.r !== cell.r || last.c !== cell.c) {
-        state.wireTrace.push(coord(cell.r, cell.c));
-        const diagnostic = wirePathDiagnostic(state.wireTrace, wireValidationContext(), false);
-        if (diagnostic) {
-          rejectEdit([diagnostic]);
-          state.wireTrace = [];
-          overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
-          setMode('idle');
-          return false;
-        }
-        playWirePlacingSound();
-      }
+      if (!extendWireTrace(x, y)) return false;
       overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
       overlayCtx.save();
       const activeTheme = getActiveTheme();
@@ -2673,7 +2720,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
         const rc = cellRect(p.r, p.c);
         overlayCtx.lineTo(rc.x + rc.w / 2, rc.y + rc.h / 2);
       });
-      overlayCtx.lineTo(x, y);
+      if (!hasWireTarget()) overlayCtx.lineTo(x, y);
       overlayCtx.stroke();
       overlayCtx.restore();
       return true;
@@ -2799,6 +2846,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     state.dragCandidate = null;
     state.selectionDrag = null;
     state.wireTrace = [];
+    state.wirePointer = null;
     state.pointerDown = null;
     state.pointerMoved = false;
     state.selecting = false;
@@ -2828,7 +2876,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
       const point = e.touches?.[0] || e;
       const { x, y } = getPointerPos({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY });
       if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) {
-        rejectOutsideWire(x, y); cancelInteraction();
+        handlePointerMove({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY, buttons: 1 });
       }
     }
     if (!state.draggingBlock) return;
@@ -2847,14 +2895,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function handleDocUp(e) {
     if (isLocked()) return false;
-    // Canvas releases have already finished in handlePointerUp. Any remaining
-    // trace/selection was released outside: discard the preview, not the design.
-    if (state.wireTrace.length || state.selecting) {
-      if (state.wireTrace.length) {
-        const point = e.changedTouches?.[0] || e;
-        const { x, y } = getPointerPos({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY });
-        rejectOutsideWire(x, y);
-      }
+    // Canvas releases already finished in handlePointerUp. An outside release
+    // can still commit a wire whose first destination was reached along the way.
+    if (state.wireTrace.length) {
+      const point = e.changedTouches?.[0] || e;
+      handlePointerUp({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY });
+      return;
+    }
+    if (state.selecting) {
       cancelInteraction();
       return;
     }
