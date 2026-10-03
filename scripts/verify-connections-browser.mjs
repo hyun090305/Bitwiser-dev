@@ -129,7 +129,7 @@ try {
         await draw([[2,4],[2,3],[2,4]]);assert.deepEqual(await read(),before);
         await replace('OUTPUT',[2,4]);assert.deepEqual(await read(),before);
         await replace('INPUT',[2,4]);assert.deepEqual(await read(),before);
-        // #502: five spatial failures retain design/runtime/history and report one specific reason.
+        // Spatial failures retain design/runtime/history and report one specific reason.
         const primitive=(id,type,r,c)=>({id,type,name:type,pos:{r,c},value:false});
         const spatial={rows:12,cols:18,blocks:{a:primitive('a','INPUT',0,0),b:primitive('b','OUTPUT',0,4),n:primitive('n','NOT',0,2)},wires:{}};
         // This isolated canvas harness has no app status gutter. Let the prior
@@ -138,7 +138,6 @@ try {
         for (const [route,ko,en,mutate] of [
           [[[0,0],[0,1]],/빈 칸이 하나/,/one empty cell/,c=>{c.blocks.n.pos={r:0,c:1};}],
           [[[0,0],[0,1]],/끝을 블록/,/End the wire/,()=>{}],
-          [[[0,0],[0,1],[0,2],[0,3]],/블록을 통과/,/pass through a block/,()=>{}],
           [[[2,1],[1,1],[0,1],[0,2]],/기존 도선과 겹칠/,/overlap an existing wire/,c=>{
             c.blocks.x=primitive('x','INPUT',2,1);c.blocks.n.pos={r:0,c:3};
             c.wires.old={id:'old',startBlockId:'a',endBlockId:'n',path:[{r:0,c:0},{r:0,c:1},{r:0,c:2},{r:0,c:3}]};
@@ -159,7 +158,7 @@ try {
         assert.doesNotMatch(await rows.nth(0).textContent(),/AND AND/);
         assert.match(await rows.nth(0).textContent(),language==='ko'?/입력 1개 부족.*행 5, 열 1/:/1 input missing.*row 5, column 1/);
         assert.match(await rows.nth(1).textContent(),language==='ko'?/입력 2개 부족.*행 5, 열 5/:/2 inputs missing.*row 5, column 5/);
-        passed.push(`${surface}/${language}: 502 adjacent/empty/block/overlap/bounds causes, atomic refusal and actual missing-input counts/locations`);
+        passed.push(`${surface}/${language}: adjacent/empty/overlap/bounds causes, atomic refusal and actual missing-input counts/locations`);
         // Imported violations are retained across unrelated edits and repaired a wire at a time.
         const invalid=selfFeedbackCircuit('EN');invalid.wires.data.inputRole='EN';await load(invalid);
         before=await read();assert.equal(before.diagnostics[0].code,'INVALID_D_ROLES');

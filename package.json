@@ -22,6 +22,8 @@
     "test:saves:electron": "node scripts/verify-circuit-saves-electron.mjs",
     "test:memory:browser": "node scripts/verify-memory-browser.mjs",
     "test:connections:browser": "node scripts/verify-connections-browser.mjs",
+    "test:wires:browser": "node scripts/verify-wire-drag.mjs",
+    "test:wires:electron": "node scripts/verify-wire-drag.mjs --electron",
     "test:move:browser": "node scripts/verify-block-move.mjs",
     "test:move:electron": "node scripts/verify-block-move.mjs --electron",
     "test:ux:browser": "node scripts/verify-first-play-ux.mjs",
