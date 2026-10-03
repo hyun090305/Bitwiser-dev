@@ -37,12 +37,20 @@ function trace(ctx, points) {
   ctx.beginPath(); points.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath();
 }
 
-export function drawStarRow(ctx, x, y, earned, { size = 30, gap = 4, total = 3 } = {}) {
+export function starRowGeometry(x, y, { size = 30, gap = 4, total = 3 } = {}) {
   const width = total * size + (total - 1) * gap;
+  return Array.from({ length: total }, (_, index) => ({ x: x - width / 2 + index * (size + gap) + size / 2, y, size, index }));
+}
+
+export function drawStarRow(ctx, x, y, earned, { size = 30, gap = 4, total = 3, presentation = null } = {}) {
+  const points = starRowGeometry(x, y, { size, gap, total });
   for (let i = 0; i < total; i++) {
-    const active = i < earned;
+    const active = presentation?.[i]?.earned ?? (i < earned);
+    const pulse = presentation?.[i]?.scale || 1;
     ctx.save();
-    ctx.translate(x - width / 2 + i * (size + gap), y - size / 2);
+    ctx.translate(points[i].x, y);
+    ctx.scale(pulse, pulse);
+    ctx.translate(-size / 2, -size / 2);
     ctx.scale(size / 64, size / 64);
     ctx.lineJoin = 'round';
     const gold = ctx.createLinearGradient(0, 4, 0, 60);

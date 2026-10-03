@@ -4859,6 +4859,9 @@ body.lab-mode-active {
 .chapter-lock-icon svg { overflow: visible; fill: none; stroke: currentColor; stroke-width: 3; }
 .chapter-unlock-skip { margin-top: 8px; padding: 5px 18px; }
 .chapter-total-stars { position: absolute; top: 12px; right: 14px; z-index: 3; padding: 6px 12px; border: 1px solid #475569; border-radius: 8px; background: #101b2e; color: #f7d782; font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.chapter-total-star-icon, .chapter-total-star-value { display: inline-block; }
+.map-star-collection { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
+.map-collect-star { position: absolute; left: 0; top: 0; pointer-events: none; transform-origin: 50% 47.0588%; filter: drop-shadow(0 0 3px rgba(247, 215, 130, .45)); }
 body.lab-mode-active .chapter-total-stars { display: none; }
 .chapter-result-unlock { color: var(--accent-color, #8fd9ef); font-weight: 700; }
 .chapter-lock-overlay.is-unlocking { animation: chapter-unlock-fade 900ms linear forwards; }

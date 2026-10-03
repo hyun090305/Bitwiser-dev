@@ -7,6 +7,7 @@ import { createCostLeaderboard } from './costLeaderboard.js';
 import { initializeCostBoard, renderPerformance, disposePerformance, renderCostRanking, costText, costLanguage } from './costUI.js';
 import { configureOfficialCostRanking } from './rank.js';
 import { stylePassedResult } from './gradingResultView.js';
+import { effectiveStageStars, mapStarRewards } from './mapStarCollection.js';
 
 let storeProvider = null;
 export function configureFullCostExperience(options = {}) {
@@ -52,12 +53,15 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
     const close = document.createElement('button'); close.textContent = costLanguage() === 'ko' ? '닫기' : 'Close';
     close.type = 'button'; close.onclick = () => modal.classList.remove('active'); list.append(close);
   });
+  const stars = id => effectiveStageStars(id, levels.getClearedLevels(), levels.getStageAccess().stageStars, store()?.stars(id));
   return {
-    stars: id => id === 0 ? 0 : Math.max(store()?.stars(id) || 0, levels.getStageAccess().stageStars?.[id] || 0, levels.getClearedLevels().includes(id) ? 1 : 0),
+    stars,
     onPassed(id, circuit) {
+      const beforeStars = stars(id);
       const before = new Set(levels.getStageAccess().unlockedChapters || []);
       const result = store().recordClear(id, circuit);
       levels.markLevelCleared(id);
+      mapStarRewards.add(id, beforeStars, stars(id));
       result.unlockedChapters = (levels.getStageAccess().unlockedChapters || []).filter(id => !before.has(id));
       const modal = document.getElementById('clearedModal');
       stylePassedResult(modal.querySelector('.modal-content'), id);
@@ -78,7 +82,6 @@ export function initializeFullCostExperience({ db, getStage = levels.getCurrentL
       add(ko ? '다시 설계하기' : 'Back to design', close);
       add(ko ? '맵으로 돌아가기' : 'Back to map', async () => {
         close(); await levels.returnToLevels();
-        if (result.unlockedChapters[0]) document.dispatchEvent(new CustomEvent('stageMap:focusChapter', { detail: result.unlockedChapters[0] }));
       }, 'clearedMapBtn');
       modal.querySelector('.closeBtn').onclick = close;
       modal.onkeydown = event => { if (event.key === 'Escape') { event.preventDefault(); close(); } };

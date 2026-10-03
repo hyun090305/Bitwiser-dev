@@ -8,7 +8,8 @@
 import { createCamera } from '../canvas/camera.js';
 import { drawGrid, setupCanvas } from '../canvas/renderer.js';
 import { CELL } from '../canvas/model.js';
-import { drawStarRow } from './achievementStars.js';
+import { drawStarRow, starRowGeometry } from './achievementStars.js';
+import { createMapStarCollection, mapStarRewards } from './mapStarCollection.js';
 import { getActiveTheme } from '../themes.js';
 import { canPlayStage, chapterAccess } from './stageCatalog.js';
 import { createChapterUnlockUI } from './chapterUnlockUI.js';
@@ -1262,7 +1263,7 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
       : (ko ? '플레이 가능' : 'Ready');
     ctx.fillText(stateLabel, topLeft.x + width / 2, topLeft.y + height - 42 * scale);
     if (!stateLabel && status.progressCleared && node.level !== 0) {
-      drawStarRow(ctx, topLeft.x + width / 2, topLeft.y + height - 42 * scale, Math.max(1, status.stars || 1), { size: 32 * scale, gap: 4 * scale });
+      drawStarRow(ctx, topLeft.x + width / 2, topLeft.y + height - 42 * scale, Math.max(1, status.stars || 1), { size: 32 * scale, gap: 4 * scale, presentation: status.starPresentation });
     }
   } else if (node.previewFeature) {
     ctx.font = `700 ${10 * scale}px sans-serif`;
@@ -1543,6 +1544,35 @@ export function initializeStageMap({
     }
   };
 
+  function focusPendingChapter() {
+    const pending = getStageAccess().pendingChapters?.[0];
+    if (pending) focusChapter(pending, { animate: false });
+  }
+
+  const starCollection = createMapStarCollection({ screen: screenEl, counter: chapterUI,
+    focusStage(id) {
+      const node = state.nodes.find(node => node.level === id);
+      if (node) focusChapter(node.chapterId, { animate: false, preserveCollection: true });
+    },
+    getLayout(reward) {
+      const node = state.nodes.find(node => node.level === reward.id);
+      if (!node || state.currentChapterId !== node.chapterId || state.cameraAnimation || state.archiveMode.active) return null;
+      const rect = canvas.getBoundingClientRect(), scale = camera.getScale();
+      const target = chapterUI.collectionTarget();
+      if (!rect.width || !rect.height || !target) return null;
+      // Camera/draw coordinates are CSS pixels. The buffer's DPR is already
+      // applied by setupCanvas; only convert the displayed canvas CSS ratio.
+      const ratioX = rect.width / Number(canvas.dataset.baseWidth), ratioY = rect.height / Number(canvas.dataset.baseHeight);
+      const topLeft = camera.worldToScreen(node.rect.x, node.rect.y);
+      const points = starRowGeometry(topLeft.x + node.rect.w * scale / 2, topLeft.y + (node.rect.h - 42) * scale,
+        { size: 32 * scale, gap: 4 * scale }).filter(point => reward.indices.includes(point.index))
+        .map(point => ({ ...point, x: rect.x + point.x * ratioX, y: rect.y + point.y * ratioY, size: point.size * ratioX }));
+      if (points.some(point => !Number.isFinite(point.x + point.y + point.size) || point.x < rect.left || point.x > rect.right || point.y < rect.top || point.y > rect.bottom)) return null;
+      return { points, target };
+    },
+    onComplete: focusPendingChapter
+  });
+
   function executeNextFrame(fn) {
     if (typeof fn !== 'function') return;
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
@@ -1728,6 +1758,7 @@ export function initializeStageMap({
     }
 
     updateCameraAnimation(timestamp);
+    starCollection.step(timestamp);
 
     const defaultGridStyle = {
       background: 'rgba(15, 23, 42, 0.96)',
@@ -1841,7 +1872,8 @@ export function initializeStageMap({
     drawChapterTitles(ctx, camera, timestamp);
 
     state.nodes.forEach(node => {
-      const status = state.nodeStatus.get(node.id) || { locked: false, progressCleared: false };
+      const status = { ...(state.nodeStatus.get(node.id) || { locked: false, progressCleared: false }),
+        starPresentation: starCollection.presentation(node.level, timestamp) };
       const isHovered = Boolean(state.hoverNode?.id === node.id || state.focusedExtraId === node.id
         || (!isExtrasCard(node) && state.selectedNodeId === node.id));
       const isPressed = Boolean(state.pressedNode && state.pressedNode.id === node.id);
@@ -2524,12 +2556,14 @@ export function initializeStageMap({
     return null;
   }
 
-  function focusChapter(chapterId, { animate = true } = {}) {
+  function focusChapter(chapterId, { animate = true, preserveCollection = false } = {}) {
     if (!state.chapters.length) return;
+    if (!preserveCollection) starCollection.cancel();
     const chapter = state.chapterLookup.get(chapterId) || state.chapters[0];
     if (!chapter) return;
     setCurrentChapter(chapter.id);
     executeNextFrame(() => {
+      if (state.currentChapterId !== chapter.id) return;
       ensureCanvasInitialized();
       const focusBounds = state.chapterBounds.get(chapter.id);
       const anchor = getChapterAnchorWorld(chapter);
@@ -2689,7 +2723,7 @@ export function initializeStageMap({
     if (state.archiveMode.active) {
       focusBlueprintArchive({ animate });
     } else if (state.currentChapterId) {
-      focusChapter(state.currentChapterId, { animate });
+      focusChapter(state.currentChapterId, { animate, preserveCollection: true });
     } else {
       centerMap();
     }
@@ -2847,6 +2881,7 @@ export function initializeStageMap({
 
   function handleNodeActivation(node) {
     if (!node || chapterUI.playing) return;
+    starCollection.cancel();
     state.selectedNodeId = node.id;
     requestRender();
     if (node.previewFeature) { onFeatureLocked?.(node.previewFeature); return; }
@@ -3207,15 +3242,14 @@ export function initializeStageMap({
 
   document.addEventListener('stageMap:shown', () => {
     scheduleViewportSync();
+    const collecting = !starCollection.active && starCollection.start(mapStarRewards.take());
     refreshNodeStates();
-    const pending = getStageAccess().pendingChapters?.[0];
-    if (pending) focusChapter(pending, { animate: false });
+    if (!collecting && !starCollection.active) focusPendingChapter();
   });
   document.addEventListener('stageMap:focusChapter', event => focusChapter(event.detail, { animate: false }));
   document.addEventListener('bitwiser:loadingComplete', () => {
     if (screenEl.style.display === 'none') return;
-    const pending = getStageAccess().pendingChapters?.[0];
-    if (pending) focusChapter(pending, { animate: false });
+    if (!starCollection.active) focusPendingChapter();
   });
 
   document.addEventListener('stageMap:returnFromLab', (e) => {
@@ -3313,8 +3347,6 @@ function lerpColor(c1, c2, t) {
   const a = start.a + (end.a - start.a) * t;
   return `rgba(${r}, ${g}, ${b}, ${a})`;
 }
-
-
 
 
 

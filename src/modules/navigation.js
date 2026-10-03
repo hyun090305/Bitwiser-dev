@@ -47,6 +47,7 @@ export function hideStageMapScreen() {
   toggleScreen(stageMapScreenEl, false);
   stageMapScreenEl?.setAttribute('aria-hidden', 'true');
   if (typeof document !== 'undefined') {
+    document.dispatchEvent(new Event('stageMap:hidden'));
     document.dispatchEvent(new Event('stageMap:closePanels'));
   }
 }
