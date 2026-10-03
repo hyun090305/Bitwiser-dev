@@ -2,9 +2,108 @@
 import { drawGrid, drawBlock, drawWire, getWireFlowPeriod, setupCanvas } from '../src/canvas/renderer.js';
 import { createCamera } from '../src/canvas/camera.js';
 import { getAvailableThemes } from '../src/themes.js';
+import { evaluateCircuit, getEvaluationResult, getExecutionState, tickCircuit, resetExecution } from '../src/canvas/engine.js';
 
 const check = (value, message) => { if (!value) throw new Error(message); };
 const close = (a, b, message) => check(Math.abs(a - b) < 1e-7, `${message}: ${a} vs ${b}`);
+
+export function createGateCircuit(type) {
+  const circuit = { rows: 3, cols: 5, blocks: {}, wires: {} };
+  for (const [id, blockType, r, c] of [['a', 'INPUT', 0, 0], ['g', type, 0, 2], ['o', 'OUTPUT', 0, 4]]) {
+    circuit.blocks[id] = { id, type: blockType, name: blockType, pos: { r, c }, value: false };
+  }
+  circuit.wires.a = { id: 'a', startBlockId: 'a', endBlockId: 'g', path: [{ r: 0, c: 0 }, { r: 0, c: 1 }, { r: 0, c: 2 }] };
+  circuit.wires.o = { id: 'o', startBlockId: 'g', endBlockId: 'o', path: [{ r: 0, c: 2 }, { r: 0, c: 3 }, { r: 0, c: 4 }] };
+  if (type !== 'NOT') {
+    circuit.blocks.b = { id: 'b', type: 'INPUT', name: 'INPUT', pos: { r: 2, c: 2 }, value: false };
+    circuit.wires.b = { id: 'b', startBlockId: 'b', endBlockId: 'g', path: [{ r: 2, c: 2 }, { r: 1, c: 2 }, { r: 0, c: 2 }] };
+  }
+  return circuit;
+}
+
+export function checkGateSignals() {
+  const ctx = setupCanvas(document.createElement('canvas'), 180, 180);
+  let fills, strokes, labels;
+  for (const method of ['fill', 'stroke', 'fillText']) {
+    const native = ctx[method].bind(ctx);
+    ctx[method] = (...args) => {
+      if (method === 'fill') fills.push({ color: ctx.fillStyle, shadow: [ctx.shadowColor, ctx.shadowBlur, ctx.shadowOffsetX, ctx.shadowOffsetY] });
+      if (method === 'stroke') strokes.push({ color: ctx.strokeStyle, width: ctx.lineWidth });
+      if (method === 'fillText') labels.push({ text: args[0], color: ctx.fillStyle });
+      return native(...args);
+    };
+  }
+  const capture = (type, value, theme, scale = 1, hovered = false) => {
+    ctx.clearRect(0, 0, 180, 180);
+    fills = []; strokes = []; labels = [];
+    const camera = createCamera({ panelWidth: 20, scale });
+    camera.setViewport(180, 180); camera.pan(12, 12);
+    drawBlock(ctx, { type, name: type, pos: { r: 0, c: 0 }, value }, 20, hovered, camera, { theme });
+    const p = camera.cellToScreenCell({ r: 0, c: 0 }), dpr = window.devicePixelRatio;
+    const pixel = [...ctx.getImageData(Math.floor((p.x + 10 * scale) * dpr), Math.floor((p.y + 10 * scale) * dpr), 1, 1).data];
+    return { fills, strokes, labels, pixel, pixels: ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height).data };
+  };
+  let styles = 0;
+  for (const theme of getAvailableThemes()) for (const scale of [0.2, 0.26, 0.65, 1, 1.8]) for (const hovered of [false, true]) {
+    const references = ['INPUT', 'OUTPUT', 'JUNCTION'].map(type => capture(type, true, theme, scale, hovered));
+    for (const type of ['AND', 'OR', 'NOT']) {
+      const on = capture(type, true, theme, scale, hovered), off = capture(type, false, theme, scale, hovered);
+      check(on.pixel.join() === '242,240,223,255', `${theme.id}/${scale}/${type}: active fill pixels`);
+      for (const reference of references) {
+        check(JSON.stringify(on.fills[0]) === JSON.stringify(reference.fills[0]), `${type}: common fill and shadow`);
+      }
+      check(on.labels[0].text === type && off.labels[0].text === type, `${type}: label changed`);
+      check(on.labels[0].color === references[0].labels[0].color, `${type}: active text color`);
+      check(JSON.stringify(on.strokes) === JSON.stringify(off.strokes), `${type}: border changed with signal`);
+      for (const value of [0, null, undefined]) {
+        const unknown = capture(type, value, theme, scale, hovered);
+        check(off.pixels.every((v, i) => v === unknown.pixels[i]), `${type}: zero/unevaluated value lights up`);
+      }
+      const numeric = capture(type, 1, theme, scale, hovered);
+      check(on.pixels.every((v, i) => v === numeric.pixels[i]), `${type}: numeric output 1 differs`);
+      styles++;
+    }
+    const xorOn = capture('XOR', true, theme, scale, hovered), xorOff = capture('XOR', false, theme, scale, hovered);
+    check(xorOn.pixels.every((v, i) => v === xorOff.pixels[i]), 'XOR scope expanded');
+  }
+  const theme = getAvailableThemes()[0];
+  for (const type of ['AND', 'OR', 'NOT']) {
+    const circuit = createGateCircuit(type);
+    for (const [a, b] of [[false, false], [false, true], [true, false], [true, true]]) {
+      circuit.blocks.a.value = a;
+      if (circuit.blocks.b) circuit.blocks.b.value = b;
+      evaluateCircuit(circuit);
+      const expected = type === 'AND' ? a && b : type === 'OR' ? a || b : !a;
+      check(getEvaluationResult(circuit).ok && circuit.blocks.g.value === expected, `${type}: truth table ${a}/${b}`);
+      const face = capture(type, circuit.blocks.g.value, theme);
+      check((face.fills[0].color === '#f2f0df') === expected, `${type}: evaluated signal not rendered`);
+    }
+    circuit.blocks.a.value = type === 'NOT' ? false : true;
+    if (circuit.blocks.b) circuit.blocks.b.value = true;
+    evaluateCircuit(circuit);
+    check(circuit.blocks.g.value === true, `${type}: must start lit`);
+    const wire = circuit.wires.a; delete circuit.wires.a;
+    evaluateCircuit(circuit);
+    check(!getEvaluationResult(circuit).ok && circuit.blocks.g.value === null, `${type}: failed evaluation not cleared`);
+    check(capture(type, circuit.blocks.g.value, theme).fills[0].color !== '#f2f0df', `${type}: failed evaluation remains lit`);
+    circuit.wires.a = wire; evaluateCircuit(circuit);
+    check(circuit.blocks.g.value === true, `${type}: reconnected signal not restored`);
+  }
+  const memory = createGateCircuit('NOT');
+  memory.blocks.q = { id: 'q', type: 'D', pos: { r: 2, c: 0 }, value: false };
+  memory.wires.a.startBlockId = 'q';
+  memory.wires.a.path = [{ r: 2, c: 0 }, { r: 2, c: 1 }, { r: 2, c: 2 }, { r: 1, c: 2 }, { r: 0, c: 2 }];
+  memory.wires.d = { id: 'd', startBlockId: 'a', endBlockId: 'q', inputRole: 'D', path: [{ r: 0, c: 0 }, { r: 1, c: 0 }, { r: 2, c: 0 }] };
+  memory.blocks.a.value = true;
+  for (let i = 0; i < 40; i++) { evaluateCircuit(memory); capture('NOT', memory.blocks.g.value, theme); }
+  check(getExecutionState(memory).tick === 0 && memory.blocks.q.value === false && memory.blocks.g.value === true, 'preview advanced D/tick');
+  check(tickCircuit(memory).ok && getExecutionState(memory).tick === 1 && memory.blocks.q.value === true && memory.blocks.g.value === false, 'tick signal not reflected');
+  check(capture('NOT', memory.blocks.g.value, theme).fills[0].color !== '#f2f0df', 'tick display remains lit');
+  resetExecution(memory, { resetInputs: true });
+  check(getExecutionState(memory).tick === 0 && memory.blocks.q.value === false && memory.blocks.g.value === true, 'reset signal not reflected');
+  check(capture('NOT', memory.blocks.g.value, theme).fills[0].color === '#f2f0df', 'reset display remains off');
+  return `${styles} gate style cases at DPR ${window.devicePixelRatio}; real truth tables, disconnection/recovery, numeric/unknown values, preview/tick/reset and unchanged XOR`;
+}
 
 export function checkGridAlignment() {
   const dpr = window.devicePixelRatio;
