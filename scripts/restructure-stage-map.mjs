@@ -4,7 +4,7 @@ import { STAGE_MAP_EDGES } from '../src/modules/stageMapTopology.js';
 import { stageSlotPosition, STAGE_PANEL, STAGE_CARD, EXTRAS_CARD, EXTRAS_CARD_GAP } from '../src/modules/stageMapLayout.js';
 const spec = JSON.parse(await fs.readFile('stage_map.json', 'utf8'));
 const levels = JSON.parse(await fs.readFile('levels_en.json', 'utf8'));
-const old = new Map(spec.nodes.map(node => [node.id, node]));
+const old = new Map(spec.nodes.map(({ optional, ...node }) => [node.id, node]));
 const chapters = CHAPTERS.map((chapter, i) => {
   const anchor = { x: i * 30 + 2, y: 4 };
   return { id: chapter.id, label: chapter.title, subtitle: chapter.subtitle, order: chapter.order,
@@ -13,7 +13,7 @@ const chapters = CHAPTERS.map((chapter, i) => {
 });
 const nodes = STAGES.map(stage => ({
   ...old.get(stage.nodeId), id: stage.nodeId, label: levels.levelTitles[stage.id] || stage.title,
-  nodeType: 'stage', chapterId: stage.chapterId, optional: stage.optional, status: stage.status,
+  nodeType: 'stage', chapterId: stage.chapterId, status: stage.status,
   layoutKey: stage.layoutKey, gridPosition: stage.gridPosition,
   position: stageSlotPosition(stage.gridPosition, chapters.find(ch => ch.id === stage.chapterId).anchor), size: { ...STAGE_CARD }
 }));

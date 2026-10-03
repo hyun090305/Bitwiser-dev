@@ -13,7 +13,8 @@ const words = {
   denied: ['이미지를 복사할 수 없습니다. 이미지 저장을 이용해 주세요.', 'Could not copy the image. Use Save image instead.'],
   shareFailed: ['공유하지 못했습니다. 이미지 저장을 이용해 주세요.', 'Could not share. Use Save image instead.'],
   cost: ['이번 회로 비용', 'This circuit cost'], export: ['회로 내보내기', 'Export circuit'],
-  gif: ['GIF 저장', 'Save GIF'], gifFailed: ['GIF를 만들지 못했습니다. 다시 시도해 주세요.', 'Could not create the GIF. Please retry.']
+  gif: ['GIF 저장', 'Save GIF'], gifFailed: ['GIF를 만들지 못했습니다. 다시 시도해 주세요.', 'Could not create the GIF. Please retry.'],
+  details: ['저장·공유', 'Save and share']
 };
 export const blueprintText = (key, lang = 'ko') => words[key]?.[lang === 'ko' ? 0 : 1] || key;
 const el = (tag, text, cls) => { const n = document.createElement(tag); if (text != null) n.textContent = text; if (cls) n.className = cls; return n; };
@@ -27,7 +28,7 @@ function shieldDialogKeys(dialog) {
   return () => window.removeEventListener('keydown', shield, true);
 }
 
-export function createBlueprintShare(parent, options, { header, generate = createBlueprintPng, manual = false } = {}) {
+export function createBlueprintShare(parent, options, { header, resultActions, generate = createBlueprintPng, manual = false } = {}) {
   const lang = options.lang || window.currentLang || 'ko', tr = key => blueprintText(key, lang);
   // Own all input data before the first async boundary. Never read the editor again.
   const input = { ...options, lang, circuit: snapshotCircuit(options.circuit) };
@@ -41,6 +42,7 @@ export function createBlueprintShare(parent, options, { header, generate = creat
     const cost = el('div', null, 'blueprint-cost'); cost.append(el('span', tr('cost'), 'cost-label'), el('strong', input.totalCost == null ? '—' : input.totalCost.toLocaleString('en-US'), 'cost-result-total')); header.append(cost);
   }
   card.append(header);
+  if (resultActions) card.append(resultActions);
   const preview = button(tr('zoom'), () => enlarge(), 'blueprint-preview'); preview.setAttribute('aria-label', tr('zoom')); preview.disabled = true;
   card.append(preview, el('footer', 'BITWISER', 'blueprint-brand'));
   const actions = el('div', null, 'blueprint-actions'), status = el('p', '', 'blueprint-status'); status.setAttribute('role', 'status');
@@ -61,7 +63,11 @@ export function createBlueprintShare(parent, options, { header, generate = creat
   const label = el('label', null, 'blueprint-include'), include = el('input'); include.type = 'checkbox'; include.checked = true;
   label.append(include, document.createTextNode(tr('include')));
   const retry = button(tr('retry'), () => prepare(), 'blueprint-retry'); retry.hidden = true;
-  actions.append(copy, save, share); if (!manual) actions.append(label); actions.append(retry); root.append(actions, status);
+  actions.append(copy, save, share); if (!manual) actions.append(label); actions.append(retry);
+  if (manual) root.append(actions, status);
+  else {
+    const details = el('details', null, 'blueprint-sharing'); details.append(el('summary', tr('details')), actions, status); root.append(details);
+  }
   let revision = 0, alive = true, blob = null, zoom = null, releaseZoomKeys;
   const urls = new Map();
   function download(data, name) {

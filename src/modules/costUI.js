@@ -5,6 +5,7 @@ import { CHAPTERS } from './stageCatalog.js';
 
 const words = {
   current: ['현재 회로 비용', 'Current circuit cost'], best: ['개인 최고 비용', 'Personal best cost'],
+  blocks: ['블록', 'Blocks'], wires: ['도선', 'Wires'],
   none: ['기록 없음', 'No record'], pending: ['기준 준비 중', 'Targets coming soon'],
   invalid: ['별 기준 설정 확인 필요', 'Star target configuration needs attention'],
   clear: ['클리어', 'Cleared'], tutorial: ['튜토리얼 완료', 'Tutorial complete'],
@@ -44,6 +45,33 @@ export function initializeCostBoard({ getCircuit, getStage, getBest, getThreshol
   const tr = key => costText(key, lang);
   const board = node('section', null, 'cost-board'); board.id = 'circuitCostBoard';
   host.querySelector('#usageTable')?.setAttribute('hidden', ''); host.prepend(board);
+  const label = node('span', tr('current'), 'cost-label');
+  const total = node('strong', '—', 'cost-total');
+  const trigger = button(tr('current'), () => { pinned = !pinned; showDetail(pinned); });
+  trigger.className = 'cost-total-trigger'; trigger.replaceChildren(total);
+  const detail = node('div', '', 'cost-total-detail'); detail.id = 'circuit-cost-detail'; detail.hidden = true;
+  detail.setAttribute('role', 'tooltip'); document.body.append(detail);
+  trigger.setAttribute('aria-controls', detail.id); trigger.setAttribute('aria-describedby', detail.id); trigger.setAttribute('aria-expanded', 'false');
+  const metadata = node('div'); board.append(label, trigger, metadata);
+  let pinned = false;
+  function positionDetail() {
+    if (detail.hidden) return;
+    const rect = trigger.getBoundingClientRect();
+    if (!rect.width) { showDetail(false); return; }
+    detail.style.left = `${Math.max(8, Math.min(innerWidth - detail.offsetWidth - 8, rect.left))}px`;
+    detail.style.top = `${Math.max(8, Math.min(innerHeight - detail.offsetHeight - 8, rect.bottom + 6))}px`;
+  }
+  function showDetail(show) {
+    detail.hidden = !show; trigger.setAttribute('aria-expanded', String(show)); positionDetail();
+  }
+  const closeDetail = () => { pinned = false; showDetail(false); };
+  trigger.addEventListener('mouseenter', () => showDetail(true));
+  trigger.addEventListener('mouseleave', () => { if (!pinned && document.activeElement !== trigger) showDetail(false); });
+  trigger.addEventListener('focus', () => showDetail(true)); trigger.addEventListener('blur', closeDetail);
+  trigger.addEventListener('keydown', event => { if (event.key === 'Escape') { event.stopPropagation(); closeDetail(); } });
+  document.addEventListener('pointerdown', event => { if (!trigger.contains(event.target)) closeDetail(); });
+  document.addEventListener('focusin', event => { if (!trigger.contains(event.target)) closeDetail(); });
+  window.addEventListener('resize', positionDetail); document.addEventListener('scroll', positionDetail, true);
   let stamp = null, contextCircuit = null;
   function update() {
     const circuit = contextCircuit || getCircuit(); if (!circuit) return;
@@ -51,24 +79,29 @@ export function initializeCostBoard({ getCircuit, getStage, getBest, getThreshol
     const target = validateStarThresholds(getThresholds(id));
     let cost;
     try { cost = calculateCircuitCost(circuit); }
-    catch { board.replaceChildren(node('p', tr('unsupported'))); stamp = null; return; }
+    catch { total.textContent = '—'; metadata.replaceChildren(node('p', tr('unsupported'))); closeDetail(); stamp = null; return; }
     const nextStamp = JSON.stringify([id, cost, best?.totalCost, target]);
     if (stamp === nextStamp) return; stamp = nextStamp;
-    board.replaceChildren(node('span', tr('current'), 'cost-label'), node('strong', format(cost.totalCost), 'cost-total'));
+    label.textContent = tr('current'); total.textContent = format(cost.totalCost);
+    trigger.setAttribute('aria-label', `${tr('current')}: ${format(cost.totalCost)}`);
+    const blockCost = cost.breakdown.filter(line => line.type !== 'WIRE').reduce((sum, line) => sum + line.subtotal, 0);
+    const wireCost = cost.breakdown.find(line => line.type === 'WIRE').subtotal;
+    detail.textContent = `${tr('blocks')} ${format(blockCost)} / ${tr('wires')} ${format(wireCost)}`;
+    positionDetail(); metadata.replaceChildren();
     if (id != null && id !== 0) {
-      board.append(node('p', `${tr('best')}  ${best ? format(best.totalCost) : tr('none')}`, 'cost-best'));
+      metadata.append(node('p', `${tr('best')}  ${best ? format(best.totalCost) : tr('none')}`, 'cost-best'));
       if (target.status === 'ready') {
         for (const count of [2, 3]) {
           const goal = node('p', null, 'cost-target');
-          goal.append(starBadge(count, tr), node('span', `≤ ${format(count === 2 ? target.two : target.three)}`)); board.append(goal);
+          goal.append(starBadge(count, tr), node('span', `≤ ${format(count === 2 ? target.two : target.three)}`)); metadata.append(goal);
         }
-      } else board.append(node('p', tr(target.status === 'invalid' ? 'invalid' : 'pending'), 'cost-target'));
+      } else metadata.append(node('p', tr(target.status === 'invalid' ? 'invalid' : 'pending'), 'cost-target'));
     }
     const rankingButton = document.getElementById('viewRankingBtn');
     if (rankingButton) rankingButton.hidden = id === 0;
   }
   onModified?.(context => { if (context === 'play') update(); });
-  document.addEventListener('bitwiser:stageReady', () => { contextCircuit = null; update(); });
+  document.addEventListener('bitwiser:stageReady', () => { closeDetail(); contextCircuit = null; update(); });
   document.addEventListener('bitwiser:costContext', event => { contextCircuit = event.detail?.circuit || null; update(); });
   document.addEventListener('stageMap:progressUpdated', update);
   update(); return update;
@@ -77,7 +110,7 @@ export function initializeCostBoard({ getCircuit, getStage, getBest, getThreshol
 const performances = new WeakMap();
 export function disposePerformance(parent) { performances.get(parent)?.(); performances.delete(parent); }
 
-export function renderPerformance(parent, { id, result, thresholds, ranking, lang, title = '' }) {
+export function renderPerformance(parent, { id, result, thresholds, ranking, lang, title = '', actions }) {
   disposePerformance(parent);
   lang ||= costLanguage();
   const tr = key => costText(key, lang), { record, best = record } = result;
@@ -89,7 +122,7 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
   const cost = node('div', null, 'blueprint-cost');
   cost.append(node('span', tr('cost'), 'cost-label'), node('strong', format(record.totalCost), 'cost-result-total')); header.append(cost);
   const view = createBlueprintShare(own, { circuit: record.circuit, stageId: id, title, totalCost: record.totalCost,
-    stars: id === 0 ? null : record.stars, tutorial: id === 0, lang }, { header });
+    stars: id === 0 ? null : record.stars, tutorial: id === 0, lang }, { header, resultActions: actions });
   let frame, observer;
   const unlockNotice = node('p', '', 'chapter-result-unlock'); unlockNotice.setAttribute('role', 'status'); unlockNotice.hidden = true; own.append(unlockNotice);
   const announce = () => {
@@ -152,12 +185,12 @@ export function renderPerformance(parent, { id, result, thresholds, ranking, lan
   }
   if (result.saved === false) own.append(node('p', tr('saveFailed'), 'cost-warning'));
   if (id !== 0 && ranking) {
-    const aside = node('aside', null, 'cost-ranking');
-    const toggle = button(tr('hide'), () => {
+    const aside = node('aside', null, 'cost-ranking'); aside.hidden = true; layout.classList.add('ranking-hidden');
+    const toggle = button(tr('show'), () => {
       aside.hidden = !aside.hidden; toggle.textContent = tr(aside.hidden ? 'show' : 'hide');
       toggle.setAttribute('aria-expanded', String(!aside.hidden)); layout.classList.toggle('ranking-hidden', aside.hidden);
     });
-    toggle.className = 'cost-ranking-toggle'; toggle.setAttribute('aria-expanded', 'true');
+    toggle.className = 'cost-ranking-toggle'; toggle.setAttribute('aria-expanded', 'false');
     own.append(toggle); layout.append(aside); renderCostRanking(aside, { ...ranking, lang });
   }
   return layout;

@@ -6652,7 +6652,7 @@
   "levelDescriptions": {
     "0": {
       "title": "Tutorial",
-      "desc": "Invert IN1, AND it with IN2, and send the result to OUT1.",
+      "desc": "Turn OUT1 on only when IN1 is off and IN2 is on.",
       "table": [
         {
           "IN1": 0,
@@ -9587,24 +9587,24 @@
     "stage6": {
       "hints": [
         {
-          "type": "Explanation",
-          "content": "Outputs true only when A∨B is true but A∧B is false."
+          "type": "Direction",
+          "content": "Compare the OR output with the goal. Which inputs give a different result?"
         },
         {
-          "type": "Logic expression",
-          "content": "A XOR B = (A∨B)∧¬(A∧B) = (A∧¬B)∨(¬A∧B)"
+          "type": "Build it",
+          "content": "Use AND to combine “at least one is on” with “both are not on together”."
         }
       ]
     },
     "stage7": {
       "hints": [
         {
-          "type": "Explanation",
-          "content": "Outputs true only when A and B, B and C, or C and A are true."
+          "type": "Direction",
+          "content": "When the output is on, look for a pair of inputs that are both on."
         },
         {
-          "type": "Logic expression",
-          "content": "(A∧B)∨(B∧C)∨(C∧A)"
+          "type": "Build it",
+          "content": "Check each pair of the three inputs with AND, then combine those results with OR."
         }
       ]
     },

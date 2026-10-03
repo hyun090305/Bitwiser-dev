@@ -70,20 +70,14 @@ export async function verifyGameplayActions(page, { demo = false, screenshot } =
   await page.locator('#startLevelBtn').click();
   const hasHints = await page.evaluate(async () => {
     const levels = await import('./src/modules/levels.js');
-    return !!levels.getLevelHints()[`stage${levels.getCurrentLevel()}`]?.hints;
+    return !!levels.getLevelHints()[`stage${levels.getCurrentLevel()}`]?.hints?.some(hint => hint.content?.trim());
   });
   if (hasHints) {
     await page.locator('#hintBtn').click();
     await page.locator('#hintModal').waitFor({ state: 'visible' });
     await page.locator('#closeHintBtn').click();
   } else {
-    await page.evaluate(() => { window.testOriginalAlert = window.alert; window.alert = message => { window.testHintAlert = message; }; });
-    try {
-      await page.locator('#hintBtn').click();
-      assert.equal(await page.evaluate(() => window.testHintAlert), await page.evaluate(() => window.t('noHints')));
-    } finally {
-      await page.evaluate(() => { window.alert = window.testOriginalAlert; delete window.testOriginalAlert; delete window.testHintAlert; });
-    }
+    assert.equal(await page.locator('#hintBtn').isVisible(), false);
   }
 
   await menu.click();

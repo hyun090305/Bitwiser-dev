@@ -26,14 +26,17 @@ test('Extras precedes Chapter 1 without dependencies or changes to demo feature 
   assert.equal(canPlayStage(0, []), true);
 });
 
-test('48 stable nodes match every approved slot, optional tag, parent and chapter gate', () => {
+test('48 stable nodes match every approved slot, parent and chapter gate', () => {
   assert.equal(STAGES.length, 48); assert.equal(map.edges.length, 43);
   assert.deepEqual(CHAPTERS.map(ch => ch.requiredStars), [0,18,36,50,84]);
   for (const chapter of reference.chapters) for (const expected of chapter.nodes) {
     const stage = byKey.get(expected.layoutKey), node = map.nodes.find(n => n.id === stage.nodeId);
     assert.deepEqual(stage.gridPosition, expected.gridPosition);
     assert.deepEqual(node.gridPosition, expected.gridPosition);
-    assert.equal(stage.optional, expected.optional);
+    assert.equal('optional' in stage, false);
+    assert.equal('optional' in node, false);
+    const demoNode = demoMap(map).nodes.find(n => n.id === stage.nodeId);
+    if (demoNode) assert.equal('optional' in demoNode, false);
     assert.equal(stage.chapterId, `chapter_${chapter.chapter}`);
     if (expected.knownLegacyNodeId) assert.equal(stage.nodeId, expected.knownLegacyNodeId);
     assert.equal('prerequisites' in stage, false);

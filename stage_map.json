@@ -249,7 +249,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c1_tutorial",
       "gridPosition": {
@@ -271,7 +270,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c1_not",
       "gridPosition": {
@@ -293,7 +291,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c1_or",
       "gridPosition": {
@@ -315,7 +312,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c1_and",
       "gridPosition": {
@@ -337,7 +333,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c1_xor",
       "gridPosition": {
@@ -359,7 +354,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": true,
       "status": "playable",
       "layoutKey": "c1_nor",
       "gridPosition": {
@@ -381,7 +375,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": true,
       "status": "playable",
       "layoutKey": "c1_nand",
       "gridPosition": {
@@ -394,7 +387,6 @@
       "label": "Register",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 32.5,
@@ -424,7 +416,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": true,
       "status": "playable",
       "layoutKey": "c2_majority",
       "gridPosition": {
@@ -437,7 +428,6 @@
       "label": "Toggle",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 37.5,
@@ -458,7 +448,6 @@
       "label": "2-to-1 MUX",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 32.5,
@@ -479,7 +468,6 @@
       "label": "Fault Register",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 42.5,
@@ -500,7 +488,6 @@
       "label": "Response Check",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 47.5,
@@ -521,7 +508,6 @@
       "label": "Pulse Extender",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 52.5,
@@ -551,7 +537,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": true,
       "status": "playable",
       "layoutKey": "c2_priority",
       "gridPosition": {
@@ -573,7 +558,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": true,
       "status": "playable",
       "layoutKey": "c2_decoder",
       "gridPosition": {
@@ -586,7 +570,6 @@
       "label": "Rising Edge Detector",
       "nodeType": "stage",
       "chapterId": "chapter_2",
-      "optional": true,
       "status": "playable",
       "position": {
         "x": 37.5,
@@ -616,7 +599,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_half",
       "gridPosition": {
@@ -638,7 +620,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_parity",
       "gridPosition": {
@@ -660,7 +641,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_full",
       "gridPosition": {
@@ -682,7 +662,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_adder",
       "gridPosition": {
@@ -704,7 +683,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_multiplier",
       "gridPosition": {
@@ -726,7 +704,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_comparator",
       "gridPosition": {
@@ -748,7 +725,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_max",
       "gridPosition": {
@@ -770,7 +746,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_twos",
       "gridPosition": {
@@ -792,7 +767,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_subtractor",
       "gridPosition": {
@@ -814,7 +788,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_remainder",
       "gridPosition": {
@@ -836,7 +809,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c3_overflow",
       "gridPosition": {
@@ -858,7 +830,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c4_mux",
       "gridPosition": {
@@ -880,7 +851,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c4_shifter",
       "gridPosition": {
@@ -893,7 +863,6 @@
       "label": "Up/Down Counter",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 92.5,
@@ -914,7 +883,6 @@
       "label": "PWM",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 97.5,
@@ -935,7 +903,6 @@
       "label": "Delay Timer",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 102.5,
@@ -956,7 +923,6 @@
       "label": "Debouncer",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 92.5,
@@ -977,7 +943,6 @@
       "label": "Round-Robin Arbiter",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 97.5,
@@ -998,7 +963,6 @@
       "label": "ABBA Detector",
       "nodeType": "stage",
       "chapterId": "chapter_4",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 102.5,
@@ -1028,7 +992,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c4_fixedxor",
       "gridPosition": {
@@ -1050,7 +1013,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c4_fixeddecoder",
       "gridPosition": {
@@ -1072,7 +1034,6 @@
         "w": 4,
         "h": 4
       },
-      "optional": false,
       "status": "playable",
       "layoutKey": "c4_cross",
       "gridPosition": {
@@ -1085,7 +1046,6 @@
       "label": "Register Bank",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 122.5,
@@ -1106,7 +1066,6 @@
       "label": "Undo Register",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 127.5,
@@ -1127,7 +1086,6 @@
       "label": "Mailbox",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 132.5,
@@ -1148,7 +1106,6 @@
       "label": "Stack",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 137.5,
@@ -1169,7 +1126,6 @@
       "label": "Queue",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 132.5,
@@ -1190,7 +1146,6 @@
       "label": "Serial Receiver",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 122.5,
@@ -1211,7 +1166,6 @@
       "label": "Serial Transmitter",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 127.5,
@@ -1232,7 +1186,6 @@
       "label": "Accumulator",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 122.5,
@@ -1253,7 +1206,6 @@
       "label": "Divider",
       "nodeType": "stage",
       "chapterId": "chapter_5",
-      "optional": false,
       "status": "playable",
       "position": {
         "x": 127.5,

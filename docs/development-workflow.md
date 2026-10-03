@@ -64,6 +64,7 @@ git diff --check
 | 문서·Issue/PR 템플릿만 변경 | 링크·소스 경로·명령 존재, front matter 및 필수 항목, `git diff --check` |
 | JS·회로·데이터 동작 | `npm test` |
 | 공통 UI/모듈·카탈로그·체험판 | `npm run build:demo`; 별도 터미널에서 `npm run preview:demo`를 켜고 `npm run test:demo:browser` |
+| 첫 플레이 UX·튜토리얼·힌트·비용 상세 | `npm run build:demo` 후 `npm run test:ux:browser`, `npm run test:ux:electron` — 한영 입력 클릭·복구·힌트 대기시간 격리·비용 갱신·오류 위치/소멸·접힌 결과와 재진입·좁은 화면/reduced motion |
 | D·메모리·스테이지 데이터 | `npm run test:memory:browser`, `npm run test:stages:browser`; 메모리 20문제 변경은 `npm run test:memory20`, `npm run test:memory20:browser`도 선택 |
 | 안내 배치·재생 제어 | `npm run build:demo` 후 `node scripts/verify-playback-status.mjs` 및 `node scripts/verify-playback-status.mjs --electron` — 한영/화면 폭별 실제 진입점의 표시 시간·좌표·자동/수동 재생 검사 |
 | 문제 안내·맵 표시 | `npm run build:demo` 후 `node scripts/verify-concise-ui.mjs` 및 `node scripts/verify-concise-ui.mjs --electron` — 한영 전체 문안·규칙·도움말, 좁은 화면의 넘침, 우측 별과 대칭 전환 바, 잠김/체험판 표시 검사 |

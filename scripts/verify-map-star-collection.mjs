@@ -111,7 +111,7 @@ try {
     for (const [index,tier] of scenario.grades.entries()) {
       await page.evaluate(async circuit => (await import('./src/modules/grid.js')).getPlayController().restoreCircuit(circuit), circuits[tier]);
       await page.locator('#gradeButton').click(); await page.locator(result).waitFor({state:'visible'});
-      if (index < scenario.grades.length - 1) await page.locator(surface === 'demo' && scenario.closeFirst ? '#demoDialogActions button:last-child' : result+' .modal-buttons button:first-child').click();
+      if (index < scenario.grades.length - 1) await page.locator(surface === 'demo' && scenario.closeFirst ? '#demoDialogActions button:last-child' : surface === 'demo' ? '#demoDialogActions .demo-result-design' : '#clearedDesignBtn').click();
     }
     await page.evaluate(() => {
       window.collectionTrace = []; window.traceUntil = performance.now()+2500;
@@ -167,7 +167,7 @@ try {
     const final = Math.max(scenario.before,...scenario.grades);
     assert.equal(Number(await page.locator('.chapter-total-star-value').innerText()),final);
     assert.match(await page.locator('#chapterTotalStars').getAttribute('aria-label'),new RegExp(`${final}$`));
-    assert.equal(await page.getByRole('status',{name:new RegExp(`${lang==='ko'?'누적 별':'Total stars'}: ★ ${final}$`)}).count(),1);
+    assert.equal(await page.getByRole('status',{includeHidden:scenario.cancel==='stage',name:new RegExp(`${lang==='ko'?'누적 별':'Total stars'}: ★ ${final}$`)}).count(),1);
     assert.equal(await page.locator('.map-collect-star').count(),0);
     if (!scenario.cancel) {
       assert.deepEqual([...new Set(trace.flatMap(frame => frame.flights.map(flight=>flight.index)))].sort(),scenario.indices);

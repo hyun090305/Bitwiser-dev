@@ -3081,32 +3081,8 @@ body.system-menu-open {
   background-color: #e6ffe6;
 }
 
-#hintButtons {
-  display: flex;
-  justify-content: center;
-  flex-wrap: wrap;
-}
-
-/* Hint modal buttons */
-#hintButtons button {
-  width: 100px;
-  height: 100px;
-  font-size: 1rem;
-  margin: 0.25rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-#hintButtons .lock-icon {
-  margin-top: 0.25rem;
-}
-#hintButtons button.open {
-  background-color: #87CEFA;
-}
-#hintButtons button.available {
-  background-color: #90EE90;
-}
+#hintButtons { display:flex; flex-direction:column; gap:8px; }
+#hintButtons button { width:100%; height:auto; box-sizing:border-box; margin:0; font-size:1rem; text-align:left; }
 
 #hintTimerContainer {
   display: flex;
@@ -4271,16 +4247,18 @@ body.lab-mode-active {
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-width: 280px;
-  max-width: 420px;
+  min-width: 0;
+  width: max-content;
+  max-width: min(420px, calc(100% - 28px));
   padding: 12px 14px;
   border-radius: 12px;
   background: linear-gradient(180deg, rgba(255,255,255,0.03), rgba(20,26,36,0.96));
   color: #f8fafc;
   box-shadow: 0 18px 48px rgba(2,6,23,0.7), inset 0 1px 0 rgba(255,255,255,0.02);
   border: 1px solid rgba(148,163,184,0.06);
-  pointer-events: auto;
+  pointer-events: none;
 }
+.tutorial-mission-overlay[data-step^="input-"] { top:0; padding:8px 12px; }
 .tutorial-mission-overlay .tutorial-mission-title.single {
   margin: 0;
   font-size: 0.98rem;
@@ -4450,6 +4428,9 @@ body.lab-mode-active {
 .memory-playback-host .tutorial-mission-overlay {
   top: calc(var(--circuit-status-height) + 18px);
 }
+.memory-playback-host .tutorial-mission-overlay[data-step^="input-"] {
+  top: calc(var(--circuit-status-height) - 26px);
+}
 .memory-playback-bar {
   position: relative;
   z-index: 4;
@@ -4557,6 +4538,10 @@ body.lab-mode-active {
 .cost-board { width:100%; padding:10px 4px; box-sizing:border-box; text-align:left; font-variant-numeric:tabular-nums; }
 .cost-label { display:block; font-size:13px; opacity:.8; }
 .cost-total { display:block; font-size:30px; line-height:1.2; color:var(--accent-color, #82e7d1); }
+.cost-total-trigger { display:block; padding:0; border:0; background:transparent; font:inherit; cursor:pointer; }
+.cost-total-trigger:focus-visible { outline:2px solid #82e7d1; outline-offset:4px; border-radius:3px; }
+.cost-total-detail { position:fixed; z-index:3200; width:max-content; max-width:calc(100vw - 16px); box-sizing:border-box; padding:7px 10px; border:1px solid #496078; border-radius:7px; color:#e5edf8; background:#101b2e; font:500 12px/1.4 system-ui,sans-serif; box-shadow:0 6px 20px #02061788; pointer-events:none; }
+.cost-total-detail[hidden] { display:none !important; }
 .cost-best, .cost-target { font-size:12px; margin:8px 0; overflow-wrap:anywhere; }
 .cost-target, .cost-best-stars { display:flex; align-items:center; flex-wrap:wrap; gap:8px; }
 .cost-star-badge { display:inline-flex; flex-shrink:0; gap:2px; vertical-align:middle; }
@@ -4613,7 +4598,11 @@ body.lab-mode-active {
 /* The card owns a reserved area; reward motion never reflows rankings/actions. */
 .blueprint-share { min-width:0; }
 .cost-performance:has(.blueprint-share) > .cost-clear, #clearedModal:has(.blueprint-share) #clearedTitle, .cost-dialog:has(.blueprint-share) #demoDialogTitle { display:none; }
-#clearedModal:has(.blueprint-share) .modal-buttons, .cost-dialog:has(.blueprint-share) #demoDialogActions { position:sticky; bottom:0; z-index:3; background:#0c1524; padding:12px 0; margin-top:16px; }
+#clearedModal:has(.blueprint-share) .modal-buttons, .cost-dialog:has(.blueprint-share) #demoDialogActions { display:flex; flex-wrap:wrap; justify-content:flex-start; gap:8px; padding:12px 24px; margin:0; background:#f1f5f9; border-top:1px solid #e2e8f0; }
+#clearedModal .modal-buttons .result-primary, .cost-dialog #demoDialogActions .result-primary { background:#166778; border-color:#166778; color:#fff; }
+.blueprint-sharing { margin-top:14px; }
+.blueprint-sharing summary { width:fit-content; padding:8px 0; font-size:13px; cursor:pointer; }
+.blueprint-sharing summary:focus-visible { outline:2px solid #82e7d1; outline-offset:3px; }
 .blueprint-share [hidden] { display:none !important; }
 .blueprint-card { background:#fff; color:#0f172a; border-radius:12px; overflow:hidden; position:relative; }
 .blueprint-header { position:relative; min-height:152px; padding:24px; box-sizing:border-box; display:grid; grid-template-columns:minmax(0,1fr) auto; gap:12px; align-content:start; }
@@ -4828,6 +4817,10 @@ body.lab-mode-active {
   box-shadow: 0 8px 20px #020617aa;
   z-index: 2;
 }
+.circuit-diagnostics button { display:block; width:100%; padding:7px 4px; border:0; border-bottom:1px solid #a8874644; background:transparent; color:inherit; font:inherit; text-align:left; cursor:pointer; }
+.circuit-diagnostics button:hover { background:#253449; }
+.circuit-diagnostics button:focus-visible { outline:2px solid #7dd3fc; outline-offset:-2px; }
+.circuit-diagnostics p { margin:4px 0; }
 .circuit-edit-notice {
   grid-column: 2;
   grid-row: 1;
@@ -4863,6 +4856,14 @@ body.lab-mode-active {
 .map-star-collection { position: fixed; inset: 0; z-index: 20; pointer-events: none; }
 .map-collect-star { position: absolute; left: 0; top: 0; pointer-events: none; transform-origin: 50% 47.0588%; filter: drop-shadow(0 0 3px rgba(247, 215, 130, .45)); }
 body.lab-mode-active .chapter-total-stars { display: none; }
+.hint-panel { width:min(480px,calc(100vw - 24px)); max-height:calc(100dvh - 24px); overflow:auto; box-sizing:border-box; background:#101b2e; color:#e5edf8; border:1px solid #496078; border-radius:14px; }
+.hint-panel h2 { color:#f8fafc; }
+.hint-panel button { background:#172b42; color:#e5edf8; border:1px solid #496078; border-radius:8px; padding:10px 12px; font:inherit; cursor:pointer; }
+.hint-panel button:disabled { opacity:.45; cursor:default; }
+.hint-panel button[aria-expanded=true] { background:#21445b; border-color:#82e7d1; }
+.hint-panel button:focus-visible { outline:2px solid #82e7d1; outline-offset:3px; }
+#hintMessage { margin:14px 0; padding:14px; border:1px solid #3e6077; border-radius:8px; background:#172238; line-height:1.65; text-align:left; white-space:pre-line; }
+#hintMessage[hidden], #hintTimerContainer[hidden], #adHintBtn[hidden], #hintBtn[hidden] { display:none !important; }
 .chapter-result-unlock { color: var(--accent-color, #8fd9ef); font-weight: 700; }
 .chapter-lock-overlay.is-unlocking { animation: chapter-unlock-fade 900ms linear forwards; }
 .is-unlocking .chapter-lock-shackle { animation: chapter-unlock-shackle 900ms linear forwards; transform-origin: 34px 22px; }

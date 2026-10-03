@@ -15,11 +15,15 @@ export function canConnect(circuit, startId, endId) {
   return connectionDiagnostics(circuit, startId, endId).length === 0;
 }
 
+function blockLabel(block) {
+  return block.name && block.name !== block.type ? `${block.type} ${block.name}` : block.type;
+}
+
 export function wireStartDiagnostic(block) {
   if (block?.type !== 'OUTPUT') return null;
   return { code: 'OUTPUT_SOURCE', blockId: block.id,
-    message: `OUTPUT ${block.name || block.id}: 출력에서 도선을 시작할 수 없습니다.`,
-    messageEn: `OUTPUT ${block.name || block.id}: cannot start a wire here.` };
+    message: `${blockLabel(block)}: 출력에서 도선을 시작할 수 없습니다.`,
+    messageEn: `${blockLabel(block)}: cannot start a wire here.` };
 }
 
 export function connectionDiagnostics(circuit, startId, endId) {
@@ -97,8 +101,8 @@ export function validateConnections(circuit, { complete = true } = {}) {
     const start = circuit.blocks[wire.startBlockId], end = circuit.blocks[wire.endBlockId];
     const startDiagnostic = wireStartDiagnostic(start);
     if (startDiagnostic) diagnostics.push({ ...startDiagnostic, wireId: id });
-    if (end.type === 'INPUT') fail('INPUT_TARGET', end.id, `INPUT ${end.name || end.id}: 입력으로 도선을 연결할 수 없습니다.`, `INPUT ${end.name || end.id}: cannot receive a wire.`, { wireId: id });
-    if (start.id === end.id && start.type !== 'D') fail('SELF_CONNECTION', start.id, `${start.type} ${start.name || start.id}: D만 자기 연결할 수 있습니다.`, `${start.type} ${start.name || start.id}: only D permits self-feedback.`, { wireId: id });
+    if (end.type === 'INPUT') fail('INPUT_TARGET', end.id, `${blockLabel(end)}: 입력으로 도선을 연결할 수 없습니다.`, `${blockLabel(end)}: cannot receive a wire.`, { wireId: id });
+    if (start.id === end.id && start.type !== 'D') fail('SELF_CONNECTION', start.id, `${blockLabel(start)}: D만 자기 연결할 수 있습니다.`, `${blockLabel(start)}: only D permits self-feedback.`, { wireId: id });
     if (!incoming.has(wire.endBlockId)) incoming.set(wire.endBlockId, []);
     incoming.get(wire.endBlockId).push(wire);
   }
@@ -111,12 +115,12 @@ export function validateConnections(circuit, { complete = true } = {}) {
     }
     const wires = incoming.get(id) || [];
     if (wires.length > maxInputs(block.type)) {
-      fail('TOO_MANY_INPUTS', id, `${block.type} ${block.name || id}: 입력은 최대 ${maxInputs(block.type)}개입니다.`, `${block.type} ${block.name || id}: at most ${maxInputs(block.type)} input wires.`, { excess: wires.length - maxInputs(block.type) });
+      fail('TOO_MANY_INPUTS', id, `${blockLabel(block)}: 입력은 최대 ${maxInputs(block.type)}개입니다.`, `${blockLabel(block)}: at most ${maxInputs(block.type)} input wires.`, { excess: wires.length - maxInputs(block.type) });
     }
     const required = block.type === 'D' ? 1 : maxInputs(block.type);
     if (complete && wires.length < required) fail(block.type === 'D' ? 'MISSING_D_INPUT' : 'MISSING_INPUT', id,
-      `${block.type} ${block.name || id}: 입력 ${required}개가 필요합니다. (미완성)`,
-      `${block.type} ${block.name || id}: needs ${required} input wire(s). (Incomplete)`);
+      `${blockLabel(block)}: 입력 ${required - wires.length}개 부족`,
+      `${blockLabel(block)}: ${required - wires.length} input${required - wires.length === 1 ? '' : 's'} missing`, { missing: required - wires.length });
     if (block.type !== 'D') continue;
     if (wires.length && (wires.filter(w => w.inputRole === 'D').length !== 1 ||
       wires.filter(w => w.inputRole === 'EN').length !== wires.length - 1 ||

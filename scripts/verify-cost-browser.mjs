@@ -39,6 +39,7 @@ const fixture=async(id,tier=3)=>JSON.parse(await fs.readFile(`tests/fixtures/dem
 const modulePath=()=>new URL(page.url()).pathname.startsWith('/dist-web-demo')?'./src':'/src';
 async function restore(id,tier=3){await page.evaluate(async({c,path})=>{(await import(path+'/modules/grid.js')).getPlayController().restoreCircuit(c);},{c:await fixture(id,tier),path:modulePath()});}
 async function hoverPalette(label,canvasId='bgCanvas'){
+  await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
   const point=await page.evaluate(({label,canvasId})=>{
     const point=window.paletteSamples[`${canvasId}:${label}`],bounds=document.getElementById(canvasId).getBoundingClientRect();
     return {x:bounds.left+point.x*bounds.width,y:bounds.top+point.y*bounds.height};
@@ -77,6 +78,9 @@ try {
   assert.equal(await page.locator('#clearedModal .cost-stars svg').count(),3);
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.doesNotMatch(await page.locator('#clearedModal .cost-stars').innerText(),/[★☆]/);
+  assert.equal(await page.locator('#clearedModal .cost-ranking').isVisible(),false);
+  await page.locator('#clearedModal .cost-ranking-toggle').click();
+  assert.equal(await page.locator('#clearedModal .cost-ranking').isVisible(),true);
   assert.match(await page.locator('#clearedModal').innerText(),/연결되지 않았습니다/);
   assert.equal(await page.locator('#clearedMapBtn').isEnabled(),true);
   assert.equal(await page.locator('#clearedMapBtn').innerText(),'맵으로 돌아가기');
@@ -107,6 +111,7 @@ try {
   await page.evaluate(()=>{window.currentLang='ko';});
   await page.locator('#gradeButton').click();await page.locator('#clearedModal').waitFor({state:'visible'});
   // Common ranking UI: async states, own row beyond page one, ties, no unsafe HTML.
+  await page.locator('#clearedModal .cost-ranking-toggle').click();
   await page.evaluate(async()=>{
     const {renderCostRanking}=await import('/src/modules/costUI.js');
     const {rankCostEntries}=await import('/src/modules/costLeaderboard.js');
@@ -175,7 +180,10 @@ try {
   assert.equal(await page.locator('.cost-total').innerText(),amount);
   await page.locator('#gradeButton').click();await page.locator('#demoDialog[open]').waitFor();
   assert.equal(await page.locator('#demoDialog .cost-result-total').innerText(),amount);
+  assert.equal(await page.locator('#demoDialog .cost-ranking').isVisible(),false);
+  await page.locator('#demoDialog .cost-ranking-toggle').click();
   assert.match(await page.locator('#demoDialog').innerText(),/정식판에서/);
+  await page.locator('#demoDialog .cost-ranking-toggle').click();
   const saved=await page.evaluate(()=>JSON.parse(localStorage.getItem('bitwiser:web-demo:v1')));
   assert.equal(saved.stages[1].best.totalCost,Number(amount));assert.equal(saved.stages[1].best.stars,3);
   await page.screenshot({path:'test-results/cost/demo-result.png'});
@@ -200,6 +208,8 @@ try {
   assert.equal(await page.locator('.cost-breakdown').count(),0);
   assert.equal(await page.locator('#demoDialog .cost-goal').count(),0);
   await page.locator('#demoDialog .blueprint-share[data-state=ready]').waitFor();
+  assert.equal(await page.locator('#demoDialog .blueprint-sharing').getAttribute('open'),null);
+  await page.locator('#demoDialog .blueprint-sharing summary').click();
   assert.equal(await page.locator('#demoDialog .blueprint-copy').isEnabled(), true);
   await page.locator('#demoDialog').getByRole('button',{name:'닫기',exact:true}).click();
   assert.equal(await page.evaluate(()=>window.isGradingResultOpen),false);

@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><base href="/"><title>Hint cooldown isolation</title>
+<link rel="stylesheet" href="/style.css">
+<button id="hintBtn">Hints</button>
+<div id="hintModal" class="modal" style="display:none"><div class="modal-content hint-panel">
+  <div id="hintButtons"></div><div id="hintMessage" hidden></div>
+  <div id="hintTimerContainer"><span id="nextHintTimer"></span><button id="adHintBtn">Ad</button></div>
+  <button id="closeHintBtn">Close</button>
+</div></div>
+<script>
+  window.hintReads=[];window.hintWrites=[];window.hintTimers=new Set();
+  const db={ref:path=>({
+    once:async()=>{hintReads.push(path);return {val:()=>path.startsWith('hintLocks')?Date.now()+48*3600000:path.endsWith('stage6')?1:0};},
+    set:async count=>{hintWrites.push({path,count});}
+  })};
+  window.firebase={auth:()=>({currentUser:{uid:'hint-test'}})};
+  window.t=key=>key;
+  const originalSet=window.setInterval,originalClear=window.clearInterval;
+  window.setInterval=(...args)=>{const id=originalSet(...args);hintTimers.add(id);return id;};
+  window.clearInterval=id=>{hintTimers.delete(id);originalClear(id);};
+</script>
+<script type="module">
+  import {loadStageData} from '/src/modules/levels.js';
+  import {initializeHintUI,openHintModal} from '/src/modules/hints.js';
+  import {setHintProgress,setHintCooldown,getHintCooldown} from '/src/modules/storage.js';
+  const lang=new URLSearchParams(location.search).get('lang')||'ko';window.currentLang=lang;document.documentElement.lang=lang;
+  await loadStageData(lang);setHintProgress(6,0);setHintProgress(7,0);setHintProgress(25,0);
+  setHintCooldown(Date.now()+24*3600000);window.initialCooldown=getHintCooldown();
+  initializeHintUI();window.openTestHint=openHintModal;window.hintTestReady=true;
+</script></html>

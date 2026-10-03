@@ -20,6 +20,8 @@ const testElectron = Object.create(electron);
 Object.defineProperty(testElectron, 'BrowserWindow', { value: class extends electron.BrowserWindow {
   constructor(options) {
     super({ ...options, show: false, webPreferences: { ...options.webPreferences, backgroundThrottling: false } });
+    // Animation/viewport QA needs a visible document, without stealing focus.
+    if (process.env.BITWISER_TEST_VISIBLE === '1') this.once('ready-to-show', () => this.showInactive());
     global.testWindow = this;
   }
 } });

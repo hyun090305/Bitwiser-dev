@@ -1094,10 +1094,6 @@ function drawNode(ctx, camera, node, status, t = 0, isHovered = false, isPressed
   }
   if (node.gridPosition) {
     ctx.font = `600 ${16 * scale}px 'Noto Sans KR', sans-serif`;
-    if (node.optional) {
-      ctx.textAlign = 'right';
-      ctx.fillText(window.currentLang === 'ko' ? '선택' : 'Optional', topLeft.x + width - paddingX, topLeft.y + 26 * scale);
-    }
     ctx.textAlign = 'center';
     textY = topLeft.y + height * 0.46;
     ctx.font = `700 ${fontSize}px 'Noto Sans KR', sans-serif`;

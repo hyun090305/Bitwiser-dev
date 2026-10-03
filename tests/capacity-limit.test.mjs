@@ -18,7 +18,7 @@ const values = inputs => ['A','B','L'].map(p => 2 * inputs[p + '1'] + inputs[p +
 
 test('486 AC-1/7/8: the existing map slot opens with Chapter 3 access, outside the demo', () => {
   assert.deepEqual(stageById(47), { id:47, nodeId:'overflow_detector', chapterId:'chapter_3',
-    layoutKey:'c3_overflow', gridPosition:{column:4,row:1}, optional:false, status:'playable' });
+    layoutKey:'c3_overflow', gridPosition:{column:4,row:1}, status:'playable' });
   assert.deepEqual(STAGES.map(s => s.id).sort((a,b) => a-b), Array.from({length:48}, (_,i) => i));
   const node = map.nodes.find(n => n.id === 'overflow_detector');
   assert.equal(node.label, 'Capacity Check');

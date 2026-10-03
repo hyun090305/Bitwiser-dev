@@ -3,7 +3,7 @@ import { connectionDiagnostics, editConnectionDiagnostics, wireStartDiagnostic, 
 import { getExecutionState, synchronizeExecution, resetExecution, toggleButton, getEvaluationResult } from './evaluation.js';
 import { createMemoryControls, D_HELP } from '../modules/memoryControls.js';
 import { COST_RULES } from '../modules/circuitCost.js';
-import { snapshotCircuit, getCircuitStats, isValidWirePath, hasValidWireLayout } from './circuitData.js';
+import { snapshotCircuit, getCircuitStats, wirePathDiagnostic, hasValidWireLayout } from './circuitData.js';
 import { CELL, GAP, coord, newWire, newBlock } from './model.js';
 import {
   drawGrid,
@@ -242,7 +242,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const renderOptions = {
     stageId,
     tutorialHighlights: [],
-    tutorialWireGuides: []
+    tutorialWireGuides: [],
+    diagnosticHighlights: []
   };
 
   const state = {
@@ -297,9 +298,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   const redoStack = [];
   let hasInitialSnapshot = false;
   let engineHandle = null;
+  let diagnosticTimer = null;
   const memoryControls = createMemoryControls(circuit, overlayCanvas, {
     executionMode,
     stageId,
+    onDiagnosticSelect: diagnostic => highlightDiagnostic(diagnostic, true),
     // INPUT press is a signal interaction until it actually moves to another
     // cell. A mere drag candidate must not cancel/restart the playback timer.
     isEditing: () => Boolean(state.draggingBlock ||
@@ -313,8 +316,33 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   }
 
   function rejectEdit(diagnostics, report = true) {
-    if (report) memoryControls.showEditRejection(diagnostics);
+    if (report) {
+      memoryControls.showEditRejection(diagnostics);
+      highlightDiagnostic(diagnostics[0]);
+    }
     return false;
+  }
+
+  function highlightDiagnostic(diagnostic, focus = false) {
+    const pos = circuit.blocks[diagnostic?.blockId]?.pos || diagnostic?.cell;
+    if (!pos) { clearTimeout(diagnosticTimer); renderOptions.diagnosticHighlights = []; refreshContent(); return; }
+    // An out-of-bounds attempt marks the nearest grid edge, where it failed.
+    const cell = clampToBounds ? { r: Math.max(0, Math.min(circuit.rows - 1, pos.r)), c: Math.max(0, Math.min(circuit.cols - 1, pos.c)) } : pos;
+    if (focus && camera) {
+      const point = camera.cellToScreenCell(cell), size = CELL * camera.getScale();
+      if (point.x < panelTotalWidth || point.x + size > canvasWidth || point.y < 0 || point.y + size > gridHeight) {
+        camera.pan((panelTotalWidth + canvasWidth) / 2 - point.x - size / 2, gridHeight / 2 - point.y - size / 2);
+      }
+    }
+    renderOptions.diagnosticHighlights = [{ pos: { ...cell }, blockId: diagnostic.blockId }];
+    clearTimeout(diagnosticTimer);
+    refreshContent();
+    diagnosticTimer = setTimeout(() => { renderOptions.diagnosticHighlights = []; diagnosticTimer = null; refreshContent(); }, 3000);
+  }
+
+  function rejectOutsideWire(x, y) {
+    rejectEdit([{ code: 'WIRE_OUTSIDE_GRID', cell: pointerToCell(x, y),
+      message: '도선은 격자 안에서 연결하세요.', messageEn: 'Keep the wire inside the grid.' }]);
   }
 
   function rejectLayout(report = true) {
@@ -1634,16 +1662,15 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   function validLayout(candidate) {
     return hasValidWireLayout(candidate, (r, c) => !clampToBounds || withinBounds(r, c));
   }
-  function isValidWireTrace(trace) {
-    return isValidWirePath(trace, wireValidationContext(), false);
-  }
   function isValidWire(trace) {
+    const spatial = wirePathDiagnostic(trace, wireValidationContext());
+    if (spatial) return rejectEdit([spatial]);
     const start = blockAt(trace[0]), end = blockAt(trace.at(-1));
     if (start && end) {
       const diagnostics = connectionDiagnostics(circuit, start.id, end.id);
       if (diagnostics.length) return rejectEdit(diagnostics);
     }
-    return isValidWirePath(trace, wireValidationContext()) || rejectLayout();
+    return true;
   }
 
   function hasMemoryConnections(drag) {
@@ -1942,6 +1969,8 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
 
   function destroy() {
     stopEngine();
+    clearTimeout(diagnosticTimer);
+    renderOptions.diagnosticHighlights = [];
     paletteCostTooltip?.remove();
     memoryControls.destroy();
     removeBoundEvents();
@@ -2270,6 +2299,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     // Touch release still targets the starting canvas after moving outside it.
     if ((state.wireTrace.length || state.selecting) &&
         (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight)) {
+      if (state.wireTrace.length) rejectOutsideWire(x, y);
       cancelInteraction();
       return;
     }
@@ -2349,8 +2379,10 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
           if (blk && blk.type === 'INPUT') {
             if (blk.inputMode === 'button') toggleButton(circuit, blk.id);
             else blk.value = !blk.value;
-            memoryControls.refresh();
             evaluateCircuit(circuit);
+            memoryControls.refresh();
+            // Signal interaction only: no design snapshot, edit event or tick.
+            document.dispatchEvent(new CustomEvent('bitwiser:inputChanged', { detail: { circuit, blockId: blk.id } }));
             renderContent(
               contentCtx,
               circuit,
@@ -2657,17 +2689,17 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
     if (state.mode === 'wireDrawing' && state.wireTrace.length > 0 && (e.buttons === 1 || e.touches)) {
       state.hoverBlockId = null;
-      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) return true;
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) {
+        rejectOutsideWire(x, y); cancelInteraction(); return false;
+      }
       const cell = pointerToBoundedCell(x, y);
-      if (!cell) return true;
+      if (!cell) { rejectOutsideWire(x, y); cancelInteraction(); return false; }
       const last = state.wireTrace[state.wireTrace.length - 1];
       if (!last || last.r !== cell.r || last.c !== cell.c) {
         state.wireTrace.push(coord(cell.r, cell.c));
-        if (!isValidWireTrace(state.wireTrace)) {
-          const start = blockAt(state.wireTrace[0]), end = blockAt(state.wireTrace.at(-1));
-          const diagnostics = start && end ? connectionDiagnostics(circuit, start.id, end.id) : [];
-          if (diagnostics.length) rejectEdit(diagnostics);
-          else rejectLayout();
+        const diagnostic = wirePathDiagnostic(state.wireTrace, wireValidationContext(), false);
+        if (diagnostic) {
+          rejectEdit([diagnostic]);
           state.wireTrace = [];
           overlayCtx.clearRect(0, 0, canvasWidth, canvasHeight);
           setMode('idle');
@@ -2840,6 +2872,14 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   bindEvent(overlayCanvas, 'touchcancel', cancelInteraction);
 
   function handleDocMove(e) {
+    if (isLocked()) return;
+    if (state.wireTrace.length) {
+      const point = e.touches?.[0] || e;
+      const { x, y } = getPointerPos({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY });
+      if (x < panelTotalWidth || x >= canvasWidth || y < 0 || y >= gridHeight) {
+        rejectOutsideWire(x, y); cancelInteraction();
+      }
+    }
     if (!state.draggingBlock) return;
     if (!e.cancelable) {
       return;
@@ -2859,6 +2899,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     // Canvas releases have already finished in handlePointerUp. Any remaining
     // trace/selection was released outside: discard the preview, not the design.
     if (state.wireTrace.length || state.selecting) {
+      if (state.wireTrace.length) {
+        const point = e.changedTouches?.[0] || e;
+        const { x, y } = getPointerPos({ target: overlayCanvas, clientX: point.clientX, clientY: point.clientY });
+        rejectOutsideWire(x, y);
+      }
       cancelInteraction();
       return;
     }

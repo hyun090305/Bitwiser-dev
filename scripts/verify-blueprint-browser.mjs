@@ -79,6 +79,9 @@ try {
       assert.match(await page.locator('.cost-warning').innerText(),/Local save failed/);
       assert.match(await page.locator('.cost-registration').innerText(),/Submission failed/);
       const canvasCount = await page.locator('.blueprint-preview canvas').count(); assert.equal(canvasCount,1);
+      assert.equal(await page.locator('.cost-ranking').isVisible(),false);
+      assert.equal(await page.locator('.blueprint-sharing').getAttribute('open'),null);
+      await page.locator('.blueprint-sharing summary').click();
       const download=page.waitForEvent('download'); await page.locator('.blueprint-save').click();
       await (await download).saveAs(`${output}/${stars}-download.png`);
     }
@@ -103,7 +106,7 @@ try {
     await page.locator('.blueprint-copy').click(); assert.match(await page.locator('.blueprint-status').innerText(),/Use Save image/);
     // Exact file capability gate and silent cancellation.
     await page.evaluate(()=>{Object.defineProperty(navigator,'canShare',{configurable:true,value:({files})=>files?.[0]?.type==='image/png'});Object.defineProperty(navigator,'share',{configurable:true,value:async({files})=>{window.sharedType=files[0].type;throw new DOMException('Cancelled','AbortError');}});render(2);});
-    await page.locator('.blueprint-share[data-state=ready]').waitFor(); await page.locator('.blueprint-native-share').click();
+    await page.locator('.blueprint-share[data-state=ready]').waitFor(); await page.locator('.blueprint-sharing summary').click(); await page.locator('.blueprint-native-share').click();
     assert.equal(await page.evaluate(()=>window.sharedType),'image/png'); assert.match(await page.locator('.blueprint-status').innerText(),/PNG ready/);
     for (const lang of ['ko','en']) {
       await page.emulateMedia({ reducedMotion:'reduce' }); await page.setViewportSize({width:360,height:800});
@@ -116,7 +119,7 @@ try {
     await page.evaluate(()=>render(1)); await page.setViewportSize({width:800,height:900});
     await page.waitForFunction(()=>document.querySelector('.blueprint-card').dataset.phase==='settled');
     await page.evaluate(()=>render(1)); await page.locator('#back').click(); await page.waitForTimeout(1700); assert.equal(await page.locator('.blueprint-card').count(),0);
-    await page.evaluate(()=>render(1)); await page.locator('.blueprint-include input').uncheck();
+    await page.evaluate(()=>render(1)); await page.locator('.blueprint-sharing summary').click(); await page.locator('.blueprint-include input').uncheck();
     assert.equal(await page.locator('.blueprint-card').getAttribute('data-phase'),'settled');
     // Tutorial has no star/ranking; no threshold still awards exactly the record's one star.
     await page.evaluate(()=>render(0,'en',0)); assert.equal(await page.locator('.cost-stars,.cost-ranking').count(),0);
@@ -161,7 +164,8 @@ try {
         return {bytes:Array.from(new Uint8Array(await result.blob.arrayBuffer())),labels};
       } finally { CanvasRenderingContext2D.prototype.fillText=original; }
     });await fs.writeFile(`${output}/feedback-card.png`,Buffer.from(feedback.bytes));
-    for (const label of ['J1','J2','CLOCK']) assert.ok(feedback.labels.includes(label), `Missing rendered junction label: ${label}`);
+    // Long custom labels may wrap into consecutive text calls.
+    for (const label of ['J1','J2','CLOCK']) assert.ok(feedback.labels.join('').includes(label), `Missing rendered junction label: ${label}`);
     const sizeFailure=await page.evaluate(async()=>{
       const c={rows:10000,cols:10000,blocks:{a:{id:'a',type:'INPUT',pos:{r:0,c:0}},b:{id:'b',type:'OUTPUT',pos:{r:9999,c:9999}}},wires:{}};
       let rejected=false;try{await png.createBlueprintPng({circuit:c,title:'Too large',totalCost:0});}catch{rejected=true;}
