@@ -93,6 +93,20 @@ try {
         },null,{timeout:1500});
         await enter(0);
         assert.equal(await page.locator('.tutorial-mission-overlay').getAttribute('data-step'),'place');
+        const unwired=structuredClone(tutorial);unwired.wires={};await restore(unwired);
+        for(const wire of Object.values(tutorial.wires)) await draw(wire.path.map(({r,c})=>[r,c]));
+        assert.equal(await page.locator('.tutorial-mission-overlay').getAttribute('data-step'),'input-in2');
+        assert.equal(await page.evaluate(async()=>(await import('./src/modules/grid.js')).getPlayController().state.mode),'idle','Completing the wires must enable input clicks');
+        assert.equal(await page.locator('#wireMoveInfo.active').count(),1);
+        assert.equal(await page.locator('#wireStatusInfo.active').count(),0);
+        const drawnDesign=(await read()).design;
+        assert.deepEqual((await read()).inputs,{IN1:false,IN2:false});assert.equal((await read()).output,false);
+        await clickCell(3,1);
+        assert.equal(await page.locator('.tutorial-mission-overlay').getAttribute('data-step'),'input-in1');assert.equal((await read()).output,true);
+        await clickCell(1,1);
+        assert.equal(await page.locator('.tutorial-mission-overlay').getAttribute('data-step'),'grade');assert.equal((await read()).output,false);
+        assert.equal((await read()).tick,0);assert.equal((await read()).design,drawnDesign);
+        const disconnected=structuredClone(tutorial);disconnected.wires={};await restore(disconnected);
         const initial=structuredClone(tutorial);initial.blocks.a.value=true;initial.blocks.b.value=true;
         await restore(initial);
         assert.equal(await page.locator('.tutorial-mission-overlay').getAttribute('data-step'),'input-in2');
@@ -235,7 +249,7 @@ try {
         assert.equal(await result.locator('.blueprint-sharing').getAttribute('open'),null);
         await result.locator('.result-primary').click();await page.locator('#stageMapCanvas').waitFor({state:'visible'});
         assert.deepEqual(errors,[]);assert.deepEqual(await page.evaluate(()=>alerts),[]);
-        report.push(`${surface}/${lang}: tutorial clicks/rollback, free hints/cooldown isolation, cost, temporary errors, collapsed result/re-entry/narrow/reduced motion`);
+        report.push(`${surface}/${lang}: wire-tool completion switches mode/buttons, tutorial clicks/rollback without design/tick changes, free hints/cooldown isolation, cost, temporary errors, collapsed result/re-entry/narrow/reduced motion`);
         if(!native) {
           await page.goto(`${base}/tests/hint-harness.html?lang=${lang}`);await page.waitForFunction(()=>window.hintTestReady===true);
           await page.evaluate(()=>openTestHint(25));
@@ -247,7 +261,7 @@ try {
           const locks=await page.evaluate(()=>hintReads.filter(path=>path.startsWith('hintLocks')).length);
           await page.locator('#hint-step-1').click();
           assert.equal(await page.evaluate(async()=>(await import('/src/modules/storage.js')).getHintProgress(6)),2);
-          assert.equal(await page.evaluate(()=>hintWrites.some(w=>w.path==='hintProgress/hint-test/stage6'&&w.count===2)),true);
+          await page.waitForFunction(()=>hintServer['hintProgress/hint-test/stage6']===2);
           await page.evaluate(()=>openTestHint(7));await page.locator('#hint-step-0').click();
           assert.equal(await page.locator('#hint-step-1').isEnabled(),true);
           assert.equal(await page.evaluate(()=>hintReads.filter(path=>path.startsWith('hintLocks')).length),locks);
@@ -255,7 +269,52 @@ try {
           assert.equal(await page.evaluate(async()=>(await import('/src/modules/storage.js')).getHintCooldown()===initialCooldown),true);
           await page.evaluate(()=>document.dispatchEvent(new Event('bitwiser:stageReady')));
           assert.equal(await page.locator('#hintModal').isVisible(),false);assert.equal(await page.evaluate(()=>hintTimers.size),0);
+          await page.evaluate(async()=>{
+            (await import('/src/modules/storage.js')).setHintProgress(6,0);
+            hintServer['hintProgress/hint-test/stage6']=2;holdHintReads=true;holdHintTransactions=true;openTestHint(6);
+          });
+          await page.locator('#hint-step-0').click();
+          assert.equal(await page.locator('#hintMessage').isVisible(),true,'Viewing the hint must not wait for the account');
+          assert.equal(await page.locator('#hint-step-1').isEnabled(),true);
+          assert.equal(await page.evaluate(()=>hintServer['hintProgress/hint-test/stage6']),2,'Clicking before the account read must not reduce stored progress');
+          assert.equal(await page.evaluate(()=>pendingHintReads.length),1);
+          assert.equal(await page.evaluate(()=>pendingHintTransactions.length),1);
+          await page.evaluate(()=>releaseHintReads());
+          await page.waitForFunction(async()=>(await import('/src/modules/storage.js')).getHintProgress(6)===2);
+          await page.evaluate(()=>releaseHintTransactions());
+          await page.waitForFunction(()=>hintWrites.at(-1)?.path==='hintProgress/hint-test/stage6'&&hintWrites.at(-1).count===2);
+          assert.equal(await page.evaluate(()=>hintServer['hintProgress/hint-test/stage6']),2);
+
+          // Rapid clicks can complete their saves in reverse order; a stale read must not undo either save.
+          await page.locator('#closeHintBtn').click();
+          await page.evaluate(async()=>{
+            (await import('/src/modules/storage.js')).setHintProgress(6,0);
+            hintServer['hintProgress/hint-test/stage6']=0;openTestHint(6);
+          });
+          await page.locator('#hint-step-0').click();await page.locator('#hint-step-1').click();
+          assert.equal(await page.locator('#hintMessage').isVisible(),true);
+          assert.equal(await page.evaluate(()=>pendingHintTransactions.length),2);
+          await page.evaluate(()=>releaseHintTransactions(true));
+          await page.waitForFunction(()=>hintServer['hintProgress/hint-test/stage6']===2);
+          await page.evaluate(()=>releaseHintReads());
+          await page.waitForFunction(async()=>(await import('/src/modules/storage.js')).getHintProgress(6)===2);
+
+          // A retry sees another client's higher value, and late acknowledgements cannot reopen a closed modal.
+          await page.locator('#closeHintBtn').click();
+          await page.evaluate(async()=>{
+            (await import('/src/modules/storage.js')).setHintProgress(6,0);
+            hintServer['hintProgress/hint-test/stage6']=0;openTestHint(6);
+          });
+          await page.locator('#hint-step-0').click();
+          await page.evaluate(()=>{hintServer['hintProgress/hint-test/stage6']=2;document.dispatchEvent(new Event('bitwiser:stageReady'));releaseHintTransactions();releaseHintReads();});
+          await page.waitForFunction(async()=>(await import('/src/modules/storage.js')).getHintProgress(6)===2);
+          assert.equal(await page.locator('#hintModal').isVisible(),false);assert.equal(await page.evaluate(()=>hintTimers.size),0);
+          assert.equal(await page.evaluate(()=>hintServer['hintProgress/hint-test/stage6']),2);
+          assert.equal(await page.evaluate(()=>hintWrites.filter(w=>w.path.startsWith('hintProgress')).every(w=>w.method==='transaction')),true);
+          assert.equal(await page.evaluate(()=>hintWrites.some(w=>w.path.startsWith('hintLocks'))),false);
+          assert.equal(await page.evaluate(async()=>(await import('/src/modules/storage.js')).getHintCooldown()===initialCooldown),true);
           report.push(`${surface}/${lang}: signed-in remote progress retained; Chapter 1 neither reads nor writes the global account lock; other-chapter cooldown and timer cleanup retained`);
+          report.push(`${surface}/${lang}: delayed account read, immediate hints during delayed saves, reversed save order, transaction retry and closed-modal acknowledgement retained monotonic progress`);
         }
         if(!native)await context.close();
       }

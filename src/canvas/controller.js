@@ -1989,9 +1989,11 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
     }
   }
 
-  bindEvent(moveBtn, 'click', () => {
+  function activateMoveTool() {
     setMode('idle');
-  });
+  }
+
+  bindEvent(moveBtn, 'click', activateMoveTool);
 
   bindEvent(wireBtn, 'click', () => {
     setMode(state.mode === 'wireDrawing' ? 'idle' : 'wireDrawing');
@@ -3062,6 +3064,7 @@ export function createController(canvasSet, circuit, ui = {}, options = {}) {
   return {
     stageId,
     restoreCircuit: restoreDesign,
+    activateMoveTool,
     state,
     circuit,
     tickRunner: memoryControls.runner,

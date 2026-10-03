@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ko"><meta charset="utf-8"><base href="/"><title>Hint cooldown isolation</title>
+<html lang="ko"><meta charset="utf-8"><base href="/"><title>Hint progress and cooldown isolation</title>
 <link rel="stylesheet" href="/style.css">
 <button id="hintBtn">Hints</button>
 <div id="hintModal" class="modal" style="display:none"><div class="modal-content hint-panel">
@@ -9,9 +9,31 @@
 </div></div>
 <script>
   window.hintReads=[];window.hintWrites=[];window.hintTimers=new Set();
+  window.hintServer={'hintProgress/hint-test/stage6':1};
+  window.holdHintReads=false;window.holdHintTransactions=false;
+  window.pendingHintReads=[];window.pendingHintTransactions=[];
+  window.releaseHintReads=()=>pendingHintReads.splice(0).forEach(resolve=>resolve());
+  window.releaseHintTransactions=(reverse=false)=>{
+    const pending=pendingHintTransactions.splice(0);if(reverse)pending.reverse();pending.forEach(commit=>commit());
+  };
   const db={ref:path=>({
-    once:async()=>{hintReads.push(path);return {val:()=>path.startsWith('hintLocks')?Date.now()+48*3600000:path.endsWith('stage6')?1:0};},
-    set:async count=>{hintWrites.push({path,count});}
+    once:async()=>{
+      hintReads.push(path);
+      const value=hintServer[path]??(path.startsWith('hintLocks')?Date.now()+48*3600000:0);
+      if(holdHintReads&&path.startsWith('hintProgress'))await new Promise(resolve=>pendingHintReads.push(resolve));
+      return {val:()=>value};
+    },
+    set:async count=>{hintServer[path]=count;hintWrites.push({path,count,method:'set'});},
+    transaction:update=>{
+      // Firebase can start from an empty cache, then retry with the current server value.
+      update(null);
+      const commit=()=>{
+        const count=update(hintServer[path]??null);hintServer[path]=count;
+        hintWrites.push({path,count,method:'transaction'});
+        return {committed:true,snapshot:{val:()=>count}};
+      };
+      return holdHintTransactions?new Promise(resolve=>pendingHintTransactions.push(()=>resolve(commit()))):Promise.resolve(commit());
+    }
   })};
   window.firebase={auth:()=>({currentUser:{uid:'hint-test'}})};
   window.t=key=>key;

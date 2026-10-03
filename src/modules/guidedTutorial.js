@@ -34,6 +34,7 @@ export function createGuidedTutorial({ lang = 'en', missionPanel, missionList, g
     return placed && CONNECTIONS.every(([from, to]) => Object.values(circuit.wires).some(w => w.startBlockId === map[from].id && w.endBlockId === map[to].id));
   }
   function prepareExperiment(state) {
+    getPlayController()?.activateMoveTool();
     state.map.IN1.value = false; state.map.IN2.value = false;
     evaluateCircuit(state.circuit); getPlayController()?.refreshVisuals();
   }

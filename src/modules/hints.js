@@ -24,9 +24,20 @@ function cooldown(stage, callback) {
 
 function saveProgress(stage, count) {
   if (localProgress) { localProgress.set(stage, count); return; }
-  setHintProgress(stage, count);
-  const account = user();
-  if (account && database()?.ref) Promise.resolve(database().ref(`hintProgress/${account.uid}/stage${stage}`).set(count)).catch(() => {});
+  setHintProgress(stage, Math.max(getHintProgress(stage), count));
+  const account = user(), run = revision, store = database();
+  if (account && store?.ref) Promise.resolve().then(() =>
+    // The initial account read can still be pending, and Firebase may retry this updater.
+    store.ref(`hintProgress/${account.uid}/stage${stage}`).transaction(old => Math.max(Number(old) || 0, count), undefined, false)
+  ).then(result => {
+    if (!result.committed) return;
+    const saved = Math.max(getHintProgress(stage), Number(result.snapshot.val()) || 0);
+    setHintProgress(stage, saved);
+    if (run === revision && currentHintStage === Number(stage)) {
+      currentHintProgress = Math.max(currentHintProgress, saved);
+      cooldown(stage, until => refresh(until, run));
+    }
+  }).catch(() => {});
 }
 
 function renderButtons(until) {
@@ -111,7 +122,7 @@ export function openHintModal(stage) {
   const account = localProgress ? null : user();
   if (account && database()?.ref) database().ref(`hintProgress/${account.uid}/stage${stage}`).once('value').then(snap => {
     if (run !== revision) return;
-    currentHintProgress = Math.max(currentHintProgress, Number(snap.val()) || 0);
+    currentHintProgress = Math.max(currentHintProgress, getHintProgress(stage), Number(snap.val()) || 0);
     setHintProgress(stage, currentHintProgress); cooldown(stage, until => refresh(until, run));
   }).catch(() => {});
 }
