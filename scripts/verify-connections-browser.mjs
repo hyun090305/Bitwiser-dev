@@ -74,12 +74,11 @@ try {
           await rejected(before,/D/);
           await page.locator('#move').click();await drag([2,4],[3,4]);
           let moved=await read();assert.deepEqual(moved.design.blocks.d.pos,{r:3,c:4});
-          const movedLoop=Object.values(moved.design.wires).find(w=>w.startBlockId===w.endBlockId);
-          assert.deepEqual(movedLoop.path[0],{r:3,c:4});assert.deepEqual(movedLoop.path.at(-1),{r:3,c:4});
-          assert.equal(movedLoop.inputRole,role);assert.equal(moved.tick,1);
+          assert.deepEqual(moved.design.wires,{});assert.equal(moved.tick,1);
           await page.locator('#undo').click();assert.deepEqual((await read()).design,built.design);
           await page.locator('#redo').click();assert.deepEqual((await read()).design,moved.design);
-          await load(selfFeedbackCircuit(role));
+          const collisionCircuit=selfFeedbackCircuit(role);collisionCircuit.blocks.x.fixed=true;
+          await load(collisionCircuit);
           await page.evaluate(async()=>{
             (await import('/src/canvas/evaluation.js')).getExecutionState(testCircuit).memory.set('d',true);
             testCircuit.blocks.x.value=true;

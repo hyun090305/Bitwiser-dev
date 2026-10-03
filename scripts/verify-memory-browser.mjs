@@ -51,9 +51,10 @@ try {
   assert.deepEqual(roles(await read()),{data:'D',enable:'EN'});
   await drag([2,4],[3,4]);
   assert.deepEqual((await read()).design.blocks.memory.pos,{r:3,c:4});
-  assert.deepEqual(roles(await read()),{data:'D',enable:'EN'});assert.equal((await read()).memory.memory,true);
+  assert.deepEqual((await read()).design.wires,{});assert.equal((await read()).memory.memory,true);
   await page.locator('#undo').click();assert.deepEqual((await read()).design.blocks.memory.pos,{r:2,c:4});
-  passed.push('small motion and block drag never swap; routed move preserves connections and Q');
+  assert.deepEqual(roles(await read()),{data:'D',enable:'EN'});
+  passed.push('small motion and block drag never swap; single move detaches wires, retains Q, and Undo restores D/EN');
 
   await page.evaluate(()=>testReset());await click(2,4);
   await page.locator('#del').click();await click(1,4);

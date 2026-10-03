@@ -2,10 +2,19 @@ import fs from 'node:fs/promises';
 import assert from 'node:assert/strict';
 import {chromium} from 'playwright';
 import {observeMap,enterStage,goToMap,openSettings} from './demo-browser-helpers.mjs';
+import {createDemoStore} from '../src/demo/store.js';
 const base=process.env.DEMO_URL||'http://127.0.0.1:8080';
-const progress=JSON.parse(await fs.readFile('test-results/demo-progress.json','utf8'));
-progress.lastStageId=25;
 const fixture=JSON.parse(await fs.readFile('tests/fixtures/demo/25-3.json','utf8')).circuit;
+// The generic demo progress snapshot is saved before Chapter 2 is unlocked.
+// Build valid clear records so this check really enters the memory stage.
+const saved=new Map(),seed=createDemoStore({
+  storage:{getItem:key=>saved.get(key)??null,setItem:(key,value)=>saved.set(key,value)},
+  levels:JSON.parse(await fs.readFile('levels_en.json','utf8')),
+  budgets:JSON.parse(await fs.readFile('dist-web-demo/demo-budgets.json','utf8')),themeIds:['midnight-neon']
+});
+for(const id of [1,2,3,4,5,6,7])seed.recordClear(id,JSON.parse(await fs.readFile(`tests/fixtures/demo/${id}-3.json`,'utf8')).circuit);
+assert.equal(seed.isUnlocked(25),true);seed.acknowledgeChapter('chapter_2');seed.setDraft(25,fixture);
+const progress=seed.state;
 const memoryId=Object.values(fixture.blocks).find(b=>b.type==='D').id;
 const dataWireId=Object.values(fixture.wires).find(w=>w.inputRole==='D').id;
 const browser=await chromium.launch({channel:process.env.BROWSER_CHANNEL||'msedge',headless:true});
@@ -25,6 +34,7 @@ async function clickBlock(id) {
 const step=()=>page.evaluate(async()=>(await import('./src/modules/grid.js')).getPlayController().tickRunner.step());
 try {
   await page.goto(base);await page.locator('#loadingStartBtn').click();await page.locator('#startLevelBtn').click();
+  assert.equal(await page.evaluate(async()=>(await import('./src/modules/levels.js')).getCurrentLevel()),25);
   assert.equal(await page.locator('.memory-controls').count(),0);
   const single=structuredClone(fixture);delete single.wires[Object.keys(single.wires).find(id=>single.wires[id].inputRole==='EN')];
   await page.evaluate(async c=>(await import('./src/modules/grid.js')).getPlayController().restoreCircuit(c),single);
